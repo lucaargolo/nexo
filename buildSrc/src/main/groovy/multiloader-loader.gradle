@@ -19,19 +19,11 @@ configurations {
 }
 
 dependencies {
-    compileOnly(project(':api')) {
-        capabilities {
-            requireCapability "$group:$mod_id"
-        }
-    }
+    compileOnly(project(':api'))
     apiJava project(path: ':api', configuration: 'apiJava')
     apiResources project(path: ':api', configuration: 'apiResources')
 
-    compileOnly(project(':common')) {
-        capabilities {
-            requireCapability "$group:$mod_id"
-        }
-    }
+    compileOnly(project(':common'))
     commonJava project(path: ':common', configuration: 'commonJava')
     commonResources project(path: ':common', configuration: 'commonResources')
 }

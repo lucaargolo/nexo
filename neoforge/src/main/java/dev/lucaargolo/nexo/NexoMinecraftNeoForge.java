@@ -1,0 +1,38 @@
+package dev.lucaargolo.nexo;
+
+import dev.lucaargolo.nexo.api.Identifier;
+import dev.lucaargolo.nexo.api.feature.Block;
+import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Mod(NexoMinecraft.MOD_ID)
+public class NexoMinecraftNeoForge extends NexoMinecraft {
+
+    private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
+
+    public NexoMinecraftNeoForge(IEventBus modBus) {
+        BLOCKS.values().forEach(registry -> registry.register(modBus));
+    }
+
+    @Override
+    public @Nullable <T extends Feature> T add(Identifier id, T feature) {
+        if (feature instanceof Block block) {
+            DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(id.namespace(), DeferredRegister::createBlocks);
+            net.minecraft.world.level.block.Block minecraftBlock = new net.minecraft.world.level.block.Block(BlockBehaviour.Properties.of());
+            DeferredHolder<net.minecraft.world.level.block.Block, ? extends net.minecraft.world.level.block.Block> holder = registry.register(id.path(), () -> minecraftBlock);
+            cacheBlock(id, new MinecraftBlock(holder));
+            return feature;
+        }
+        return null;
+    }
+}
