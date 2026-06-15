@@ -3,6 +3,13 @@ plugins {
 }
 
 configurations {
+    apiJava {
+        canBeResolved = true
+    }
+    apiResources {
+        canBeResolved = true
+    }
+
     commonJava {
         canBeResolved = true
     }
@@ -12,6 +19,14 @@ configurations {
 }
 
 dependencies {
+    compileOnly(project(':api')) {
+        capabilities {
+            requireCapability "$group:$mod_id"
+        }
+    }
+    apiJava project(path: ':api', configuration: 'apiJava')
+    apiResources project(path: ':api', configuration: 'apiResources')
+
     compileOnly(project(':common')) {
         capabilities {
             requireCapability "$group:$mod_id"
@@ -22,23 +37,22 @@ dependencies {
 }
 
 tasks.named('compileJava', JavaCompile) {
-    dependsOn(configurations.commonJava)
-    source(configurations.commonJava)
+    dependsOn(configurations.apiJava, configurations.commonJava)
+    source(configurations.apiJava, configurations.commonJava)
 }
 
 processResources {
-    dependsOn(configurations.commonResources)
-    from(configurations.commonResources)
+    dependsOn(configurations.apiResources, configurations.commonResources)
+    from(configurations.apiResources, configurations.commonResources)
 }
-
 tasks.named('javadoc', Javadoc).configure {
-    dependsOn(configurations.commonJava)
-    source(configurations.commonJava)
+    dependsOn(configurations.apiJava, configurations.commonJava)
+    source(configurations.apiJava, configurations.commonJava)
 }
 
 tasks.named('sourcesJar', Jar) {
-    dependsOn(configurations.commonJava)
-    from(configurations.commonJava)
-    dependsOn(configurations.commonResources)
-    from(configurations.commonResources)
+    dependsOn(configurations.apiJava, configurations.commonJava)
+    from(configurations.apiJava, configurations.commonJava)
+    dependsOn(configurations.apiResources, configurations.commonResources)
+    from(configurations.apiResources, configurations.commonResources)
 }
