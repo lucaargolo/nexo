@@ -4,9 +4,9 @@ import dev.lucaargolo.nexo.api.Identifier;
 import dev.lucaargolo.nexo.api.feature.Block;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -21,7 +21,18 @@ public class NexoMinecraftNeoForge extends NexoMinecraft {
     private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
 
     public NexoMinecraftNeoForge(IEventBus modBus) {
+        this.init();
         BLOCKS.values().forEach(registry -> registry.register(modBus));
+    }
+
+    @Override
+    public String getPlatform() {
+        return "NeoForge";
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return ModList.get().isLoaded(modId);
     }
 
     @Override

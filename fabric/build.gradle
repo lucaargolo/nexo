@@ -35,3 +35,13 @@ loom {
         }
     }
 }
+
+afterEvaluate {
+    tasks.named('generateRemapClasspath') {
+        doLast {
+            def classpathFile = outputs.files.singleFile
+            def testJar = project(':test').tasks.jar.archiveFile.get().asFile
+            classpathFile.text = classpathFile.text + File.pathSeparator + testJar.absolutePath
+        }
+    }
+}

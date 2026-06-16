@@ -36,4 +36,9 @@ neoForge {
     }
 }
 
+
+dependencies {
+    runtimeOnly(project(':test'))
+}
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+

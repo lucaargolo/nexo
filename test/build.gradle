@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = "${mod_id}-testmod"
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation(project(':api'))
+    compileOnly("org.jetbrains:annotations:24.1.0")
+}

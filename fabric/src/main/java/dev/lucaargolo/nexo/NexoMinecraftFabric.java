@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.feature.Block;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,6 +18,17 @@ public class NexoMinecraftFabric extends NexoMinecraft implements ModInitializer
 
     @Override
     public void onInitialize() {
+        this.init();
+    }
+
+    @Override
+    public String getPlatform() {
+        return "Fabric";
+    }
+
+    @Override
+    public boolean isModLoaded(String modId) {
+        return FabricLoader.getInstance().isModLoaded(modId);
     }
 
     @Override
