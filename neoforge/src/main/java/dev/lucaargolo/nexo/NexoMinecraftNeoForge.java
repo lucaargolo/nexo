@@ -18,11 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod(NexoMinecraft.MOD_ID)
 public class NexoMinecraftNeoForge extends NexoMinecraft {
 
+    private final IEventBus modBus;
     private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
 
     public NexoMinecraftNeoForge(IEventBus modBus) {
+        this.modBus = modBus;
         this.init();
-        BLOCKS.values().forEach(registry -> registry.register(modBus));
     }
 
     @Override
@@ -38,9 +39,12 @@ public class NexoMinecraftNeoForge extends NexoMinecraft {
     @Override
     public @Nullable <T extends Feature> T add(Identifier id, T feature) {
         if (feature instanceof Block block) {
-            DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(id.namespace(), DeferredRegister::createBlocks);
-            net.minecraft.world.level.block.Block minecraftBlock = new net.minecraft.world.level.block.Block(BlockBehaviour.Properties.of());
-            DeferredHolder<net.minecraft.world.level.block.Block, ? extends net.minecraft.world.level.block.Block> holder = registry.register(id.path(), () -> minecraftBlock);
+            DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(id.namespace(), ns -> {
+                DeferredRegister.Blocks dr = DeferredRegister.createBlocks(ns);
+                dr.register(modBus);
+                return dr;
+            });
+            DeferredHolder<net.minecraft.world.level.block.Block, ? extends net.minecraft.world.level.block.Block> holder = registry.register(id.path(), () -> new net.minecraft.world.level.block.Block(BlockBehaviour.Properties.of()));
             cacheBlock(id, new MinecraftBlock(holder));
             return feature;
         }
