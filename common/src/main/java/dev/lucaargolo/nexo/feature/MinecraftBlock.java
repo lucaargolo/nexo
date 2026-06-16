@@ -1,12 +1,12 @@
 package dev.lucaargolo.nexo.feature;
 
-import dev.lucaargolo.nexo.api.Identifier;
-import dev.lucaargolo.nexo.api.feature.Block;
+import dev.lucaargolo.nexo.api.feature.IBlock;
 import net.minecraft.core.Holder;
+import net.minecraft.world.level.block.Block;
 
-public class MinecraftBlock extends MinecraftFeature<net.minecraft.world.level.block.Block> implements Block {
+public class MinecraftBlock extends MinecraftFeature<Block> implements IBlock {
 
-    public MinecraftBlock(Holder<net.minecraft.world.level.block.Block> holder) {
+    public MinecraftBlock(Holder<Block> holder) {
         super(holder);
     }
 

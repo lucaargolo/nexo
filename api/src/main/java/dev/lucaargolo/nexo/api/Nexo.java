@@ -1,12 +1,12 @@
 package dev.lucaargolo.nexo.api;
 
-import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import org.jetbrains.annotations.Nullable;
 
 public interface Nexo {
 
-    @Nullable <T extends Feature> T get(Class<T> type, Identifier id);
+    @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location);
 
-    @Nullable <T extends Feature> T add(Identifier id, T feature);
+    @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature);
 
 }

@@ -1,28 +1,26 @@
 package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Identifier;
-import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.Tag;
+import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class MinecraftFeature<T> implements Feature {
+public class MinecraftFeature<T> implements IFeature {
 
-    private final Identifier id;
+    private final Location location;
     private final Holder<T> holder;
 
     protected MinecraftFeature(Holder<T> holder) {
         this.holder = holder;
-        this.id = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
+        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     @Override
-    public @NotNull Identifier id() {
-        return id;
+    public @NotNull Location location() {
+        return location;
     }
 
     @Override

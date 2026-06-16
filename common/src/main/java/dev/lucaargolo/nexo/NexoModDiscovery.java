@@ -1,5 +1,5 @@
 package dev.lucaargolo.nexo;
-import dev.lucaargolo.nexo.api.Mod;
+import dev.lucaargolo.nexo.api.IMod;
 import dev.lucaargolo.nexo.api.Nexo;
 
 import java.io.File;
@@ -18,7 +18,7 @@ import java.util.jar.JarFile;
 
 public abstract class NexoModDiscovery {
 
-    private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/Mod;".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/IMod;".getBytes(StandardCharsets.UTF_8);
     private final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
 
     public abstract void discover(Nexo nexo);
@@ -44,7 +44,7 @@ public abstract class NexoModDiscovery {
         for (Candidate candidate : candidates) {
             Class<?> modClass = loadCandidate(candidate, parentCl);
             if (modClass == null) continue;
-            Mod modAnnotation = modClass.getDeclaredAnnotation(Mod.class);
+            IMod modAnnotation = modClass.getDeclaredAnnotation(IMod.class);
             String modId, name, description, version;
             String[] authors;
             if (modAnnotation != null) {

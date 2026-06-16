@@ -1,9 +1,10 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.Identifier;
-import dev.lucaargolo.nexo.api.feature.Block;
-import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.feature.IBlock;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
@@ -43,16 +44,18 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    public @Nullable <T extends Feature> T add(Identifier id, T feature) {
-        if (feature instanceof Block block) {
-            DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(id.namespace(), ns -> {
+    @SuppressWarnings("unchecked")
+    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature) {
+        if (type.isAssignableFrom(IBlock.class) && feature instanceof IBlock block) {
+            DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(location.namespace(), ns -> {
                 DeferredRegister.Blocks dr = DeferredRegister.createBlocks(ns);
                 dr.register(modBus);
                 return dr;
             });
-            DeferredHolder<net.minecraft.world.level.block.Block, ? extends net.minecraft.world.level.block.Block> holder = registry.register(id.path(), () -> new net.minecraft.world.level.block.Block(BlockBehaviour.Properties.of()));
-            cacheBlock(id, new MinecraftBlock(holder));
-            return feature;
+            DeferredHolder<Block, ? extends Block> holder = registry.register(location.path(), () -> new Block(BlockBehaviour.Properties.of()));
+            MinecraftBlock minecraftBlock = new MinecraftBlock(holder);
+            cacheBlock(location, minecraftBlock);
+            return (T) minecraftBlock;
         }
         return null;
     }

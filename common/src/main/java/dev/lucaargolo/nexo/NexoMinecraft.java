@@ -1,9 +1,9 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.Identifier;
+import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.Block;
-import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.IBlock;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +11,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,8 +20,8 @@ public abstract class NexoMinecraft implements Nexo {
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
-    private static final Map<ResourceLocation, Identifier> ID_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Identifier, MinecraftBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
+    private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Location, MinecraftBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
     private static NexoMinecraft instance;
 
@@ -42,10 +41,10 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @Nullable <T extends Feature> T get(Class<T> type, Identifier id) {
-        if(type.isAssignableFrom(Block.class)) {
-            return (T) BLOCK_CACHE.computeIfAbsent(id, i -> BuiltInRegistries.BLOCK
-                    .getHolder(ResourceLocation.fromNamespaceAndPath(id.namespace(), id.path()))
+    public @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location) {
+        if(type.isAssignableFrom(IBlock.class)) {
+            return (T) BLOCK_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.BLOCK
+                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
                     .map(MinecraftBlock::new)
                     .orElse(null)
             );
@@ -76,12 +75,12 @@ public abstract class NexoMinecraft implements Nexo {
         }
     }
 
-    public static Identifier id(ResourceLocation location) {
-        return ID_CACHE.computeIfAbsent(location, k -> Identifier.of(k.getNamespace(), k.getPath()));
+    public static Location id(ResourceLocation location) {
+        return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
     }
 
-    protected static void cacheBlock(Identifier id, MinecraftBlock block) {
-        BLOCK_CACHE.put(id, block);
+    protected static void cacheBlock(Location location, MinecraftBlock block) {
+        BLOCK_CACHE.put(location, block);
     }
 
 }
