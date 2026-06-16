@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "dev.lucaargolo.nexo.NexoMinecraftFabric"
+      "dev.lucaargolo.nexo.FabricNexoMinecraft"
     ]
   },
   "mixins": [

@@ -1,8 +1,6 @@
 package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,11 +18,12 @@ import java.util.jar.JarFile;
 
 public abstract class NexoModDiscovery {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NexoModDiscovery.class);
     private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/Mod;".getBytes(StandardCharsets.UTF_8);
     private final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
 
     public abstract void discover(Nexo nexo);
+
+    public abstract void finish();
 
     public final Collection<NexoMod> getMods() {
         return mods.values();
@@ -55,7 +54,7 @@ public abstract class NexoModDiscovery {
                 version = modAnnotation.version();
                 authors = modAnnotation.authors();
             } else {
-                LOGGER.warn("Bytecode scan found '{}' but @Mod annotation not readable — using class name as id", modClass.getName());
+                NexoMinecraft.LOGGER.warn("Bytecode scan found '{}' but @Mod annotation not readable — using class name as id", modClass.getName());
                 modId = modClass.getSimpleName().toLowerCase().replace("nexo", "").replace("mod", "");
                 name = modClass.getSimpleName();
                 description = "";
@@ -63,13 +62,13 @@ public abstract class NexoModDiscovery {
                 authors = new String[0];
             }
 
-            LOGGER.info("Discovered Nexo mod '{}' (ID: {}, version: {})", modClass.getName(), modId, version);
+            NexoMinecraft.LOGGER.info("Discovered Nexo mod '{}' (ID: {}, version: {})", modClass.getName(), modId, version);
             discovered++;
             mods.put(modId, new NexoMod(modId, name, description, version, authors, modClass.getName(), candidate.sourceJar));
             instantiateMod(modClass, nexo);
         }
 
-        LOGGER.info("Nexo mod scan complete: {} entries, {} mods discovered", jarPaths.size() + dirPaths.size(), discovered);
+        NexoMinecraft.LOGGER.info("Nexo mod scan complete: {} entries, {} mods discovered", jarPaths.size() + dirPaths.size(), discovered);
     }
 
     protected static void addPath(Path path, Collection<Path> jars, Collection<Path> dirs) {
@@ -93,7 +92,7 @@ public abstract class NexoModDiscovery {
                 return Class.forName(candidate.className, false, classLoader);
             }
         } catch (ClassNotFoundException | NoClassDefFoundError | IOException e) {
-            LOGGER.warn("Discovered Nexo mod class '{}' but failed to load it", candidate.className, e);
+            NexoMinecraft.LOGGER.warn("Discovered Nexo mod class '{}' but failed to load it", candidate.className, e);
             return null;
         }
     }
@@ -110,7 +109,7 @@ public abstract class NexoModDiscovery {
                 ctor.newInstance();
             }
         } catch (Exception e) {
-            LOGGER.warn("Failed to instantiate Nexo mod '{}'", modClass.getName(), e);
+            NexoMinecraft.LOGGER.warn("Failed to instantiate Nexo mod '{}'", modClass.getName(), e);
         }
     }
 

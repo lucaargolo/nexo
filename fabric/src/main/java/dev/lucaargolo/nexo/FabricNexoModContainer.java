@@ -1,6 +1,5 @@
-package dev.lucaargolo.nexo.fabric;
+package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.NexoMod;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
@@ -9,13 +8,13 @@ import net.fabricmc.loader.api.metadata.*;
 import java.nio.file.Path;
 import java.util.*;
 
-public class NexoModContainer implements ModContainer {
+public class FabricNexoModContainer implements ModContainer {
 
     private final NexoMod mod;
     private final ModMetadata metadata;
     private final ModOrigin origin;
 
-    public NexoModContainer(NexoMod mod) {
+    public FabricNexoModContainer(NexoMod mod) {
         this.mod = mod;
         this.metadata = new NexoModMetadata(mod);
         this.origin = new NexoModOrigin(mod);

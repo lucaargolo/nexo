@@ -4,7 +4,6 @@ import dev.lucaargolo.nexo.api.Identifier;
 import dev.lucaargolo.nexo.api.feature.Block;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import dev.lucaargolo.nexo.fabric.NexoModContainer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
@@ -21,39 +20,11 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public class NexoMinecraftFabric extends NexoMinecraft implements ModInitializer {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger("Nexo|FabricRegistration");
+public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
 
     @Override
     public void onInitialize() {
         this.init();
-
-        // Use reflection to directly add discovered Nexo mods into
-        // FabricLoaderImpl's internal modMap and mods list, so they appear
-        // in ModMenu and are visible via isModLoaded().
-        try {
-            FabricLoaderImpl impl = (FabricLoaderImpl) (Object) FabricLoader.getInstance();
-            
-            Field modsField = FabricLoaderImpl.class.getDeclaredField("mods");
-            modsField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            List<Object> mods = (List<Object>) modsField.get(impl);
-            
-            Field modMapField = FabricLoaderImpl.class.getDeclaredField("modMap");
-            modMapField.setAccessible(true);
-            @SuppressWarnings("unchecked")
-            Map<String, Object> modMap = (Map<String, Object>) modMapField.get(impl);
-            
-            for (NexoMod mod : this.getModDiscovery().getMods()) {
-                NexoModContainer container = new NexoModContainer(mod);
-                mods.add(container);
-                modMap.put(container.getMetadata().getId(), container);
-                LOGGER.info("Registered Nexo mod '{}' in FabricLoader internals", container.getMetadata().getId());
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to register Nexo mods in FabricLoader: {}", e.getMessage());
-        }
     }
 
     @Override

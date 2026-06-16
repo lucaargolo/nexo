@@ -8,6 +8,8 @@ import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class NexoMinecraft implements Nexo {
 
     public static final String MOD_ID = "nexo";
+    public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
     private static final Map<ResourceLocation, Identifier> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Identifier, MinecraftBlock> BLOCK_CACHE = new ConcurrentHashMap<>();

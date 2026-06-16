@@ -2,14 +2,18 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.impl.FabricLoaderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class FabricNexoModDiscovery extends NexoModDiscovery {
@@ -50,5 +54,31 @@ public class FabricNexoModDiscovery extends NexoModDiscovery {
         }
 
         discover(nexo, jars, dirs);
+        finish();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void finish() {
+        try {
+            FabricLoaderImpl impl = (FabricLoaderImpl) FabricLoader.getInstance();
+
+            Field modsField = FabricLoaderImpl.class.getDeclaredField("mods");
+            modsField.setAccessible(true);
+            List<Object> mods = (List<Object>) modsField.get(impl);
+
+            Field modMapField = FabricLoaderImpl.class.getDeclaredField("modMap");
+            modMapField.setAccessible(true);
+            Map<String, Object> modMap = (Map<String, Object>) modMapField.get(impl);
+
+            for (NexoMod mod : this.getMods()) {
+                FabricNexoModContainer container = new FabricNexoModContainer(mod);
+                mods.add(container);
+                modMap.put(container.getMetadata().getId(), container);
+                NexoMinecraft.LOGGER.info("Registered Nexo mod '{}' in FabricLoader internals", container.getMetadata().getId());
+            }
+        } catch (Exception e) {
+            NexoMinecraft.LOGGER.error("Failed to register Nexo mods in FabricLoader: {}", e.getMessage());
+        }
     }
 }

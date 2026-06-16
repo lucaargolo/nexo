@@ -1,14 +1,15 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
 
@@ -40,5 +41,52 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
         }
 
         discover(nexo, jars, dirs);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void finish() {
+        try {
+            ModList modList = ModList.get();
+
+            // Replace immutable mods list with mutable copy
+            Field modsField = ModList.class.getDeclaredField("mods");
+            modsField.setAccessible(true);
+            List<Object> modsList = (List<Object>) modsField.get(modList);
+            modsList = new ArrayList<>(modsList);
+            modsField.set(modList, modsList);
+
+            // Replace immutable indexedMods with mutable copy
+            Field indexedModsField = ModList.class.getDeclaredField("indexedMods");
+            indexedModsField.setAccessible(true);
+            Map<String, Object> indexedMods = (Map<String, Object>) indexedModsField.get(modList);
+            indexedMods = new HashMap<>(indexedMods);
+            indexedModsField.set(modList, indexedMods);
+
+            // Replace immutable sortedContainers (what getSortedMods() returns — the mod list screen reads this)
+            Field sortedContainersField = ModList.class.getDeclaredField("sortedContainers");
+            sortedContainersField.setAccessible(true);
+            List<Object> sortedContainers = (List<Object>) sortedContainersField.get(modList);
+            sortedContainers = new ArrayList<>(sortedContainers);
+            sortedContainersField.set(modList, sortedContainers);
+
+            // Also add to sortedList (getMods() for IModInfo access)
+            Field sortedField = ModList.class.getDeclaredField("sortedList");
+            sortedField.setAccessible(true);
+            List<Object> sortedList = (List<Object>) sortedField.get(modList);
+            sortedList = new ArrayList<>(sortedList);
+            sortedField.set(modList, sortedList);
+
+            for (NexoMod mod : this.getMods()) {
+                NeoForgeNexoModContainer container = new NeoForgeNexoModContainer(mod);
+                modsList.add(container);
+                indexedMods.put(mod.modId(), container);
+                sortedContainers.add(container);
+                sortedList.add(container.getModInfo());
+                NexoMinecraft.LOGGER.info("Registered Nexo mod '{}' in NeoForge ModList", mod.modId());
+            }
+        } catch (Exception e) {
+            NexoMinecraft.LOGGER.error("Failed to register Nexo mods in NeoForge ModList", e);
+        }
     }
 }
