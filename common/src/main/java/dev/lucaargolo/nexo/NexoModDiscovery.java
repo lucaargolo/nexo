@@ -1,5 +1,5 @@
 package dev.lucaargolo.nexo;
-
+import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,10 +13,8 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -24,10 +22,13 @@ public abstract class NexoModDiscovery {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NexoModDiscovery.class);
     private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/Mod;".getBytes(StandardCharsets.UTF_8);
-
-    private record Candidate(String className, Path sourceJar) {}
+    private final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
 
     public abstract void discover(Nexo nexo);
+
+    public final Collection<NexoMod> getMods() {
+        return mods.values();
+    }
 
     protected final void discover(Nexo nexo, Collection<Path> jarPaths, Collection<Path> dirPaths) {
         ClassLoader parentCl = NexoModDiscovery.class.getClassLoader();
@@ -44,9 +45,27 @@ public abstract class NexoModDiscovery {
         for (Candidate candidate : candidates) {
             Class<?> modClass = loadCandidate(candidate, parentCl);
             if (modClass == null) continue;
+            Mod modAnnotation = modClass.getDeclaredAnnotation(Mod.class);
+            String modId, name, description, version;
+            String[] authors;
+            if (modAnnotation != null) {
+                modId = modAnnotation.value();
+                name = modAnnotation.name();
+                description = modAnnotation.description();
+                version = modAnnotation.version();
+                authors = modAnnotation.authors();
+            } else {
+                LOGGER.warn("Bytecode scan found '{}' but @Mod annotation not readable — using class name as id", modClass.getName());
+                modId = modClass.getSimpleName().toLowerCase().replace("nexo", "").replace("mod", "");
+                name = modClass.getSimpleName();
+                description = "";
+                version = "0.0.0";
+                authors = new String[0];
+            }
 
-            LOGGER.info("Discovered Nexo mod '{}'", modClass.getName());
+            LOGGER.info("Discovered Nexo mod '{}' (ID: {}, version: {})", modClass.getName(), modId, version);
             discovered++;
+            mods.put(modId, new NexoMod(modId, name, description, version, authors, modClass.getName(), candidate.sourceJar));
             instantiateMod(modClass, nexo);
         }
 
@@ -63,6 +82,7 @@ public abstract class NexoModDiscovery {
         } catch (Exception ignored) {}
     }
 
+    @SuppressWarnings("resource")
     private static Class<?> loadCandidate(Candidate candidate, ClassLoader classLoader) {
         try {
             if (candidate.sourceJar != null) {
@@ -167,4 +187,7 @@ public abstract class NexoModDiscovery {
             && !pkg.startsWith("org.lwjgl.")
             && !pkg.startsWith("dev.lucaargolo.nexo");
     }
+
+    private record Candidate(String className, Path sourceJar) {}
+
 }

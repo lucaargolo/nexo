@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +32,10 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected final void init() {
         this.modDiscovery.discover(this);
+    }
+
+    public final NexoModDiscovery getModDiscovery() {
+        return this.modDiscovery;
     }
 
     @Override
@@ -75,4 +80,5 @@ public abstract class NexoMinecraft implements Nexo {
     protected static void cacheBlock(Identifier id, MinecraftBlock block) {
         BLOCK_CACHE.put(id, block);
     }
+
 }

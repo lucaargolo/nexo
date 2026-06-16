@@ -9,7 +9,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-@Mod("nexo_test")
+@Mod(
+        value = "nexo_test",
+        name = "Nexo Test Mod",
+        description = "A test Nexo mod for development",
+        version = "0.0.1",
+        authors = {"D4rkness_King"}
+)
 public class NexoTestMod {
 
     public NexoTestMod(Nexo nexo) {
