@@ -21,7 +21,7 @@ public abstract class NexoMinecraft implements Nexo {
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, MinecraftBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
     private static NexoMinecraft instance;
 
@@ -45,7 +45,7 @@ public abstract class NexoMinecraft implements Nexo {
         if(type.isAssignableFrom(IBlock.class)) {
             return (T) BLOCK_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.BLOCK
                     .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
-                    .map(MinecraftBlock::new)
+                    .map(holder -> new MinecraftBlock(holder, null))
                     .orElse(null)
             );
         }
@@ -79,8 +79,9 @@ public abstract class NexoMinecraft implements Nexo {
         return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
     }
 
-    protected static void cacheBlock(Location location, MinecraftBlock block) {
-        BLOCK_CACHE.put(location, block);
+    protected static <T extends IFeature> T onFeatureRegistered(Location location, T feature) {
+        if(feature instanceof IBlock block) BLOCK_CACHE.put(location, block);
+        return feature;
     }
 
 }

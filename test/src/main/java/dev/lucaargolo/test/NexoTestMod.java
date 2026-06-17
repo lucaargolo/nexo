@@ -4,7 +4,9 @@ import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.IMod;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
+import dev.lucaargolo.nexo.api.model.Model;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,11 +21,12 @@ public class NexoTestMod {
 
     public NexoTestMod(Nexo nexo) {
         Location location = Location.of("nexo_test", "test_block");
-        IBlock block = nexo.registerFeature(IBlock.class, location, new TestBlock(location));
+        Location texture = Location.of("nexo_test", "block/test_block");
+        IBlock block = nexo.registerFeature(IBlock.class, location, new TestBlock(location, Model.full(texture)));
         System.out.println("Registered "+ block);
     }
 
-    private record TestBlock(@NotNull Location location) implements IBlock {
+    private record TestBlock(@NotNull Location location, @Nullable Model model) implements IBlock {
         @Override
         public @NotNull List<@NotNull Tag> tags() {
             return List.of();

@@ -53,9 +53,8 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
                 return dr;
             });
             DeferredHolder<Block, ? extends Block> holder = registry.register(location.path(), () -> new Block(BlockBehaviour.Properties.of()));
-            MinecraftBlock minecraftBlock = new MinecraftBlock(holder);
-            cacheBlock(location, minecraftBlock);
-            return (T) minecraftBlock;
+            MinecraftBlock minecraftBlock = new MinecraftBlock(holder, block);
+            return (T) onFeatureRegistered(location, minecraftBlock);
         }
         return null;
     }

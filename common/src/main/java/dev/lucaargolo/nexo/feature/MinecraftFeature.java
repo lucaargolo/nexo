@@ -5,17 +5,28 @@ import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import net.minecraft.core.Holder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftFeature<T> implements IFeature {
+public class MinecraftFeature<T, D> implements IFeature {
 
+    @NotNull
     private final Location location;
+    @NotNull
     private final Holder<T> holder;
+    @Nullable
+    private final D delegate;
 
-    protected MinecraftFeature(Holder<T> holder) {
+    protected MinecraftFeature(@NotNull Holder<T> holder, @Nullable D delegate) {
+        this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
+    }
+
+    @Nullable
+    public D getDelegate() {
+        return delegate;
     }
 
     @Override
@@ -27,4 +38,5 @@ public class MinecraftFeature<T> implements IFeature {
     public @NotNull List<@NotNull Tag> tags() {
         return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
+
 }

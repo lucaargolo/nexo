@@ -40,9 +40,8 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
                 ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()),
                 new Block(BlockBehaviour.Properties.of())
             );
-            MinecraftBlock minecraftBlock = new MinecraftBlock(holder);
-            cacheBlock(location, minecraftBlock);
-            return (T) minecraftBlock;
+            MinecraftBlock minecraftBlock = new MinecraftBlock(holder, block);
+            return (T) onFeatureRegistered(location, minecraftBlock);
         }
         return null;
     }
