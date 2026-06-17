@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
@@ -36,11 +37,11 @@ public class NexoModel implements UnbakedModel {
     @Override
     public BakedModel bake(@NotNull ModelBaker baker, @NotNull Function<Material, TextureAtlasSprite> textureGetter, @NotNull ModelState modelState) {
 
-        // Texture map: variable name -> unresolved texture string (e.g. "nexo:block/stone")
         Map<String, Either<Material, String>> textureMap = new HashMap<>();
         for (var entry : model.textures().entrySet()) {
-            String ref = entry.getValue().namespace() + ":" + entry.getValue().path();
-            textureMap.put(entry.getKey(), Either.right(ref));
+            ResourceLocation texLoc = ResourceLocation.fromNamespaceAndPath(entry.getValue().namespace(), entry.getValue().path());
+            Material material = new Material(InventoryMenu.BLOCK_ATLAS, texLoc);
+            textureMap.put(entry.getKey(), Either.left(material));
         }
 
         // Convert Nexo Cubes to Minecraft BlockElements
@@ -49,9 +50,9 @@ public class NexoModel implements UnbakedModel {
             elements.add(toBlockElement(cube));
         }
 
-        // Build a BlockModel directly — skip JSON entirely
+        // Build a BlockModel directly — no parent needed
         BlockModel blockModel = new BlockModel(
-            null, // no parent — first param is parent location, not model location
+            null,
             elements,
             textureMap,
             model.ambientOcclusion(),
@@ -60,7 +61,7 @@ public class NexoModel implements UnbakedModel {
             List.of()
         );
 
-        // Resolve internal texture references (converts Either.right strings to Either.left Materials)
+        // Resolve parent references (required even with null parent for setup)
         blockModel.resolveParents(baker::getModel);
 
         // Delegate baking to vanilla — handles face baking, quad generation, etc.

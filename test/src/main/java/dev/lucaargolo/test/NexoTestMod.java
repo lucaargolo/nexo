@@ -21,7 +21,7 @@ public class NexoTestMod {
 
     public NexoTestMod(Nexo nexo) {
         Location location = Location.of("nexo_test", "test_block");
-        Location texture = Location.of("nexo_test", "test_block");
+        Location texture = Location.of("nexo_test", "test_block.png");
         IBlock block = nexo.registerFeature(IBlock.class, location, new TestBlock(location, Model.full(texture)));
         System.out.println("Registered "+ block);
     }

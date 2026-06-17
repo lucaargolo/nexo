@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.NexoAtlas;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
@@ -10,6 +12,11 @@ import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +38,21 @@ public class FabricNexoModelLoader extends NexoModelLoader {
             IBlock block = entry.getValue();
             Model model = block.model();
             for (Location texture : model.textures().values()) {
-                NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, null);
+                NexoMod mod = nexo.getMod(texture.namespace());
+                Path filePath = mod.path().resolve(texture.path());
+                if (Files.isRegularFile(filePath)) {
+                    NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, filePath);
+                }else{
+                    try {
+                        FileSystem jarFs = FileSystems.newFileSystem(mod.path(), (ClassLoader) null);
+                        Path jarPath = jarFs.getPath(texture.path());
+                        if(Files.isRegularFile(jarPath)) {
+                            NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, jarPath);
+                        }
+                    } catch (IOException e) {
+                        NexoMinecraft.LOGGER.error("Failed to read from JAR {}", mod.path(), e);
+                    }
+                }
             }
             ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(blockId.namespace(), "block/" + blockId.path());
             blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId);
@@ -45,9 +66,9 @@ public class FabricNexoModelLoader extends NexoModelLoader {
                 ResourceLocation modelId = entry.getValue();
 
                 pluginContext.registerBlockStateResolver(block, context -> {
-                    block.getStateDefinition().getPossibleStates().forEach(state ->
-                        context.setModel(state, context.getOrLoadModel(modelId))
-                    );
+                    block.getStateDefinition().getPossibleStates().forEach(state -> {
+                        context.setModel(state, context.getOrLoadModel(modelId));
+                    });
                 });
             }
 
@@ -55,4 +76,5 @@ public class FabricNexoModelLoader extends NexoModelLoader {
             pluginContext.resolveModel().register(context -> unbakedModels.get(context.id()));
         });
     }
+
 }

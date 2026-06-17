@@ -29,30 +29,32 @@ public class SpriteLoaderMixin {
     @Final @Shadow
     private ResourceLocation location;
 
-    @ModifyVariable(method = "stitch", at = @At("HEAD"), argsOnly = true, index = 0)
+    @ModifyVariable(method = "stitch", at = @At("HEAD"), argsOnly = true)
     private List<SpriteContents> injectNexoSprites(List<SpriteContents> contents) {
         // Match this SpriteLoader's atlas against registered atlas keys
         Location atlasKey = Location.of(location.getNamespace(), location.getPath());
         Map<Location, Path> registered = NexoAtlas.getRegistered(atlasKey);
-        if (registered.isEmpty()) return contents;
 
         List<SpriteContents> augmented = new ArrayList<>(contents);
         for (var entry : registered.entrySet()) {
-            Location texLoc = entry.getKey();
-            Path pngPath = entry.getValue();
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(texLoc.namespace(), texLoc.path());
+            Location location = entry.getKey();
+            Path path = entry.getValue();
 
             // Don't override if already present in the atlas
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
-            if (alreadyPresent) continue;
+            if (alreadyPresent) {
+                NexoMinecraft.LOGGER.warn("Tried to override already existing texture {}", id);
+                continue;
+            }
 
-            try (InputStream in = Files.newInputStream(pngPath)) {
+            try (InputStream in = Files.newInputStream(path)) {
                 NativeImage image = NativeImage.read(in);
                 FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
                 SpriteContents spriteContents = new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY);
                 augmented.add(spriteContents);
             } catch (IOException e) {
-                NexoMinecraft.LOGGER.error("Failed to load Nexo atlas sprite '{}' from {}", id, pngPath, e);
+                NexoMinecraft.LOGGER.error("Failed to load Nexo atlas sprite '{}' from {}", id, path, e);
             }
         }
 
