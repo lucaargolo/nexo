@@ -1,7 +1,7 @@
 package dev.lucaargolo.test;
 
-import dev.lucaargolo.nexo.api.IMod;
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-@IMod(
+@Mod(
         value = "nexo_test",
         name = "Nexo Test Mod",
         description = "A test Nexo mod for development",
@@ -32,4 +32,5 @@ public class NexoTestMod {
             return List.of();
         }
     }
+
 }

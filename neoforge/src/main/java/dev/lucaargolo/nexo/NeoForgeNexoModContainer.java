@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo;
 
+import dev.lucaargolo.nexo.api.NexoMod;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforgespi.language.IConfigurable;
@@ -31,7 +32,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
         @Override
         public String getModId() {
-            return mod.modId();
+            return mod.value();
         }
 
         @Override
@@ -61,7 +62,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
         @Override
         public String getNamespace() {
-            return mod.modId();
+            return mod.value();
         }
 
         @Override
@@ -139,7 +140,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
         @Override
         public String moduleName() {
-            return mod.modId();
+            return mod.value();
         }
 
         @Override

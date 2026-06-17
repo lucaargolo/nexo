@@ -30,8 +30,8 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
-    private final NexoModDiscovery modDiscovery;
-    private final NexoModelLoader modelLoader;
+    protected final NexoModDiscovery modDiscovery;
+    protected final NexoModelLoader modelLoader;
 
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 

@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.model;
 
+import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
+import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
@@ -24,12 +26,16 @@ public class FabricNexoModelLoader extends NexoModelLoader {
                 .filter(e -> e.getValue() instanceof IBlock block && block.model() != null)
                 .map(e -> Map.entry(e.getKey(), (IBlock) e.getValue()))::iterator;
 
-        for (var entry : blocksWithModels) {
+        for (Map.Entry<Location, IBlock> entry : blocksWithModels) {
             Location blockId = entry.getKey();
             IBlock block = entry.getValue();
+            Model model = block.model();
+            for (Location texture : model.textures().values()) {
+                NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, null);
+            }
             ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(blockId.namespace(), "block/" + blockId.path());
             blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId);
-            unbakedModels.put(modelId, new NexoModel(block.model()));
+            unbakedModels.put(modelId, new NexoModel(model));
         }
 
         ModelLoadingPlugin.register(pluginContext -> {

@@ -10,11 +10,15 @@ import java.util.function.Predicate;
 
 public interface Nexo {
 
+    @Nullable NexoMod getMod(String id);
+
+
     @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location);
 
     @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature);
 
     @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(Class<T> type);
+
 
     <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);
 

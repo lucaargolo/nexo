@@ -1,6 +1,8 @@
 package dev.lucaargolo.nexo;
-import dev.lucaargolo.nexo.api.IMod;
+import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoMod;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,13 +20,15 @@ import java.util.jar.JarFile;
 
 public abstract class NexoModDiscovery {
 
-    private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/IMod;".getBytes(StandardCharsets.UTF_8);
-    private final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
+    private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/Mod;".getBytes(StandardCharsets.UTF_8);
+
+    protected final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
 
     public abstract void init(Nexo nexo);
 
-    public final Collection<NexoMod> getMods() {
-        return mods.values();
+    @Nullable
+    public final NexoMod getMod(String id) {
+        return mods.get(id);
     }
 
     protected final void init(Nexo nexo, Collection<Path> jarPaths, Collection<Path> dirPaths) {
@@ -42,27 +46,27 @@ public abstract class NexoModDiscovery {
         for (Candidate candidate : candidates) {
             Class<?> modClass = loadCandidate(candidate, parentCl);
             if (modClass == null) continue;
-            IMod modAnnotation = modClass.getDeclaredAnnotation(IMod.class);
-            String modId, name, description, version;
+            Mod modAnnotation = modClass.getDeclaredAnnotation(Mod.class);
+            String id, name, description, version;
             String[] authors;
             if (modAnnotation != null) {
-                modId = modAnnotation.value();
+                id = modAnnotation.value();
                 name = modAnnotation.name();
                 description = modAnnotation.description();
                 version = modAnnotation.version();
                 authors = modAnnotation.authors();
             } else {
                 NexoMinecraft.LOGGER.warn("Bytecode scan found '{}' but @Mod annotation not readable — using class name as id", modClass.getName());
-                modId = modClass.getSimpleName().toLowerCase().replace("nexo", "").replace("mod", "");
+                id = modClass.getSimpleName().toLowerCase();
                 name = modClass.getSimpleName();
                 description = "";
                 version = "0.0.0";
                 authors = new String[0];
             }
-            NexoMinecraft.LOGGER.info("Discovered Nexo mod '{}' (ID: {}, version: {})", modClass.getName(), modId, version);
+            NexoMinecraft.LOGGER.info("Discovered Nexo mod {} ({}) at {}", id, name, candidate.sourceJar);
             discovered++;
-            if (mods.containsKey(modId)) continue; // already instantiated via another path
-            mods.put(modId, new NexoMod(modId, name, description, version, authors, modClass.getName(), candidate.sourceJar));
+            if (mods.containsKey(id)) continue;
+            mods.put(id, new NexoMod(id, name, description, version, authors, candidate.sourceJar));
             instantiateMod(modClass, nexo);
         }
 

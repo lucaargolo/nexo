@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo;
 
 import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
@@ -36,6 +37,11 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
+    }
+
+    @Override
+    public @Nullable NexoMod getMod(String id) {
+        return this.modDiscovery.getMod(id);
     }
 
     @Override

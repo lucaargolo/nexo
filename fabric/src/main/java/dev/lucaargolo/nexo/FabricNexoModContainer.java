@@ -1,12 +1,16 @@
 package dev.lucaargolo.nexo;
 
+import dev.lucaargolo.nexo.api.NexoMod;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
 import net.fabricmc.loader.api.metadata.*;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class FabricNexoModContainer implements ModContainer {
 
@@ -27,7 +31,7 @@ public class FabricNexoModContainer implements ModContainer {
 
     @Override
     public List<Path> getRootPaths() {
-        return mod.sourceJar() != null ? List.of(mod.sourceJar()) : List.of();
+        return mod.path() != null ? List.of(mod.path()) : List.of();
     }
 
     @Override
@@ -47,7 +51,7 @@ public class FabricNexoModContainer implements ModContainer {
 
     @Override
     public Path getRootPath() {
-        return mod.sourceJar() != null ? mod.sourceJar() : Path.of(".");
+        return mod.path() != null ? mod.path() : Path.of(".");
     }
 
     @Override
@@ -65,7 +69,7 @@ public class FabricNexoModContainer implements ModContainer {
 
         @Override
         public String getId() {
-            return mod.modId();
+            return mod.value();
         }
 
         @Override
@@ -179,7 +183,7 @@ public class FabricNexoModContainer implements ModContainer {
 
         @Override
         public List<Path> getPaths() {
-            return mod.sourceJar() != null ? List.of(mod.sourceJar()) : List.of();
+            return mod.path() != null ? List.of(mod.path()) : List.of();
         }
 
         @Override

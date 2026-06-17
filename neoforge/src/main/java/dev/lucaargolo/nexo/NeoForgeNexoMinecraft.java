@@ -2,11 +2,11 @@ package dev.lucaargolo.nexo;
 
 import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -48,10 +48,14 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
+    public @Nullable NexoMod getMod(String id) {
+        return this.modDiscovery.getMod(id);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature) {
         if (type.isAssignableFrom(IBlock.class) && feature instanceof IBlock block) {
-            ResourceLocation blockId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(location.namespace(), ns -> {
                 DeferredRegister.Blocks dr = DeferredRegister.createBlocks(ns);
                 dr.register(modBus);

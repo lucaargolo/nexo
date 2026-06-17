@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoMod;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLPaths;
@@ -78,13 +79,13 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
             sortedList = new ArrayList<>(sortedList);
             sortedField.set(modList, sortedList);
 
-            for (NexoMod mod : this.getMods()) {
+            for (NexoMod mod : this.mods.values()) {
                 NeoForgeNexoModContainer container = new NeoForgeNexoModContainer(mod);
                 modsList.add(container);
-                indexedMods.put(mod.modId(), container);
+                indexedMods.put(mod.value(), container);
                 sortedContainers.add(container);
                 sortedList.add(container.getModInfo());
-                NexoMinecraft.LOGGER.info("Registered Nexo mod '{}' in NeoForge ModList", mod.modId());
+                NexoMinecraft.LOGGER.info("Registered Nexo mod '{}' in NeoForge ModList", mod.value());
             }
         } catch (Exception e) {
             NexoMinecraft.LOGGER.error("Failed to register Nexo mods in NeoForge ModList", e);
