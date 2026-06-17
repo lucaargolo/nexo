@@ -21,15 +21,13 @@ public abstract class NexoModDiscovery {
     private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/IMod;".getBytes(StandardCharsets.UTF_8);
     private final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
 
-    public abstract void discover(Nexo nexo);
-
-    public abstract void finish();
+    public abstract void init(Nexo nexo);
 
     public final Collection<NexoMod> getMods() {
         return mods.values();
     }
 
-    protected final void discover(Nexo nexo, Collection<Path> jarPaths, Collection<Path> dirPaths) {
+    protected final void init(Nexo nexo, Collection<Path> jarPaths, Collection<Path> dirPaths) {
         ClassLoader parentCl = NexoModDiscovery.class.getClassLoader();
 
         List<Candidate> candidates = new ArrayList<>();
@@ -61,9 +59,9 @@ public abstract class NexoModDiscovery {
                 version = "0.0.0";
                 authors = new String[0];
             }
-
             NexoMinecraft.LOGGER.info("Discovered Nexo mod '{}' (ID: {}, version: {})", modClass.getName(), modId, version);
             discovered++;
+            if (mods.containsKey(modId)) continue; // already instantiated via another path
             mods.put(modId, new NexoMod(modId, name, description, version, authors, modClass.getName(), candidate.sourceJar));
             instantiateMod(modClass, nexo);
         }

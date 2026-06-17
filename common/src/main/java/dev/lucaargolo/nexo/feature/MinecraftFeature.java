@@ -24,6 +24,10 @@ public class MinecraftFeature<T, D> implements IFeature {
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
+    public @NotNull Holder<T> getHolder() {
+        return holder;
+    }
+
     @Nullable
     public D getDelegate() {
         return delegate;

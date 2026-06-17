@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.api.model;
 
 import dev.lucaargolo.nexo.api.Location;
-import dev.lucaargolo.nexo.api.util.Direction;
+import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -29,12 +29,12 @@ public record Model(@NotNull Map<String, Location> textures, @NotNull List<Cube>
     public static Model full(@NotNull Location texture) {
         return new Model(Map.of("all", texture), List.of(
                 new Cube(0, 0, 0, 16, 16, 16, Map.of(
-                        Direction.UP, Face.simple("all"),
-                        Direction.DOWN, Face.simple("all"),
-                        Direction.NORTH, Face.simple("all"),
-                        Direction.SOUTH, Face.simple("all"),
-                        Direction.EAST, Face.simple("all"),
-                        Direction.WEST, Face.simple("all")
+                        Orientation.UP, Face.simple("all"),
+                        Orientation.DOWN, Face.simple("all"),
+                        Orientation.NORTH, Face.simple("all"),
+                        Orientation.SOUTH, Face.simple("all"),
+                        Orientation.EAST, Face.simple("all"),
+                        Orientation.WEST, Face.simple("all")
                 ))
         ), true);
     }

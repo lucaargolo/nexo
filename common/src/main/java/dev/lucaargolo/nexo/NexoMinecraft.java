@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.model.NexoModelLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -29,14 +30,14 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
-    private static NexoMinecraft instance;
-
     private final NexoModDiscovery modDiscovery;
+    private final NexoModelLoader modelLoader;
+
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
-        instance = this;
         this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
+        this.modelLoader = loadPlatformClass(NexoModelLoader.class);
         on(FeatureRegisteredEvent.class, event -> {
             if (event.value() instanceof IBlock block) {
                 BLOCK_CACHE.put(event.location(), block);
@@ -46,11 +47,8 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.modDiscovery.discover(this);
-    }
-
-    public final NexoModDiscovery getModDiscovery() {
-        return this.modDiscovery;
+        this.modDiscovery.init(this);
+        this.modelLoader.init(this);
     }
 
     @Override
@@ -69,13 +67,13 @@ public abstract class NexoMinecraft implements Nexo {
 
     public abstract boolean isModLoaded(String modId);
 
-    public static <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {
+    public <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {
         return loadPlatformClass(null, clazz, parameters);
     }
 
-    public static <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
+    public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
         String originalName = clazz.getName();
-        String clazzPrefix = mod == null ? instance.getPlatform() : instance.isModLoaded(mod) ? instance.getPlatform() : "Empty";
+        String clazzPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
         String clazzName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clazzPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
         Class<?>[] parameterTypes = new Class<?>[parameters.length];
         for (int i = 0; i < parameters.length; i++) {

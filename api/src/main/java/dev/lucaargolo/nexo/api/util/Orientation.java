@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.util;
 
-public enum Direction {
+public enum Orientation {
     UP,
     DOWN,
     NORTH,

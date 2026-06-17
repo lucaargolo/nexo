@@ -3,8 +3,6 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Nexo;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +17,7 @@ import java.util.Set;
 public class FabricNexoModDiscovery extends NexoModDiscovery {
 
     @Override
-    public void discover(Nexo nexo) {
+    public void init(Nexo nexo) {
         Set<Path> jars = new LinkedHashSet<>();
         Set<Path> dirs = new LinkedHashSet<>();
 
@@ -53,13 +51,12 @@ public class FabricNexoModDiscovery extends NexoModDiscovery {
             } catch (IOException ignored) {}
         }
 
-        discover(nexo, jars, dirs);
-        finish();
+        init(nexo, jars, dirs);
+        registerNexoMods();
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public void finish() {
+    private void registerNexoMods() {
         try {
             FabricLoaderImpl impl = (FabricLoaderImpl) FabricLoader.getInstance();
 

@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import net.neoforged.fml.ModList;
+import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
@@ -14,7 +15,7 @@ import java.util.*;
 public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
 
     @Override
-    public void discover(Nexo nexo) {
+    public void init(Nexo nexo) {
         Set<Path> jars = new LinkedHashSet<>();
         Set<Path> dirs = new LinkedHashSet<>();
 
@@ -40,12 +41,12 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
             } catch (IOException ignored) {}
         }
 
-        discover(nexo, jars, dirs);
+        init(nexo, jars, dirs);
+        ((NeoForgeNexoMinecraft) nexo).getModBus().addListener(this::onLoadComplete);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public void finish() {
+    private void onLoadComplete(FMLLoadCompleteEvent event) {
         try {
             ModList modList = ModList.get();
 

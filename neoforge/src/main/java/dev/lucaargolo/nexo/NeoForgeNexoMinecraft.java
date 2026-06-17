@@ -1,18 +1,20 @@
 package dev.lucaargolo.nexo;
 
+import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -22,16 +24,17 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     private final IEventBus modBus;
+
+    private final Map<Class<? extends IFeature>, Map<Location, IFeature>> FEATURE_REGISTRY = Maps.newHashMap();
     private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
         this.init();
-        modBus.addListener(this::onLoadComplete);
     }
 
-    private void onLoadComplete(FMLLoadCompleteEvent event) {
-        this.getModDiscovery().finish();
+    public IEventBus getModBus() {
+        return modBus;
     }
 
     @Override
@@ -48,6 +51,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     @SuppressWarnings("unchecked")
     public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature) {
         if (type.isAssignableFrom(IBlock.class) && feature instanceof IBlock block) {
+            ResourceLocation blockId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(location.namespace(), ns -> {
                 DeferredRegister.Blocks dr = DeferredRegister.createBlocks(ns);
                 dr.register(modBus);
@@ -55,8 +59,14 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
             });
             DeferredHolder<Block, ? extends Block> holder = registry.register(location.path(), () -> new Block(BlockBehaviour.Properties.of()));
             MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftBlock);
             return (T) minecraftBlock;
         }
         return null;
+    }
+
+    @Override
+    public @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(Class<T> type) {
+        return FEATURE_REGISTRY.getOrDefault(type, Map.of());
     }
 }

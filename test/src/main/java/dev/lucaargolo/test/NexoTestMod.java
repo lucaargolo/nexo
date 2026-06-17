@@ -1,7 +1,7 @@
 package dev.lucaargolo.test;
 
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.IMod;
+import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -21,7 +21,7 @@ public class NexoTestMod {
 
     public NexoTestMod(Nexo nexo) {
         Location location = Location.of("nexo_test", "test_block");
-        Location texture = Location.of("nexo_test", "block/test_block");
+        Location texture = Location.of("nexo_test", "test_block");
         IBlock block = nexo.registerFeature(IBlock.class, location, new TestBlock(location, Model.full(texture)));
         System.out.println("Registered "+ block);
     }
