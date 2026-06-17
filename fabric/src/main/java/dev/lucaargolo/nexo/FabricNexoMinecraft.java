@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -40,9 +41,10 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
                 ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()),
                 new Block(BlockBehaviour.Properties.of())
             );
-            MinecraftBlock minecraftBlock = new MinecraftBlock(holder, block);
-            return (T) onFeatureRegistered(location, minecraftBlock);
+            MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
+            return (T) minecraftBlock;
         }
         return null;
     }
+
 }

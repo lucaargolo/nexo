@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -53,8 +54,8 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
                 return dr;
             });
             DeferredHolder<Block, ? extends Block> holder = registry.register(location.path(), () -> new Block(BlockBehaviour.Properties.of()));
-            MinecraftBlock minecraftBlock = new MinecraftBlock(holder, block);
-            return (T) onFeatureRegistered(location, minecraftBlock);
+            MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
+            return (T) minecraftBlock;
         }
         return null;
     }
