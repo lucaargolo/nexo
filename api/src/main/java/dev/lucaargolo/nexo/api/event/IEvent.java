@@ -6,4 +6,12 @@ public interface IEvent<T> {
 
     boolean cancelable();
 
+    enum Priority {
+        HIGHEST,
+        HIGH,
+        NORMAL,
+        LOW,
+        LOWEST
+    }
+
 }

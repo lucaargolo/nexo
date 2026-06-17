@@ -15,7 +15,11 @@ public interface Nexo {
 
     @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature);
 
-    <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull Predicate<E> listener);
+    <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);
+
+    default <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull Predicate<E> listener) {
+        on(eventType, IEvent.Priority.NORMAL, listener);
+    }
 
     <E extends IEvent<T>, T> void off(@NotNull Class<E> eventType, @NotNull Predicate<E> listener);
 

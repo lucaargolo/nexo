@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @SuppressWarnings("unchecked")
@@ -33,13 +32,13 @@ public abstract class NexoMinecraft implements Nexo {
     private static NexoMinecraft instance;
 
     private final NexoModDiscovery modDiscovery;
-    private final Map<Class<?>, List<Predicate<?>>> listeners = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         instance = this;
         this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
         on(FeatureRegisteredEvent.class, event -> {
-            if (event.feature() instanceof IBlock block) {
+            if (event.value() instanceof IBlock block) {
                 BLOCK_CACHE.put(event.location(), block);
             }
             return true;
@@ -94,25 +93,34 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull Predicate<E> listener) {
-        listeners.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>()).add(listener);
+    public <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener) {
+        listeners.computeIfAbsent(eventType, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(priority, k -> new CopyOnWriteArrayList<>())
+                .add(listener);
     }
 
     @Override
     public <E extends IEvent<T>, T> void off(@NotNull Class<E> eventType, @NotNull Predicate<E> listener) {
-        List<Predicate<?>> predicates = listeners.get(eventType);
-        if (predicates != null) {
-            predicates.remove(listener);
+        Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>> priorityMap = listeners.get(eventType);
+        if (priorityMap != null) {
+            for (CopyOnWriteArrayList<Predicate<?>> predicates : priorityMap.values()) {
+                predicates.remove(listener);
+            }
         }
     }
 
     @Override
-    public <E extends IEvent<T>, T> T emit(@NotNull E event) {
-        List<Predicate<?>> predicates = listeners.get(event.getClass());
+    public <E extends IEvent<T>, T> @Nullable T emit(@NotNull E event) {
+        Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>> priorityMap = listeners.get(event.getClass());
         boolean cancel = false;
-        if (predicates != null) {
-            for (Predicate<?> predicate : predicates) {
-                cancel = cancel || !((Predicate<E>) predicate).test(event);
+        if (priorityMap != null) {
+            for (IEvent.Priority priority : IEvent.Priority.values()) {
+                List<Predicate<?>> predicates = priorityMap.get(priority);
+                if (predicates != null) {
+                    for (Predicate<?> predicate : predicates) {
+                        cancel = cancel || !((Predicate<E>) predicate).test(event);
+                    }
+                }
             }
         }
         if(event.cancelable() && cancel) {
