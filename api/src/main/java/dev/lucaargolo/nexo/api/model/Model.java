@@ -1,19 +1,48 @@
 package dev.lucaargolo.nexo.api.model;
 
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.model.loader.ModelLoader;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public record Model(@NotNull Map<String, Location> textures, @NotNull List<Cube> cubes, boolean ambientOcclusion) {
+public record Model(
+    @NotNull List<Cube> cubes,
+    @NotNull Map<String, Location> textures,
+    @NotNull Map<Location, Transform> transforms,
+    boolean shade
+) {
 
-    public Model(@NotNull Map<String, Location> textures, @NotNull List<Cube> cubes, boolean ambientOcclusion) {
-        this.textures = Collections.unmodifiableMap(textures);
+    private static final List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
+
+    public Model(
+        @NotNull List<Cube> cubes,
+        @NotNull Map<String, Location> textures,
+        @NotNull Map<Location, Transform> transforms,
+        boolean shade
+    ) {
         this.cubes = Collections.unmodifiableList(cubes);
-        this.ambientOcclusion = ambientOcclusion;
+        this.textures = Collections.unmodifiableMap(textures);
+        this.transforms = Collections.unmodifiableMap(transforms);
+        this.shade = shade;
+    }
+
+    public Model(
+            @NotNull List<Cube> cubes,
+            @NotNull Map<String, Location> textures,
+            @NotNull Map<Location, Transform> transforms
+    ) {
+        this(cubes, textures, transforms, true);
     }
 
     @Override
@@ -26,8 +55,17 @@ public record Model(@NotNull Map<String, Location> textures, @NotNull List<Cube>
         return cubes;
     }
 
-    public static Model full(@NotNull Location texture) {
-        return new Model(Map.of("all", texture), List.of(
+    public @Nullable Transform getTransform(@NotNull Location location) {
+        return transforms.get(location);
+    }
+
+    public static void registerLoader(@NotNull ModelLoader loader) {
+        LOADERS.add(loader);
+    }
+
+    @NotNull
+    public static Model full(Nexo nexo, @NotNull Location texture) {
+        return new Model(List.of(
                 new Cube(0, 0, 0, 16, 16, 16, Map.of(
                         Orientation.UP, Face.simple("all"),
                         Orientation.DOWN, Face.simple("all"),
@@ -36,7 +74,30 @@ public record Model(@NotNull Map<String, Location> textures, @NotNull List<Cube>
                         Orientation.EAST, Face.simple("all"),
                         Orientation.WEST, Face.simple("all")
                 ))
-        ), true);
+        ), Map.of("all", texture), Map.of());
     }
+
+    @Nullable
+    public static Model load(Nexo nexo, @NotNull String path) {
+        try {
+            byte[] data = Files.readAllBytes(Paths.get(path));
+            for (ModelLoader loader : LOADERS) {
+                Model result = loader.tryLoad(path, data);
+                if (result != null) return result;
+            }
+        }catch (IOException e) {
+            nexo.getLogger().error("Failed to read model: {}", path, e);
+        }catch (Exception e) {
+            nexo.getLogger().error("Failed to parse model: {}", path, e);
+        }
+        nexo.getLogger().warn("No loader could handle: {}", path);
+        return null;
+    }
+
+    public record Transform(
+        @NotNull Vector3f rotation,
+        @NotNull Vector3f translation,
+        @NotNull Vector3f scale
+    ) {}
 
 }

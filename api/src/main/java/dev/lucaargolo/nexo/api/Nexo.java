@@ -4,11 +4,14 @@ import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.function.Predicate;
 
 public interface Nexo {
+
+    @NotNull Logger getLogger();
 
     @Nullable NexoMod getMod(String id);
 
@@ -28,6 +31,6 @@ public interface Nexo {
 
     <E extends IEvent<T>, T> void off(@NotNull Class<E> eventType, @NotNull Predicate<E> listener);
 
-    <E extends IEvent<T>, T> @Nullable T emit(@NotNull E event);
+    @Nullable <E extends IEvent<T>, T> T emit(@NotNull E event);
 
 }

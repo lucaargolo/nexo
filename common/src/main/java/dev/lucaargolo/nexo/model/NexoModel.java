@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.model;
 
 import com.mojang.datafixers.util.Either;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.model.Cube;
 import dev.lucaargolo.nexo.api.model.Face;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -44,6 +45,20 @@ public class NexoModel implements UnbakedModel {
             textureMap.put(entry.getKey(), Either.left(material));
         }
 
+        // Add #-references from face textures not already in the map
+        // (MinecraftModelLoader skips #-prefixed entries since they aren't Locations)
+        for (Cube cube : model.cubes()) {
+            for (Face face : cube.faces().values()) {
+                String tex = face.texture();
+                if (tex.startsWith("#")) {
+                    String varName = tex.substring(1);
+                    if (!textureMap.containsKey(varName)) {
+                        textureMap.put(varName, Either.right(tex));
+                    }
+                }
+            }
+        }
+
         // Convert Nexo Cubes to Minecraft BlockElements
         List<BlockElement> elements = new ArrayList<>();
         for (Cube cube : model.cubes()) {
@@ -55,7 +70,7 @@ public class NexoModel implements UnbakedModel {
             null,
             elements,
             textureMap,
-            model.ambientOcclusion(),
+            model.shade(),
             BlockModel.GuiLight.SIDE,
             ItemTransforms.NO_TRANSFORMS,
             List.of()
@@ -96,7 +111,36 @@ public class NexoModel implements UnbakedModel {
             faces.put(mcDir, mcFace);
         }
 
-        return new BlockElement(from, to, faces, null, true);
+        // Convert Cube.Rotation → BlockElementRotation (1.21.1 only supports single-axis)
+        BlockElementRotation mcRotation = null;
+        Cube.Rotation r = cube.rotation();
+        if (r != null) {
+            Vector3f origin = r.origin();
+            if (r.axis() != null) {
+                // Format 1 & 2: single-axis
+                Direction.Axis axis = Direction.Axis.byName(r.axis());
+                mcRotation = new BlockElementRotation(origin, axis, r.angle(), r.rescale());
+            } else if (r.x() != null || r.y() != null || r.z() != null) {
+                // Format 3: multi-axis — count non-zero components
+                int nonZero = (r.x() != null && r.x() != 0 ? 1 : 0)
+                            + (r.y() != null && r.y() != 0 ? 1 : 0)
+                            + (r.z() != null && r.z() != 0 ? 1 : 0);
+                if (nonZero <= 1) {
+                    // Fold single non-zero axis to single-axis rotation
+                    Direction.Axis axis = r.x() != null && r.x() != 0 ? Direction.Axis.X
+                                        : r.y() != null && r.y() != 0 ? Direction.Axis.Y
+                                        : Direction.Axis.Z;
+                    float angle = r.x() != null ? r.x() : r.y() != null ? r.y() : r.z();
+                    mcRotation = new BlockElementRotation(origin, axis, angle, r.rescale());
+                } else {
+                    // Multi-axis: not representable in 1.21.1
+                    NexoMinecraft.LOGGER.warn("Multi-axis element rotation not supported in 1.21.1, skipping for cube at [{}, {}]",
+                        cube.fromX(), cube.toX());
+                }
+            }
+        }
+
+        return new BlockElement(from, to, faces, mcRotation, cube.shade());
     }
 
     private static Direction direction(Orientation orientation) {
