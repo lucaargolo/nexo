@@ -31,7 +31,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
     @Override
     public void init(Nexo nexo) {
         Map<ResourceLocation, ResourceLocation> blockToModel = new HashMap<>();
-        Map<ResourceLocation, NexoModel> unbakedModels = new HashMap<>();
+        Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
 
         NeoForgeNexoMinecraft neoForgeNexo = (NeoForgeNexoMinecraft) nexo;
 
@@ -65,7 +65,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
             ResourceLocation blockRl = ResourceLocation.fromNamespaceAndPath(blockId.namespace(), blockId.path());
             ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(blockId.namespace(), "block/" + blockId.path());
             blockToModel.put(blockRl, modelId);
-            unbakedModels.put(modelId, new NexoModel(model));
+            unbakedModels.put(modelId, new NexoMinecraftModel(model));
         }
 
         neoForgeNexo.getModBus().addListener(ModelEvent.ModifyBakingResult.class, event -> {
@@ -112,7 +112,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
             for (var bEntry : blockToModel.entrySet()) {
                 ResourceLocation blockRl = bEntry.getKey();
                 ResourceLocation modelId = bEntry.getValue();
-                NexoModel unbakedModel = unbakedModels.get(modelId);
+                NexoMinecraftModel unbakedModel = unbakedModels.get(modelId);
                 if (unbakedModel == null) continue;
 
                 Block block = BuiltInRegistries.BLOCK.get(blockRl);

@@ -18,11 +18,11 @@ import org.joml.Vector3f;
 import java.util.*;
 import java.util.function.Function;
 
-public class NexoModel implements UnbakedModel {
+public class NexoMinecraftModel implements UnbakedModel {
 
     private final Model model;
 
-    public NexoModel(Model model) {
+    public NexoMinecraftModel(Model model) {
         this.model = model;
     }
 

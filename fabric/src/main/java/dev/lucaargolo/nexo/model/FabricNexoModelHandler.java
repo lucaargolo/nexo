@@ -25,7 +25,7 @@ public class FabricNexoModelHandler extends NexoModelHandler {
     @Override
     public void init(Nexo nexo) {
         Map<Block, ResourceLocation> blockToModel = new HashMap<>();
-        Map<ResourceLocation, NexoModel> unbakedModels = new HashMap<>();
+        Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
 
         Iterable<Map.Entry<Location, IBlock>> blocksWithModels = nexo.getFeatureRegistry(IBlock.class)
                 .entrySet()
@@ -56,7 +56,7 @@ public class FabricNexoModelHandler extends NexoModelHandler {
             }
             ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(blockId.namespace(), "block/" + blockId.path());
             blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId);
-            unbakedModels.put(modelId, new NexoModel(model));
+            unbakedModels.put(modelId, new NexoMinecraftModel(model));
         }
 
         ModelLoadingPlugin.register(pluginContext -> {
