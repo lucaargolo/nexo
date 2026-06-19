@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
@@ -10,6 +11,7 @@ import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +19,12 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +38,7 @@ public abstract class NexoMinecraft implements Nexo {
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscovery modDiscovery;
@@ -50,8 +59,13 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected final void init() {
         this.modDiscovery.init(this);
-        Model.registerLoader(new MinecraftModelLoader());
+        Model.registerLoader(new MinecraftModelLoader(this::getModel));
         this.modelLoader.init(this);
+    }
+
+    @Override
+    public @NotNull Logger getLogger() {
+        return LOGGER;
     }
 
     @Override
@@ -65,6 +79,57 @@ public abstract class NexoMinecraft implements Nexo {
         }
         return null;
     }
+
+    @Override
+    public @Nullable Model getModel(Location location) {
+        return MODEL_CACHE.computeIfAbsent(location, this::loadModel);
+    }
+
+    private @Nullable Model loadModel(Location location) {
+        // 1. Try Nexo mod
+        NexoMod mod = getMod(location.namespace());
+        if (mod != null) {
+            String resource = location.path();
+            Path modPath = mod.path();
+            try {
+                if (Files.isDirectory(modPath)) {
+                    Path modelFile = modPath.resolve(resource);
+                    if (Files.isRegularFile(modelFile)) {
+                        return Model.load(this, modelFile.toString());
+                    }
+                } else {
+                    try (FileSystem fs = FileSystems.newFileSystem(modPath, (ClassLoader) null)) {
+                        Path modelFile = fs.getPath(resource);
+                        if (Files.isRegularFile(modelFile)) {
+                            byte[] data = Files.readAllBytes(modelFile);
+                            return Model.load(this, resource, data);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                LOGGER.error("Failed to load model {} from mod {}", location, mod.value(), e);
+            }
+            return null;
+        }
+
+        // 2. Try Minecraft
+        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(location.namespace(), "models/" + location.path());
+        try {
+            Minecraft minecraft = Minecraft.getInstance();
+            var optResource = minecraft.getResourceManager().getResource(rl);
+            if (optResource.isPresent()) {
+                try (InputStream is = optResource.get().open()) {
+                    byte[] data = is.readAllBytes();
+                    return Model.load(this, rl.toString(), data);
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to load Minecraft model {}", location, e);
+        }
+
+        return null;
+    }
+
 
     public abstract String getPlatform();
 

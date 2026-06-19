@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api;
 
 import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.model.Model;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -32,5 +33,7 @@ public interface Nexo {
     <E extends IEvent<T>, T> void off(@NotNull Class<E> eventType, @NotNull Predicate<E> listener);
 
     @Nullable <E extends IEvent<T>, T> T emit(@NotNull E event);
+
+    @Nullable Model getModel(Location location);
 
 }

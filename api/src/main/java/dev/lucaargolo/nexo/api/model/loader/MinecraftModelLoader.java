@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.model.loader;
 
 import com.google.gson.*;
 import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.model.Cube;
 import dev.lucaargolo.nexo.api.model.Face;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -16,7 +17,7 @@ import java.util.*;
 public class MinecraftModelLoader extends ModelLoader {
 
     @Override
-    public @Nullable Model tryLoad(@NotNull String path, byte @NotNull [] data) {
+    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull String path, byte @NotNull [] data) {
         if (!path.toLowerCase(Locale.ROOT).endsWith(".json")) {
             return null;
         }
@@ -32,16 +33,43 @@ public class MinecraftModelLoader extends ModelLoader {
             return null;
         }
 
-        String parent = root.has("parent") ? root.get("parent").getAsString() : null;
-
-        boolean shade = true;
-        if (root.has("ambientocclusion")) {
-            shade = root.get("ambientocclusion").getAsBoolean();
+        // Recursively resolve parent model
+        Model parentModel = null;
+        if (root.has("parent")) {
+            String parentStr = root.get("parent").getAsString();
+            Location parentLoc = parseResourceLocation(parentStr, ".json");
+            parentModel = nexo.getModel(parentLoc);
         }
 
-        List<Cube> cubes = parseElements(root);
-        Map<String, Location> textures = parseTextures(root);
-        Map<Location, Model.Transform> transforms = parseDisplay(root);
+        // Merge textures: parent base, child overrides
+        Map<String, Location> textures = new HashMap<>();
+        if (parentModel != null) {
+            textures.putAll(parentModel.textures());
+        }
+        textures.putAll(parseTextures(root));
+
+        // Merge elements: parent first, then child
+        List<Cube> cubes = new ArrayList<>();
+        if (parentModel != null) {
+            cubes.addAll(parentModel.cubes());
+        }
+        cubes.addAll(parseElements(root));
+
+        // Merge transforms: parent base, child overrides
+        Map<Location, Model.Transform> transforms = new HashMap<>();
+        if (parentModel != null) {
+            transforms.putAll(parentModel.transforms());
+        }
+        transforms.putAll(parseDisplay(root));
+
+        boolean shade;
+        if (root.has("ambientocclusion")) {
+            shade = root.get("ambientocclusion").getAsBoolean();
+        } else if (parentModel != null) {
+            shade = parentModel.shade();
+        } else {
+            shade = true;
+        }
 
         return new Model(cubes, textures, transforms, shade);
     }
@@ -64,24 +92,24 @@ public class MinecraftModelLoader extends ModelLoader {
         if (element.isJsonPrimitive()) {
             String val = element.getAsString();
             if (val.startsWith("#")) return null;
-            return parseResourceLocation(val);
+            return parseResourceLocation(val, ".png");
         }
         if (element.isJsonObject()) {
             JsonObject obj = element.getAsJsonObject();
             if (obj.has("sprite")) {
-                return parseResourceLocation(obj.get("sprite").getAsString());
+                return parseResourceLocation(obj.get("sprite").getAsString(), ".png");
             }
             return null;
         }
         return null;
     }
 
-    private static Location parseResourceLocation(String val) {
+    private static Location parseResourceLocation(String val, String suffix) {
         int colon = val.indexOf(':');
         if (colon < 0) {
-            return Location.of("minecraft", val);
+            return Location.of("minecraft", val + suffix);
         }
-        return Location.of(val.substring(0, colon), val.substring(colon + 1));
+        return Location.of(val.substring(0, colon), val.substring(colon + 1) + suffix);
     }
 
     private static Map<Location, Model.Transform> parseDisplay(JsonObject root) {

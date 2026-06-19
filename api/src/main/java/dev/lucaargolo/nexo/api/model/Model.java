@@ -81,16 +81,22 @@ public record Model(
     public static Model load(Nexo nexo, @NotNull String path) {
         try {
             byte[] data = Files.readAllBytes(Paths.get(path));
-            for (ModelLoader loader : LOADERS) {
-                Model result = loader.tryLoad(path, data);
-                if (result != null) return result;
-            }
-        }catch (IOException e) {
+            return load(nexo, path, data);
+        } catch (IOException e) {
             nexo.getLogger().error("Failed to read model: {}", path, e);
-        }catch (Exception e) {
+        } catch (Exception e) {
             nexo.getLogger().error("Failed to parse model: {}", path, e);
         }
         nexo.getLogger().warn("No loader could handle: {}", path);
+        return null;
+    }
+
+    @Nullable
+    public static Model load(Nexo nexo, @NotNull String path, byte @NotNull [] data) {
+        for (ModelLoader loader : LOADERS) {
+            Model result = loader.tryLoad(nexo, path, data);
+            if (result != null) return result;
+        }
         return null;
     }
 
