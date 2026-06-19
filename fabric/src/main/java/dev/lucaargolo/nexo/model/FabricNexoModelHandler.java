@@ -20,7 +20,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FabricNexoModelLoader extends NexoModelLoader {
+public class FabricNexoModelHandler extends NexoModelHandler {
 
     @Override
     public void init(Nexo nexo) {

@@ -9,7 +9,7 @@ import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import dev.lucaargolo.nexo.model.NexoModelLoader;
+import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
@@ -33,13 +33,13 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscovery modDiscovery;
-    protected final NexoModelLoader modelLoader;
+    protected final NexoModelHandler modelLoader;
 
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
-        this.modelLoader = loadPlatformClass(NexoModelLoader.class);
+        this.modelLoader = loadPlatformClass(NexoModelHandler.class);
         on(FeatureRegisteredEvent.class, event -> {
             if (event.value() instanceof IBlock block) {
                 BLOCK_CACHE.put(event.location(), block);

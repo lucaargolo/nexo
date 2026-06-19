@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class NeoForgeNexoModelLoader extends NexoModelLoader {
+public class NeoForgeNexoModelHandler extends NexoModelHandler {
 
     @Override
     public void init(Nexo nexo) {
