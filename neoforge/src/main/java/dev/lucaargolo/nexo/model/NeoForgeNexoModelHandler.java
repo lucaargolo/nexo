@@ -47,6 +47,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
             Model model = block.model();
             for (Location texture : model.textures().values()) {
                 NexoMod mod = nexo.getMod(texture.namespace());
+                if (mod == null) continue;
                 Path filePath = mod.path().resolve(texture.path());
                 if (Files.isRegularFile(filePath)) {
                     NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, filePath);

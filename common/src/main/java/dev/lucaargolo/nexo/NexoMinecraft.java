@@ -59,7 +59,7 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected final void init() {
         this.modDiscovery.init(this);
-        Model.registerLoader(new MinecraftModelLoader(this::getModel));
+        Model.registerLoader(new MinecraftModelLoader());
         this.modelLoader.init(this);
     }
 
@@ -85,46 +85,64 @@ public abstract class NexoMinecraft implements Nexo {
         return MODEL_CACHE.computeIfAbsent(location, this::loadModel);
     }
 
-    private @Nullable Model loadModel(Location location) {
-        // 1. Try Nexo mod
+    @Override
+    public byte @Nullable [] loadResource(@NotNull Location location) {
+        // 1. Try Nexo mod (directory or JAR)
         NexoMod mod = getMod(location.namespace());
         if (mod != null) {
             String resource = location.path();
             Path modPath = mod.path();
             try {
                 if (Files.isDirectory(modPath)) {
-                    Path modelFile = modPath.resolve(resource);
-                    if (Files.isRegularFile(modelFile)) {
-                        return Model.load(this, location);
+                    Path file = modPath.resolve(resource);
+                    if (Files.isRegularFile(file)) {
+                        return Files.readAllBytes(file);
                     }
                 } else {
                     try (FileSystem fs = FileSystems.newFileSystem(modPath, (ClassLoader) null)) {
-                        Path modelFile = fs.getPath(resource);
-                        if (Files.isRegularFile(modelFile)) {
-                            byte[] data = Files.readAllBytes(modelFile);
-                            return Model.load(this, location, data);
+                        Path file = fs.getPath(resource);
+                        if (Files.isRegularFile(file)) {
+                            return Files.readAllBytes(file);
                         }
                     }
                 }
             } catch (IOException e) {
-                LOGGER.error("Failed to load model {} from mod {}", location, mod.value(), e);
+                LOGGER.error("Failed to read resource {} from mod {}", location, mod.value(), e);
             }
-            return null;
         }
 
-        // 2. Try Minecraft
-        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(location.namespace(), "models/" + location.path());
+        // 2. Try Minecraft resource manager (any namespace, any resource type)
+        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         try {
             Minecraft minecraft = Minecraft.getInstance();
             var optResource = minecraft.getResourceManager().getResource(rl);
             if (optResource.isPresent()) {
                 try (InputStream is = optResource.get().open()) {
-                    byte[] data = is.readAllBytes();
-                    return Model.load(this, Location.of(location.namespace(), "models/"+location.path()), data);
+                    return is.readAllBytes();
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to load Minecraft model {}", location, e);
+            LOGGER.error("Failed to read resource {} from Minecraft resource manager", location, e);
+        }
+
+        return null;
+    }
+
+    private @Nullable Model loadModel(Location location) {
+        // 1. Try direct load (Nexo mod path, or Minecraft if the resource happens to live at the raw path)
+        Model model = Model.load(this, location);
+        if (model != null) return model;
+
+        // 2. If a Nexo mod is registered for this namespace, don't fall through to Minecraft
+        if (getMod(location.namespace()) != null) {
+            return null;
+        }
+
+        // 3. Try Minecraft models directory (models/ prefix)
+        Location mcLocation = Location.of(location.namespace(), "models/" + location.path());
+        byte[] data = loadResource(mcLocation);
+        if (data != null) {
+            return Model.load(this, mcLocation, data);
         }
 
         return null;

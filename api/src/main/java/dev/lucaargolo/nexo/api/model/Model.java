@@ -8,9 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -79,17 +76,14 @@ public record Model(
 
     @Nullable
     public static Model load(Nexo nexo, @NotNull Location path) {
+        byte[] data = nexo.loadResource(path);
+        if (data == null) return null;
         try {
-            //TODO: This needs to check if its a nexo file or a minecraft file, kinda like Nexo.loadModel does but for getting resources. I think we can actually remove the load logic (first nexo then minecrafT= from there and bring it here and only keep the actual resource loading (reading the actual files and returning the byte data) in there.
-            byte[] data = Files.readAllBytes(Paths.get(""));
             return load(nexo, path, data);
-        } catch (IOException e) {
-            nexo.getLogger().error("Failed to read model: {}", path, e);
         } catch (Exception e) {
             nexo.getLogger().error("Failed to parse model: {}", path, e);
+            return null;
         }
-        nexo.getLogger().warn("No loader could handle: {}", path);
-        return null;
     }
 
     @Nullable

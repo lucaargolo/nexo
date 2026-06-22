@@ -23,20 +23,20 @@ public class NexoTestMod {
 
     public NexoTestMod(Nexo nexo) {
         nexo.registerFeature(IBlock.class, new SimpleBlock(
-            loc("test_block"),
-            Model.full(nexo, loc("test_block.png"))
+            NexoTestMod.id("test_block"),
+            Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
         nexo.registerFeature(IBlock.class, new SimpleBlock(
-                loc("test_block_2"),
+                id("test_block_2"),
                 Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
         ));
         nexo.registerFeature(IBlock.class, new SimpleBlock(
-            loc("test_block_3"),
-            Model.load(nexo, loc("test_block.json"))
+            id("test_block_3"),
+            Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
     }
 
-    public static Location loc(String path) {
+    public static Location id(String path) {
         return Location.of(MOD_ID, path);
     }
 

@@ -16,6 +16,7 @@ public interface Nexo {
 
     @Nullable NexoMod getMod(String id);
 
+    byte @Nullable [] loadResource(@NotNull Location location);
 
     @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location);
 
