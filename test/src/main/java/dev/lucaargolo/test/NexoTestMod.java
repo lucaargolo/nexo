@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 @Mod(
-        value = "nexo_test",
+        value = NexoTestMod.MOD_ID,
         name = "Nexo Test Mod",
         description = "A test Nexo mod for development",
         version = "0.0.1",
@@ -19,18 +19,33 @@ import java.util.List;
 )
 public class NexoTestMod {
 
+    public static final String MOD_ID = "nexo_test";
+
     public NexoTestMod(Nexo nexo) {
-        Location location = Location.of("nexo_test", "test_block");
-        Location texture = Location.of("nexo_test", "test_block.png");
-        IBlock block = nexo.registerFeature(IBlock.class, location, new TestBlock(location, Model.full(nexo, texture)));
-        System.out.println("Registered "+ block);
+        nexo.registerFeature(IBlock.class, new SimpleBlock(
+            loc("test_block"),
+            Model.full(nexo, loc("test_block.png"))
+        ));
+        nexo.registerFeature(IBlock.class, new SimpleBlock(
+                loc("test_block_2"),
+                Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
+        ));
+        nexo.registerFeature(IBlock.class, new SimpleBlock(
+            loc("test_block_3"),
+            Model.load(nexo, loc("test_block.json"))
+        ));
     }
 
-    private record TestBlock(@NotNull Location location, @Nullable Model model) implements IBlock {
+    public static Location loc(String path) {
+        return Location.of(MOD_ID, path);
+    }
+
+    private record SimpleBlock(@NotNull Location location, @Nullable Model model) implements IBlock {
         @Override
         public @NotNull List<@NotNull Tag> tags() {
             return List.of();
         }
     }
+
 
 }

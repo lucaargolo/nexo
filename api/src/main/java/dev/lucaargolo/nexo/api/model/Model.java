@@ -78,9 +78,10 @@ public record Model(
     }
 
     @Nullable
-    public static Model load(Nexo nexo, @NotNull String path) {
+    public static Model load(Nexo nexo, @NotNull Location path) {
         try {
-            byte[] data = Files.readAllBytes(Paths.get(path));
+            //TODO: This needs to check if its a nexo file or a minecraft file, kinda like Nexo.loadModel does but for getting resources. I think we can actually remove the load logic (first nexo then minecrafT= from there and bring it here and only keep the actual resource loading (reading the actual files and returning the byte data) in there.
+            byte[] data = Files.readAllBytes(Paths.get(""));
             return load(nexo, path, data);
         } catch (IOException e) {
             nexo.getLogger().error("Failed to read model: {}", path, e);
@@ -92,7 +93,7 @@ public record Model(
     }
 
     @Nullable
-    public static Model load(Nexo nexo, @NotNull String path, byte @NotNull [] data) {
+    public static Model load(Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         for (ModelLoader loader : LOADERS) {
             Model result = loader.tryLoad(nexo, path, data);
             if (result != null) return result;

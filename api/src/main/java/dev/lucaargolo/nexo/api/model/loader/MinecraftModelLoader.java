@@ -17,8 +17,8 @@ import java.util.*;
 public class MinecraftModelLoader extends ModelLoader {
 
     @Override
-    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull String path, byte @NotNull [] data) {
-        if (!path.toLowerCase(Locale.ROOT).endsWith(".json")) {
+    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
+        if (!path.path().toLowerCase(Locale.ROOT).endsWith(".json")) {
             return null;
         }
 

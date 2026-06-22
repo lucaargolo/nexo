@@ -46,7 +46,8 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature) {
+    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, I feature) {
+        Location location = feature.location();
         if (IBlock.class == type && feature instanceof IBlock block) {
             ResourceLocation blockId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             Holder.Reference<Block> holder = Registry.registerForHolder(

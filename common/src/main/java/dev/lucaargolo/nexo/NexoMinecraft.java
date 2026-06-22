@@ -95,14 +95,14 @@ public abstract class NexoMinecraft implements Nexo {
                 if (Files.isDirectory(modPath)) {
                     Path modelFile = modPath.resolve(resource);
                     if (Files.isRegularFile(modelFile)) {
-                        return Model.load(this, modelFile.toString());
+                        return Model.load(this, location);
                     }
                 } else {
                     try (FileSystem fs = FileSystems.newFileSystem(modPath, (ClassLoader) null)) {
                         Path modelFile = fs.getPath(resource);
                         if (Files.isRegularFile(modelFile)) {
                             byte[] data = Files.readAllBytes(modelFile);
-                            return Model.load(this, resource, data);
+                            return Model.load(this, location, data);
                         }
                     }
                 }
@@ -120,7 +120,7 @@ public abstract class NexoMinecraft implements Nexo {
             if (optResource.isPresent()) {
                 try (InputStream is = optResource.get().open()) {
                     byte[] data = is.readAllBytes();
-                    return Model.load(this, rl.toString(), data);
+                    return Model.load(this, Location.of(location.namespace(), "models/"+location.path()), data);
                 }
             }
         } catch (Exception e) {

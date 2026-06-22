@@ -54,7 +54,8 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature) {
+    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, I feature) {
+        Location location = feature.location();
         if (type.isAssignableFrom(IBlock.class) && feature instanceof IBlock block) {
             DeferredRegister.Blocks registry = BLOCKS.computeIfAbsent(location.namespace(), ns -> {
                 DeferredRegister.Blocks dr = DeferredRegister.createBlocks(ns);

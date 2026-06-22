@@ -19,7 +19,7 @@ public interface Nexo {
 
     @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location);
 
-    @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, Location location, I feature);
+    @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, I feature);
 
     @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(Class<T> type);
 
