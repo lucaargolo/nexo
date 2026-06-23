@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.model;
 
 import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.api.model.loader.ModelLoader;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
@@ -56,10 +57,6 @@ public record Model(
         return transforms.get(location);
     }
 
-    public static void registerLoader(@NotNull ModelLoader loader) {
-        LOADERS.add(loader);
-    }
-
     @NotNull
     public static Model full(Nexo nexo, @NotNull Location texture) {
         return new Model(List.of(
@@ -100,5 +97,13 @@ public record Model(
         @NotNull Vector3f translation,
         @NotNull Vector3f scale
     ) {}
+
+    static {
+        Model.registerLoader(new MinecraftModelLoader());
+    }
+
+    public static void registerLoader(@NotNull ModelLoader loader) {
+        LOADERS.add(loader);
+    }
 
 }

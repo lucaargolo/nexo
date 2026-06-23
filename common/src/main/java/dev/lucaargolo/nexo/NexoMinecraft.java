@@ -8,7 +8,6 @@ import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.model.Model;
-import dev.lucaargolo.nexo.api.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
@@ -59,7 +58,6 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        Model.registerLoader(new MinecraftModelLoader());
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
