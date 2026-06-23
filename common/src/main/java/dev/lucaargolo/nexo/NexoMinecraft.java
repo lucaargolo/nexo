@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
@@ -8,6 +7,7 @@ import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;

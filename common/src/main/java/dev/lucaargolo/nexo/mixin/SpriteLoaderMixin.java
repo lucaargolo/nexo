@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo.mixin;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.SpriteLoader;
 import net.minecraft.client.resources.metadata.animation.FrameSize;

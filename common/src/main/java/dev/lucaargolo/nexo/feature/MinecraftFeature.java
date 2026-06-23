@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

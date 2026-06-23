@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api;
+package dev.lucaargolo.nexo.api.util;
 
 import org.jetbrains.annotations.NotNull;
 

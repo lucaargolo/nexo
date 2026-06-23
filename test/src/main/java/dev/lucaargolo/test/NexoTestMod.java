@@ -1,10 +1,10 @@
 package dev.lucaargolo.test;
 
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

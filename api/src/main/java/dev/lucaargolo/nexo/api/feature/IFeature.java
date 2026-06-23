@@ -1,10 +1,9 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.util.Location;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-
-import org.jetbrains.annotations.NotNull;
 
 public interface IFeature {
 

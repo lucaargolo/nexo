@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api;
 import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

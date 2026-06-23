@@ -2,11 +2,11 @@ package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;

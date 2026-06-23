@@ -1,9 +1,9 @@
 package dev.lucaargolo.nexo.api.model;
 
-import dev.lucaargolo.nexo.api.Location;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.api.model.loader.ModelLoader;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.Location;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
