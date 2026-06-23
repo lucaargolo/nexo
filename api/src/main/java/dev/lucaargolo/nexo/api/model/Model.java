@@ -68,7 +68,14 @@ public record Model(
                         Orientation.EAST, Face.simple("all"),
                         Orientation.WEST, Face.simple("all")
                 ))
-        ), Map.of("all", texture), Map.of());
+        ), Map.of("all", texture), Map.of(
+            Location.of("minecraft", "gui"),                   new Transform(new Vector3f(30, 225, 0), new Vector3f(0, 0, 0),   new Vector3f(0.625f, 0.625f, 0.625f)),
+            Location.of("minecraft", "ground"),                new Transform(new Vector3f(0, 0, 0),    new Vector3f(0, 3, 0),   new Vector3f(0.25f, 0.25f, 0.25f)),
+            Location.of("minecraft", "fixed"),                 new Transform(new Vector3f(0, 0, 0),    new Vector3f(0, 0, 0),   new Vector3f(0.5f, 0.5f, 0.5f)),
+            Location.of("minecraft", "thirdperson_righthand"), new Transform(new Vector3f(75, 45, 0), new Vector3f(0, 2.5f, 0), new Vector3f(0.375f, 0.375f, 0.375f)),
+            Location.of("minecraft", "firstperson_righthand"), new Transform(new Vector3f(0, 45, 0),  new Vector3f(0, 0, 0),   new Vector3f(0.4f, 0.4f, 0.4f)),
+            Location.of("minecraft", "firstperson_lefthand"),  new Transform(new Vector3f(0, 225, 0), new Vector3f(0, 0, 0),   new Vector3f(0.4f, 0.4f, 0.4f))
+        ));
     }
 
     @Nullable

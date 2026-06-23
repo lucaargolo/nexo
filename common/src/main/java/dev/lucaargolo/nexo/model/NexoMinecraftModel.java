@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Either;
 import dev.lucaargolo.nexo.api.model.Cube;
 import dev.lucaargolo.nexo.api.model.Face;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import dev.lucaargolo.nexo.mixed.BlockElementRotationMixed;
 import net.minecraft.client.renderer.block.model.*;
@@ -12,7 +13,9 @@ import net.minecraft.client.resources.model.*;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.*;
@@ -77,7 +80,7 @@ public class NexoMinecraftModel implements UnbakedModel {
             textureMap,
             model.shade(),
             BlockModel.GuiLight.SIDE,
-            ItemTransforms.NO_TRANSFORMS,
+            toItemTransforms(model),
             List.of()
         );
 
@@ -86,6 +89,45 @@ public class NexoMinecraftModel implements UnbakedModel {
 
         // Delegate baking to vanilla — handles face baking, quad generation, etc.
         return blockModel.bake(baker, textureGetter, modelState);
+    }
+
+    @NotNull
+    private static ItemTransform toItemTransform(@Nullable Model.Transform nexoT) {
+        if (nexoT == null) return ItemTransform.NO_TRANSFORM;
+        Vector3f translation = new Vector3f(nexoT.translation());
+        translation.mul(0.0625f);
+        return new ItemTransform(
+            new Vector3f(nexoT.rotation()),
+            translation,
+            new Vector3f(nexoT.scale())
+        );
+    }
+
+    @NotNull
+    private static ItemTransform getDisplayTransform(@NotNull Model model, @NotNull ItemDisplayContext context) {
+        Location loc = Location.of("minecraft", context.getSerializedName());
+        return toItemTransform(model.getTransform(loc));
+    }
+
+    @NotNull
+    private static ItemTransforms toItemTransforms(@NotNull Model model) {
+        ItemTransform thirdPersonRight = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
+        ItemTransform thirdPersonLeft  = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
+        ItemTransform firstPersonRight = getDisplayTransform(model, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);
+        ItemTransform firstPersonLeft  = getDisplayTransform(model, ItemDisplayContext.FIRST_PERSON_LEFT_HAND);
+        ItemTransform head   = getDisplayTransform(model, ItemDisplayContext.HEAD);
+        ItemTransform gui    = getDisplayTransform(model, ItemDisplayContext.GUI);
+        ItemTransform ground = getDisplayTransform(model, ItemDisplayContext.GROUND);
+        ItemTransform fixed  = getDisplayTransform(model, ItemDisplayContext.FIXED);
+
+        if (thirdPersonLeft == ItemTransform.NO_TRANSFORM) thirdPersonLeft = thirdPersonRight;
+        if (firstPersonLeft == ItemTransform.NO_TRANSFORM) firstPersonLeft = firstPersonRight;
+
+        return new ItemTransforms(
+            thirdPersonLeft, thirdPersonRight,
+            firstPersonLeft, firstPersonRight,
+            head, gui, ground, fixed
+        );
     }
 
     // ---- Nexo -> Minecraft conversion ----
