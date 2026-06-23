@@ -4,13 +4,11 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.IEvent;
-import dev.lucaargolo.nexo.api.feature.IBlock;
-import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.feature.IItem;
-import dev.lucaargolo.nexo.api.feature.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.*;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.MinecraftData;
 import dev.lucaargolo.nexo.feature.MinecraftItem;
 import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
@@ -46,6 +44,7 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IItem> ITEM_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IItemCategory> ITEM_CATEGORY_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Location, IData<?>> DATA_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscovery modDiscovery;
     protected final NexoModelHandler modelLoader;
@@ -60,12 +59,15 @@ public abstract class NexoMinecraft implements Nexo {
                 BLOCK_CACHE.put(event.location(), block);
             }else if (event.value() instanceof IItem item) {
                 ITEM_CACHE.put(event.location(), item);
+            }else if (event.value() instanceof IData<?> data) {
+                DATA_CACHE.put(event.location(), data);
             }
             return true;
         });
     }
 
     protected final void init() {
+        this.registerFeature(IData.class, new CountData(Location.of("nexo", "count")));
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
@@ -93,6 +95,12 @@ public abstract class NexoMinecraft implements Nexo {
             return (T) ITEM_CATEGORY_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.CREATIVE_MODE_TAB
                     .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
                     .map(holder -> new MinecraftItemCategory(holder, null))
+                    .orElse(null)
+            );
+        }else if(type.isAssignableFrom(IData.class)) {
+            return (T) DATA_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.DATA_COMPONENT_TYPE
+                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
+                    .map(holder -> new MinecraftData(holder, null))
                     .orElse(null)
             );
         }
@@ -239,5 +247,45 @@ public abstract class NexoMinecraft implements Nexo {
         }else{
             return event.value();
         }
+    }
+
+
+    /**
+     * Creates a {@link com.mojang.serialization.Codec Codec&lt;D&gt;} from an {@link IData} by
+     * round-tripping through a JSON string representation.
+     */
+    public static <D> com.mojang.serialization.Codec<D> createCodec(IData<D> data) {
+        return com.mojang.serialization.Codec.STRING.xmap(
+                str -> data.deserialize(com.google.gson.JsonParser.parseString(str)),
+                d -> data.serialize(d).toString()
+        );
+    }
+
+
+    /**
+     * Creates a {@link net.minecraft.network.codec.StreamCodec StreamCodec&lt;RegistryFriendlyByteBuf, D&gt;}
+     * from an {@link IData} using its binary {@code write}/{@code read} methods.
+     * <p>
+     * The wire format is: VarInt length prefix followed by the byte payload.
+     */
+    public static <D> net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, D> createPacketCodec(IData<D> data) {
+        return new net.minecraft.network.codec.StreamCodec<>() {
+            @Override
+            public void encode(net.minecraft.network.RegistryFriendlyByteBuf buf, D value) {
+                java.nio.ByteBuffer buffer = data.write(value);
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                buf.writeVarInt(bytes.length);
+                buf.writeBytes(bytes);
+            }
+
+            @Override
+            public D decode(net.minecraft.network.RegistryFriendlyByteBuf buf) {
+                int length = buf.readVarInt();
+                byte[] bytes = new byte[length];
+                buf.readBytes(bytes);
+                return data.read(java.nio.ByteBuffer.wrap(bytes));
+            }
+        };
     }
 }

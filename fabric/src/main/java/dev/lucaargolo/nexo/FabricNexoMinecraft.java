@@ -3,19 +3,20 @@ package dev.lucaargolo.nexo;
 import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
-import dev.lucaargolo.nexo.api.feature.IBlock;
-import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.feature.IItem;
-import dev.lucaargolo.nexo.api.feature.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.MinecraftData;
 import dev.lucaargolo.nexo.feature.MinecraftItem;
 import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -85,6 +86,31 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
             MinecraftItemCategory minecraftItemCategory = emit(new FeatureRegisteredEvent<>(location, new MinecraftItemCategory(holder, itemCategory)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItemCategory);
             return (T) minecraftItemCategory;
+        }else if(type.isAssignableFrom(IData.class) && feature instanceof IData<?> data) {
+            ResourceLocation dataId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+
+            DataComponentType.Builder dcBuilder = DataComponentType.builder();
+            if(data.persistent()) dcBuilder.persistent(NexoMinecraft.createCodec(data));
+            if(data.synced()) dcBuilder.networkSynchronized(NexoMinecraft.createPacketCodec(data));
+            DataComponentType<?> dc = dcBuilder.build();
+
+            Holder.Reference<DataComponentType<?>> holder = Registry.registerForHolder(
+                    BuiltInRegistries.DATA_COMPONENT_TYPE,
+                    dataId,
+                    dc
+            );
+
+            AttachmentRegistry.Builder atBuilder = AttachmentRegistry.builder();
+            if(data.persistent()) {
+                atBuilder.persistent(NexoMinecraft.createCodec(data));
+                atBuilder.copyOnDeath();
+            }
+            if(data.synced()) atBuilder.syncWith(NexoMinecraft.createPacketCodec(data), AttachmentSyncPredicate.all());
+            atBuilder.buildAndRegister(dataId);
+
+            MinecraftData<?> minecraftData = emit(new FeatureRegisteredEvent<>(location, new MinecraftData(holder, data)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftData);
+            return (T) minecraftData;
         }
         return null;
     }
