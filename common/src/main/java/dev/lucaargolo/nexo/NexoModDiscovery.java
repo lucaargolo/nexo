@@ -149,7 +149,7 @@ public abstract class NexoModDiscovery {
                               String relative = dir.relativize(p).toString().replace(File.separatorChar, '.');
                               String className = relative.substring(0, relative.length() - 6);
                               if (validPackage(className)) {
-                                  candidates.add(new Candidate(className, null));
+                                  candidates.add(new Candidate(className, dir));
                               }
                           }
                       } catch (IOException ignored) {}

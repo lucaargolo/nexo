@@ -40,8 +40,15 @@ public class SpriteLoaderMixin {
             Location location = entry.getKey();
             Path path = entry.getValue();
 
+            //Remove extensions in the registry
+            String texPath = location.path();
+            int dot = texPath.lastIndexOf('.');
+            if (dot > -1) {
+                texPath = texPath.substring(0, dot);
+            }
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), texPath);
+
             // Don't override if already present in the atlas
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
             if (alreadyPresent) {
                 NexoMinecraft.LOGGER.warn("Tried to override already existing texture {}", id);

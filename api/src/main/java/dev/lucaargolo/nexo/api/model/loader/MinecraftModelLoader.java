@@ -37,7 +37,7 @@ public class MinecraftModelLoader extends ModelLoader {
         Model parentModel = null;
         if (root.has("parent")) {
             String parentStr = root.get("parent").getAsString();
-            Location parentLoc = parseResourceLocation(parentStr, ".json");
+            Location parentLoc = parseResourceLocation(parentStr);
             parentModel = nexo.getModel(parentLoc);
         }
 
@@ -92,24 +92,24 @@ public class MinecraftModelLoader extends ModelLoader {
         if (element.isJsonPrimitive()) {
             String val = element.getAsString();
             if (val.startsWith("#")) return null;
-            return parseResourceLocation(val, ".png");
+            return parseResourceLocation(val);
         }
         if (element.isJsonObject()) {
             JsonObject obj = element.getAsJsonObject();
             if (obj.has("sprite")) {
-                return parseResourceLocation(obj.get("sprite").getAsString(), ".png");
+                return parseResourceLocation(obj.get("sprite").getAsString());
             }
             return null;
         }
         return null;
     }
 
-    private static Location parseResourceLocation(String val, String suffix) {
+    private static Location parseResourceLocation(String val) {
         int colon = val.indexOf(':');
         if (colon < 0) {
-            return Location.of("minecraft", val + suffix);
+            return Location.of("minecraft", val);
         }
-        return Location.of(val.substring(0, colon), val.substring(colon + 1) + suffix);
+        return Location.of(val.substring(0, colon), val.substring(colon + 1));
     }
 
     private static Map<Location, Model.Transform> parseDisplay(JsonObject root) {

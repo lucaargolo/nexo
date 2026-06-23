@@ -40,7 +40,12 @@ public class NexoMinecraftModel implements UnbakedModel {
 
         Map<String, Either<Material, String>> textureMap = new HashMap<>();
         for (var entry : model.textures().entrySet()) {
-            ResourceLocation texLoc = ResourceLocation.fromNamespaceAndPath(entry.getValue().namespace(), entry.getValue().path());
+            String texPath = entry.getValue().path();
+            int dot = texPath.lastIndexOf('.');
+            if (dot > -1) {
+                texPath = texPath.substring(0, dot);
+            }
+            ResourceLocation texLoc = ResourceLocation.fromNamespaceAndPath(entry.getValue().namespace(), texPath);
             Material material = new Material(InventoryMenu.BLOCK_ATLAS, texLoc);
             textureMap.put(entry.getKey(), Either.left(material));
         }
@@ -105,7 +110,7 @@ public class NexoMinecraftModel implements UnbakedModel {
             BlockElementFace mcFace = new BlockElementFace(
                 cullDir,
                 face.tintIndex(),
-                "#" + face.texture(),
+                face.texture().startsWith("#") ? face.texture() : "#" + face.texture(),
                 uv
             );
             faces.put(mcDir, mcFace);

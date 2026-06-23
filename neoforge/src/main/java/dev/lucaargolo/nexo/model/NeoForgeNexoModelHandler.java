@@ -18,6 +18,8 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -49,6 +51,13 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
                 NexoMod mod = nexo.getMod(texture.namespace());
                 if (mod == null) continue;
                 Path filePath = mod.path().resolve(texture.path());
+                if (!Files.isRegularFile(filePath)) {
+                    // Classpath fallback for dev (resources dir separate from classes dir)
+                    URL resourceUrl = Thread.currentThread().getContextClassLoader().getResource(texture.path());
+                    if (resourceUrl != null && "file".equals(resourceUrl.getProtocol())) {
+                        try { filePath = Path.of(resourceUrl.toURI()); } catch (URISyntaxException ignored) {}
+                    }
+                }
                 if (Files.isRegularFile(filePath)) {
                     NexoAtlas.register(NexoAtlas.BLOCK_ATLAS, texture, filePath);
                 } else {

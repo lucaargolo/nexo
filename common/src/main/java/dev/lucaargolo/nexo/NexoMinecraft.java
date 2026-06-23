@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -58,8 +59,8 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.modDiscovery.init(this);
         Model.registerLoader(new MinecraftModelLoader());
+        this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
 
@@ -97,6 +98,13 @@ public abstract class NexoMinecraft implements Nexo {
                     Path file = modPath.resolve(resource);
                     if (Files.isRegularFile(file)) {
                         return Files.readAllBytes(file);
+                    }
+                    // Fallback: classpath resource (resources dir separate from classes dir in dev)
+                    URL resourceUrl = Thread.currentThread().getContextClassLoader().getResource(resource);
+                    if (resourceUrl != null) {
+                        try (InputStream is = resourceUrl.openStream()) {
+                            return is.readAllBytes();
+                        }
                     }
                 } else {
                     try (FileSystem fs = FileSystems.newFileSystem(modPath, (ClassLoader) null)) {
