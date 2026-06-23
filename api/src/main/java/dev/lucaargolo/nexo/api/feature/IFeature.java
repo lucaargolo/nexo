@@ -8,7 +8,10 @@ import java.util.List;
 public interface IFeature {
 
     @NotNull Location location();
-    @NotNull List<@NotNull Tag> tags();
+
+    default @NotNull List<@NotNull Tag> tags() {
+        return List.of();
+    }
 
     default boolean is(@NotNull Tag tag) {
         return tags().contains(tag);

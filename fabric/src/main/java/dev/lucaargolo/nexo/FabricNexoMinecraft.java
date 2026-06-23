@@ -5,14 +5,17 @@ import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.feature.IItem;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.MinecraftItem;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +61,16 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
             MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftBlock);
             return (T) minecraftBlock;
+        }else if(IItem.class == type && feature instanceof IItem item) {
+            ResourceLocation itemId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            Holder.Reference<Item> holder = Registry.registerForHolder(
+                BuiltInRegistries.ITEM,
+                itemId,
+                new Item(new Item.Properties())
+            );
+            MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
+            return (T) minecraftItem;
         }
         return null;
     }

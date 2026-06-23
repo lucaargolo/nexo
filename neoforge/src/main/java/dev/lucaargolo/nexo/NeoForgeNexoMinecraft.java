@@ -5,8 +5,11 @@ import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.feature.IItem;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.MinecraftItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -27,6 +30,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     private final Map<Class<? extends IFeature>, Map<Location, IFeature>> FEATURE_REGISTRY = Maps.newHashMap();
     private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
+    private final Map<String, DeferredRegister.Items> ITEMS = new ConcurrentHashMap<>();
 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
@@ -66,6 +70,16 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
             MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftBlock);
             return (T) minecraftBlock;
+        }else if(type.isAssignableFrom(IItem.class) && feature instanceof IItem item) {
+            DeferredRegister.Items registry = ITEMS.computeIfAbsent(location.namespace(), ns -> {
+                DeferredRegister.Items dr = DeferredRegister.createItems(ns);
+                dr.register(modBus);
+                return dr;
+            });
+            DeferredHolder<Item, ? extends Item> holder = registry.register(location.path(), () -> new Item(new Item.Properties()));
+            MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
+            return (T) minecraftItem;
         }
         return null;
     }
