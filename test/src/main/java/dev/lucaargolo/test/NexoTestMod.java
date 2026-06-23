@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -21,9 +22,13 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
+        IItemCategory category = nexo.registerFeature(IItemCategory.class, new SimpleItemCategory(
+                NexoTestMod.id("test")
+        ));
         IItem item = nexo.registerFeature(IItem.class, new SimpleItem(
             NexoTestMod.id("test_block"),
-            Model.full(nexo, NexoTestMod.id("test_block.png"))
+            Model.full(nexo, NexoTestMod.id("test_block.png")),
+            category
         ));
         nexo.registerFeature(IBlock.class, new SimpleBlock(
             NexoTestMod.id("test_block"),
@@ -53,7 +58,16 @@ public class NexoTestMod {
 
     }
 
-    private record SimpleItem(@NotNull Location location, @Nullable Model model) implements IItem {
+    private record SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable IItemCategory category) implements IItem {
+
+        public SimpleItem(@NotNull Location location, @Nullable Model model) {
+            this(location, model, null);
+        }
+
+    }
+
+    private record SimpleItemCategory(@NotNull Location location) implements IItemCategory {
+
 
     }
 

@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.Item;
@@ -15,6 +16,12 @@ public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IIte
     @Override
     public @Nullable Model model() {
         return this.getDelegate().model();
+    }
+
+    @Override
+    public @Nullable IItemCategory category() {
+        IItem delegate = this.getDelegate();
+        return delegate != null ? delegate.category() : null;
     }
 
 }

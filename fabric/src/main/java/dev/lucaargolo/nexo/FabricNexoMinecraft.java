@@ -6,15 +6,19 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.IItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.MinecraftItem;
+import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -71,6 +75,16 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
             MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
             return (T) minecraftItem;
+        }else if(type.isAssignableFrom(IItemCategory.class) && feature instanceof IItemCategory itemCategory) {
+            ResourceLocation itemCategoryId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            Holder.Reference<CreativeModeTab> holder = Registry.registerForHolder(
+                    BuiltInRegistries.CREATIVE_MODE_TAB,
+                    itemCategoryId,
+                    FabricItemGroup.builder().build()
+            );
+            MinecraftItemCategory minecraftItemCategory = emit(new FeatureRegisteredEvent<>(location, new MinecraftItemCategory(holder, itemCategory)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItemCategory);
+            return (T) minecraftItemCategory;
         }
         return null;
     }

@@ -6,9 +6,13 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.IItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.MinecraftItem;
+import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -31,6 +35,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     private final Map<Class<? extends IFeature>, Map<Location, IFeature>> FEATURE_REGISTRY = Maps.newHashMap();
     private final Map<String, DeferredRegister.Blocks> BLOCKS = new ConcurrentHashMap<>();
     private final Map<String, DeferredRegister.Items> ITEMS = new ConcurrentHashMap<>();
+    private final Map<String, DeferredRegister<CreativeModeTab>> CREATIVE_TABS = new ConcurrentHashMap<>();
 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
@@ -80,6 +85,16 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
             MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
             return (T) minecraftItem;
+        }else if(type.isAssignableFrom(IItemCategory.class) && feature instanceof IItemCategory itemCategory) {
+            DeferredRegister<CreativeModeTab> registry = CREATIVE_TABS.computeIfAbsent(location.namespace(), ns -> {
+                DeferredRegister<CreativeModeTab> dr = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ns);
+                dr.register(modBus);
+                return dr;
+            });
+            DeferredHolder<CreativeModeTab, ? extends CreativeModeTab> holder = registry.register(location.path(), () -> CreativeModeTab.builder().build());
+            MinecraftItemCategory minecraftItemCategory = emit(new FeatureRegisteredEvent<>(location, new MinecraftItemCategory(holder, itemCategory)));
+            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItemCategory);
+            return (T) minecraftItemCategory;
         }
         return null;
     }

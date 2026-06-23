@@ -7,10 +7,12 @@ import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.MinecraftItem;
+import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -43,6 +45,7 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, IItem> ITEM_CACHE = new ConcurrentHashMap<>();
+    private static final Map<Location, IItemCategory> ITEM_CATEGORY_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscovery modDiscovery;
     protected final NexoModelHandler modelLoader;
@@ -84,6 +87,12 @@ public abstract class NexoMinecraft implements Nexo {
             return (T) ITEM_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.ITEM
                     .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
                     .map(holder -> new MinecraftItem(holder, null))
+                    .orElse(null)
+            );
+        }else if(type.isAssignableFrom(IItemCategory.class)) {
+            return (T) ITEM_CATEGORY_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.CREATIVE_MODE_TAB
+                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
+                    .map(holder -> new MinecraftItemCategory(holder, null))
                     .orElse(null)
             );
         }
