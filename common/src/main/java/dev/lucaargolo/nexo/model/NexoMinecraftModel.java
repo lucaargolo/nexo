@@ -1,11 +1,11 @@
 package dev.lucaargolo.nexo.model;
 
 import com.mojang.datafixers.util.Either;
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.model.Cube;
 import dev.lucaargolo.nexo.api.model.Face;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Orientation;
+import dev.lucaargolo.nexo.mixed.BlockElementRotationMixed;
 import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
@@ -116,7 +116,7 @@ public class NexoMinecraftModel implements UnbakedModel {
             faces.put(mcDir, mcFace);
         }
 
-        // Convert Cube.Rotation → BlockElementRotation (1.21.1 only supports single-axis)
+        // Convert Cube.Rotation → BlockElementRotation
         BlockElementRotation mcRotation = null;
         Cube.Rotation r = cube.rotation();
         if (r != null) {
@@ -126,22 +126,15 @@ public class NexoMinecraftModel implements UnbakedModel {
                 Direction.Axis axis = Direction.Axis.byName(r.axis());
                 mcRotation = new BlockElementRotation(origin, axis, r.angle(), r.rescale());
             } else if (r.x() != null || r.y() != null || r.z() != null) {
-                // Format 3: multi-axis — count non-zero components
-                int nonZero = (r.x() != null && r.x() != 0 ? 1 : 0)
-                            + (r.y() != null && r.y() != 0 ? 1 : 0)
-                            + (r.z() != null && r.z() != 0 ? 1 : 0);
-                if (nonZero <= 1) {
-                    // Fold single non-zero axis to single-axis rotation
-                    Direction.Axis axis = r.x() != null && r.x() != 0 ? Direction.Axis.X
-                                        : r.y() != null && r.y() != 0 ? Direction.Axis.Y
-                                        : Direction.Axis.Z;
-                    float angle = r.x() != null ? r.x() : r.y() != null ? r.y() : r.z();
-                    mcRotation = new BlockElementRotation(origin, axis, angle, r.rescale());
-                } else {
-                    // Multi-axis: not representable in 1.21.1
-                    NexoMinecraft.LOGGER.warn("Multi-axis element rotation not supported in 1.21.1, skipping for cube at [{}, {}]",
-                        cube.fromX(), cube.toX());
-                }
+                // Format 3: multi-axis — store euler angles via mixin
+                mcRotation = new BlockElementRotation(origin, Direction.Axis.Y, 0.0F, r.rescale());
+                ((BlockElementRotationMixed) (Object) mcRotation).nexo$setEulerRotation(
+                    new Vector3f(
+                        r.x() != null ? r.x() : 0.0F,
+                        r.y() != null ? r.y() : 0.0F,
+                        r.z() != null ? r.z() : 0.0F
+                    )
+                );
             }
         }
 
