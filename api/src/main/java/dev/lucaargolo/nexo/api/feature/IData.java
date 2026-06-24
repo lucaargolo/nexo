@@ -1,11 +1,14 @@
 package dev.lucaargolo.nexo.api.feature;
 
 import com.google.gson.JsonElement;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
 public interface IData<D> extends IFeature {
+
+    CountData COUNT = new CountData(Location.of("nexo", "count"));
 
     @NotNull ByteBuffer write(@NotNull D data);
 

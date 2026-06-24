@@ -67,7 +67,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.registerFeature(IData.class, new CountData(Location.of("nexo", "count")));
+        this.registerFeature(IData.class, IData.COUNT);
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
