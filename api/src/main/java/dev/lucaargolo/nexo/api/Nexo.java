@@ -15,15 +15,15 @@ public interface Nexo {
 
     @NotNull Logger getLogger();
 
-    @Nullable NexoMod getMod(String id);
+    @Nullable NexoMod getMod(@NotNull String id);
 
-    byte @Nullable [] loadResource(@NotNull Location location);
+    @Nullable byte[] loadResource(@NotNull Location location);
 
-    @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location);
+    @Nullable <T extends IFeature> T getFeature(@NotNull Class<T> type, @NotNull Location location);
 
-    @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, I feature);
+    @Nullable <T extends IFeature, I extends T> T registerFeature(@NotNull Class<T> type, @NotNull I feature);
 
-    @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(Class<T> type);
+    @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(@NotNull Class<T> type);
 
 
     <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);
@@ -36,6 +36,6 @@ public interface Nexo {
 
     @Nullable <E extends IEvent<T>, T> T emit(@NotNull E event);
 
-    @Nullable Model getModel(Location location);
+    @Nullable Model getModel(@NotNull Location location);
 
 }

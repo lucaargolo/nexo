@@ -1,3 +1,13 @@
 plugins {
     id 'groovy-gradle-plugin'
 }
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'net.ltgt.errorprone:net.ltgt.errorprone.gradle.plugin:4.4.0'
+    implementation 'org.ow2.asm:asm:9.7.1'
+}

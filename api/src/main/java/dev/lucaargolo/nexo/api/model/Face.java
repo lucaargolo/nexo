@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 public record Face(@NotNull String texture, @Nullable Orientation cullFace, float @Nullable [] uv, int rotation, int tintIndex) {
 
-    public static Face simple(@NotNull String texture) {
+    public static @NotNull Face simple(@NotNull String texture) {
         return new Face(texture, null, null, 0, -1);
     }
 

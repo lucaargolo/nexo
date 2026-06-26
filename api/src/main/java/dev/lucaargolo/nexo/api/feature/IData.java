@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 
 public interface IData<D> extends IFeature {
 
+    @NotNull
     CountData COUNT = new CountData(Location.of("nexo", "count"));
 
     @NotNull ByteBuffer write(@NotNull D data);

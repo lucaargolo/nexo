@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Instance<T extends IFeature> {
 
+    @NotNull
     private final Map<IData<?>, Object> dataMap = new ConcurrentHashMap<>();
 
     @Nullable
@@ -22,42 +23,43 @@ public final class Instance<T extends IFeature> {
     }
 
     public @Nullable T get() {
-        if (hasData(IData.COUNT) && getData(IData.COUNT) == 0) {
+        Integer count = getData(IData.COUNT);
+        if (count != null && count == 0) {
             return null;
         }
         return feature;
     }
 
-    public boolean hasData(IData<?> data) {
-        return dataMap.containsKey(data);
-    }
-
     @SuppressWarnings("unchecked")
     @Nullable
-    public <D> D getData(IData<D> data) {
+    public <D> D getData(@NotNull IData<D> data) {
         return (D) dataMap.get(data);
     }
 
-    public <D> void setData(IData<D> data, D d) {
+    public <D> void setData(@NotNull IData<D> data, D d) {
         dataMap.put(data, d);
     }
-
     public int getCount() {
-        if (!hasData(IData.COUNT)) {
+        Integer count = getData(IData.COUNT);
+        if (count == null) {
             throw new IllegalStateException("CountData is not present in this stack");
         }
-        return getData(IData.COUNT);
+        return count;
     }
 
     public void setCount(int count) {
-        if (!hasData(IData.COUNT)) {
+        if (getData(IData.COUNT) == null) {
             throw new IllegalStateException("CountData is not present in this stack");
         }
         setData(IData.COUNT, count);
     }
 
-    public static Instance<IItem> item(IItemProvider item, int count) {
-        Instance<IItem> instance = new Instance<>(item.item());
+    public static @NotNull Instance<IItem> item(@NotNull IItemProvider item, int count) {
+        IItem i = item.item();
+        if (i == null) {
+            throw new IllegalArgumentException("Item provider returned null item");
+        }
+        Instance<IItem> instance = new Instance<>(i);
         instance.setData(IData.COUNT, count);
         return instance;
     }

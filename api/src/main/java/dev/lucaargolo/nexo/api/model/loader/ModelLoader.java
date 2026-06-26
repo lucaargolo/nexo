@@ -9,6 +9,6 @@ import org.jetbrains.annotations.Nullable;
 public abstract class ModelLoader {
 
     @Nullable
-    public abstract Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data);
+    public abstract Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, @NotNull byte[] data);
 
 }

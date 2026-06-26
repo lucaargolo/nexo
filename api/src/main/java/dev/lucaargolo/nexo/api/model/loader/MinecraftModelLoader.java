@@ -17,7 +17,7 @@ import java.util.*;
 public class MinecraftModelLoader extends ModelLoader {
 
     @Override
-    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
+    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, @NotNull byte[] data) {
         if (!path.path().toLowerCase(Locale.ROOT).endsWith(".json")) {
             return null;
         }
@@ -74,7 +74,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return new Model(cubes, textures, transforms, shade);
     }
 
-    private static Map<String, Location> parseTextures(JsonObject root) {
+    private static @NotNull Map<String, Location> parseTextures(@NotNull JsonObject root) {
         Map<String, Location> textures = new HashMap<>();
         if (!root.has("textures")) return textures;
 
@@ -88,7 +88,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return textures;
     }
 
-    private static @Nullable Location parseTextureValue(JsonElement element) {
+    private static @Nullable Location parseTextureValue(@NotNull JsonElement element) {
         if (element.isJsonPrimitive()) {
             String val = element.getAsString();
             if (val.startsWith("#")) return null;
@@ -104,7 +104,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return null;
     }
 
-    private static Location parseResourceLocation(String val) {
+    private static @NotNull Location parseResourceLocation(@NotNull String val) {
         int colon = val.indexOf(':');
         if (colon < 0) {
             return Location.of("minecraft", val);
@@ -112,7 +112,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return Location.of(val.substring(0, colon), val.substring(colon + 1));
     }
 
-    private static Map<Location, Model.Transform> parseDisplay(JsonObject root) {
+    private static @NotNull Map<Location, Model.Transform> parseDisplay(@NotNull JsonObject root) {
         if (!root.has("transforms"))
             return Map.of();
 
@@ -128,14 +128,14 @@ public class MinecraftModelLoader extends ModelLoader {
         return display;
     }
 
-    private static Model.Transform parseTransform(JsonObject obj) {
+    private static @NotNull Model.Transform parseTransform(@NotNull JsonObject obj) {
         Vector3f rotation = parseFloat3(obj, "rotation", 0);
         Vector3f translation = parseFloat3(obj, "translation", 0);
         Vector3f scale = parseFloat3(obj, "scale", 1);
         return new Model.Transform(rotation, translation, scale);
     }
 
-    private static Vector3f parseFloat3(JsonObject obj, String key, float defaultValue) {
+    private static @NotNull Vector3f parseFloat3(@NotNull JsonObject obj, @NotNull String key, float defaultValue) {
         if (!obj.has(key)) return new Vector3f(defaultValue, defaultValue, defaultValue);
         JsonArray arr = obj.getAsJsonArray(key);
         if (arr.size() != 3) {
@@ -144,7 +144,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return new Vector3f(arr.get(0).getAsFloat(), arr.get(1).getAsFloat(), arr.get(2).getAsFloat());
     }
 
-    private static List<Cube> parseElements(JsonObject root) {
+    private static @NotNull List<Cube> parseElements(@NotNull JsonObject root) {
         if (!root.has("elements")) return List.of();
 
         JsonArray elementsArr = root.getAsJsonArray("elements");
@@ -156,7 +156,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return cubes;
     }
 
-    private static Cube parseElement(JsonObject obj) {
+    private static @NotNull Cube parseElement(@NotNull JsonObject obj) {
         Vector3f from = parseFloat3(obj, "from", 0);
         Vector3f to = parseFloat3(obj, "to", 0);
 
@@ -181,7 +181,7 @@ public class MinecraftModelLoader extends ModelLoader {
         );
     }
 
-    private static @Nullable Cube.Rotation parseRotation(JsonObject obj) {
+    private static @Nullable Cube.Rotation parseRotation(@NotNull JsonObject obj) {
         if (!obj.has("rotation")) return null;
 
         JsonObject rotObj = obj.getAsJsonObject("rotation");
@@ -209,7 +209,7 @@ public class MinecraftModelLoader extends ModelLoader {
         return Cube.Rotation.axisAngle(origin, axis, angle, rescale);
     }
 
-    private static Map<Orientation, Face> parseFaces(JsonObject obj) {
+    private static @NotNull Map<Orientation, Face> parseFaces(@NotNull JsonObject obj) {
         JsonObject facesObj = obj.getAsJsonObject("faces");
         Map<Orientation, Face> faces = new HashMap<>();
 

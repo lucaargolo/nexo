@@ -1,13 +1,14 @@
 package dev.lucaargolo.nexo.api.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class Location {
 
-    private static final Map<String, Map<String, Location>> CACHE = new ConcurrentHashMap<>();
+    @NotNull private static final Map<String, Map<String, Location>> CACHE = new ConcurrentHashMap<>();
 
     @NotNull private final String namespace;
     @NotNull private final String path;
@@ -26,7 +27,7 @@ public final class Location {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (o == null || getClass() != o.getClass()) return false;
 
         Location that = (Location) o;
@@ -41,7 +42,7 @@ public final class Location {
     }
 
     @NotNull
-    public static Location of(String namespace, String path) {
+    public static Location of(@NotNull String namespace, @NotNull String path) {
         return CACHE
                 .computeIfAbsent(namespace, ns -> new ConcurrentHashMap<>())
                 .computeIfAbsent(path, p -> new Location(namespace, path));

@@ -21,7 +21,7 @@ public record Model(
     boolean shade
 ) {
 
-    private static final List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
+    private static final @NotNull List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
 
     public Model(
         @NotNull List<Cube> cubes,
@@ -57,8 +57,7 @@ public record Model(
         return transforms.get(location);
     }
 
-    @NotNull
-    public static Model full(Nexo nexo, @NotNull Location texture) {
+    public static @NotNull Model full(@NotNull Nexo nexo, @NotNull Location texture) {
         return new Model(List.of(
                 new Cube(0, 0, 0, 16, 16, 16, Map.of(
                         Orientation.UP, Face.simple("all"),
@@ -78,8 +77,7 @@ public record Model(
         ));
     }
 
-    @Nullable
-    public static Model load(Nexo nexo, @NotNull Location path) {
+    public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path) {
         byte[] data = nexo.loadResource(path);
         if (data == null) return null;
         try {
@@ -90,8 +88,7 @@ public record Model(
         }
     }
 
-    @Nullable
-    public static Model load(Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
+    public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path, @NotNull byte[] data) {
         for (ModelLoader loader : LOADERS) {
             Model result = loader.tryLoad(nexo, path, data);
             if (result != null) return result;

@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
+    id 'net.ltgt.errorprone'
 }
 
 base {
@@ -19,6 +20,8 @@ repositories {
 
 dependencies {
     compileOnly "org.jetbrains:annotations:24.1.0"
+    errorprone "com.google.errorprone:error_prone_core:2.36.0"
+    errorprone "com.uber.nullaway:nullaway:0.12.7"
 }
 
 // Declare capabilities on the outgoing configurations.
@@ -81,5 +84,178 @@ publishing {
         maven {
             url System.getenv('local_maven_url')
         }
+    }
+}
+
+
+import net.ltgt.gradle.errorprone.CheckSeverity
+
+tasks.withType(JavaCompile).configureEach {
+    options.errorprone {
+        check('NullAway', CheckSeverity.ERROR)
+        option('NullAway:AnnotatedPackages', 'dev.lucaargolo.nexo')
+    }
+}
+
+// ── @Nullable/@NotNull annotation presence checker (ASM bytecode scan) ──
+
+tasks.named('compileJava').configure {
+    doLast {
+        def dir = destinationDirectory.get().asFile
+        if (!dir.exists()) return
+        def errors = scan(dir)
+        if (!errors.isEmpty())
+            throw new GradleException("Missing @Nullable/@NotNull annotations:\n" + errors.join('\n'))
+    }
+}
+
+static List<String> scan(File dir) {
+    def errors = [], nd = 'Lorg/jetbrains/annotations/Nullable;', nnd = 'Lorg/jetbrains/annotations/NotNull;'
+    def prims = ['Z','B','C','S','I','J','F','D','V'] as Set
+    dir.eachFileRecurse { f ->
+        if (!f.name.endsWith('.class')) return
+        if (f.name.contains('$')) return
+        try { new ClassReader(f.bytes).accept(new CV(nd,nnd,prims,errors), 0) }
+        catch (Exception x) { errors << "${f.name}: ${x.message}" }
+    }
+    return errors
+}
+
+// ── Visitors ──
+
+class CV extends ClassVisitor {
+    String nd, nnd, cn, cns; Set<String> p; List<String> err; boolean en, rec, ann
+
+    CV(String a, String b, Set<String> ps, List<String> e) {
+        super(Opcodes.ASM9); nd=a; nnd=b; p=ps; err=e
+    }
+
+    void visit(int ver, int acc, String name, String sig, String sup, String[] ifs) {
+        cn=name.replace('/', '.'); cns=name
+        en=(acc & Opcodes.ACC_ENUM)!=0; ann=(acc & Opcodes.ACC_ANNOTATION)!=0
+        rec=sup=='java/lang/Record'
+    }
+
+    FieldVisitor visitField(int acc, String name, String desc, String sig, Object value) {
+        if (name.contains('$')) return null
+        if (ann) return null
+        if (en && (acc & Opcodes.ACC_ENUM)!=0) return null
+        if (!ref(desc)) return null
+        if (tv(desc,sig)) return null
+        return new FV(this, name)
+    }
+
+    MethodVisitor visitMethod(int acc, String name, String desc, String sig, String[] ex) {
+        if (name.contains('$') || name=='<clinit>') return null
+        if (ann) return null
+        if (en && es(name,desc)) return null
+        if (rec && name=='<init>') return null
+        if (rec && rs(name,desc)) return null
+        return new MV(this, name, desc, sig, name=='<init>', rec)
+    }
+
+    boolean es(String n, String d) {
+        (n=='values' && d=="()[L${cns};") || (n=='valueOf' && d=="(Ljava/lang/String;)L${cns};") || (n=='<init>' && d=='(Ljava/lang/String;I)V')
+    }
+
+    boolean rs(String n, String d) {
+        (n=='equals' && d=='(Ljava/lang/Object;)Z') || (n=='hashCode' && d=='()I') || (n=='toString' && d=='()Ljava/lang/String;')
+    }
+
+    boolean ref(String d) { (d.startsWith('[')||d.startsWith('L')) && !(p.contains(d)||d.startsWith('T')) }
+
+    boolean tv(String desc, String sig) {
+        // Type variable: sig like "TT;" where T indicates a type variable name
+        sig != null && sig.length()>=3 && sig.charAt(0)=='T' && Character.isJavaIdentifierStart(sig.charAt(1) as char)
+    }
+}
+
+class FV extends FieldVisitor {
+    CV cv; String n; boolean ok
+    FV(CV c, String n) { super(Opcodes.ASM9); cv=c; this.n=n }
+
+    AnnotationVisitor visitAnnotation(String d, boolean v) {
+        if (d==cv.nd||d==cv.nnd) ok=true; return null
+    }
+    AnnotationVisitor visitTypeAnnotation(int tr, TypePath tp, String d, boolean v) {
+        if (d==cv.nd||d==cv.nnd) ok=true; return null
+    }
+    void visitEnd() { if (!ok) cv.err << "${cv.cn}: field '${n}' missing @Nullable/@NotNull" }
+}
+
+class MV extends MethodVisitor {
+    CV cv; String mn, md, sig; boolean ctor, rec; boolean retOk; boolean[] pOk
+
+    MV(CV c, String n, String d, String s, boolean ct, boolean r) {
+        super(Opcodes.ASM9)
+        cv=c; mn=n; md=d; sig=s; ctor=ct; rec=r
+        pOk=new boolean[Type.getArgumentTypes(d).length]
+    }
+
+    AnnotationVisitor visitAnnotation(String d, boolean v) {
+        if (d==cv.nd||d==cv.nnd) retOk=true; return null
+    }
+
+    AnnotationVisitor visitTypeAnnotation(int tr, TypePath tp, String d, boolean v) {
+        if (d!=cv.nd && d!=cv.nnd) return null
+        if (tr==TypeReference.METHOD_RETURN) retOk=true
+        else if (tr>=TypeReference.METHOD_FORMAL_PARAMETER) {
+            int i=tr-TypeReference.METHOD_FORMAL_PARAMETER
+            if (i<pOk.length) pOk[i]=true
+        }
+        return null
+    }
+
+    AnnotationVisitor visitParameterAnnotation(int param, String d, boolean v) {
+        if ((d==cv.nd||d==cv.nnd) && param<pOk.length) pOk[param]=true; return null
+    }
+
+    void visitEnd() {
+        def at=Type.getArgumentTypes(md)
+        if (rec && !ctor && at.length==0) return
+        if (!ctor) {
+            def rd=md.substring(md.indexOf(')')+1)
+            if (cv.ref(rd) && rd!='V' && !retOk && !rtv())
+                cv.err << "${cv.cn}: return type of '${mn}' missing @Nullable/@NotNull"
+        }
+        for (int i=0; i<at.length; i++) {
+            if (!cv.ref(at[i].descriptor)) continue
+            if (ptv(i)) continue
+            if (!pOk[i])
+                cv.err << "${cv.cn}: parameter ${i} of '${mn}' missing @Nullable/@NotNull"
+        }
+    }
+
+    boolean rtv() {  // return type variable?
+        if (sig==null) return false
+        try {
+            int p=sig.lastIndexOf(')'); if (p<0) return false
+            def rs=sig.substring(p+1)
+            return rs.length()>=3 && rs.charAt(0)=='T' && Character.isJavaIdentifierStart(rs.charAt(1) as char)
+        } catch (Exception _) { return false }
+    }
+
+    boolean ptv(int idx) {  // param type variable?
+        if (sig==null) return false
+        try {
+            def ps=sig.substring(sig.indexOf('(')+1, sig.lastIndexOf(')'))
+            def parts=split(ps)
+            if (idx<parts.size()) {
+                def part=parts[idx]
+                return part.length()>=3 && part.charAt(0)=='T' && Character.isJavaIdentifierStart(part.charAt(1) as char)
+            }
+        } catch (Exception _) { return false }
+        return false
+    }
+
+    static List<String> split(String s) {
+        def r=[]; int d=0; def b=new StringBuilder()
+        for (char c : s.toCharArray()) {
+            if (c=='<') d++; else if (c=='>') d--
+            if (c==';' && d==0) { b.append(c); r<<b.toString(); b.setLength(0) }
+            else b.append(c)
+        }
+        if (b.length()>0) r<<b.toString()
+        return r
     }
 }
