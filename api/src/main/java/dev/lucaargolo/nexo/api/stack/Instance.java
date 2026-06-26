@@ -18,7 +18,7 @@ public final class Instance<T extends IFeature> {
     @Nullable
     private final T feature;
 
-    public Instance(@NotNull T feature) {
+    public Instance(@Nullable T feature) {
         this.feature = feature;
     }
 

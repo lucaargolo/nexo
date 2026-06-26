@@ -7,18 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-public class CountData implements IData<Integer> {
-
-    private final @NotNull Location location;
-
-    public CountData(@NotNull Location location) {
-        this.location = location;
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return location;
-    }
+public record CountData(@NotNull Location location) implements IData<Integer> {
 
     @Override
     public @NotNull ByteBuffer write(@NotNull Integer data) {
