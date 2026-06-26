@@ -88,7 +88,7 @@ publishing {
 }
 
 
-import net.ltgt.gradle.errorprone.CheckSeverity
+import groovyjarjarasm.asm.*
 
 tasks.withType(JavaCompile).configureEach {
     options.errorprone {
@@ -251,8 +251,8 @@ class MV extends MethodVisitor {
     static List<String> split(String s) {
         def r=[]; int d=0; def b=new StringBuilder()
         for (char c : s.toCharArray()) {
-            if (c=='<') d++; else if (c=='>') d--
-            if (c==';' && d==0) { b.append(c); r<<b.toString(); b.setLength(0) }
+            if (c == '<') d++; else if (c == '>') d--
+            if (c == ';' && d==0) { b.append(c); r<<b.toString(); b.setLength(0) }
             else b.append(c)
         }
         if (b.length()>0) r<<b.toString()
