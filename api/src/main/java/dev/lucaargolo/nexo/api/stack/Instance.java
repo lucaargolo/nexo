@@ -10,14 +10,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Stack<T extends IFeature> {
+public final class Instance<T extends IFeature> {
 
     private final Map<IData<?>, Object> dataMap = new ConcurrentHashMap<>();
 
     @Nullable
     private final T feature;
 
-    public Stack(@NotNull T feature) {
+    public Instance(@NotNull T feature) {
         this.feature = feature;
     }
 
@@ -56,10 +56,10 @@ public final class Stack<T extends IFeature> {
         setData(IData.COUNT, count);
     }
 
-    public static Stack<IItem> item(IItemProvider item, int count) {
-        Stack<IItem> stack = new Stack<>(item.item());
-        stack.setData(IData.COUNT, count);
-        return stack;
+    public static Instance<IItem> item(IItemProvider item, int count) {
+        Instance<IItem> instance = new Instance<>(item.item());
+        instance.setData(IData.COUNT, count);
+        return instance;
     }
 
 }
