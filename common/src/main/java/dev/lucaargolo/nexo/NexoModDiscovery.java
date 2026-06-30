@@ -1,73 +1,68 @@
 package dev.lucaargolo.nexo;
-import dev.lucaargolo.nexo.api.Mod;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.NexoMod;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public abstract class NexoModDiscovery {
 
-    private static final byte[] MOD_DESCRIPTOR = "Ldev/lucaargolo/nexo/api/Mod;".getBytes(StandardCharsets.UTF_8);
+    private static final String MOD_JSON = "nexo.mod.json";
 
-    protected final Map<String, NexoMod> mods = new ConcurrentHashMap<>();
+    protected final Map<String, Nexo.Mod> mods = new ConcurrentHashMap<>();
 
     public abstract void init(Nexo nexo);
 
     @Nullable
-    public final NexoMod getMod(String id) {
+    public final Nexo.Mod getMod(String id) {
         return mods.get(id);
     }
 
     protected final void init(Nexo nexo, Collection<Path> jarPaths, Collection<Path> dirPaths) {
         ClassLoader parentCl = NexoModDiscovery.class.getClassLoader();
 
-        List<Candidate> candidates = new ArrayList<>();
+        List<ModDescriptor> descriptors = new ArrayList<>();
         for (Path jarPath : jarPaths) {
-            scanJarForMods(jarPath, candidates);
+            scanJarForModJson(jarPath, descriptors);
         }
         for (Path dirPath : dirPaths) {
-            scanDirectoryForMods(dirPath, candidates);
+            scanDirectoryForModJson(dirPath, descriptors);
         }
 
         int discovered = 0;
-        for (Candidate candidate : candidates) {
-            Class<?> modClass = loadCandidate(candidate, parentCl);
-            if (modClass == null) continue;
-            Mod modAnnotation = modClass.getDeclaredAnnotation(Mod.class);
-            String id, name, description, version;
-            String[] authors;
-            if (modAnnotation != null) {
-                id = modAnnotation.value();
-                name = modAnnotation.name();
-                description = modAnnotation.description();
-                version = modAnnotation.version();
-                authors = modAnnotation.authors();
-            } else {
-                NexoMinecraft.LOGGER.warn("Bytecode scan found '{}' but @Mod annotation not readable — using class name as id", modClass.getName());
-                id = modClass.getSimpleName().toLowerCase();
-                name = modClass.getSimpleName();
-                description = "";
-                version = "0.0.0";
-                authors = new String[0];
-            }
-            NexoMinecraft.LOGGER.info("Discovered Nexo mod {} ({}) at {}", id, name, candidate.sourceJar);
+        for (ModDescriptor descriptor : descriptors) {
+            NexoMinecraft.LOGGER.info("Discovered Nexo mod {} ({}) at {}", descriptor.id, descriptor.name, descriptor.sourcePath);
             discovered++;
-            if (mods.containsKey(id)) continue;
-            mods.put(id, new NexoMod(id, name, description, version, authors, candidate.sourceJar));
-            instantiateMod(modClass, nexo);
+            if (mods.containsKey(descriptor.id)) continue;
+
+            Nexo.Mod mod = new Nexo.Mod(descriptor.id, descriptor.name, descriptor.description,
+                    descriptor.version, descriptor.authors, descriptor.sourcePath);
+            mods.put(descriptor.id, mod);
+
+            if (descriptor.entrypoint != null && !descriptor.entrypoint.isEmpty()) {
+                Class<?> modClass = loadEntrypoint(descriptor, parentCl);
+                if (modClass != null) {
+                    instantiateMod(modClass, nexo);
+                }
+            }
         }
 
         NexoMinecraft.LOGGER.info("Nexo mod scan complete: {} entries, {} mods discovered", jarPaths.size() + dirPaths.size(), discovered);
@@ -83,18 +78,81 @@ public abstract class NexoModDiscovery {
         } catch (Exception ignored) {}
     }
 
-    @SuppressWarnings("resource")
-    private static Class<?> loadCandidate(Candidate candidate, ClassLoader classLoader) {
+    private static void scanJarForModJson(Path jarPath, List<ModDescriptor> descriptors) {
+        try (JarFile jar = new JarFile(jarPath.toFile())) {
+            JarEntry entry = jar.getJarEntry(MOD_JSON);
+            if (entry != null) {
+                try (InputStream is = jar.getInputStream(entry);
+                     InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+                    JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+                    ModDescriptor descriptor = parseModDescriptor(json, jarPath);
+                    if (descriptor != null) {
+                        descriptors.add(descriptor);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            NexoMinecraft.LOGGER.warn("Failed to scan JAR for {}: {}", jarPath, e.getMessage());
+        }
+    }
+
+    private static void scanDirectoryForModJson(Path dirPath, List<ModDescriptor> descriptors) {
+        Path jsonPath = dirPath.resolve(MOD_JSON);
+        if (Files.isRegularFile(jsonPath)) {
+            try (InputStreamReader reader = new InputStreamReader(
+                    Files.newInputStream(jsonPath), StandardCharsets.UTF_8)) {
+                JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+                ModDescriptor descriptor = parseModDescriptor(json, dirPath);
+                if (descriptor != null) {
+                    descriptors.add(descriptor);
+                }
+            } catch (IOException e) {
+                NexoMinecraft.LOGGER.warn("Failed to read {}: {}", jsonPath, e.getMessage());
+            }
+        }
+    }
+
+    @Nullable
+    private static ModDescriptor parseModDescriptor(JsonObject json, Path sourcePath) {
         try {
-            if (candidate.sourceJar != null) {
-                URL url = candidate.sourceJar.toUri().toURL();
-                URLClassLoader jarLoader = new URLClassLoader(new URL[]{url}, classLoader);
-                return jarLoader.loadClass(candidate.className);
+            String id = json.get("id").getAsString();
+            String name = json.has("name") ? json.get("name").getAsString() : "";
+            String description = json.has("description") ? json.get("description").getAsString() : "";
+            String version = json.has("version") ? json.get("version").getAsString() : "0.0.0";
+            String entrypoint = json.has("entrypoint") ? json.get("entrypoint").getAsString() : "";
+
+            String[] authors;
+            if (json.has("authors") && json.get("authors").isJsonArray()) {
+                JsonArray authorsArray = json.getAsJsonArray("authors");
+                authors = new String[authorsArray.size()];
+                for (int i = 0; i < authorsArray.size(); i++) {
+                    authors[i] = authorsArray.get(i).getAsString();
+                }
             } else {
-                return Class.forName(candidate.className, false, classLoader);
+                authors = new String[0];
+            }
+
+            return new ModDescriptor(id, name, description, version, authors, entrypoint, sourcePath);
+        } catch (Exception e) {
+            NexoMinecraft.LOGGER.warn("Invalid {} in {}: {}", MOD_JSON, sourcePath, e.getMessage());
+            return null;
+        }
+    }
+
+    @Nullable
+    private static Class<?> loadEntrypoint(ModDescriptor descriptor, ClassLoader parentCl) {
+        try {
+            if (Files.isRegularFile(descriptor.sourcePath)) {
+                // JAR: create a classloader for this JAR
+                URL url = descriptor.sourcePath.toUri().toURL();
+                URLClassLoader jarLoader = new URLClassLoader(new URL[]{url}, parentCl);
+                return jarLoader.loadClass(descriptor.entrypoint);
+            } else {
+                // Directory: class should be on the system classpath
+                return Class.forName(descriptor.entrypoint, false, parentCl);
             }
         } catch (ClassNotFoundException | NoClassDefFoundError | IOException e) {
-            NexoMinecraft.LOGGER.warn("Discovered Nexo mod class '{}' but failed to load it", candidate.className, e);
+            NexoMinecraft.LOGGER.warn("Mod '{}' entrypoint class '{}' not found", descriptor.id, descriptor.entrypoint, e);
             return null;
         }
     }
@@ -115,80 +173,14 @@ public abstract class NexoModDiscovery {
         }
     }
 
-    private static void scanJarForMods(Path jarPath, List<Candidate> candidates) {
-        try (JarFile jar = new JarFile(jarPath.toFile())) {
-            Enumeration<JarEntry> entries = jar.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                String name = entry.getName();
-                if (!name.endsWith(".class")) continue;
-
-                byte[] classBytes;
-                try (InputStream is = jar.getInputStream(entry)) {
-                    classBytes = is.readAllBytes();
-                }
-
-                if (hasDescriptor(classBytes)) {
-                    String className = name.substring(0, name.length() - 6).replace('/', '.');
-                    if (validPackage(className)) {
-                        candidates.add(new Candidate(className, jarPath));
-                    }
-                }
-            }
-        } catch (IOException ignored) {}
-    }
-
-    private static void scanDirectoryForMods(Path dir, List<Candidate> candidates) {
-        try (var stream = Files.walk(dir)) {
-            stream.filter(Files::isRegularFile)
-                  .filter(p -> p.getFileName().toString().endsWith(".class"))
-                  .forEach(p -> {
-                      try {
-                          byte[] classBytes = Files.readAllBytes(p);
-                          if (hasDescriptor(classBytes)) {
-                              String relative = dir.relativize(p).toString().replace(File.separatorChar, '.');
-                              String className = relative.substring(0, relative.length() - 6);
-                              if (validPackage(className)) {
-                                  candidates.add(new Candidate(className, dir));
-                              }
-                          }
-                      } catch (IOException ignored) {}
-                  });
-        } catch (IOException ignored) {}
-    }
-
-    private static boolean hasDescriptor(byte[] haystack) {
-        int max = haystack.length - MOD_DESCRIPTOR.length;
-        outer:
-        for (int i = 0; i <= max; i++) {
-            for (int j = 0; j < MOD_DESCRIPTOR.length; j++) {
-                if (haystack[i + j] != MOD_DESCRIPTOR[j]) continue outer;
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean validPackage(String className) {
-        int dot = className.lastIndexOf('.');
-        String pkg = dot < 0 ? "" : className.substring(0, dot);
-        return !pkg.startsWith("java.")
-            && !pkg.startsWith("sun.")
-            && !pkg.startsWith("jdk.")
-            && !pkg.startsWith("com.sun.")
-            && !pkg.startsWith("com.google.")
-            && !pkg.startsWith("org.objectweb.")
-            && !pkg.startsWith("org.apache.")
-            && !pkg.startsWith("it.unimi.")
-            && !pkg.startsWith("net.minecraft.")
-            && !pkg.startsWith("net.fabricmc.")
-            && !pkg.startsWith("net.neoforged.")
-            && !pkg.startsWith("org.slf4j.")
-            && !pkg.startsWith("org.jetbrains.")
-            && !pkg.startsWith("org.lwjgl.")
-            && !pkg.startsWith("dev.lucaargolo.nexo");
-    }
-
-    private record Candidate(String className, Path sourceJar) {}
+    private record ModDescriptor(
+            String id,
+            String name,
+            String description,
+            String version,
+            String[] authors,
+            String entrypoint,
+            Path sourcePath
+    ) {}
 
 }

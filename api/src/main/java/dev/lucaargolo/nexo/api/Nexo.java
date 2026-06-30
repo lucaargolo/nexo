@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -15,7 +16,7 @@ public interface Nexo {
 
     @NotNull Logger getLogger();
 
-    @Nullable NexoMod getMod(@NotNull String id);
+    @Nullable Mod getMod(@NotNull String id);
 
     @Nullable byte[] loadResource(@NotNull Location location);
 
@@ -37,5 +38,14 @@ public interface Nexo {
     @Nullable <E extends IEvent<T>, T> T emit(@NotNull E event);
 
     @Nullable Model getModel(@NotNull Location location);
+
+    record Mod(
+            @NotNull String value,
+            @NotNull String name,
+            @NotNull String description,
+            @NotNull String version,
+            @NotNull String[] authors,
+            @NotNull Path path
+    ) {}
 
 }

@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.model;
 import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.IModelProvider;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -24,7 +23,7 @@ public abstract class NexoModelHandler {
     public abstract void init(Nexo nexo);
 
     protected static void registerTexture(Nexo nexo, Location texture, Location atlas) {
-        NexoMod mod = nexo.getMod(texture.namespace());
+        Nexo.Mod mod = nexo.getMod(texture.namespace());
         if (mod == null) return;
         Path filePath = mod.path().resolve(texture.path());
         if (!Files.isRegularFile(filePath)) {

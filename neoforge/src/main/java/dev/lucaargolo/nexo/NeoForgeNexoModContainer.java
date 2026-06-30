@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.NexoMod;
+import dev.lucaargolo.nexo.api.Nexo;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforgespi.language.IConfigurable;
@@ -19,7 +19,7 @@ import java.util.Optional;
 
 public class NeoForgeNexoModContainer extends ModContainer {
 
-    public NeoForgeNexoModContainer(NexoMod mod) {
+    public NeoForgeNexoModContainer(Nexo.Mod mod) {
         super(new ModInfo(mod));
     }
 
@@ -28,7 +28,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
         return null;
     }
 
-    private record ModInfo(NexoMod mod) implements IModInfo {
+    private record ModInfo(Nexo.Mod mod) implements IModInfo {
 
         @Override
         public String getModId() {
@@ -107,7 +107,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
     }
 
-    private record FileInfo(NexoMod mod) implements IModFileInfo {
+    private record FileInfo(Nexo.Mod mod) implements IModFileInfo {
         @Override
         public List<IModInfo> getMods() {
             return List.of();

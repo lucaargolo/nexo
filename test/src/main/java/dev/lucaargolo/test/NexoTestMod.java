@@ -1,6 +1,5 @@
 package dev.lucaargolo.test;
 
-import dev.lucaargolo.nexo.api.Mod;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.IBlock;
 import dev.lucaargolo.nexo.api.feature.IItem;
@@ -10,13 +9,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@Mod(
-        value = NexoTestMod.MOD_ID,
-        name = "Nexo Test Mod",
-        description = "A test Nexo mod for development",
-        version = "0.0.1",
-        authors = {"D4rkness_King"}
-)
 public class NexoTestMod {
 
     public static final String MOD_ID = "nexo_test";

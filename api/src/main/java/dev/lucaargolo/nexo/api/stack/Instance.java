@@ -39,20 +39,6 @@ public final class Instance<T extends IFeature> {
     public <D> void setData(@NotNull IData<D> data, D d) {
         dataMap.put(data, d);
     }
-    public int getCount() {
-        Integer count = getData(IData.COUNT);
-        if (count == null) {
-            throw new IllegalStateException("CountData is not present in this stack");
-        }
-        return count;
-    }
-
-    public void setCount(int count) {
-        if (getData(IData.COUNT) == null) {
-            throw new IllegalStateException("CountData is not present in this stack");
-        }
-        setData(IData.COUNT, count);
-    }
 
     public static @NotNull Instance<IItem> item(@NotNull IItemProvider item, int count) {
         IItem i = item.item();

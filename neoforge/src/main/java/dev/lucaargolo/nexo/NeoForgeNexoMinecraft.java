@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo;
 
 import com.google.common.collect.Maps;
-import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.*;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -60,7 +59,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    public @Nullable NexoMod getMod(String id) {
+    public @Nullable Mod getMod(@NotNull String id) {
         return this.modDiscovery.getMod(id);
     }
 

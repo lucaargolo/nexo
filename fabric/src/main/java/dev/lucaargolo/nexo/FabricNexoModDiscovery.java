@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.NexoMod;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
@@ -69,7 +68,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery {
             modMapField.setAccessible(true);
             Map<String, Object> modMap = (Map<String, Object>) modMapField.get(impl);
 
-            for (NexoMod mod : this.mods.values()) {
+            for (Nexo.Mod mod : this.mods.values()) {
                 FabricNexoModContainer container = new FabricNexoModContainer(mod);
                 mods.add(container);
                 modMap.put(container.getMetadata().getId(), container);

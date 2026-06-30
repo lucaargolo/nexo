@@ -1,0 +1,8 @@
+{
+    "id": "nexo_test",
+    "name": "Nexo Test Mod",
+    "description": "A test Nexo mod for development",
+    "version": "0.0.1",
+    "authors": ["D4rkness_King"],
+    "entrypoint": "dev.lucaargolo.test.NexoTestMod"
+}

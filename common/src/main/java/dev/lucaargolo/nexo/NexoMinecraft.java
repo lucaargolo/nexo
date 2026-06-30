@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.NexoMod;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.IEvent;
 import dev.lucaargolo.nexo.api.feature.*;
@@ -116,7 +115,7 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public byte @Nullable [] loadResource(@NotNull Location location) {
         // 1. Try Nexo mod (directory or JAR)
-        NexoMod mod = getMod(location.namespace());
+        Mod mod = getMod(location.namespace());
         if (mod != null) {
             String resource = location.path();
             Path modPath = mod.path();
