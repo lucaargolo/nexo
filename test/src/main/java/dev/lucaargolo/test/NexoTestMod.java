@@ -1,9 +1,9 @@
 package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.IBlock;
-import dev.lucaargolo.nexo.api.feature.IItem;
-import dev.lucaargolo.nexo.api.feature.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;

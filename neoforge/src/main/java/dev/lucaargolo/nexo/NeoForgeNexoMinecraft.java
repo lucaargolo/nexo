@@ -2,7 +2,11 @@ package dev.lucaargolo.nexo;
 
 import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
-import dev.lucaargolo.nexo.api.feature.*;
+import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.data.IData;
+import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.MinecraftData;

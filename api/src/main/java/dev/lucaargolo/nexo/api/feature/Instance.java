@@ -1,9 +1,8 @@
-package dev.lucaargolo.nexo.api.stack;
+package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.feature.IData;
-import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.feature.IItem;
-import dev.lucaargolo.nexo.api.feature.IItemProvider;
+import dev.lucaargolo.nexo.api.feature.data.IData;
+import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.provider.IItemProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.feature;
 
-import dev.lucaargolo.nexo.api.feature.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import net.minecraft.core.Holder;
 import net.minecraft.world.item.CreativeModeTab;
 

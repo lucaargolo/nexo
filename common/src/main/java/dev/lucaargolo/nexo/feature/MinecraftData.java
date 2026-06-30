@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature;
 
 import com.google.gson.JsonElement;
-import dev.lucaargolo.nexo.api.feature.IData;
+import dev.lucaargolo.nexo.api.feature.data.IData;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import org.jetbrains.annotations.NotNull;

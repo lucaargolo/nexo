@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature;
 
-import dev.lucaargolo.nexo.api.feature.IBlock;
-import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.model.Model;
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.Block;

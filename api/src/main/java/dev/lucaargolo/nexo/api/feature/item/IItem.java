@@ -1,5 +1,8 @@
-package dev.lucaargolo.nexo.api.feature;
+package dev.lucaargolo.nexo.api.feature.item;
 
+import dev.lucaargolo.nexo.api.feature.IFeature;
+import dev.lucaargolo.nexo.api.feature.provider.IItemProvider;
+import dev.lucaargolo.nexo.api.feature.provider.IModelProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

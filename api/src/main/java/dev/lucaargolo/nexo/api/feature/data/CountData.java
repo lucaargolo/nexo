@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api.feature;
+package dev.lucaargolo.nexo.api.feature.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;

@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.IBlock;
-import dev.lucaargolo.nexo.api.feature.IItem;
+import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
