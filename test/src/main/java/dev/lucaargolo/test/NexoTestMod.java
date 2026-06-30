@@ -2,12 +2,16 @@ package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.component.BlockItemComponent;
+import dev.lucaargolo.nexo.api.feature.component.IComponent;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class NexoTestMod {
 
@@ -17,15 +21,17 @@ public class NexoTestMod {
         IItemCategory category = nexo.registerFeature(IItemCategory.class, new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
-        IItem item = nexo.registerFeature(IItem.class, new SimpleItem(
+
+        IBlock testBlock = nexo.registerFeature(IBlock.class, new SimpleBlock(
             NexoTestMod.id("test_block"),
-            Model.full(nexo, NexoTestMod.id("test_block.png")),
-            category
+            Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
-        nexo.registerFeature(IBlock.class, new SimpleBlock(
+
+        nexo.registerFeature(IItem.class, new SimpleBlockItem(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png")),
-            item
+            category,
+            testBlock
         ));
 
         nexo.registerFeature(IBlock.class, new SimpleBlock(
@@ -54,6 +60,20 @@ public class NexoTestMod {
 
         public SimpleItem(@NotNull Location location, @Nullable Model model) {
             this(location, model, null);
+        }
+
+    }
+
+    private record SimpleBlockItem(
+            @NotNull Location location,
+            @Nullable Model model,
+            @Nullable IItemCategory category,
+            @NotNull IBlock block
+    ) implements IItem {
+
+        @Override
+        public @NotNull List<@NotNull IComponent> components() {
+            return List.of(new BlockItemComponent(block));
         }
 
     }

@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.component.BlockItemComponent;
 import dev.lucaargolo.nexo.api.feature.data.IData;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
@@ -14,6 +15,7 @@ import dev.lucaargolo.nexo.feature.MinecraftItem;
 import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 @Mod(NexoMinecraft.MOD_ID)
 public class NeoForgeNexoMinecraft extends NexoMinecraft {
@@ -87,7 +90,16 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
                 dr.register(modBus);
                 return dr;
             });
-            DeferredHolder<Item, ? extends Item> holder = registry.register(location.path(), () -> new Item(new Item.Properties()));
+            Supplier<Item> supplier = () -> {
+                if (item.hasComponent(BlockItemComponent.class)) {
+                    BlockItemComponent component = item.getComponent(BlockItemComponent.class);
+                    assert component != null;
+                    return new BlockItem(getMinecraftFeature(component.block()), new Item.Properties());
+                } else {
+                    return new Item(new Item.Properties());
+                }
+            };
+            DeferredHolder<Item, ? extends Item> holder = registry.register(location.path(), supplier);
             MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
             return (T) minecraftItem;

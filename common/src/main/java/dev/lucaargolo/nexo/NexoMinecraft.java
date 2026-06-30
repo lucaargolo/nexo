@@ -10,10 +10,7 @@ import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import dev.lucaargolo.nexo.feature.MinecraftData;
-import dev.lucaargolo.nexo.feature.MinecraftItem;
-import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
+import dev.lucaargolo.nexo.feature.*;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -80,6 +77,11 @@ public abstract class NexoMinecraft implements Nexo {
         return LOGGER;
     }
 
+    public @NotNull <T> T getMinecraftFeature(IFeature feature) {
+        MinecraftFeature<T, ?> mcFeature = (MinecraftFeature<T, ?>) feature;
+        return mcFeature.getHolder().value();
+    }
+
     @Override
     public @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location) {
         if(type.isAssignableFrom(IBlock.class)) {
@@ -109,7 +111,6 @@ public abstract class NexoMinecraft implements Nexo {
         }
         return null;
     }
-
 
     @Override
     public @Nullable Model getModel(Location location) {

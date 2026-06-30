@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.component.BlockItemComponent;
 import dev.lucaargolo.nexo.api.feature.data.IData;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
@@ -21,7 +22,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -71,10 +74,18 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
             return (T) minecraftBlock;
         }else if(IItem.class == type && feature instanceof IItem item) {
             ResourceLocation itemId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            Item mcItem;
+            if (item.hasComponent(BlockItemComponent.class)) {
+                BlockItemComponent component = item.getComponent(BlockItemComponent.class);
+                assert component != null;
+                mcItem = new BlockItem(getMinecraftFeature(component.block()), new Item.Properties());
+            }else{
+                mcItem = new Item(new Item.Properties());
+            }
             Holder.Reference<Item> holder = Registry.registerForHolder(
                 BuiltInRegistries.ITEM,
                 itemId,
-                new Item(new Item.Properties())
+                mcItem
             );
             MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
@@ -84,7 +95,8 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
             Holder.Reference<CreativeModeTab> holder = Registry.registerForHolder(
                     BuiltInRegistries.CREATIVE_MODE_TAB,
                     itemCategoryId,
-                    FabricItemGroup.builder().build()
+                    //TODO: This
+                    FabricItemGroup.builder().title(Component.empty()).build()
             );
             MinecraftItemCategory minecraftItemCategory = emit(new FeatureRegisteredEvent<>(location, new MinecraftItemCategory(holder, itemCategory)));
             FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItemCategory);

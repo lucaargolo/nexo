@@ -26,7 +26,6 @@ public interface Nexo {
 
     @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(@NotNull Class<T> type);
 
-
     <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);
 
     default <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull Predicate<E> listener) {
