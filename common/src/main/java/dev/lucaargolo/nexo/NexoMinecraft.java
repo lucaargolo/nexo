@@ -55,7 +55,8 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected static final Map<IFeature.Type, Map<Location, IFeature>> FEATURE_REGISTRY = new ConcurrentHashMap<>();
 
-    protected final NexoPlatformHelper helper;
+    private final NexoPlatformHelper helper;
+
     protected final NexoModDiscovery modDiscovery;
     protected final NexoModelHandler modelLoader;
 
@@ -77,6 +78,10 @@ public abstract class NexoMinecraft implements Nexo {
         this.registerFeature(IData.COUNT);
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
+    }
+
+    public NexoPlatformHelper getHelper() {
+        return this.helper;
     }
 
     public abstract String getPlatform();

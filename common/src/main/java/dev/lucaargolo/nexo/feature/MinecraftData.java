@@ -85,7 +85,7 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
     }
 
     public static <T> MinecraftData<T> register(NexoMinecraft nexo, ResourceLocation id, IData<T> data) {
-        Holder.Reference<DataComponentType<T>> holder = nexo.registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
+        Holder.Reference<DataComponentType<T>> holder = nexo.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
                 Codec<T> codec = NexoMinecraft.createCodec(data);
