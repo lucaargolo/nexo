@@ -2,8 +2,8 @@ package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.component.BlockItemComponent;
-import dev.lucaargolo.nexo.api.feature.component.IComponent;
+import dev.lucaargolo.nexo.api.component.BlockItemComponent;
+import dev.lucaargolo.nexo.api.component.IComponent;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;

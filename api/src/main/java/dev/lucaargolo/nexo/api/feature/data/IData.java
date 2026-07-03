@@ -9,6 +9,11 @@ import java.nio.ByteBuffer;
 
 public interface IData<D> extends IFeature {
 
+    @Override
+    default @NotNull Type type() {
+        return Type.DATA;
+    };
+
     @NotNull
     CountData COUNT = new CountData(Location.of("nexo", "count"));
 

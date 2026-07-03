@@ -4,15 +4,12 @@ import com.google.common.collect.Maps;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.component.BlockItemComponent;
+import dev.lucaargolo.nexo.api.component.BlockItemComponent;
 import dev.lucaargolo.nexo.api.feature.data.IData;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.feature.MinecraftBlock;
-import dev.lucaargolo.nexo.feature.MinecraftData;
-import dev.lucaargolo.nexo.feature.MinecraftItem;
-import dev.lucaargolo.nexo.feature.MinecraftItemCategory;
+import dev.lucaargolo.nexo.feature.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
@@ -33,10 +30,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
-
-    private final Map<Class<? extends IFeature>, Map<Location, IFeature>> FEATURE_REGISTRY = Maps.newHashMap();
 
     @Override
     public void onInitialize() {
@@ -58,80 +54,4 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
         return this.modDiscovery.getMod(id);
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public @Nullable <T extends IFeature, I extends T> T registerFeature(Class<T> type, I feature) {
-        Location location = feature.location();
-        if (IBlock.class == type && feature instanceof IBlock block) {
-            ResourceLocation blockId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            Holder.Reference<Block> holder = Registry.registerForHolder(
-                BuiltInRegistries.BLOCK,
-                blockId,
-                new Block(BlockBehaviour.Properties.of())
-            );
-            MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, new MinecraftBlock(holder, block)));
-            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftBlock);
-            return (T) minecraftBlock;
-        }else if(IItem.class == type && feature instanceof IItem item) {
-            ResourceLocation itemId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            Item mcItem;
-            if (item.hasComponent(BlockItemComponent.class)) {
-                BlockItemComponent component = item.getComponent(BlockItemComponent.class);
-                assert component != null;
-                mcItem = new BlockItem(getMinecraftFeature(component.block()), new Item.Properties());
-            }else{
-                mcItem = new Item(new Item.Properties());
-            }
-            Holder.Reference<Item> holder = Registry.registerForHolder(
-                BuiltInRegistries.ITEM,
-                itemId,
-                mcItem
-            );
-            MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, new MinecraftItem(holder, item)));
-            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
-            return (T) minecraftItem;
-        }else if(type.isAssignableFrom(IItemCategory.class) && feature instanceof IItemCategory itemCategory) {
-            ResourceLocation itemCategoryId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            Holder.Reference<CreativeModeTab> holder = Registry.registerForHolder(
-                    BuiltInRegistries.CREATIVE_MODE_TAB,
-                    itemCategoryId,
-                    //TODO: This
-                    FabricItemGroup.builder().title(Component.empty()).build()
-            );
-            MinecraftItemCategory minecraftItemCategory = emit(new FeatureRegisteredEvent<>(location, new MinecraftItemCategory(holder, itemCategory)));
-            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItemCategory);
-            return (T) minecraftItemCategory;
-        }else if(type.isAssignableFrom(IData.class) && feature instanceof IData<?> data) {
-            ResourceLocation dataId = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-
-            DataComponentType.Builder dcBuilder = DataComponentType.builder();
-            if(data.persistent()) dcBuilder.persistent(NexoMinecraft.createCodec(data));
-            if(data.synced()) dcBuilder.networkSynchronized(NexoMinecraft.createPacketCodec(data));
-            DataComponentType<?> dc = dcBuilder.build();
-
-            Holder.Reference<DataComponentType<?>> holder = Registry.registerForHolder(
-                    BuiltInRegistries.DATA_COMPONENT_TYPE,
-                    dataId,
-                    dc
-            );
-
-            AttachmentRegistry.Builder atBuilder = AttachmentRegistry.builder();
-            if(data.persistent()) {
-                atBuilder.persistent(NexoMinecraft.createCodec(data));
-                atBuilder.copyOnDeath();
-            }
-            if(data.synced()) atBuilder.syncWith(NexoMinecraft.createPacketCodec(data), AttachmentSyncPredicate.all());
-            atBuilder.buildAndRegister(dataId);
-
-            MinecraftData<?> minecraftData = emit(new FeatureRegisteredEvent<>(location, new MinecraftData(holder, data)));
-            FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftData);
-            return (T) minecraftData;
-        }
-        return null;
-    }
-
-    @Override
-    public @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(Class<T> type) {
-        return FEATURE_REGISTRY.getOrDefault(type, Map.of());
-    }
 }

@@ -1,10 +1,18 @@
 package dev.lucaargolo.nexo.feature;
 
+import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.component.BlockItemComponent;
+import dev.lucaargolo.nexo.api.feature.block.IBlock;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import org.jetbrains.annotations.Nullable;
 
 public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IItem {
@@ -22,6 +30,19 @@ public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IIte
     public @Nullable IItemCategory category() {
         IItem delegate = this.getDelegate();
         return delegate != null ? delegate.category() : null;
+    }
+
+    public static MinecraftItem register(NexoMinecraft nexo, ResourceLocation id, IItem item) {
+        Holder.Reference<Item> holder = nexo.registerFeature(BuiltInRegistries.ITEM, id, () -> {
+            if (item.hasComponent(BlockItemComponent.class)) {
+                BlockItemComponent component = item.getComponent(BlockItemComponent.class);
+                assert component != null;
+                return new BlockItem(nexo.getMinecraftFeature(component.block()), new Item.Properties());
+            } else {
+                return new Item(new Item.Properties());
+            }
+        });
+        return new MinecraftItem(holder, item);
     }
 
 }

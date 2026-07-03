@@ -9,6 +9,11 @@ import org.jetbrains.annotations.Nullable;
 public interface IItem extends IFeature, IModelProvider, IItemProvider {
 
     @Override
+    default @NotNull Type type() {
+        return Type.ITEM;
+    }
+
+    @Override
     @NotNull
     default IItem item() {
         return this;

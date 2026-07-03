@@ -29,13 +29,13 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
 
         NeoForgeNexoMinecraft neoForgeNexo = (NeoForgeNexoMinecraft) nexo;
 
-        collectFeatureModels(nexo, IBlock.class, "block/", unbakedModels,
+        collectModels(nexo, IBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(blockId.namespace(), blockId.path()),
                                 modelId));
 
-        collectFeatureModels(nexo, IItem.class, "item/", unbakedModels,
+        collectModels(nexo, IItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(itemId.namespace(), itemId.path()),

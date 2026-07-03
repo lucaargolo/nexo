@@ -22,6 +22,34 @@ public abstract class NexoModelHandler {
 
     public abstract void init(Nexo nexo);
 
+    protected static <T extends IFeature> void collectModels(
+            Nexo nexo,
+            IFeature.Type type,
+            String modelPrefix,
+            Map<ResourceLocation, NexoMinecraftModel> unbakedModels,
+            FeatureModelCallback<T> callback
+    ) {
+        nexo.getFeatureRegistry(type).entrySet().stream()
+                .filter(e -> e.getValue() instanceof IModelProvider)
+                .map(e -> Map.entry(e.getKey(), (IFeature & IModelProvider) e.getValue()))
+                .forEach(e -> {
+                    Location location = e.getKey();
+                    IFeature feature = e.getValue();
+                    Model model = e.getValue().model();
+
+                    for (Location texture : model.textures().values()) {
+                        registerTexture(nexo, texture, NexoAtlas.BLOCK_ATLAS);
+                    }
+
+                    ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(
+                            location.namespace(), modelPrefix + location.path()
+                    );
+                    unbakedModels.put(modelId, new NexoMinecraftModel(model));
+
+                    callback.accept(location, (T) feature, model, modelId);
+                });
+    }
+
     protected static void registerTexture(Nexo nexo, Location texture, Location atlas) {
         Nexo.Mod mod = nexo.getMod(texture.namespace());
         if (mod == null) return;
@@ -45,38 +73,6 @@ public abstract class NexoModelHandler {
                 NexoMinecraft.LOGGER.error("Failed to read from JAR {}", mod.path(), e);
             }
         }
-    }
-
-    protected static void registerModelTextures(Nexo nexo, Model model) {
-        for (Location texture : model.textures().values()) {
-            registerTexture(nexo, texture, NexoAtlas.BLOCK_ATLAS);
-        }
-    }
-
-    protected static <T extends IFeature> void collectFeatureModels(
-            Nexo nexo,
-            Class<T> type,
-            String modelPrefix,
-            Map<ResourceLocation, NexoMinecraftModel> unbakedModels,
-            FeatureModelCallback<T> callback
-    ) {
-        nexo.getFeatureRegistry(type).entrySet().stream()
-                .filter(e -> e.getValue() instanceof IModelProvider)
-                .map(e -> Map.entry(e.getKey(), (IFeature & IModelProvider) e.getValue()))
-                .forEach(e -> {
-                    Location featureId = e.getKey();
-                    var rawFeature = e.getValue();
-                    Model model = rawFeature.model();
-
-                    registerModelTextures(nexo, model);
-
-                    ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(
-                            featureId.namespace(), modelPrefix + featureId.path()
-                    );
-                    unbakedModels.put(modelId, new NexoMinecraftModel(model));
-
-                    callback.accept(featureId, (T) rawFeature, model, modelId);
-                });
     }
 
     @FunctionalInterface

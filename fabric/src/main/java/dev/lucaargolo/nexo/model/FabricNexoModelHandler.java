@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
@@ -21,11 +22,11 @@ public class FabricNexoModelHandler extends NexoModelHandler {
         Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
         Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-        collectFeatureModels(nexo, IBlock.class, "block/", unbakedModels,
+        collectModels(nexo, IFeature.Type.BLOCK, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId));
 
-        collectFeatureModels(nexo, IItem.class, "item/", unbakedModels,
+        collectModels(nexo, IFeature.Type.ITEM, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemModelIds.add(modelId));
 

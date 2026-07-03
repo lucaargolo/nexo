@@ -1,5 +1,9 @@
 package dev.lucaargolo.nexo;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonParser;
+import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.IEvent;
@@ -13,8 +17,15 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.*;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -23,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -33,7 +45,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
-@SuppressWarnings("unchecked")
 public abstract class NexoMinecraft implements Nexo {
 
     public static final String MOD_ID = "nexo";
@@ -41,80 +52,40 @@ public abstract class NexoMinecraft implements Nexo {
 
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, IBlock> BLOCK_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, IItem> ITEM_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, IItemCategory> ITEM_CATEGORY_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, IData<?>> DATA_CACHE = new ConcurrentHashMap<>();
 
+    protected static final Map<IFeature.Type, Map<Location, IFeature>> FEATURE_REGISTRY = new ConcurrentHashMap<>();
+
+    protected final NexoPlatformHelper helper;
     protected final NexoModDiscovery modDiscovery;
     protected final NexoModelHandler modelLoader;
 
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
+        this.helper = loadPlatformClass(NexoPlatformHelper.class);
         this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
         this.modelLoader = loadPlatformClass(NexoModelHandler.class);
-        on(FeatureRegisteredEvent.class, event -> {
-            if (event.value() instanceof IBlock block) {
-                BLOCK_CACHE.put(event.location(), block);
-            }else if (event.value() instanceof IItem item) {
-                ITEM_CACHE.put(event.location(), item);
-            }else if (event.value() instanceof IData<?> data) {
-                DATA_CACHE.put(event.location(), data);
-            }
+        this.on(FeatureRegisteredEvent.class, event -> {
+            IFeature feature = event.value();
+            Map<Location, IFeature> cache = FEATURE_REGISTRY.computeIfAbsent(feature.type(), t -> new ConcurrentHashMap<>());
+            cache.put(feature.location(), feature);
             return true;
         });
     }
 
     protected final void init() {
-        this.registerFeature(IData.class, IData.COUNT);
+        this.registerFeature(IData.COUNT);
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
 
+    public abstract String getPlatform();
+
+    public abstract boolean isModLoaded(String modId);
+
     @Override
     public @NotNull Logger getLogger() {
         return LOGGER;
-    }
-
-    public @NotNull <T> T getMinecraftFeature(IFeature feature) {
-        MinecraftFeature<T, ?> mcFeature = (MinecraftFeature<T, ?>) feature;
-        return mcFeature.getHolder().value();
-    }
-
-    @Override
-    public @Nullable <T extends IFeature> T getFeature(Class<T> type, Location location) {
-        if(type.isAssignableFrom(IBlock.class)) {
-            return (T) BLOCK_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.BLOCK
-                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
-                    .map(holder -> new MinecraftBlock(holder, null))
-                    .orElse(null)
-            );
-        }else if(type.isAssignableFrom(IItem.class)) {
-            return (T) ITEM_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.ITEM
-                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
-                    .map(holder -> new MinecraftItem(holder, null))
-                    .orElse(null)
-            );
-        }else if(type.isAssignableFrom(IItemCategory.class)) {
-            return (T) ITEM_CATEGORY_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.CREATIVE_MODE_TAB
-                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
-                    .map(holder -> new MinecraftItemCategory(holder, null))
-                    .orElse(null)
-            );
-        }else if(type.isAssignableFrom(IData.class)) {
-            return (T) DATA_CACHE.computeIfAbsent(location, i -> BuiltInRegistries.DATA_COMPONENT_TYPE
-                    .getHolder(ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path()))
-                    .map(holder -> new MinecraftData(holder, null))
-                    .orElse(null)
-            );
-        }
-        return null;
-    }
-
-    @Override
-    public @Nullable Model getModel(Location location) {
-        return MODEL_CACHE.computeIfAbsent(location, this::loadModel);
     }
 
     @Override
@@ -167,52 +138,65 @@ public abstract class NexoMinecraft implements Nexo {
         return null;
     }
 
-    private @Nullable Model loadModel(Location location) {
-        // 1. Try direct load (Nexo mod path, or Minecraft if the resource happens to live at the raw path)
-        Model model = Model.load(this, location);
-        if (model != null) return model;
-
-        // 2. If a Nexo mod is registered for this namespace, don't fall through to Minecraft
-        if (getMod(location.namespace()) != null) {
-            return null;
-        }
-
-        // 3. Try Minecraft models directory (models/ prefix)
-        Location mcLocation = Location.of(location.namespace(), "models/" + location.path());
-        byte[] data = loadResource(mcLocation);
-        if (data != null) {
-            return Model.load(this, mcLocation, data);
-        }
-
-        return null;
+    @Override
+    public @NotNull Map<Location, IFeature> getFeatureRegistry(@NotNull IFeature.Type type) {
+        return ImmutableMap.copyOf(FEATURE_REGISTRY.getOrDefault(type, Map.of()));
     }
 
-
-    public abstract String getPlatform();
-
-    public abstract boolean isModLoaded(String modId);
-
-    public <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {
-        return loadPlatformClass(null, clazz, parameters);
+    @Override
+    public @Nullable IFeature getFeature(@NotNull IFeature.Type type, @NotNull Location location) {
+        return FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>())
+            .computeIfAbsent(location, i -> {
+                ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+                Registry<?> registry = switch (type) {
+                    case BLOCK -> BuiltInRegistries.BLOCK;
+                    case DATA -> BuiltInRegistries.DATA_COMPONENT_TYPE;
+                    case ITEM -> BuiltInRegistries.ITEM;
+                    case ITEM_CATEGORY -> BuiltInRegistries.CREATIVE_MODE_TAB;
+                };
+                return registry.getHolder(id).map(holder -> switch (type) {
+                    case BLOCK -> new MinecraftBlock((Holder<Block>) holder, null);
+                    case DATA -> new MinecraftData(holder, null);
+                    case ITEM -> new MinecraftItem((Holder<Item>) holder, null);
+                    case ITEM_CATEGORY -> new MinecraftItemCategory((Holder<CreativeModeTab>) holder, null);
+                }).orElse(null);
+            });
     }
 
-    public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
-        String originalName = clazz.getName();
-        String clazzPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
-        String clazzName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clazzPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
-        Class<?>[] parameterTypes = new Class<?>[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            parameterTypes[i] = parameters[i].getClass();
+    @Override
+    public @Nullable IFeature registerFeature(@NotNull IFeature feature) {
+        IFeature.Type type = feature.type();
+        Location location = feature.location();
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+        switch (type) {
+            case DATA:
+                if(feature instanceof IData<?> data) {
+                    MinecraftData<?> minecraftData = emit(new FeatureRegisteredEvent<>(location, MinecraftData.register(this, id, data)));
+                    FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftData);
+                    return minecraftData;
+                }
+            case BLOCK:
+                if (feature instanceof IBlock block) {
+                    MinecraftBlock minecraftBlock = emit(new FeatureRegisteredEvent<>(location, MinecraftBlock.register(this, id, block)));
+                    FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftBlock);
+                    return minecraftBlock;
+                }
+                break;
+            case ITEM:
+                if(feature instanceof IItem item) {
+                    MinecraftItem minecraftItem = emit(new FeatureRegisteredEvent<>(location, MinecraftItem.register(this, id, item)));
+                    FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
+                    return minecraftItem;
+                }
+                break;
+            case ITEM_CATEGORY:
+                if(feature instanceof IItemCategory category) {
+                    MinecraftItemCategory minecraftCategory = emit(new FeatureRegisteredEvent<>(location, MinecraftItemCategory.register(this, id, category)));
+                    FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftCategory);
+                    return minecraftCategory;
+                }
         }
-        try {
-            return (T) clazz.getClassLoader().loadClass(clazzName).getConstructor(parameterTypes).newInstance(parameters);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Location id(ResourceLocation location) {
-        return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
+        throw new IllegalStateException(String.format("Cannot register %s as %s", feature.getClass(), feature.type()));
     }
 
     @Override
@@ -241,7 +225,9 @@ public abstract class NexoMinecraft implements Nexo {
                 List<Predicate<?>> predicates = priorityMap.get(priority);
                 if (predicates != null) {
                     for (Predicate<?> predicate : predicates) {
-                        cancel = cancel || !((Predicate<E>) predicate).test(event);
+                        @SuppressWarnings("unchecked")
+                        Predicate<E> typedPredicate = (Predicate<E>) predicate;
+                        cancel = cancel || !typedPredicate.test(event);
                     }
                 }
             }
@@ -253,30 +239,68 @@ public abstract class NexoMinecraft implements Nexo {
         }
     }
 
+    @Override
+    public @Nullable Model getModel(@NotNull Location location) {
+        return MODEL_CACHE.computeIfAbsent(location, (l) -> {
+            Model model = Model.load(this, location);
+            if (model != null) return model;
 
-    /**
-     * Creates a {@link com.mojang.serialization.Codec Codec&lt;D&gt;} from an {@link IData} by
-     * round-tripping through a JSON string representation.
-     */
-    public static <D> com.mojang.serialization.Codec<D> createCodec(IData<D> data) {
-        return com.mojang.serialization.Codec.STRING.xmap(
-                str -> data.deserialize(com.google.gson.JsonParser.parseString(str)),
-                d -> data.serialize(d).toString()
+            if (getMod(location.namespace()) != null) {
+                return null;
+            }
+
+            Location mcLocation = Location.of(location.namespace(), "models/" + location.path());
+            byte[] data = loadResource(mcLocation);
+            if (data != null) {
+                return Model.load(this, mcLocation, data);
+            }
+            return null;
+        });
+    }
+
+    public @NotNull <T> T getMinecraftFeature(IFeature feature) {
+        @SuppressWarnings("unchecked")
+        MinecraftFeature<T, ?> mcFeature = (MinecraftFeature<T, ?>) feature;
+        return mcFeature.getHolder().value();
+    }
+
+    public <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {
+        return loadPlatformClass(null, clazz, parameters);
+    }
+
+    public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
+        String originalName = clazz.getName();
+        String clazzPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
+        String clazzName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clazzPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
+        Class<?>[] parameterTypes = new Class<?>[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            parameterTypes[i] = parameters[i].getClass();
+        }
+        try {
+            @SuppressWarnings("unchecked")
+            Class<? extends T> platformClazz = (Class<? extends T>) clazz.getClassLoader().loadClass(clazzName);
+            return platformClazz.getConstructor(parameterTypes).newInstance(parameters);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Location id(ResourceLocation location) {
+        return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
+    }
+
+    public static <D> Codec<D> createCodec(IData<D> data) {
+        return Codec.STRING.xmap(
+                str -> data.deserialize(JsonParser.parseString(str)),
+                obj -> data.serialize(obj).toString()
         );
     }
 
-
-    /**
-     * Creates a {@link net.minecraft.network.codec.StreamCodec StreamCodec&lt;RegistryFriendlyByteBuf, D&gt;}
-     * from an {@link IData} using its binary {@code write}/{@code read} methods.
-     * <p>
-     * The wire format is: VarInt length prefix followed by the byte payload.
-     */
-    public static <D> net.minecraft.network.codec.StreamCodec<net.minecraft.network.RegistryFriendlyByteBuf, D> createPacketCodec(IData<D> data) {
-        return new net.minecraft.network.codec.StreamCodec<>() {
+    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(IData<D> data) {
+        return new StreamCodec<>() {
             @Override
-            public void encode(net.minecraft.network.RegistryFriendlyByteBuf buf, D value) {
-                java.nio.ByteBuffer buffer = data.write(value);
+            public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull D value) {
+                ByteBuffer buffer = data.write(value);
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
                 buf.writeVarInt(bytes.length);
@@ -284,11 +308,11 @@ public abstract class NexoMinecraft implements Nexo {
             }
 
             @Override
-            public D decode(net.minecraft.network.RegistryFriendlyByteBuf buf) {
+            public @NotNull D decode(@NotNull RegistryFriendlyByteBuf buf) {
                 int length = buf.readVarInt();
                 byte[] bytes = new byte[length];
                 buf.readBytes(bytes);
-                return data.read(java.nio.ByteBuffer.wrap(bytes));
+                return data.read(ByteBuffer.wrap(bytes));
             }
         };
     }

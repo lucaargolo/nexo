@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.feature.component.IComponent;
+import dev.lucaargolo.nexo.api.component.IComponent;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,8 +9,9 @@ import java.util.List;
 
 public interface IFeature {
 
-    @NotNull Location location();
+    @NotNull Type type();
 
+    @NotNull Location location();
 
     default @NotNull List<@NotNull IComponent> components() {
         return List.of();
@@ -39,5 +40,12 @@ public interface IFeature {
     }
 
     record Tag(Location location) {}
+
+    enum Type {
+        DATA,
+        BLOCK,
+        ITEM,
+        ITEM_CATEGORY
+    }
 
 }

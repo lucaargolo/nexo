@@ -18,13 +18,13 @@ public interface Nexo {
 
     @Nullable Mod getMod(@NotNull String id);
 
-    @Nullable byte[] loadResource(@NotNull Location location);
+    byte @Nullable [] loadResource(@NotNull Location location);
 
-    @Nullable <T extends IFeature> T getFeature(@NotNull Class<T> type, @NotNull Location location);
+    @NotNull Map<Location, IFeature> getFeatureRegistry(@NotNull IFeature.Type type);
 
-    @Nullable <T extends IFeature, I extends T> T registerFeature(@NotNull Class<T> type, @NotNull I feature);
+    @Nullable IFeature getFeature(@NotNull IFeature.Type type, @NotNull Location location);
 
-    @NotNull <T extends IFeature> Map<Location, IFeature> getFeatureRegistry(@NotNull Class<T> type);
+    @Nullable IFeature registerFeature(@NotNull IFeature feature);
 
     <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);
 
@@ -36,6 +36,7 @@ public interface Nexo {
 
     @Nullable <E extends IEvent<T>, T> T emit(@NotNull E event);
 
+    //TODO: Replace with get resource, create IResource with IResource.Type. Model will be an IResource, resources can be generated on runtime or loaded from filesystem.
     @Nullable Model getModel(@NotNull Location location);
 
     record Mod(

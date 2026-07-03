@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api.feature.component;
+package dev.lucaargolo.nexo.api.component;
 
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
 import org.jetbrains.annotations.NotNull;
