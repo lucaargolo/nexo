@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.api.event;
 
+import org.jetbrains.annotations.Nullable;
+
 public interface IEvent<T> {
 
-    T value();
+    @Nullable T value();
 
     boolean cancelable();
 

@@ -35,7 +35,7 @@ public final class Instance<T extends IFeature> {
         return (D) dataMap.get(data);
     }
 
-    public <D> void setData(@NotNull IData<D> data, D d) {
+    public <D> void setData(@NotNull IData<D> data, @Nullable D d) {
         dataMap.put(data, d);
     }
 

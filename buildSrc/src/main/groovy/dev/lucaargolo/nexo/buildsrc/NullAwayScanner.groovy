@@ -50,7 +50,6 @@ class AnnotationCheckVisitor extends ClassVisitor {
         if (ann) return null
         if (en && (acc & Opcodes.ACC_ENUM) != 0) return null
         if (!ref(desc)) return null
-        if (tv(desc, sig)) return null
         return new FieldAnnotationVisitor(this, name)
     }
 
@@ -59,9 +58,8 @@ class AnnotationCheckVisitor extends ClassVisitor {
         if (name.contains('$') || name == '<clinit>') return null
         if (ann) return null
         if (en && isEnumSynthetic(name, desc)) return null
-        if (rec && name == '<init>') return null
         if (rec && isRecordSynthetic(name, desc)) return null
-        return new MethodAnnotationVisitor(this, name, desc, sig, name == '<init>', rec)
+        return new MethodAnnotationVisitor(this, name, desc, name == '<init>')
     }
 
     boolean isEnumSynthetic(String n, String d) {
@@ -80,10 +78,6 @@ class AnnotationCheckVisitor extends ClassVisitor {
         (d.startsWith('[') || d.startsWith('L')) && !(p.contains(d) || d.startsWith('T'))
     }
 
-    boolean tv(String desc, String sig) {
-        sig != null && sig.length() >= 3 && sig.charAt(0) == 'T' &&
-            Character.isJavaIdentifierStart(sig.charAt(1) as char)
-    }
 }
 
 class FieldAnnotationVisitor extends FieldVisitor {
@@ -116,15 +110,15 @@ class FieldAnnotationVisitor extends FieldVisitor {
 
 class MethodAnnotationVisitor extends MethodVisitor {
     AnnotationCheckVisitor cv
-    String mn, md, sig
-    boolean ctor, rec
+    String mn, md
+    boolean ctor
     boolean retOk
     boolean[] pOk
 
-    MethodAnnotationVisitor(AnnotationCheckVisitor c, String n, String d, String s,
-                            boolean ct, boolean r) {
+    MethodAnnotationVisitor(AnnotationCheckVisitor c, String n, String d,
+                            boolean ct) {
         super(Opcodes.ASM9)
-        cv = c; mn = n; md = d; sig = s; ctor = ct; rec = r
+        cv = c; mn = n; md = d; ctor = ct
         pOk = new boolean[Type.getArgumentTypes(d).length]
     }
 
@@ -155,56 +149,15 @@ class MethodAnnotationVisitor extends MethodVisitor {
     @Override
     void visitEnd() {
         def at = Type.getArgumentTypes(md)
-        if (rec && !ctor && at.length == 0) return
         if (!ctor) {
             def rd = md.substring(md.indexOf(')') + 1)
-            if (cv.ref(rd) && rd != 'V' && !retOk && !rtv())
+            if (cv.ref(rd) && rd != 'V' && !retOk)
                 cv.err << "${cv.cn}: return type of '${mn}' missing @Nullable/@NotNull"
         }
         for (int i = 0; i < at.length; i++) {
             if (!cv.ref(at[i].descriptor)) continue
-            if (ptv(i)) continue
             if (!pOk[i])
                 cv.err << "${cv.cn}: parameter ${i} of '${mn}' missing @Nullable/@NotNull"
         }
-    }
-
-    boolean rtv() {
-        if (sig == null) return false
-        try {
-            int p = sig.lastIndexOf(')')
-            if (p < 0) return false
-            def rs = sig.substring(p + 1)
-            return rs.length() >= 3 && rs.charAt(0) == 'T' &&
-                Character.isJavaIdentifierStart(rs.charAt(1) as char)
-        } catch (Exception _) { return false }
-    }
-
-    boolean ptv(int idx) {
-        if (sig == null) return false
-        try {
-            def ps = sig.substring(sig.indexOf('(') + 1, sig.lastIndexOf(')'))
-            def parts = splitGenericParams(ps)
-            if (idx < parts.size()) {
-                def part = parts[idx]
-                return part.length() >= 3 && part.charAt(0) == 'T' &&
-                    Character.isJavaIdentifierStart(part.charAt(1) as char)
-            }
-        } catch (Exception _) { return false }
-        return false
-    }
-
-    static List<String> splitGenericParams(String s) {
-        def r = []
-        int d = 0
-        def b = new StringBuilder()
-        for (char c : s.toCharArray()) {
-            if (c == '<') d++
-            else if (c == '>') d--
-            if (c == ';' && d == 0) { b.append(c); r << b.toString(); b.setLength(0) }
-            else b.append(c)
-        }
-        if (b.length() > 0) r << b.toString()
-        return r
     }
 }
