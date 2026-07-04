@@ -3,8 +3,7 @@ package dev.lucaargolo.nexo.model;
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.IFeature;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
@@ -29,13 +28,13 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler {
 
         NeoForgeNexoMinecraft neoForgeNexo = (NeoForgeNexoMinecraft) nexo;
 
-        collectModels(nexo, IBlock.class, "block/", unbakedModels,
+        collectModels(nexo, IFeature.Type.BLOCK, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(blockId.namespace(), blockId.path()),
                                 modelId));
 
-        collectModels(nexo, IItem.class, "item/", unbakedModels,
+        collectModels(nexo, IFeature.Type.ITEM, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(itemId.namespace(), itemId.path()),

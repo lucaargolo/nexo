@@ -35,8 +35,8 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
             return this.getDelegate().write(data);
         }
         DataComponentType<D> type = this.getHolder().value();
-        ByteBuf buf = Unpooled.buffer();
-        type.streamCodec().encode(new RegistryFriendlyByteBuf(buf, registryAccess), data);
+        RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.buffer());
+        type.streamCodec().encode(buf, data);
         return buf.nioBuffer();
     }
 
@@ -46,8 +46,8 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
             return this.getDelegate().read(buffer);
         }
         DataComponentType<D> type = this.getHolder().value();
-        ByteBuf buf = Unpooled.wrappedBuffer(buffer);
-        return type.streamCodec().decode(new RegistryFriendlyByteBuf(buf, registryAccess));
+        RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.wrappedBuffer(buffer));
+        return type.streamCodec().decode(buf);
     }
 
     @Override

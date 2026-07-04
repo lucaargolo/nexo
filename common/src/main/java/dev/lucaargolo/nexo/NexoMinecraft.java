@@ -14,6 +14,7 @@ import dev.lucaargolo.nexo.api.feature.item.IItem;
 import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.*;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
@@ -50,6 +51,8 @@ public abstract class NexoMinecraft implements Nexo {
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
+    private static NexoMinecraft INSTANCE;
+
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
 
@@ -63,6 +66,7 @@ public abstract class NexoMinecraft implements Nexo {
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
+        INSTANCE = this;
         this.helper = loadPlatformClass(NexoPlatformHelper.class);
         this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
         this.modelLoader = loadPlatformClass(NexoModelHandler.class);
@@ -74,15 +78,21 @@ public abstract class NexoMinecraft implements Nexo {
         });
     }
 
+    public static NexoMinecraft getInstance() {
+        return INSTANCE;
+    }
+
+    public static NexoPlatformHelper getHelper() {
+        return INSTANCE.helper;
+    }
+
     protected final void init() {
         this.registerFeature(IData.COUNT);
         this.modDiscovery.init(this);
         this.modelLoader.init(this);
     }
 
-    public NexoPlatformHelper getHelper() {
-        return this.helper;
-    }
+    public abstract Side getSide();
 
     public abstract String getPlatform();
 
@@ -169,7 +179,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @Nullable IFeature registerFeature(@NotNull IFeature feature) {
+    public @NotNull IFeature registerFeature(@NotNull IFeature feature) {
         IFeature.Type type = feature.type();
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());

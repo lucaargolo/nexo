@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo;
 
+import dev.lucaargolo.nexo.api.util.Side;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +31,11 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     @Override
     public boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
+    }
+
+    @Override
+    public Side getSide() {
+        return FMLEnvironment.dist.isClient() ? Side.CLIENT : Side.SERVER;
     }
 
     @Override

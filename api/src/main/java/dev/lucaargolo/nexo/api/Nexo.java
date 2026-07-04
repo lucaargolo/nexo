@@ -22,8 +22,10 @@ public interface Nexo {
 
     @NotNull Map<Location, IFeature> getFeatureRegistry(@NotNull IFeature.Type type);
 
+    //TODO: Improve this to bring back types (Maybe IFeature<IBlock>)
     @Nullable IFeature getFeature(@NotNull IFeature.Type type, @NotNull Location location);
 
+    //TODO: Improve this to bring back types (Maybe IFeature<IBlock>)
     @Nullable IFeature registerFeature(@NotNull IFeature feature);
 
     <E extends IEvent<T>, T> void on(@NotNull Class<E> eventType, @NotNull IEvent.Priority priority, @NotNull Predicate<E> listener);

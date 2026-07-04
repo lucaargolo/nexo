@@ -18,27 +18,27 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        IItemCategory category = nexo.registerFeature(IItemCategory.class, new SimpleItemCategory(
+        IItemCategory category = (IItemCategory) nexo.registerFeature(new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
 
-        IBlock testBlock = nexo.registerFeature(IBlock.class, new SimpleBlock(
+        IBlock testBlock = (IBlock) nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
 
-        nexo.registerFeature(IItem.class, new SimpleBlockItem(
+        nexo.registerFeature(new SimpleBlockItem(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png")),
             category,
             testBlock
         ));
 
-        nexo.registerFeature(IBlock.class, new SimpleBlock(
+        nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
                 Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
         ));
-        nexo.registerFeature(IBlock.class, new SimpleBlock(
+        nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
