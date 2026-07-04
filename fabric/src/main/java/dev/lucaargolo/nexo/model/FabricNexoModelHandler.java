@@ -22,11 +22,11 @@ public class FabricNexoModelHandler extends NexoModelHandler {
         Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
         Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-        collectModels(nexo, IFeature.Type.BLOCK, "block/", unbakedModels,
+        collectModels(nexo, IBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId));
 
-        collectModels(nexo, IFeature.Type.ITEM, "item/", unbakedModels,
+        collectModels(nexo, IItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemModelIds.add(modelId));
 

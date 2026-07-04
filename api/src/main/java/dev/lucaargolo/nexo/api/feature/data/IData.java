@@ -13,8 +13,9 @@ public interface IData<D> extends IFeature<IData<D>> {
     CountData COUNT = new CountData(Location.of("nexo", "count"));
 
     @Override
-    default @NotNull Class<? extends IData> type() {
-        return IData.class;
+    @SuppressWarnings("unchecked")
+    default @NotNull Class<IData<D>> type() {
+        return (Class<IData<D>>) (Class<?>) IData.class;
     }
 
     @NotNull ByteBuffer write(@NotNull D data);

@@ -261,8 +261,9 @@ public abstract class NexoMinecraft implements Nexo {
         });
     }
 
-    public @NotNull <T extends IFeature<T>> T getMinecraftFeature(IFeature<T> feature) {
-        MinecraftFeature<T, ?> mcFeature = (MinecraftFeature<T, ?>) feature;
+    @SuppressWarnings("unchecked")
+    public @NotNull <M, D extends IFeature<D>> M getMinecraftFeature(IFeature<D> feature) {
+        MinecraftFeature<M, D> mcFeature = (MinecraftFeature<M, D>) feature;
         return mcFeature.getHolder().value();
     }
 

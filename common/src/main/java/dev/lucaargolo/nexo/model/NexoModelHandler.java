@@ -22,9 +22,9 @@ public abstract class NexoModelHandler {
 
     public abstract void init(Nexo nexo);
 
-    protected static <T extends IFeature> void collectModels(
+    protected static <T extends IFeature<T>> void collectModels(
             Nexo nexo,
-            IFeature.Type type,
+            Class<T> type,
             String modelPrefix,
             Map<ResourceLocation, NexoMinecraftModel> unbakedModels,
             FeatureModelCallback<T> callback
@@ -76,7 +76,7 @@ public abstract class NexoModelHandler {
     }
 
     @FunctionalInterface
-    protected interface FeatureModelCallback<T extends IFeature> {
+    protected interface FeatureModelCallback<T extends IFeature<T>> {
         void accept(Location featureId, T feature, Model model, ResourceLocation modelId);
     }
 
