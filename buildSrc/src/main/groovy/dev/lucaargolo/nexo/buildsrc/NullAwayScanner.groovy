@@ -137,9 +137,10 @@ class MethodAnnotationVisitor extends MethodVisitor {
     @Override
     AnnotationVisitor visitTypeAnnotation(int tr, TypePath tp, String d, boolean v) {
         if (d != cv.nd && d != cv.nnd) return null
-        if (tr == TypeReference.METHOD_RETURN) retOk = true
-        else if (tr >= TypeReference.METHOD_FORMAL_PARAMETER) {
-            int i = tr - TypeReference.METHOD_FORMAL_PARAMETER
+        int sort = tr >>> 24
+        if (sort == TypeReference.METHOD_RETURN) retOk = true
+        else if (sort == TypeReference.METHOD_FORMAL_PARAMETER) {
+            int i = (tr & 0x00FF0000) >> 16
             if (i < pOk.length) pOk[i] = true
         }
         return null
