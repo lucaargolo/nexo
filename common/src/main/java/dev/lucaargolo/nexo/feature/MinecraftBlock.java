@@ -16,14 +16,18 @@ public class MinecraftBlock extends MinecraftFeature<Block, IBlock> implements I
         super(holder, delegate);
     }
 
+    public MinecraftBlock(Holder<Block> holder) {
+        super(holder, null);
+    }
+
     @Override
     public @Nullable Model model() {
         //TODO: This
         return this.getDelegate().model();
     }
 
-    public static MinecraftBlock register(NexoMinecraft nexo, ResourceLocation id, IBlock block) {
-        Holder.Reference<Block> holder = nexo.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () -> {
+    public static MinecraftBlock register(ResourceLocation id, IBlock block) {
+        Holder.Reference<Block> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () -> {
             return new Block(BlockBehaviour.Properties.of());
         });
         return new MinecraftBlock(holder, block);

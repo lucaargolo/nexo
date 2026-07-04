@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public abstract class MinecraftFeature<T, D extends IFeature> implements IFeature {
+public abstract class MinecraftFeature<T, D extends IFeature<D>> implements IFeature<D> {
 
     @NotNull
     private final Location location;

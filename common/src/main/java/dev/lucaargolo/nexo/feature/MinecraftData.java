@@ -16,6 +16,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -27,6 +28,10 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
 
     public MinecraftData(Holder<DataComponentType<D>> holder, IData<D> delegate) {
         super(holder, delegate);
+    }
+
+    public MinecraftData(Holder<DataComponentType<D>> holder) {
+        super(holder, null);
     }
 
     @Override
@@ -84,8 +89,8 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
         }
     }
 
-    public static <T> MinecraftData<T> register(NexoMinecraft nexo, ResourceLocation id, IData<T> data) {
-        Holder.Reference<DataComponentType<T>> holder = nexo.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
+    public static <T> MinecraftData<T> register(ResourceLocation id, IData<T> data) {
+        Holder.Reference<DataComponentType<T>> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
                 Codec<T> codec = NexoMinecraft.createCodec(data);
@@ -98,6 +103,12 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
             return builder.build();
         });
         return new MinecraftData<>(holder, data);
+    }
+
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static MinecraftData of(Holder<DataComponentType<?>> holder) {
+        return new MinecraftData(holder);
     }
 
 }

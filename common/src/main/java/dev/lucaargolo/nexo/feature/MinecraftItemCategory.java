@@ -15,9 +15,13 @@ public class MinecraftItemCategory extends MinecraftFeature<CreativeModeTab, IIt
         super(holder, delegate);
     }
 
-    public static MinecraftItemCategory register(NexoMinecraft nexo, ResourceLocation id, IItemCategory category) {
-        Holder.Reference<CreativeModeTab> holder = nexo.getHelper().registerFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, () -> {
-            return nexo.getHelper().createCreativeTab(category);
+    public MinecraftItemCategory(Holder<CreativeModeTab> holder) {
+        super(holder, null);
+    }
+
+    public static MinecraftItemCategory register(ResourceLocation id, IItemCategory category) {
+        Holder.Reference<CreativeModeTab> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, () -> {
+            return NexoMinecraft.getHelper().createCreativeTab(category);
         });
         return new MinecraftItemCategory(holder, category);
     }

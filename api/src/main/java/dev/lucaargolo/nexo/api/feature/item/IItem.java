@@ -6,11 +6,11 @@ import dev.lucaargolo.nexo.api.feature.provider.IModelProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface IItem extends IFeature, IModelProvider, IItemProvider {
+public interface IItem extends IFeature<IItem>, IModelProvider, IItemProvider {
 
     @Override
-    default @NotNull Type type() {
-        return Type.ITEM;
+    @NotNull default Class<IItem> type() {
+        return IItem.class;
     }
 
     @Override

@@ -7,15 +7,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-public interface IData<D> extends IFeature {
-
-    @Override
-    default @NotNull Type type() {
-        return Type.DATA;
-    };
+public interface IData<D> extends IFeature<IData<D>> {
 
     @NotNull
     CountData COUNT = new CountData(Location.of("nexo", "count"));
+
+    @Override
+    default @NotNull Class<? extends IData> type() {
+        return IData.class;
+    }
 
     @NotNull ByteBuffer write(@NotNull D data);
 

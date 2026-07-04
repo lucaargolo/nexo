@@ -3,10 +3,11 @@ package dev.lucaargolo.nexo.api.feature.item;
 import dev.lucaargolo.nexo.api.feature.IFeature;
 import org.jetbrains.annotations.NotNull;
 
-public interface IItemCategory extends IFeature {
+public interface IItemCategory extends IFeature<IItemCategory> {
 
     @Override
-    default @NotNull Type type() {
-        return Type.ITEM_CATEGORY;
-    };
+    @NotNull default Class<IItemCategory> type() {
+        return IItemCategory.class;
+    }
+
 }

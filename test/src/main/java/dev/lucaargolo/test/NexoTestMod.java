@@ -18,11 +18,11 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        IItemCategory category = (IItemCategory) nexo.registerFeature(new SimpleItemCategory(
+        IItemCategory category = nexo.registerFeature(new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
 
-        IBlock testBlock = (IBlock) nexo.registerFeature(new SimpleBlock(
+        IBlock testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));

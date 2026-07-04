@@ -21,8 +21,13 @@ public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IIte
         super(holder, delegate);
     }
 
+    public MinecraftItem(Holder<Item> holder) {
+        super(holder, null);
+    }
+
     @Override
     public @Nullable Model model() {
+        //TODO: This
         return this.getDelegate().model();
     }
 
@@ -32,12 +37,12 @@ public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IIte
         return delegate != null ? delegate.category() : null;
     }
 
-    public static MinecraftItem register(NexoMinecraft nexo, ResourceLocation id, IItem item) {
-        Holder.Reference<Item> holder = nexo.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
+    public static MinecraftItem register(ResourceLocation id, IItem item) {
+        Holder.Reference<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;
-                return new BlockItem(nexo.getMinecraftFeature(component.block()), new Item.Properties());
+                return new BlockItem(NexoMinecraft.getInstance().getMinecraftFeature(component.block()), new Item.Properties());
             } else {
                 return new Item(new Item.Properties());
             }
