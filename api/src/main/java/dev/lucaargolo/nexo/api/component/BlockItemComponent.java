@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.api.component;
 
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
+import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
 import org.jetbrains.annotations.NotNull;
 
-public record BlockItemComponent(@NotNull IBlock block) implements IComponent {
+public record BlockItemComponent(@NotNull BaseBlock block) implements Component {
 
 }

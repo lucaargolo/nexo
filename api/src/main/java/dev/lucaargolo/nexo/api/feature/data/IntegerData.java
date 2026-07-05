@@ -4,10 +4,22 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-
 import java.nio.ByteBuffer;
 
-public record CountData(@NotNull Location location) implements IData<Integer> {
+public final class IntegerData extends BaseData<Integer> {
+
+    @NotNull
+    private final Location location;
+
+    public IntegerData(@NotNull Location location) {
+        this.location = location;
+    }
+
+    @Override
+    @NotNull
+    public Location location() {
+        return location;
+    }
 
     @Override
     public @NotNull ByteBuffer write(@NotNull Integer data) {
@@ -31,4 +43,5 @@ public record CountData(@NotNull Location location) implements IData<Integer> {
     public @NotNull Integer deserialize(@NotNull JsonElement element) {
         return element.getAsInt();
     }
+
 }

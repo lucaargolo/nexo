@@ -1,11 +1,11 @@
 package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
 import dev.lucaargolo.nexo.api.component.BlockItemComponent;
-import dev.lucaargolo.nexo.api.component.IComponent;
-import dev.lucaargolo.nexo.api.feature.item.IItem;
-import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
+import dev.lucaargolo.nexo.api.component.Component;
+import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
+import dev.lucaargolo.nexo.api.feature.item.BaseItem;
+import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +18,11 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        IItemCategory category = nexo.registerFeature(new SimpleItemCategory(
+        BaseItemCategory category = nexo.registerFeature(new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
 
-        IBlock testBlock = nexo.registerFeature(new SimpleBlock(
+        BaseBlock testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
@@ -48,40 +48,137 @@ public class NexoTestMod {
         return Location.of(MOD_ID, path);
     }
 
-    private record SimpleBlock(@NotNull Location location, @Nullable Model model, @Nullable IItem item) implements IBlock {
+    private static class SimpleBlock extends BaseBlock {
 
-        public SimpleBlock(@NotNull Location location, @Nullable Model model) {
-            this(location, model, null);
+        @NotNull
+        private final Location location;
+        @Nullable
+        private final Model model;
+        @Nullable
+        private final SimpleBlockItem item;
+
+        SimpleBlock(@NotNull Location location, @Nullable Model model, @Nullable SimpleBlockItem item) {
+            this.location = location;
+            this.model = model;
+            this.item = item;
         }
 
-    }
-
-    private record SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable IItemCategory category) implements IItem {
-
-        public SimpleItem(@NotNull Location location, @Nullable Model model) {
+        SimpleBlock(@NotNull Location location, @Nullable Model model) {
             this(location, model, null);
         }
-
-    }
-
-    private record SimpleBlockItem(
-            @NotNull Location location,
-            @Nullable Model model,
-            @Nullable IItemCategory category,
-            @NotNull IBlock block
-    ) implements IItem {
 
         @Override
-        public @NotNull List<@NotNull IComponent> components() {
+        public @NotNull Location location() {
+            return location;
+        }
+
+        @Override
+        public @Nullable Model model() {
+            return model;
+        }
+
+        @Nullable
+        public SimpleBlockItem item() {
+            return item;
+        }
+
+    }
+
+    private static class SimpleItem extends BaseItem {
+
+        @NotNull
+        private final Location location;
+        @Nullable
+        private final Model model;
+        @Nullable
+        private final BaseItemCategory category;
+
+        SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable BaseItemCategory category) {
+            this.location = location;
+            this.model = model;
+            this.category = category;
+        }
+
+        SimpleItem(@NotNull Location location, @Nullable Model model) {
+            this(location, model, null);
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return location;
+        }
+
+        @Override
+        public @Nullable Model model() {
+            return model;
+        }
+
+        @Override
+        public @Nullable BaseItemCategory category() {
+            return category;
+        }
+
+    }
+
+    private static class SimpleBlockItem extends BaseItem {
+
+        @NotNull
+        private final Location location;
+        @Nullable
+        private final Model model;
+        @Nullable
+        private final BaseItemCategory category;
+        @NotNull
+        private final BaseBlock block;
+
+        SimpleBlockItem(
+                @NotNull Location location,
+                @Nullable Model model,
+                @Nullable BaseItemCategory category,
+                @NotNull BaseBlock block
+        ) {
+            this.location = location;
+            this.model = model;
+            this.category = category;
+            this.block = block;
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return location;
+        }
+
+        @Override
+        public @Nullable Model model() {
+            return model;
+        }
+
+        @Override
+        public @Nullable BaseItemCategory category() {
+            return category;
+        }
+
+        @Override
+        public @NotNull List<@NotNull Component> components() {
             return List.of(new BlockItemComponent(block));
         }
 
     }
 
-    private record SimpleItemCategory(@NotNull Location location) implements IItemCategory {
+    private static class SimpleItemCategory extends BaseItemCategory {
 
+        @NotNull
+        private final Location location;
+
+        SimpleItemCategory(@NotNull Location location) {
+            this.location = location;
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return location;
+        }
 
     }
-
 
 }

@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.api.event;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface IEvent<T> {
+public interface Event<T> {
 
     @Nullable T value();
 

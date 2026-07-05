@@ -1,11 +1,8 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
-import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
+import dev.lucaargolo.nexo.api.feature.item.BaseItem;
 import dev.lucaargolo.nexo.feature.MinecraftBlock;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
@@ -28,11 +25,11 @@ public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft
         Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
         Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-        collectModels(this.nexo(), IBlock.class, "block/", unbakedModels,
+        collectModels(this.nexo(), BaseBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId));
 
-        collectModels(this.nexo(), IItem.class, "item/", unbakedModels,
+        collectModels(this.nexo(), BaseItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemModelIds.add(modelId));
 

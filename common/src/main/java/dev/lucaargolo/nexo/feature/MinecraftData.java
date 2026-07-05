@@ -2,13 +2,11 @@ package dev.lucaargolo.nexo.feature;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.data.IData;
-import io.netty.buffer.ByteBuf;
+import dev.lucaargolo.nexo.api.feature.data.BaseData;
+import dev.lucaargolo.nexo.api.util.Location;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
@@ -16,30 +14,58 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.function.Supplier;
+import java.util.List;
 
-public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IData<D>> implements IData<D> {
+public class MinecraftData<D> extends BaseData<D> {
 
-    public MinecraftData(Holder<DataComponentType<D>> holder, IData<D> delegate) {
-        super(holder, delegate);
+    @NotNull
+    private final Location location;
+    @NotNull
+    private final Holder<DataComponentType<D>> holder;
+    @Nullable
+    private final BaseData<D> delegate;
+
+    public MinecraftData(Holder<DataComponentType<D>> holder, BaseData<D> delegate) {
+        this.delegate = delegate;
+        this.holder = holder;
+        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     public MinecraftData(Holder<DataComponentType<D>> holder) {
-        super(holder, null);
+        this(holder, null);
+    }
+
+    public @NotNull Holder<DataComponentType<D>> getHolder() {
+        return holder;
+    }
+
+    @Nullable
+    public BaseData<D> getDelegate() {
+        return delegate;
+    }
+
+    @Override
+    public @NotNull Location location() {
+        return location;
+    }
+
+    @Override
+    public @NotNull List<@NotNull Tag> tags() {
+        return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     @Override
     public @NotNull ByteBuffer write(@NotNull D data) {
-        if(this.getDelegate() != null) {
-            return this.getDelegate().write(data);
+        if (delegate != null) {
+            return delegate.write(data);
         }
-        DataComponentType<D> type = this.getHolder().value();
+        DataComponentType<D> type = holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.buffer());
         type.streamCodec().encode(buf, data);
         return buf.nioBuffer();
@@ -47,24 +73,24 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
-        if(this.getDelegate() != null) {
-            return this.getDelegate().read(buffer);
+        if (delegate != null) {
+            return delegate.read(buffer);
         }
-        DataComponentType<D> type = this.getHolder().value();
+        DataComponentType<D> type = holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.wrappedBuffer(buffer));
         return type.streamCodec().decode(buf);
     }
 
     @Override
     public @NotNull JsonElement serialize(@NotNull D data) {
-        if(this.getDelegate() != null) {
-            return this.getDelegate().serialize(data);
+        if (delegate != null) {
+            return delegate.serialize(data);
         }
-        DataComponentType<D> type = this.getHolder().value();
+        DataComponentType<D> type = holder.value();
         Codec<D> codec = type.codec();
-        if(codec != null) {
+        if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(data).getOrThrow();
-        }else{
+        } else {
             JsonObject json = new JsonObject();
             ByteBuffer encoded = Base64.getEncoder().encode(this.write(data));
             json.addProperty("data", StandardCharsets.UTF_8.decode(encoded).toString());
@@ -74,14 +100,14 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
 
     @Override
     public @NotNull D deserialize(@NotNull JsonElement element) {
-        if(this.getDelegate() != null) {
-            return this.getDelegate().deserialize(element);
+        if (delegate != null) {
+            return delegate.deserialize(element);
         }
-        DataComponentType<D> type = this.getHolder().value();
+        DataComponentType<D> type = holder.value();
         Codec<D> codec = type.codec();
-        if(codec != null) {
+        if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
-        }else{
+        } else {
             JsonObject json = element.getAsJsonObject();
             String encoded = json.getAsJsonPrimitive("data").getAsString();
             byte[] decoded = Base64.getDecoder().decode(encoded);
@@ -89,7 +115,7 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
         }
     }
 
-    public static <T> MinecraftData<T> register(ResourceLocation id, IData<T> data) {
+    public static <T> MinecraftData<T> register(ResourceLocation id, BaseData<T> data) {
         Holder<DataComponentType<T>> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
@@ -104,7 +130,6 @@ public class MinecraftData<D> extends MinecraftFeature<DataComponentType<D>, IDa
         });
         return new MinecraftData<>(holder, data);
     }
-
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static MinecraftData of(Holder<DataComponentType<?>> holder) {

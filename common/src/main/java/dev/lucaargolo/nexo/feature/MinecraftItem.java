@@ -2,42 +2,70 @@ package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.component.BlockItemComponent;
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.item.IItem;
-import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.BaseItem;
+import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IItem {
+import java.util.List;
 
-    public MinecraftItem(Holder<Item> holder, IItem delegate) {
-        super(holder, delegate);
+public class MinecraftItem extends BaseItem {
+
+    @NotNull
+    private final Location location;
+    @NotNull
+    private final Holder<Item> holder;
+    @Nullable
+    private final BaseItem delegate;
+
+    public MinecraftItem(Holder<Item> holder, BaseItem delegate) {
+        this.delegate = delegate;
+        this.holder = holder;
+        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     public MinecraftItem(Holder<Item> holder) {
-        super(holder, null);
+        this(holder, null);
+    }
+
+    public @NotNull Holder<Item> getHolder() {
+        return holder;
+    }
+
+    @Nullable
+    public BaseItem getDelegate() {
+        return delegate;
+    }
+
+    @Override
+    public @NotNull Location location() {
+        return location;
+    }
+
+    @Override
+    public @NotNull List<@NotNull Tag> tags() {
+        return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     @Override
     public @Nullable Model model() {
         //TODO: This
-        return this.getDelegate().model();
+        return delegate != null ? delegate.model() : null;
     }
 
     @Override
-    public @Nullable IItemCategory category() {
-        IItem delegate = this.getDelegate();
+    public @Nullable BaseItemCategory category() {
         return delegate != null ? delegate.category() : null;
     }
 
-    public static MinecraftItem register(ResourceLocation id, IItem item) {
+    public static MinecraftItem register(ResourceLocation id, BaseItem item) {
         Holder<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);

@@ -3,8 +3,8 @@ package dev.lucaargolo.nexo.model;
 import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.IFeature;
-import dev.lucaargolo.nexo.api.feature.provider.IModelProvider;
+import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.provider.ModelProvider;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +32,7 @@ public abstract class NexoModelHandler<N extends Nexo> {
 
     public abstract void init();
 
-    protected static <T extends IFeature<T>> void collectModels(
+    protected static <T extends Feature<T>> void collectModels(
             Nexo nexo,
             Class<T> type,
             String modelPrefix,
@@ -40,23 +40,25 @@ public abstract class NexoModelHandler<N extends Nexo> {
             FeatureModelCallback<T> callback
     ) {
         nexo.getFeatureRegistry(type).entrySet().stream()
-                .filter(e -> e.getValue() instanceof IModelProvider)
-                .map(e -> Map.entry(e.getKey(), (IFeature & IModelProvider) e.getValue()))
+                .filter(e -> e.getValue() instanceof ModelProvider)
+                .map(e -> Map.entry(e.getKey(), (Feature<?> & ModelProvider) e.getValue()))
                 .forEach(e -> {
                     Location location = e.getKey();
-                    IFeature feature = e.getValue();
+                    Feature<?> feature = e.getValue();
                     Model model = e.getValue().model();
 
-                    for (Location texture : model.textures().values()) {
-                        registerTexture(nexo, texture, NexoAtlas.BLOCK_ATLAS);
+                    if(model != null) {
+                        for (Location texture : model.textures().values()) {
+                            registerTexture(nexo, texture, NexoAtlas.BLOCK_ATLAS);
+                        }
+
+                        ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(
+                                location.namespace(), modelPrefix + location.path()
+                        );
+                        unbakedModels.put(modelId, new NexoMinecraftModel(model));
+
+                        callback.accept(location, type.cast(feature), model, modelId);
                     }
-
-                    ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(
-                            location.namespace(), modelPrefix + location.path()
-                    );
-                    unbakedModels.put(modelId, new NexoMinecraftModel(model));
-
-                    callback.accept(location, (T) feature, model, modelId);
                 });
     }
 
@@ -86,7 +88,7 @@ public abstract class NexoModelHandler<N extends Nexo> {
     }
 
     @FunctionalInterface
-    protected interface FeatureModelCallback<T extends IFeature<T>> {
+    protected interface FeatureModelCallback<T extends Feature<T>> {
         void accept(Location featureId, T feature, Model model, ResourceLocation modelId);
     }
 

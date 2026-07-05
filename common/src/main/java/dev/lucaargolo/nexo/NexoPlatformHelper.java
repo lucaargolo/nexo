@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.item.IItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -26,7 +26,7 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
 
     public abstract <T, F extends T> Holder<F> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<F> feature);
 
-    public abstract Supplier<CreativeModeTab> createCreativeTab(IItemCategory category);
+    public abstract Supplier<CreativeModeTab> createCreativeTab(BaseItemCategory category);
 
     public abstract RegistryAccess getRegistryAccess();
 

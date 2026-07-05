@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.block.IBlock;
-import dev.lucaargolo.nexo.api.feature.item.IItem;
+import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
+import dev.lucaargolo.nexo.api.feature.item.BaseItem;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
@@ -29,7 +29,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
         Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
         Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-        collectModels(this.nexo(), IBlock.class, "block/", unbakedModels,
+        collectModels(this.nexo(), BaseBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) -> {
                     NexoMinecraftModel mcModel = unbakedModels.get(modelId);
                     CUSTOM_MODELS.put(modelId, mcModel);
@@ -38,7 +38,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
                     BLOCK_MODELS.put(blockKey, mcModel);
                 });
 
-        collectModels(this.nexo(), IItem.class, "item/", unbakedModels,
+        collectModels(this.nexo(), BaseItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) -> {
                     CUSTOM_MODELS.put(modelId, unbakedModels.get(modelId));
                     itemModelIds.add(modelId);
