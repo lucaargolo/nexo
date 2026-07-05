@@ -283,18 +283,18 @@ public abstract class NexoMinecraft implements Nexo {
         String clientClassPrefix = "Client" + commonClassPrefix;
         String clientClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clientClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
 
-        try {
-            Class<? extends T> clientPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(clientClassName);
-            return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
-        } catch (Exception ignored) {
+        if(this.getSide().isClient()) {
             try {
-                Class<? extends T> commonPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(commonClassName);
-                return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+                Class<? extends T> clientPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(clientClassName);
+                return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+            } catch (Exception ignored) {}
         }
-
+        try {
+            Class<? extends T> commonPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(commonClassName);
+            return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     public static Location id(ResourceLocation location) {
