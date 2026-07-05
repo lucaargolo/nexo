@@ -14,10 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FabricNexoModDiscovery extends NexoModDiscovery {
+public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft> {
+
+    public FabricNexoModDiscovery(FabricNexoMinecraft nexo) {
+        super(nexo);
+    }
 
     @Override
-    public void init(Nexo nexo) {
+    public void init() {
         Set<Path> jars = new LinkedHashSet<>();
         Set<Path> dirs = new LinkedHashSet<>();
 
@@ -51,7 +55,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery {
             } catch (IOException ignored) {}
         }
 
-        init(nexo, jars, dirs);
+        init(jars, dirs);
         registerNexoMods();
     }
 

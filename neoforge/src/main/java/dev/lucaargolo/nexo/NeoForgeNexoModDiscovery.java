@@ -12,10 +12,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
+public class NeoForgeNexoModDiscovery extends NexoModDiscovery<NeoForgeNexoMinecraft> {
+
+    public NeoForgeNexoModDiscovery(NeoForgeNexoMinecraft nexo) {
+        super(nexo);
+    }
 
     @Override
-    public void init(Nexo nexo) {
+    public void init() {
         Set<Path> jars = new LinkedHashSet<>();
         Set<Path> dirs = new LinkedHashSet<>();
 
@@ -41,8 +45,8 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery {
             } catch (IOException ignored) {}
         }
 
-        init(nexo, jars, dirs);
-        ((NeoForgeNexoMinecraft) nexo).getModBus().addListener(this::onLoadComplete);
+        init(jars, dirs);
+        this.nexo().modBus().addListener(this::onLoadComplete);
     }
 
     @SuppressWarnings("unchecked")

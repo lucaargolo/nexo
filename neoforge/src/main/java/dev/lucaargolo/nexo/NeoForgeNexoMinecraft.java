@@ -13,13 +13,12 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     private final IEventBus modBus;
 
-
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
         this.init();
     }
 
-    public IEventBus getModBus() {
+    public IEventBus modBus() {
         return modBus;
     }
 

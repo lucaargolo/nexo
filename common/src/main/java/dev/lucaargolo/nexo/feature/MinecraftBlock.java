@@ -27,7 +27,7 @@ public class MinecraftBlock extends MinecraftFeature<Block, IBlock> implements I
     }
 
     public static MinecraftBlock register(ResourceLocation id, IBlock block) {
-        Holder.Reference<Block> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () -> {
+        Holder<Block> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () -> {
             return new Block(BlockBehaviour.Properties.of());
         });
         return new MinecraftBlock(holder, block);

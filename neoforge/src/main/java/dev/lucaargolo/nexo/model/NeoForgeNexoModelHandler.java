@@ -2,7 +2,6 @@ package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.IBlock;
 import dev.lucaargolo.nexo.api.feature.item.IItem;
 import net.minecraft.client.renderer.block.BlockModelShaper;
@@ -19,29 +18,31 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class NeoForgeNexoModelHandler extends NexoModelHandler {
+public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinecraft> {
+
+    public NeoForgeNexoModelHandler(NeoForgeNexoMinecraft nexo) {
+        super(nexo);
+    }
 
     @Override
-    public void init(Nexo nexo) {
+    public void init() {
         Map<ResourceLocation, ResourceLocation> blockToModel = new HashMap<>();
         Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
         Map<ResourceLocation, ResourceLocation> itemToModel = new HashMap<>();
 
-        NeoForgeNexoMinecraft neoForgeNexo = (NeoForgeNexoMinecraft) nexo;
-
-        collectModels(nexo, IBlock.class, "block/", unbakedModels,
+        collectModels(this.nexo(), IBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
                         blockToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(blockId.namespace(), blockId.path()),
                                 modelId));
 
-        collectModels(nexo, IItem.class, "item/", unbakedModels,
+        collectModels(this.nexo(), IItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->
                         itemToModel.put(
                                 ResourceLocation.fromNamespaceAndPath(itemId.namespace(), itemId.path()),
                                 modelId));
 
-        neoForgeNexo.getModBus().addListener(ModelEvent.ModifyBakingResult.class, event -> {
+        this.nexo().modBus().addListener(ModelEvent.ModifyBakingResult.class, event -> {
             Function<Material, TextureAtlasSprite> textureGetter = event.getTextureGetter();
             NexoMinecraft.LOGGER.info("NeoForgeNexoModelLoader: injecting {} block models, {} item models",
                     blockToModel.size(), itemToModel.size());

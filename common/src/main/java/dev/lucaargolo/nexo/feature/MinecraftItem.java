@@ -38,7 +38,7 @@ public class MinecraftItem extends MinecraftFeature<Item, IItem> implements IIte
     }
 
     public static MinecraftItem register(ResourceLocation id, IItem item) {
-        Holder.Reference<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
+        Holder<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;

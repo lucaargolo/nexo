@@ -54,16 +54,16 @@ public abstract class NexoMinecraft implements Nexo {
 
     private final NexoPlatformHelper helper;
 
-    protected final NexoModDiscovery modDiscovery;
-    protected final NexoModelHandler modelLoader;
+    protected final NexoModDiscovery<?> modDiscovery;
+    protected final NexoModelHandler<?> modelLoader;
 
     private final Map<Class<?>, Map<IEvent.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         INSTANCE = this;
-        this.helper = loadPlatformClass(NexoPlatformHelper.class);
-        this.modDiscovery = loadPlatformClass(NexoModDiscovery.class);
-        this.modelLoader = loadPlatformClass(NexoModelHandler.class);
+        this.helper = loadPlatformClass(NexoPlatformHelper.class, this);
+        this.modDiscovery = loadPlatformClass(NexoModDiscovery.class, this);
+        this.modelLoader = loadPlatformClass(NexoModelHandler.class, this);
     }
 
     public static NexoMinecraft getInstance() {
@@ -76,8 +76,8 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected final void init() {
         this.registerFeature(IData.COUNT);
-        this.modDiscovery.init(this);
-        this.modelLoader.init(this);
+        this.modDiscovery.init();
+        this.modelLoader.init();
     }
 
     public abstract Side getSide();
@@ -261,7 +261,6 @@ public abstract class NexoMinecraft implements Nexo {
         });
     }
 
-    @SuppressWarnings("unchecked")
     public @NotNull <M, D extends IFeature<D>> M getMinecraftFeature(IFeature<D> feature) {
         MinecraftFeature<M, D> mcFeature = (MinecraftFeature<M, D>) feature;
         return mcFeature.getHolder().value();
@@ -271,21 +270,31 @@ public abstract class NexoMinecraft implements Nexo {
         return loadPlatformClass(null, clazz, parameters);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
         String originalName = clazz.getName();
-        String clazzPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
-        String clazzName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clazzPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
         Class<?>[] parameterTypes = new Class<?>[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
             parameterTypes[i] = parameters[i].getClass();
         }
+
+        String commonClassPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
+        String commonClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + commonClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
+        String clientClassPrefix = "Client" + commonClassPrefix;
+        String clientClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clientClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
+
         try {
-            @SuppressWarnings("unchecked")
-            Class<? extends T> platformClazz = (Class<? extends T>) clazz.getClassLoader().loadClass(clazzName);
-            return platformClazz.getConstructor(parameterTypes).newInstance(parameters);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Class<? extends T> clientPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(clientClassName);
+            return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+        } catch (Exception ignored) {
+            try {
+                Class<? extends T> commonPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(commonClassName);
+                return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
+
     }
 
     public static Location id(ResourceLocation location) {

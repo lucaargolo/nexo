@@ -18,9 +18,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 
-public abstract class NexoModelHandler {
+public abstract class NexoModelHandler<N extends Nexo> {
 
-    public abstract void init(Nexo nexo);
+    private final N nexo;
+
+    public NexoModelHandler(N nexo) {
+        this.nexo = nexo;
+    }
+
+    public N nexo() {
+        return nexo;
+    }
+
+    public abstract void init();
 
     protected static <T extends IFeature<T>> void collectModels(
             Nexo nexo,
