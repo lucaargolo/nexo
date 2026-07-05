@@ -52,7 +52,7 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Map<Location, IFeature<?>>> FEATURE_REGISTRY = new ConcurrentHashMap<>();
 
-    private final NexoPlatformHelper helper;
+    private final NexoPlatformHelper<?> helper;
 
     protected final NexoModDiscovery<?> modDiscovery;
     protected final NexoModelHandler<?> modelLoader;
@@ -70,7 +70,7 @@ public abstract class NexoMinecraft implements Nexo {
         return INSTANCE;
     }
 
-    public static NexoPlatformHelper getHelper() {
+    public static NexoPlatformHelper<?> getHelper() {
         return INSTANCE.helper;
     }
 
