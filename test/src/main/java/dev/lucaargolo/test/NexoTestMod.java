@@ -1,9 +1,9 @@
 package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
-import dev.lucaargolo.nexo.api.feature.block.Block;
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
+import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -14,11 +14,11 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        BaseItemCategory category = nexo.registerFeature(new ItemCategory(
+        NexoItemCategory category = nexo.registerFeature(new ItemCategory(
                 NexoTestMod.id("test")
         ));
 
-        BaseBlock testBlock = nexo.registerFeature(new Block(
+        NexoBlock testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
@@ -30,11 +30,11 @@ public class NexoTestMod {
             testBlock
         ));
 
-        nexo.registerFeature(new Block(
+        nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
                 Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
         ));
-        nexo.registerFeature(new Block(
+        nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));

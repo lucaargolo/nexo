@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.data.BaseData;
+import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import dev.lucaargolo.nexo.api.util.Location;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
@@ -22,16 +22,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-public class MinecraftData<D> extends BaseData<D> {
+public class MinecraftData<D> extends NexoData<D> {
 
     @NotNull
     private final Location location;
     @NotNull
     private final Holder<DataComponentType<D>> holder;
     @Nullable
-    private final BaseData<D> delegate;
+    private final NexoData<D> delegate;
 
-    public MinecraftData(Holder<DataComponentType<D>> holder, BaseData<D> delegate) {
+    public MinecraftData(Holder<DataComponentType<D>> holder, NexoData<D> delegate) {
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
@@ -46,7 +46,7 @@ public class MinecraftData<D> extends BaseData<D> {
     }
 
     @Nullable
-    public BaseData<D> getDelegate() {
+    public NexoData<D> getDelegate() {
         return delegate;
     }
 
@@ -115,7 +115,7 @@ public class MinecraftData<D> extends BaseData<D> {
         }
     }
 
-    public static <T> MinecraftData<T> register(ResourceLocation id, BaseData<T> data) {
+    public static <T> MinecraftData<T> register(ResourceLocation id, NexoData<T> data) {
         Holder<DataComponentType<T>> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {

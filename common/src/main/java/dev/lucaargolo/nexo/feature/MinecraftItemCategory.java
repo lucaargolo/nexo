@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -12,16 +12,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftItemCategory extends BaseItemCategory {
+public class MinecraftItemCategory extends NexoItemCategory {
 
     @NotNull
     private final Location location;
     @NotNull
     private final Holder<CreativeModeTab> holder;
     @Nullable
-    private final BaseItemCategory delegate;
+    private final NexoItemCategory delegate;
 
-    public MinecraftItemCategory(Holder<CreativeModeTab> holder, BaseItemCategory delegate) {
+    public MinecraftItemCategory(Holder<CreativeModeTab> holder, NexoItemCategory delegate) {
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
@@ -36,7 +36,7 @@ public class MinecraftItemCategory extends BaseItemCategory {
     }
 
     @Nullable
-    public BaseItemCategory getDelegate() {
+    public NexoItemCategory getDelegate() {
         return delegate;
     }
 
@@ -50,7 +50,7 @@ public class MinecraftItemCategory extends BaseItemCategory {
         return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
-    public static MinecraftItemCategory register(ResourceLocation id, BaseItemCategory category) {
+    public static MinecraftItemCategory register(ResourceLocation id, NexoItemCategory category) {
         Holder<CreativeModeTab> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id,
                 NexoMinecraft.getHelper().createCreativeTab(category));
         return new MinecraftItemCategory(holder, category);

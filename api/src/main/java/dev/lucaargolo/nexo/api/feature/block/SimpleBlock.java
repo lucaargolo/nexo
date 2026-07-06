@@ -1,26 +1,27 @@
-package dev.lucaargolo.nexo.api.feature.item;
+package dev.lucaargolo.nexo.api.feature.block;
 
+import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Item extends BaseItem {
+public class SimpleBlock extends NexoBlock {
 
     @NotNull
     private final Location location;
     @Nullable
     private final Model model;
     @Nullable
-    private final BaseItemCategory category;
+    private final BlockItem item;
 
-    public Item(@NotNull Location location, @Nullable Model model, @Nullable BaseItemCategory category) {
+    public SimpleBlock(@NotNull Location location, @Nullable Model model, @Nullable BlockItem item) {
         this.location = location;
         this.model = model;
-        this.category = category;
+        this.item = item;
     }
 
-    public Item(@NotNull Location location, @Nullable Model model) {
+    public SimpleBlock(@NotNull Location location, @Nullable Model model) {
         this(location, model, null);
     }
 
@@ -34,9 +35,9 @@ public class Item extends BaseItem {
         return model;
     }
 
-    @Override
-    public @Nullable BaseItemCategory category() {
-        return category;
+    @Nullable
+    public BlockItem item() {
+        return item;
     }
 
 }

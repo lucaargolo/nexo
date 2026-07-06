@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.feature.data.BaseData;
+import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class Instance<T extends Feature<T>> {
 
     @NotNull
-    private final Map<BaseData<?>, Object> dataMap = new ConcurrentHashMap<>();
+    private final Map<NexoData<?>, Object> dataMap = new ConcurrentHashMap<>();
 
     @Nullable
     private final T feature;
@@ -25,11 +25,11 @@ public final class Instance<T extends Feature<T>> {
 
     @SuppressWarnings("unchecked")
     @Nullable
-    public <D> D getData(@NotNull BaseData<D> data) {
+    public <D> D getData(@NotNull NexoData<D> data) {
         return (D) dataMap.get(data);
     }
 
-    public <D> void setData(@NotNull BaseData<D> data, @Nullable D d) {
+    public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
         dataMap.put(data, d);
     }
 

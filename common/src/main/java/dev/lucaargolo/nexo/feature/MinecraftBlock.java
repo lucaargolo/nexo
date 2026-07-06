@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
-import dev.lucaargolo.nexo.api.feature.item.BaseItem;
+import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
+import dev.lucaargolo.nexo.api.feature.item.NexoItem;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
@@ -17,16 +17,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftBlock extends BaseBlock {
+public class MinecraftBlock extends NexoBlock {
 
     @NotNull
     private final Location location;
     @NotNull
     private final Holder<Block> holder;
     @Nullable
-    private final BaseBlock delegate;
+    private final NexoBlock delegate;
 
-    public MinecraftBlock(Holder<Block> holder, BaseBlock delegate) {
+    public MinecraftBlock(Holder<Block> holder, NexoBlock delegate) {
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
@@ -41,7 +41,7 @@ public class MinecraftBlock extends BaseBlock {
     }
 
     @Nullable
-    public BaseBlock getDelegate() {
+    public NexoBlock getDelegate() {
         return delegate;
     }
 
@@ -62,21 +62,21 @@ public class MinecraftBlock extends BaseBlock {
     }
 
     @Override
-    public @Nullable BaseItem item() {
+    public @Nullable NexoItem item() {
         if(delegate != null) {
             return delegate.item();
         }else{
             Item item = this.getHolder().value().asItem();
             if(item != Items.AIR) {
                 ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-                return NexoMinecraft.getInstance().getFeature(BaseItem.class, NexoMinecraft.id(itemId));
+                return NexoMinecraft.getInstance().getFeature(NexoItem.class, NexoMinecraft.id(itemId));
             }else{
                 return null;
             }
         }
     }
 
-    public static MinecraftBlock register(ResourceLocation id, BaseBlock block) {
+    public static MinecraftBlock register(ResourceLocation id, NexoBlock block) {
         Holder<Block> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () ->
                 new Block(BlockBehaviour.Properties.of()));
         return new MinecraftBlock(holder, block);

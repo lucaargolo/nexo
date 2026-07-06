@@ -6,13 +6,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 
-public abstract class BaseData<D> extends Feature<BaseData<D>> {
+public abstract class NexoData<D> extends Feature<NexoData<D>> {
 
     @Override
     @SuppressWarnings("unchecked")
     @NotNull
-    public Class<BaseData<D>> type() {
-        return (Class<BaseData<D>>) (Class<?>) BaseData.class;
+    public final Class<NexoData<D>> type() {
+        return (Class<NexoData<D>>) (Class<?>) NexoData.class;
     }
 
     @NotNull

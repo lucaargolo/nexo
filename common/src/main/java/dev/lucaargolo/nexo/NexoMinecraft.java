@@ -7,10 +7,10 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.block.BaseBlock;
-import dev.lucaargolo.nexo.api.feature.data.BaseData;
-import dev.lucaargolo.nexo.api.feature.item.BaseItem;
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
+import dev.lucaargolo.nexo.api.feature.data.NexoData;
+import dev.lucaargolo.nexo.api.feature.item.NexoItem;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -152,13 +152,13 @@ public abstract class NexoMinecraft implements Nexo {
         Object feature = FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>())
             .computeIfAbsent(location, i -> {
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-                if(BaseData.class.isAssignableFrom(type)) {
+                if(NexoData.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(MinecraftData::of).orElse(null);
-                }else if(BaseBlock.class.isAssignableFrom(type)) {
+                }else if(NexoBlock.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.BLOCK.getHolder(id).map(MinecraftBlock::new).orElse(null);
-                }else if(BaseItem.class.isAssignableFrom(type)) {
+                }else if(NexoItem.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.ITEM.getHolder(id).map(MinecraftItem::new).orElse(null);
-                }else if(BaseItemCategory.class.isAssignableFrom(type)) {
+                }else if(NexoItemCategory.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(id).map(MinecraftItemCategory::new).orElse(null);
                 }else{
                     return null;
@@ -173,25 +173,25 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         switch (feature) {
-            case BaseData<?> data when BaseData.class.isAssignableFrom(type) -> {
+            case NexoData<?> data when NexoData.class.isAssignableFrom(type) -> {
                 MinecraftData<?> minecraftData = MinecraftData.register(id, data);
                 emit(new FeatureRegisteredEvent(location, minecraftData));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftData);
                 return type.cast(minecraftData);
             }
-            case BaseBlock block when BaseBlock.class.isAssignableFrom(type) -> {
+            case NexoBlock block when NexoBlock.class.isAssignableFrom(type) -> {
                 MinecraftBlock minecraftBlock = MinecraftBlock.register(id, block);
                 emit(new FeatureRegisteredEvent(location, minecraftBlock));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftBlock);
                 return type.cast(minecraftBlock);
             }
-            case BaseItem item when BaseItem.class.isAssignableFrom(type) -> {
+            case NexoItem item when NexoItem.class.isAssignableFrom(type) -> {
                 MinecraftItem minecraftItem = MinecraftItem.register(id, item);
                 emit(new FeatureRegisteredEvent(location, minecraftItem));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
                 return type.cast(minecraftItem);
             }
-            case BaseItemCategory category when BaseItemCategory.class.isAssignableFrom(type) -> {
+            case NexoItemCategory category when NexoItemCategory.class.isAssignableFrom(type) -> {
                 MinecraftItemCategory minecraftCategory = MinecraftItemCategory.register(id, category);
                 emit(new FeatureRegisteredEvent(location, minecraftCategory));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftCategory);
@@ -304,14 +304,14 @@ public abstract class NexoMinecraft implements Nexo {
         return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
     }
 
-    public static <D> Codec<D> createCodec(BaseData<D> data) {
+    public static <D> Codec<D> createCodec(NexoData<D> data) {
         return Codec.STRING.xmap(
                 str -> data.deserialize(JsonParser.parseString(str)),
                 obj -> data.serialize(obj).toString()
         );
     }
 
-    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(BaseData<D> data) {
+    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(NexoData<D> data) {
         return new StreamCodec<>() {
             @Override
             public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull D value) {

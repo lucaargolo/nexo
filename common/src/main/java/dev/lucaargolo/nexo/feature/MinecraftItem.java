@@ -2,8 +2,8 @@ package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.component.BlockItemComponent;
-import dev.lucaargolo.nexo.api.feature.item.BaseItem;
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.NexoItem;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
@@ -16,16 +16,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftItem extends BaseItem {
+public class MinecraftItem extends NexoItem {
 
     @NotNull
     private final Location location;
     @NotNull
     private final Holder<Item> holder;
     @Nullable
-    private final BaseItem delegate;
+    private final NexoItem delegate;
 
-    public MinecraftItem(Holder<Item> holder, BaseItem delegate) {
+    public MinecraftItem(Holder<Item> holder, NexoItem delegate) {
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
@@ -40,7 +40,7 @@ public class MinecraftItem extends BaseItem {
     }
 
     @Nullable
-    public BaseItem getDelegate() {
+    public NexoItem getDelegate() {
         return delegate;
     }
 
@@ -61,11 +61,11 @@ public class MinecraftItem extends BaseItem {
     }
 
     @Override
-    public @Nullable BaseItemCategory category() {
+    public @Nullable NexoItemCategory category() {
         return delegate != null ? delegate.category() : null;
     }
 
-    public static MinecraftItem register(ResourceLocation id, BaseItem item) {
+    public static MinecraftItem register(ResourceLocation id, NexoItem item) {
         Holder<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);

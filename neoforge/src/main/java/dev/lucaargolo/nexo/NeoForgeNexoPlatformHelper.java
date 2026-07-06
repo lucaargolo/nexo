@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -38,7 +38,7 @@ public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoM
         return (Holder<F>) deferredRegistry.register(id.getPath(), feature);
     }
 
-    public Supplier<CreativeModeTab> createCreativeTab(BaseItemCategory category) {
+    public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
         return () -> CreativeModeTab.builder().title(title).build();

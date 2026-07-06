@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.feature.item.BaseItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -32,7 +32,7 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
         return (Holder<F>) Registry.registerForHolder(registry, id, feature.get());
     }
 
-    public Supplier<CreativeModeTab> createCreativeTab(BaseItemCategory category) {
+    public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
         return () -> FabricItemGroup.builder().title(title).build();
