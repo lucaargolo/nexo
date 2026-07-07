@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -14,6 +13,9 @@ public class ClientFabricNexoPlatformHelper extends FabricNexoPlatformHelper {
 
     @Override
     public RegistryAccess getRegistryAccess() {
+        if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
+            return capturedRegistry;
+        }
         Minecraft minecraft = Minecraft.getInstance();
         if(minecraft.isSameThread()) {
             Level level = minecraft.level;

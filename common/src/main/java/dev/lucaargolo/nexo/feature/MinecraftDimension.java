@@ -3,11 +3,15 @@ package dev.lucaargolo.nexo.feature;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.dimension.NexoDimension;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.util.LazyHolder;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
@@ -26,22 +30,22 @@ public class MinecraftDimension extends NexoDimension {
     @NotNull
     private final Location location;
     @NotNull
-    private final Holder<LevelStem> holder;
+    private final LazyHolder<LevelStem> holder;
     @Nullable
     private final NexoDimension delegate;
 
-    public MinecraftDimension(Holder<LevelStem> holder, NexoDimension delegate) {
+    public MinecraftDimension(LazyHolder<LevelStem> holder, NexoDimension delegate) {
         this.delegate = delegate;
         this.holder = holder;
-        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
+        this.location = NexoMinecraft.id(holder.key());
     }
 
     public MinecraftDimension(Holder<LevelStem> holder) {
-        this(holder, null);
+        this(new LazyHolder<>(holder), null);
     }
 
     public @NotNull Holder<LevelStem> getHolder() {
-        return holder;
+        return holder.get();
     }
 
     @Nullable
@@ -56,11 +60,11 @@ public class MinecraftDimension extends NexoDimension {
 
     @Override
     public @NotNull List<@NotNull Tag> tags() {
-        return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
+        return holder.get().tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     public static MinecraftDimension register(ResourceLocation id, NexoDimension dimension) {
-        Holder<DimensionType> type = NexoMinecraft.getHelper().registerFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
+        LazyHolder<DimensionType> type = NexoMinecraft.getHelper().registerFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
                 OptionalLong.empty(),
                 true,
                 false,
@@ -77,14 +81,13 @@ public class MinecraftDimension extends NexoDimension {
                 0.0F,
                 new DimensionType.MonsterSettings(false, true, UniformInt.of(0, 7), 0)
         ));
-        Holder<LevelStem> holder = NexoMinecraft.getHelper().registerFeature(Registries.LEVEL_STEM, id, () -> {
-            FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(
-                Optional.empty(),
-                NexoMinecraft.getHelper().getRegistryAccess().registryOrThrow(Registries.BIOME).getHolderOrThrow(Biomes.THE_VOID),
-                List.of()
-            );
+        LazyHolder<LevelStem> holder = NexoMinecraft.getHelper().registerFeature(Registries.LEVEL_STEM, id, () -> {
+            RegistryAccess access = NexoMinecraft.getHelper().getRegistryAccess();
+            Registry<Biome> biomeRegistry = access.registryOrThrow(Registries.BIOME);
+            Holder<Biome> biomeHolder = biomeRegistry.getHolderOrThrow(Biomes.THE_VOID);
+            FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(Optional.empty(), biomeHolder, List.of());
             FlatLevelSource source = new FlatLevelSource(settings);
-            return new LevelStem(type, source);
+            return new LevelStem(type.get(), source);
         });
         return new MinecraftDimension(holder, dimension);
     }

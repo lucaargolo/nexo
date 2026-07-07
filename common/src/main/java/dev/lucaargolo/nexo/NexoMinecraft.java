@@ -23,6 +23,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -314,6 +315,10 @@ public abstract class NexoMinecraft implements Nexo {
 
     public static Location id(ResourceLocation location) {
         return ID_CACHE.computeIfAbsent(location, k -> Location.of(k.getNamespace(), k.getPath()));
+    }
+
+    public static Location id(ResourceKey<?> key) {
+        return id(key.location());
     }
 
     public static <D> Codec<D> createCodec(NexoData<D> data) {
