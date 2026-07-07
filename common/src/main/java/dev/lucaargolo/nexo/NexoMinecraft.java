@@ -155,7 +155,7 @@ public abstract class NexoMinecraft implements Nexo {
     public @Nullable <T extends Feature<T>> T getFeature(@NotNull Class<T> type, @NotNull Location location) {
         Object feature = FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>())
             .computeIfAbsent(location, i -> {
-                RegistryAccess access = this.helper.getRegistryAccess();
+                RegistryAccess access = this.helper.getRegistry();
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
                 if(NexoData.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(MinecraftData::of).orElse(null);

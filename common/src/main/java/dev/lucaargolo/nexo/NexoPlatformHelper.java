@@ -7,16 +7,24 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
 public abstract class NexoPlatformHelper<N extends Nexo> {
 
     private final N nexo;
+
+    @Nullable
+    protected Thread capturedRegistryThread;
+    @Nullable
+    protected RegistryAccess capturedRegistry;
 
     public NexoPlatformHelper(N nexo) {
         this.nexo = nexo;
@@ -32,12 +40,35 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 
-    public abstract RegistryAccess getRegistryAccess();
+    public abstract MinecraftServer getServer();
 
-    public abstract void captureRegistry(RegistryAccess registry);
+    public RegistryAccess getRegistry() {
+        if (this.capturedRegistry != null && Thread.currentThread() == this.capturedRegistryThread) {
+            return this.capturedRegistry;
+        }
+        MinecraftServer currentServer = this.getServer();
+        if (currentServer != null) {
+            if(currentServer.isSameThread()) {
+                return currentServer.registryAccess();
+            }else{
+                return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+            }
+        }
+        return RegistryAccess.EMPTY;
+    }
+
+    public void captureRegistry(RegistryAccess registry) {
+        if(registry == null) {
+            this.capturedRegistryThread = null;
+            this.capturedRegistry = null;
+        }else{
+            this.capturedRegistryThread = Thread.currentThread();
+            this.capturedRegistry = registry;
+        }
+    }
 
     public RegistryFriendlyByteBuf befriend(ByteBuf buf) {
-        return new RegistryFriendlyByteBuf(buf, this.getRegistryAccess());
+        return new RegistryFriendlyByteBuf(buf, this.getRegistry());
     }
 
 }

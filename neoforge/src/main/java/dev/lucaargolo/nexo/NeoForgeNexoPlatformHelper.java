@@ -2,10 +2,9 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.util.LazyHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -27,12 +26,12 @@ public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoM
     }
 
     public <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return registerFeature(registry.key(), id, feature);
+        return registerFeature(registry.key(), id, feature).get();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Holder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+    public <T> LazyHolder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = (DeferredRegister<T>) deferredRegistries
                 .computeIfAbsent(registryKey, r -> new HashMap<>())
                 .computeIfAbsent(id.getNamespace(), n -> {
@@ -40,8 +39,7 @@ public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoM
                     r.register(this.nexo().modBus());
                     return r;
                 });
-
-        return deferredRegistry.register(id.getPath(), feature);
+        return new LazyHolder<>(deferredRegistry.register(id.getPath(), feature));
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
@@ -50,16 +48,9 @@ public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoM
         return () -> CreativeModeTab.builder().title(title).build();
     }
 
-    public RegistryAccess getRegistryAccess() {
-        MinecraftServer currentServer = ServerLifecycleHooks.getCurrentServer();
-        if (currentServer != null) {
-            if(currentServer.isSameThread()) {
-                return currentServer.registryAccess();
-            }else{
-                return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-            }
-        }
-        return RegistryAccess.EMPTY;
+    @Override
+    public MinecraftServer getServer() {
+        return ServerLifecycleHooks.getCurrentServer();
     }
 
 }

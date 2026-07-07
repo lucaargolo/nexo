@@ -28,7 +28,7 @@ public class LazyHolder<T> implements Supplier<Holder<T>> {
     @Override
     public Holder<T> get() {
         if (holder == null) {
-            RegistryAccess access = NexoMinecraft.getHelper().getRegistryAccess();
+            RegistryAccess access = NexoMinecraft.getHelper().getRegistry();
             return access.registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElse(null);
         }
         return holder;

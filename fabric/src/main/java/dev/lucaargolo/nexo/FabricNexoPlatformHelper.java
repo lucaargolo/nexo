@@ -8,8 +8,6 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -26,12 +24,7 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
     private final Map<ResourceKey<?>, Supplier<?>> deferredRegistries = new LinkedHashMap<>();
 
     @Nullable
-    private static MinecraftServer currentServer;
-
-    @Nullable
-    protected static Thread capturedRegistryThread;
-    @Nullable
-    protected static RegistryAccess capturedRegistry;
+    private MinecraftServer currentServer;
 
     public FabricNexoPlatformHelper(FabricNexoMinecraft nexo) {
         super(nexo);
@@ -63,29 +56,8 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
         return () -> FabricItemGroup.builder().title(title).build();
     }
 
-    public RegistryAccess getRegistryAccess() {
-        if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
-            return capturedRegistry;
-        }
-        if (currentServer != null) {
-            if(currentServer.isSameThread()) {
-                return currentServer.registryAccess();
-            }else{
-                return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-            }
-        }
-        return RegistryAccess.EMPTY;
-    }
-
     @Override
-    public void captureRegistry(RegistryAccess registry) {
-        if(registry == null) {
-            capturedRegistryThread = null;
-            capturedRegistry = null;
-        }else{
-            capturedRegistryThread = Thread.currentThread();
-            capturedRegistry = registry;
-        }
+    public MinecraftServer getServer() {
+        return this.currentServer;
     }
-
 }

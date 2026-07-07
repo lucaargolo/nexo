@@ -12,9 +12,9 @@ public class ClientFabricNexoPlatformHelper extends FabricNexoPlatformHelper {
     }
 
     @Override
-    public RegistryAccess getRegistryAccess() {
-        if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
-            return capturedRegistry;
+    public RegistryAccess getRegistry() {
+        if (this.capturedRegistry != null && Thread.currentThread() == this.capturedRegistryThread) {
+            return this.capturedRegistry;
         }
         Minecraft minecraft = Minecraft.getInstance();
         if(minecraft.isSameThread()) {
@@ -25,6 +25,6 @@ public class ClientFabricNexoPlatformHelper extends FabricNexoPlatformHelper {
                 return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
             }
         }
-        return super.getRegistryAccess();
+        return super.getRegistry();
     }
 }

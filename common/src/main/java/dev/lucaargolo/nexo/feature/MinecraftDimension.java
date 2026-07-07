@@ -82,7 +82,7 @@ public class MinecraftDimension extends NexoDimension {
                 new DimensionType.MonsterSettings(false, true, UniformInt.of(0, 7), 0)
         ));
         LazyHolder<LevelStem> holder = NexoMinecraft.getHelper().registerFeature(Registries.LEVEL_STEM, id, () -> {
-            RegistryAccess access = NexoMinecraft.getHelper().getRegistryAccess();
+            RegistryAccess access = NexoMinecraft.getHelper().getRegistry();
             Registry<Biome> biomeRegistry = access.registryOrThrow(Registries.BIOME);
             Holder<Biome> biomeHolder = biomeRegistry.getHolderOrThrow(Biomes.THE_VOID);
             FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(Optional.empty(), biomeHolder, List.of());
