@@ -4,11 +4,12 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.Event;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.data.NexoData;
+import dev.lucaargolo.nexo.api.feature.dimension.NexoDimension;
 import dev.lucaargolo.nexo.api.feature.item.NexoItem;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -17,7 +18,9 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.*;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
@@ -151,6 +154,7 @@ public abstract class NexoMinecraft implements Nexo {
     public @Nullable <T extends Feature<T>> T getFeature(@NotNull Class<T> type, @NotNull Location location) {
         Object feature = FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>())
             .computeIfAbsent(location, i -> {
+                RegistryAccess access = this.helper.getRegistryAccess();
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
                 if(NexoData.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(MinecraftData::of).orElse(null);
@@ -160,6 +164,8 @@ public abstract class NexoMinecraft implements Nexo {
                     return BuiltInRegistries.ITEM.getHolder(id).map(MinecraftItem::new).orElse(null);
                 }else if(NexoItemCategory.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(id).map(MinecraftItemCategory::new).orElse(null);
+                }else if(NexoDimension.class.isAssignableFrom(type)) {
+                    return access.registry(Registries.LEVEL_STEM).flatMap(r -> r.getHolder(id)).map(MinecraftDimension::new).orElse(null);
                 }else{
                     return null;
                 }
@@ -196,6 +202,12 @@ public abstract class NexoMinecraft implements Nexo {
                 emit(new FeatureRegisteredEvent(location, minecraftCategory));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftCategory);
                 return type.cast(minecraftCategory);
+            }
+            case NexoDimension dimension when NexoDimension.class.isAssignableFrom(type) -> {
+                MinecraftDimension minecraftDimension = MinecraftDimension.register(id, dimension);
+                emit(new FeatureRegisteredEvent(location, minecraftDimension));
+                FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftDimension);
+                return type.cast(minecraftDimension);
             }
             default -> throw new IllegalStateException(String.format("Cannot register %s as %s", feature.getClass(), feature.type()));
         }

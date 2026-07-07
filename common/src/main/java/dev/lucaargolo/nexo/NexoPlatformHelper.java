@@ -7,6 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 
@@ -24,7 +25,9 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
         return nexo;
     }
 
-    public abstract <T, F extends T> Holder<F> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<F> feature);
+    public abstract <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+
+    public abstract <T> Holder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 

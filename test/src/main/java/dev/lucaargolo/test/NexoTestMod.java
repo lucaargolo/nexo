@@ -3,9 +3,9 @@ package dev.lucaargolo.test;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
-import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 
@@ -38,6 +38,8 @@ public class NexoTestMod {
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
+
+
     }
 
     public static Location id(String path) {

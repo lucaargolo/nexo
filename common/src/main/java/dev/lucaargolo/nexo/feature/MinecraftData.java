@@ -27,21 +27,21 @@ public class MinecraftData<D> extends NexoData<D> {
     @NotNull
     private final Location location;
     @NotNull
-    private final Holder<DataComponentType<D>> holder;
+    private final Holder<DataComponentType<?>> holder;
     @Nullable
     private final NexoData<D> delegate;
 
-    public MinecraftData(Holder<DataComponentType<D>> holder, NexoData<D> delegate) {
+    public MinecraftData(Holder<DataComponentType<?>> holder, NexoData<D> delegate) {
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
-    public MinecraftData(Holder<DataComponentType<D>> holder) {
+    public MinecraftData(Holder<DataComponentType<?>> holder) {
         this(holder, null);
     }
 
-    public @NotNull Holder<DataComponentType<D>> getHolder() {
+    public @NotNull Holder<DataComponentType<?>> getHolder() {
         return holder;
     }
 
@@ -65,7 +65,7 @@ public class MinecraftData<D> extends NexoData<D> {
         if (delegate != null) {
             return delegate.write(data);
         }
-        DataComponentType<D> type = holder.value();
+        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.buffer());
         type.streamCodec().encode(buf, data);
         return buf.nioBuffer();
@@ -76,7 +76,7 @@ public class MinecraftData<D> extends NexoData<D> {
         if (delegate != null) {
             return delegate.read(buffer);
         }
-        DataComponentType<D> type = holder.value();
+        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.wrappedBuffer(buffer));
         return type.streamCodec().decode(buf);
     }
@@ -86,7 +86,7 @@ public class MinecraftData<D> extends NexoData<D> {
         if (delegate != null) {
             return delegate.serialize(data);
         }
-        DataComponentType<D> type = holder.value();
+        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         Codec<D> codec = type.codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(data).getOrThrow();
@@ -103,7 +103,7 @@ public class MinecraftData<D> extends NexoData<D> {
         if (delegate != null) {
             return delegate.deserialize(element);
         }
-        DataComponentType<D> type = holder.value();
+        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         Codec<D> codec = type.codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
@@ -116,7 +116,7 @@ public class MinecraftData<D> extends NexoData<D> {
     }
 
     public static <T> MinecraftData<T> register(ResourceLocation id, NexoData<T> data) {
-        Holder<DataComponentType<T>> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
+        Holder<DataComponentType<?>> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
                 Codec<T> codec = NexoMinecraft.createCodec(data);

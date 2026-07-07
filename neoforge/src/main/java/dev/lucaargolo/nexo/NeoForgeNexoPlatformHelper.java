@@ -7,6 +7,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,23 +20,28 @@ import java.util.function.Supplier;
 
 public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoMinecraft> {
 
-    private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
+    private final Map<ResourceKey<? extends Registry<?>>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
 
     public NeoForgeNexoPlatformHelper(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 
+    public <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        return registerFeature(registry.key(), id, feature);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    public <T, F extends T> Holder<F> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<F> feature) {
+    public <T> Holder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = (DeferredRegister<T>) deferredRegistries
-                .computeIfAbsent(registry, r -> new HashMap<>())
+                .computeIfAbsent(registryKey, r -> new HashMap<>())
                 .computeIfAbsent(id.getNamespace(), n -> {
-                    DeferredRegister<?> r = DeferredRegister.create(registry, id.getNamespace());
+                    DeferredRegister<?> r = DeferredRegister.create(registryKey, id.getNamespace());
                     r.register(this.nexo().modBus());
                     return r;
                 });
 
-        return (Holder<F>) deferredRegistry.register(id.getPath(), feature);
+        return deferredRegistry.register(id.getPath(), feature);
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
