@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-public class MinecraftData<D> extends NexoData<D> {
+public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<NexoData<D>, DataComponentType<?>> {
 
     @NotNull
     private final Location location;
@@ -41,12 +41,13 @@ public class MinecraftData<D> extends NexoData<D> {
         this(holder, null);
     }
 
-    public @NotNull Holder<DataComponentType<?>> getHolder() {
+    @Override
+    public @NotNull Holder<DataComponentType<?>> holder() {
         return holder;
     }
 
-    @Nullable
-    public NexoData<D> getDelegate() {
+    @Override
+    public @Nullable NexoData<D> delegate() {
         return delegate;
     }
 

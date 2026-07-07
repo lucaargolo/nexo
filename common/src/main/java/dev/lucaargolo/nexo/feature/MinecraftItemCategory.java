@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftItemCategory extends NexoItemCategory {
+public class MinecraftItemCategory extends NexoItemCategory implements MinecraftFeature<NexoItemCategory, CreativeModeTab> {
 
     @NotNull
     private final Location location;
@@ -31,12 +31,13 @@ public class MinecraftItemCategory extends NexoItemCategory {
         this(holder, null);
     }
 
-    public @NotNull Holder<CreativeModeTab> getHolder() {
+    @Override
+    public @NotNull Holder<CreativeModeTab> holder() {
         return holder;
     }
 
-    @Nullable
-    public NexoItemCategory getDelegate() {
+    @Override
+    public @Nullable NexoItemCategory delegate() {
         return delegate;
     }
 

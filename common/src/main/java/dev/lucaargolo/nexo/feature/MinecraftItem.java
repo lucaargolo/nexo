@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftItem extends NexoItem {
+public class MinecraftItem extends NexoItem implements MinecraftFeature<NexoItem, Item> {
 
     @NotNull
     private final Location location;
@@ -35,12 +35,13 @@ public class MinecraftItem extends NexoItem {
         this(holder, null);
     }
 
-    public @NotNull Holder<Item> getHolder() {
+    @Override
+    public @NotNull Holder<Item> holder() {
         return holder;
     }
 
-    @Nullable
-    public NexoItem getDelegate() {
+    @Override
+    public @Nullable NexoItem delegate() {
         return delegate;
     }
 

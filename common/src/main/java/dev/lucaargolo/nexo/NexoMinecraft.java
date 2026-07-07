@@ -275,10 +275,10 @@ public abstract class NexoMinecraft implements Nexo {
 
     @SuppressWarnings("unchecked")
     public <M> M getMinecraftFeature(Feature<?> feature) {
-        if (feature instanceof MinecraftBlock mb) return (M) mb.getHolder().value();
-        if (feature instanceof MinecraftItem mi) return (M) mi.getHolder().value();
-        if (feature instanceof MinecraftData<?> md) return (M) md.getHolder().value();
-        if (feature instanceof MinecraftItemCategory mic) return (M) mic.getHolder().value();
+        if (feature instanceof MinecraftBlock mb) return (M) mb.holder().value();
+        if (feature instanceof MinecraftItem mi) return (M) mi.holder().value();
+        if (feature instanceof MinecraftData<?> md) return (M) md.holder().value();
+        if (feature instanceof MinecraftItemCategory mic) return (M) mic.holder().value();
         throw new IllegalArgumentException("Not a Minecraft feature: " + feature.getClass());
     }
 

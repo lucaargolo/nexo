@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-public class MinecraftDimension extends NexoDimension {
+public class MinecraftDimension extends NexoDimension implements MinecraftFeature<NexoDimension, LevelStem> {
 
     @NotNull
     private final Location location;
@@ -44,12 +44,13 @@ public class MinecraftDimension extends NexoDimension {
         this(new LazyHolder<>(holder), null);
     }
 
-    public @NotNull Holder<LevelStem> getHolder() {
+    @Override
+    public @NotNull Holder<LevelStem> holder() {
         return holder.get();
     }
 
-    @Nullable
-    public NexoDimension getDelegate() {
+    @Override
+    public @Nullable NexoDimension delegate() {
         return delegate;
     }
 

@@ -27,7 +27,7 @@ public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft
 
         collectModels(this.nexo(), NexoBlock.class, "block/", unbakedModels,
                 (blockId, block, model, modelId) ->
-                        blockToModel.put(((MinecraftBlock) block).getHolder().value(), modelId));
+                        blockToModel.put(((MinecraftBlock) block).holder().value(), modelId));
 
         collectModels(this.nexo(), NexoItem.class, "item/", unbakedModels,
                 (itemId, item, model, modelId) ->

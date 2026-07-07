@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftBlock extends NexoBlock {
+public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBlock, Block> {
 
     @NotNull
     private final Location location;
@@ -36,12 +36,13 @@ public class MinecraftBlock extends NexoBlock {
         this(holder, null);
     }
 
-    public @NotNull Holder<Block> getHolder() {
+    @Override
+    public @NotNull Holder<Block> holder() {
         return holder;
     }
 
-    @Nullable
-    public NexoBlock getDelegate() {
+    @Override
+    public @Nullable NexoBlock delegate() {
         return delegate;
     }
 
@@ -66,7 +67,7 @@ public class MinecraftBlock extends NexoBlock {
         if(delegate != null) {
             return delegate.item();
         }else{
-            Item item = this.getHolder().value().asItem();
+            Item item = this.holder().value().asItem();
             if(item != Items.AIR) {
                 ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
                 return NexoMinecraft.getInstance().getFeature(NexoItem.class, NexoMinecraft.id(itemId));
