@@ -78,7 +78,7 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
     }
 
     public static MinecraftBlock register(ResourceLocation id, NexoBlock block) {
-        Holder<Block> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.BLOCK, id, () ->
+        Holder<Block> holder = NexoMinecraft.getHelper().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () ->
                 new Block(BlockBehaviour.Properties.of()));
         return new MinecraftBlock(holder, block);
     }

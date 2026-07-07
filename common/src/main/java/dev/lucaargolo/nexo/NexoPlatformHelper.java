@@ -34,9 +34,9 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
         return nexo;
     }
 
-    public abstract <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+    public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
-    public abstract <T> LazyHolder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
+    public abstract <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 

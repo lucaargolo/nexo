@@ -39,12 +39,12 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
         });
     }
 
-    public <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         return Registry.registerForHolder(registry, id, feature.get());
     }
 
     @Override
-    public <T> LazyHolder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+    public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
         deferredRegistries.put(key, feature);
         return new LazyHolder<>(key);

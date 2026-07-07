@@ -25,13 +25,13 @@ public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoM
         super(nexo);
     }
 
-    public <T> Holder<T> registerFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return registerFeature(registry.key(), id, feature).get();
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        return registerDynamicFeature(registry.key(), id, feature).get();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> LazyHolder<T> registerFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+    public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = (DeferredRegister<T>) deferredRegistries
                 .computeIfAbsent(registryKey, r -> new HashMap<>())
                 .computeIfAbsent(id.getNamespace(), n -> {

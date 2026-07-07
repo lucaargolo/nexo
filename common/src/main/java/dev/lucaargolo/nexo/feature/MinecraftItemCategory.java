@@ -52,7 +52,7 @@ public class MinecraftItemCategory extends NexoItemCategory implements Minecraft
     }
 
     public static MinecraftItemCategory register(ResourceLocation id, NexoItemCategory category) {
-        Holder<CreativeModeTab> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id,
+        Holder<CreativeModeTab> holder = NexoMinecraft.getHelper().registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id,
                 NexoMinecraft.getHelper().createCreativeTab(category));
         return new MinecraftItemCategory(holder, category);
     }

@@ -65,7 +65,7 @@ public class MinecraftDimension extends NexoDimension implements MinecraftFeatur
     }
 
     public static MinecraftDimension register(ResourceLocation id, NexoDimension dimension) {
-        LazyHolder<DimensionType> type = NexoMinecraft.getHelper().registerFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
+        LazyHolder<DimensionType> type = NexoMinecraft.getHelper().registerDynamicFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
                 OptionalLong.empty(),
                 true,
                 false,
@@ -82,7 +82,7 @@ public class MinecraftDimension extends NexoDimension implements MinecraftFeatur
                 0.0F,
                 new DimensionType.MonsterSettings(false, true, UniformInt.of(0, 7), 0)
         ));
-        LazyHolder<LevelStem> holder = NexoMinecraft.getHelper().registerFeature(Registries.LEVEL_STEM, id, () -> {
+        LazyHolder<LevelStem> holder = NexoMinecraft.getHelper().registerDynamicFeature(Registries.LEVEL_STEM, id, () -> {
             RegistryAccess access = NexoMinecraft.getHelper().getRegistry();
             Registry<Biome> biomeRegistry = access.registryOrThrow(Registries.BIOME);
             Holder<Biome> biomeHolder = biomeRegistry.getHolderOrThrow(Biomes.THE_VOID);

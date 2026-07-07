@@ -67,7 +67,7 @@ public class MinecraftItem extends NexoItem implements MinecraftFeature<NexoItem
     }
 
     public static MinecraftItem register(ResourceLocation id, NexoItem item) {
-        Holder<Item> holder = NexoMinecraft.getHelper().registerFeature(BuiltInRegistries.ITEM, id, () -> {
+        Holder<Item> holder = NexoMinecraft.getHelper().registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;
