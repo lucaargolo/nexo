@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.api.feature;
 
 import dev.lucaargolo.nexo.api.feature.data.NexoData;
+import dev.lucaargolo.nexo.api.util.Side;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,13 +15,20 @@ public final class Instance<T extends Feature<T>> {
 
     @Nullable
     private final T feature;
+    @NotNull
+    private final Side side;
 
-    public Instance(@Nullable T feature) {
+    public Instance(@Nullable T feature, @NotNull Side side) {
         this.feature = feature;
+        this.side = side;
     }
 
     public @Nullable T get() {
         return feature;
+    }
+
+    public @NotNull Side side() {
+        return side;
     }
 
     @SuppressWarnings("unchecked")
@@ -32,5 +40,6 @@ public final class Instance<T extends Feature<T>> {
     public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
         dataMap.put(data, d);
     }
+
 
 }
