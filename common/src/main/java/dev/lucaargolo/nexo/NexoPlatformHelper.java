@@ -15,6 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class NexoPlatformHelper<N extends Nexo> {
@@ -37,6 +38,8 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     public abstract <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
+
+    public abstract Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures();
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 

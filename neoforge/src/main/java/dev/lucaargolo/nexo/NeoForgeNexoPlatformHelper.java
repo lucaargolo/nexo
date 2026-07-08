@@ -14,32 +14,41 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class NeoForgeNexoPlatformHelper extends NexoPlatformHelper<NeoForgeNexoMinecraft> {
 
-    private final Map<ResourceKey<? extends Registry<?>>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
+    private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
+    private final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
 
     public NeoForgeNexoPlatformHelper(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 
-    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return registerDynamicFeature(registry.key(), id, feature).get();
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
-    public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = (DeferredRegister<T>) deferredRegistries
-                .computeIfAbsent(registryKey, r -> new HashMap<>())
+                .computeIfAbsent(registry, r -> new HashMap<>())
                 .computeIfAbsent(id.getNamespace(), n -> {
-                    DeferredRegister<?> r = DeferredRegister.create(registryKey, id.getNamespace());
+                    DeferredRegister<?> r = DeferredRegister.create(registry, id.getNamespace());
                     r.register(this.nexo().modBus());
                     return r;
                 });
-        return new LazyHolder<>(deferredRegistry.register(id.getPath(), feature));
+        return deferredRegistry.register(id.getPath(), feature);
+    }
+
+    @Override
+    public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+        ResourceKey<T> key = ResourceKey.create(registryKey, id);
+        dynamicFeatures.put(key, feature);
+        return new LazyHolder<>(key);
+    }
+
+    @Override
+    public Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
+        return dynamicFeatures;
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {

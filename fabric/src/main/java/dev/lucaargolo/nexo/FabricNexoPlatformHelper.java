@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinecraft> {
 
-    private final Map<ResourceKey<?>, Supplier<?>> deferredRegistries = new LinkedHashMap<>();
+    private final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
 
     @Nullable
     private MinecraftServer currentServer;
@@ -31,7 +31,7 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
         ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         DynamicRegistrySetupCallback.EVENT.register(view -> {
-            deferredRegistries.forEach((key, feature) -> {
+            dynamicFeatures.forEach((key, feature) -> {
                 view.getOptional(key.registryKey()).ifPresent(registry -> {
                     Registry.registerForHolder((Registry) registry, key.location(), feature.get());
                 });
@@ -46,8 +46,13 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
     @Override
     public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
-        deferredRegistries.put(key, feature);
+        dynamicFeatures.put(key, feature);
         return new LazyHolder<>(key);
+    }
+
+    @Override
+    public Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
+        return dynamicFeatures;
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
