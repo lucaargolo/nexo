@@ -63,15 +63,11 @@ public abstract class NexoModDiscovery<N extends Nexo> {
             discovered++;
             if (mods.containsKey(descriptor.id)) continue;
 
-            Nexo.Mod mod = new Nexo.Mod(descriptor.id, descriptor.name, descriptor.description,
-                    descriptor.version, descriptor.authors, descriptor.sourcePath);
+            Nexo.Mod mod = new Nexo.Mod(descriptor.id, descriptor.name, descriptor.description, descriptor.version, descriptor.authors, descriptor.sourcePath);
             mods.put(descriptor.id, mod);
 
             if (descriptor.entrypoint != null && !descriptor.entrypoint.isEmpty()) {
-                Class<?> modClass = loadEntrypoint(descriptor, parentCl);
-                if (modClass != null) {
-                    instantiateMod(modClass, nexo);
-                }
+                instantiateMod(loadEntrypoint(descriptor, parentCl), nexo);
             }
         }
 
@@ -92,13 +88,10 @@ public abstract class NexoModDiscovery<N extends Nexo> {
         try (JarFile jar = new JarFile(jarPath.toFile())) {
             JarEntry entry = jar.getJarEntry(MOD_JSON);
             if (entry != null) {
-                try (InputStream is = jar.getInputStream(entry);
-                     InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+                try (InputStream is = jar.getInputStream(entry); InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
                     JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                     ModDescriptor descriptor = parseModDescriptor(json, jarPath);
-                    if (descriptor != null) {
-                        descriptors.add(descriptor);
-                    }
+                    descriptors.add(descriptor);
                 }
             }
         } catch (IOException e) {
@@ -109,20 +102,16 @@ public abstract class NexoModDiscovery<N extends Nexo> {
     private static void scanDirectoryForModJson(Path dirPath, List<ModDescriptor> descriptors) {
         Path jsonPath = dirPath.resolve(MOD_JSON);
         if (Files.isRegularFile(jsonPath)) {
-            try (InputStreamReader reader = new InputStreamReader(
-                    Files.newInputStream(jsonPath), StandardCharsets.UTF_8)) {
+            try (InputStreamReader reader = new InputStreamReader(Files.newInputStream(jsonPath), StandardCharsets.UTF_8)) {
                 JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
                 ModDescriptor descriptor = parseModDescriptor(json, dirPath);
-                if (descriptor != null) {
-                    descriptors.add(descriptor);
-                }
+                descriptors.add(descriptor);
             } catch (IOException e) {
                 NexoMinecraft.LOGGER.warn("Failed to read {}: {}", jsonPath, e.getMessage());
             }
         }
     }
 
-    @Nullable
     private static ModDescriptor parseModDescriptor(JsonObject json, Path sourcePath) {
         try {
             String id = json.get("id").getAsString();
@@ -144,12 +133,10 @@ public abstract class NexoModDiscovery<N extends Nexo> {
 
             return new ModDescriptor(id, name, description, version, authors, entrypoint, sourcePath);
         } catch (Exception e) {
-            NexoMinecraft.LOGGER.warn("Invalid {} in {}: {}", MOD_JSON, sourcePath, e.getMessage());
-            return null;
+            throw new RuntimeException("Failed to parse Nexo mod descriptor", e);
         }
     }
 
-    @Nullable
     private static Class<?> loadEntrypoint(ModDescriptor descriptor, ClassLoader parentCl) {
         try {
             if (Files.isRegularFile(descriptor.sourcePath)) {
@@ -161,9 +148,8 @@ public abstract class NexoModDiscovery<N extends Nexo> {
                 // Directory: class should be on the system classpath
                 return Class.forName(descriptor.entrypoint, false, parentCl);
             }
-        } catch (ClassNotFoundException | NoClassDefFoundError | IOException e) {
-            NexoMinecraft.LOGGER.warn("Mod '{}' entrypoint class '{}' not found", descriptor.id, descriptor.entrypoint, e);
-            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to find Nexo mod entrypoint", e);
         }
     }
 
@@ -179,7 +165,7 @@ public abstract class NexoModDiscovery<N extends Nexo> {
                 ctor.newInstance();
             }
         } catch (Exception e) {
-            NexoMinecraft.LOGGER.warn("Failed to instantiate Nexo mod '{}'", modClass.getName(), e);
+            throw new RuntimeException("Failed to instantiate Nexo mod", e);
         }
     }
 
