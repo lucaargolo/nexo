@@ -24,7 +24,7 @@ public interface Nexo {
 
     @Nullable <T extends Feature<T>> T getFeature(@NotNull Class<T> type, @NotNull Location location);
 
-    @Nullable <T extends Feature<T>> T registerFeature(@NotNull Feature<T> feature);
+    @NotNull <T extends Feature<T>> T registerFeature(@NotNull Feature<T> feature);
 
     <E extends Event<T>, T> void on(@NotNull Class<E> eventType, @NotNull Event.Priority priority, @NotNull Predicate<E> listener);
 
