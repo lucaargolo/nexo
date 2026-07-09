@@ -230,7 +230,7 @@ public abstract class NexoMinecraft implements Nexo {
     public WorldInstance world(@NotNull Level level) {
         NexoWorld world = this.getFeature(NexoWorld.class, NexoMinecraft.id(level.dimension()));
         assert world != null;
-        return new MinecraftWorldInstance(this, world, level);
+        return this.loadPlatformClass(MinecraftWorldInstance.class, this, world, level);
     }
 
     @Override

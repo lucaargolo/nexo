@@ -6,16 +6,24 @@ import org.jetbrains.annotations.NotNull;
 public final class StringData extends NexoData.StringData {
 
     @NotNull
+    private final String initial;
+    @NotNull
     private final Location location;
 
-    public StringData(@NotNull Location location) {
+    public StringData(@NotNull String initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public String initial() {
+        return this.initial;
     }
 
     @Override
     @NotNull
     public Location location() {
-        return location;
+        return this.location;
     }
 
 }

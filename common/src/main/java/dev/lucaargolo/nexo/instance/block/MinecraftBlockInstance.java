@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class MinecraftBlockInstance extends BlockInstance implements MinecraftInstance<BlockState> {
+public final class MinecraftBlockInstance extends BlockInstance implements MinecraftInstance<BlockState> {
 
     @NotNull
     private final NexoMinecraft nexo;
@@ -38,7 +38,7 @@ public class MinecraftBlockInstance extends BlockInstance implements MinecraftIn
 
     @Override
     @SuppressWarnings("unchecked")
-    public @Nullable <D> D getData(@NotNull NexoData<D> data) {
+    public <D> D getData(@NotNull NexoData<D> data) {
         if(data instanceof NexoData.Constrained<?> constrained) {
             Property<?> property = find(constrained);
             return (D) this.state.getValue(property);
@@ -47,10 +47,10 @@ public class MinecraftBlockInstance extends BlockInstance implements MinecraftIn
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("rawtypes")
     public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
         if(data instanceof NexoData.Constrained<?> constrained) {
-            Property property = find(constrained);
+            Property<?> property = find(constrained);
             this.state = this.state.setValue(property, (Comparable) d);
             return;
         }

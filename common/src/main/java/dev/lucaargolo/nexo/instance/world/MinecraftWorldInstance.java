@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.instance.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
 import dev.lucaargolo.nexo.api.instance.block.BlockInstance;
 import dev.lucaargolo.nexo.api.instance.world.WorldInstance;
@@ -15,12 +14,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public class MinecraftWorldInstance extends WorldInstance implements MinecraftInstance<Level> {
+public abstract class MinecraftWorldInstance extends WorldInstance implements MinecraftInstance<Level> {
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
-    private final Level level;
+    protected final Level level;
 
     public MinecraftWorldInstance(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
         super(feature);
@@ -41,16 +40,6 @@ public class MinecraftWorldInstance extends WorldInstance implements MinecraftIn
     @Override
     public @NotNull Side side() {
         return this.level.isClientSide ? Side.CLIENT : Side.SERVER;
-    }
-
-    @Override
-    public <D> D getData(@NotNull NexoData<D> data) {
-        return null;
-    }
-
-    @Override
-    public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
-
     }
 
     @Override

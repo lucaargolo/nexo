@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo;
 
+import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.util.LazyHolder;
 import net.minecraft.core.Holder;
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     protected static final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
+
     @Nullable
     protected static Thread capturedRegistryThread;
     @Nullable
@@ -37,6 +39,8 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     public abstract <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
+
+    public abstract <D> void registerDataAttachment(NexoData<D> data);
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 

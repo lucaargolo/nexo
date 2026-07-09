@@ -19,6 +19,8 @@ public abstract class NexoData<T> extends Feature<NexoData<T>> {
         return (Class<NexoData<T>>) (Class<?>) NexoData.class;
     }
 
+    public abstract T initial();
+
     @NotNull
     public abstract ByteBuffer write(@NotNull T value);
 
