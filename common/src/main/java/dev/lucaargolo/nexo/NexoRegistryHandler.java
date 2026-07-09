@@ -1,37 +1,30 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.feature.dimension.NexoDimension;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
-import dev.lucaargolo.nexo.api.feature.world.WorldInstance;
-import dev.lucaargolo.nexo.feature.MinecraftWorldInstance;
 import dev.lucaargolo.nexo.util.LazyHolder;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class NexoPlatformHelper<N extends NexoMinecraft> {
+public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     private final N nexo;
 
     @Nullable
-    protected Thread capturedRegistryThread;
+    protected static Thread capturedRegistryThread;
     @Nullable
-    protected RegistryAccess capturedRegistry;
+    protected static RegistryAccess capturedRegistry;
 
-    public NexoPlatformHelper(N nexo) {
+    public NexoRegistryHandler(N nexo) {
         this.nexo = nexo;
     }
 
@@ -47,18 +40,11 @@ public abstract class NexoPlatformHelper<N extends NexoMinecraft> {
 
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 
-    public abstract MinecraftServer getServer();
-
-    @NotNull
-    public WorldInstance getWorld(@NotNull Level level) {
-        return new MinecraftWorldInstance(nexo.getFeature(NexoDimension.class, NexoMinecraft.id(level.dimension())), level);
-    }
-
     public RegistryAccess getRegistry() {
-        if (this.capturedRegistry != null && Thread.currentThread() == this.capturedRegistryThread) {
-            return this.capturedRegistry;
+        if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
+            return capturedRegistry;
         }
-        MinecraftServer currentServer = this.getServer();
+        MinecraftServer currentServer = nexo.getServer();
         if (currentServer != null) {
             if(currentServer.isSameThread()) {
                 return currentServer.registryAccess();
@@ -69,18 +55,14 @@ public abstract class NexoPlatformHelper<N extends NexoMinecraft> {
         return RegistryAccess.EMPTY;
     }
 
-    public void captureRegistry(RegistryAccess registry) {
+    public static void captureRegistry(RegistryAccess registry) {
         if(registry == null) {
-            this.capturedRegistryThread = null;
-            this.capturedRegistry = null;
+            capturedRegistryThread = null;
+            capturedRegistry = null;
         }else{
-            this.capturedRegistryThread = Thread.currentThread();
-            this.capturedRegistry = registry;
+            capturedRegistryThread = Thread.currentThread();
+            capturedRegistry = registry;
         }
-    }
-
-    public RegistryFriendlyByteBuf befriend(ByteBuf buf) {
-        return new RegistryFriendlyByteBuf(buf, this.getRegistry());
     }
 
 }

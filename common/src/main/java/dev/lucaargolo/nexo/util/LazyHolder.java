@@ -9,14 +9,17 @@ import java.util.function.Supplier;
 
 public class LazyHolder<T> implements Supplier<Holder<T>> {
 
+    private final NexoMinecraft nexo;
     private final ResourceKey<T> key;
     private Holder<T> holder;
 
-    public LazyHolder(ResourceKey<T> key) {
+    public LazyHolder(NexoMinecraft nexo, ResourceKey<T> key) {
+        this.nexo = nexo;
         this.key = key;
     }
 
-    public LazyHolder(Holder<T> holder) {
+    public LazyHolder(NexoMinecraft nexo, Holder<T> holder) {
+        this.nexo = nexo;
         this.key = holder.unwrapKey().orElseThrow();
         this.holder = holder;
     }
@@ -28,7 +31,7 @@ public class LazyHolder<T> implements Supplier<Holder<T>> {
     @Override
     public Holder<T> get() {
         if (holder == null) {
-            RegistryAccess access = NexoMinecraft.getHelper().getRegistry();
+            RegistryAccess access = this.nexo.getRegistry();
             return access.registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElse(null);
         }
         return holder;

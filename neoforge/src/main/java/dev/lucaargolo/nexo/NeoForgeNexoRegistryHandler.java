@@ -3,45 +3,38 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.LazyHolder;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinecraft> {
+public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
 
+    private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
     private final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
 
-    @Nullable
-    private MinecraftServer currentServer;
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public FabricNexoPlatformHelper(FabricNexoMinecraft nexo) {
+    public NeoForgeNexoRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
-        ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);
-        ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
-        DynamicRegistrySetupCallback.EVENT.register(view -> {
-            dynamicFeatures.forEach((key, feature) -> {
-                view.getOptional(key.registryKey()).ifPresent(registry -> {
-                    Registry.registerForHolder((Registry) registry, key.location(), feature.get());
-                });
-            });
-        });
     }
 
+    @SuppressWarnings("unchecked")
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return Registry.registerForHolder(registry, id, feature.get());
+        DeferredRegister<T> deferredRegistry = (DeferredRegister<T>) deferredRegistries
+                .computeIfAbsent(registry, r -> new HashMap<>())
+                .computeIfAbsent(id.getNamespace(), n -> {
+                    DeferredRegister<?> r = DeferredRegister.create(registry, id.getNamespace());
+                    r.register(this.nexo().modBus());
+                    return r;
+                });
+        return deferredRegistry.register(id.getPath(), feature);
     }
 
     @Override
@@ -59,11 +52,7 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
-        return () -> FabricItemGroup.builder().title(title).build();
+        return () -> CreativeModeTab.builder().title(title).build();
     }
 
-    @Override
-    public MinecraftServer getServer() {
-        return this.currentServer;
-    }
 }

@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft> {
+public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<FabricNexoMinecraft> {
 
-    public FabricNexoModDiscovery(FabricNexoMinecraft nexo) {
+    public FabricNexoModDiscoveryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -27,7 +27,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft
 
         for (var container : FabricLoader.getInstance().getAllMods()) {
             for (Path path : container.getRootPaths()) {
-                NexoModDiscovery.addPath(path, jars, dirs);
+                NexoModDiscoveryHandler.addPath(path, jars, dirs);
             }
         }
 
@@ -35,7 +35,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft
         if (fabricCp != null) {
             try {
                 for (String entry : Files.readString(Path.of(fabricCp)).split(File.pathSeparator)) {
-                    NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
+                    NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
                 }
             } catch (IOException ignored) {}
         }
@@ -43,7 +43,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft
         String sysCp = System.getProperty("java.class.path");
         if (sysCp != null) {
             for (String entry : sysCp.split(File.pathSeparator)) {
-                NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
+                NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
             }
         }
 
@@ -51,7 +51,7 @@ public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft
         if (Files.isDirectory(modsDir)) {
             try (var stream = Files.list(modsDir)) {
                 stream.filter(p -> p.getFileName().toString().endsWith(".jar"))
-                      .forEach(p -> NexoModDiscovery.addPath(p, jars, dirs));
+                      .forEach(p -> NexoModDiscoveryHandler.addPath(p, jars, dirs));
             } catch (IOException ignored) {}
         }
 

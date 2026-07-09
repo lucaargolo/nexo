@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public abstract class NexoModDiscovery<N extends Nexo> {
+public abstract class NexoModDiscoveryHandler<N extends Nexo> {
 
     private static final String MOD_JSON = "nexo.mod.json";
 
@@ -31,7 +31,7 @@ public abstract class NexoModDiscovery<N extends Nexo> {
 
     private final N nexo;
 
-    public NexoModDiscovery(N nexo) {
+    public NexoModDiscoveryHandler(N nexo) {
         this.nexo = nexo;
     }
 
@@ -47,7 +47,7 @@ public abstract class NexoModDiscovery<N extends Nexo> {
     }
 
     protected final void init(Collection<Path> jarPaths, Collection<Path> dirPaths) {
-        ClassLoader parentCl = NexoModDiscovery.class.getClassLoader();
+        ClassLoader parentCl = NexoModDiscoveryHandler.class.getClassLoader();
 
         List<ModDescriptor> descriptors = new ArrayList<>();
         for (Path jarPath : jarPaths) {

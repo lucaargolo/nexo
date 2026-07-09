@@ -1,11 +1,14 @@
-package dev.lucaargolo.nexo.feature;
+package dev.lucaargolo.nexo.feature.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.item.NexoItem;
+import dev.lucaargolo.nexo.api.instance.world.WorldInstance;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeature;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,68 +31,77 @@ import java.util.List;
 public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBlock, Block> {
 
     @NotNull
+    private final NexoMinecraft nexo;
+    @NotNull
     private final Location location;
     @NotNull
     private final Holder<Block> holder;
     @Nullable
     private final NexoBlock delegate;
 
-    public MinecraftBlock(Holder<Block> holder, @Nullable NexoBlock delegate) {
+    protected MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder, @Nullable NexoBlock delegate) {
+        this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
         this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
-    public MinecraftBlock(Holder<Block> holder) {
-        this(holder, null);
+    public MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder) {
+        this(nexo, holder, null);
+    }
+
+    @Override
+    public @NotNull NexoMinecraft nexo() {
+        return this.nexo;
     }
 
     @Override
     public @NotNull Holder<Block> holder() {
-        return holder;
+        return this.holder;
     }
 
     @Override
     public @Nullable NexoBlock delegate() {
-        return delegate;
+        return this.delegate;
     }
 
     @Override
     public @NotNull Location location() {
-        return location;
+        return this.location;
     }
 
     @Override
     public @NotNull List<@NotNull Tag> tags() {
-        return holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
+        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     @Override
     public @Nullable Model model() {
         //TODO: This
-        return delegate != null ? delegate.model() : null;
+        return this.delegate != null ? this.delegate.model() : null;
     }
 
     @Override
     public @Nullable NexoItem item() {
-        if(delegate != null) {
-            return delegate.item();
+        if(this.delegate != null) {
+            return this.delegate.item();
         }else{
             Item item = this.holder().value().asItem();
             if(item != Items.AIR) {
                 ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-                return NexoMinecraft.getInstance().getFeature(NexoItem.class, NexoMinecraft.id(itemId));
+                return this.nexo.getFeature(NexoItem.class, NexoMinecraft.id(itemId));
             }else{
                 return null;
             }
         }
     }
 
-    public static MinecraftBlock register(ResourceLocation id, NexoBlock block) {
-        Holder<Block> holder = NexoMinecraft.getHelper().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
+    public static MinecraftBlock register(NexoRegistryHandler<?> helper, ResourceLocation id, NexoBlock block) {
+        Holder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
-                Interaction interaction = block.onInteract(NexoMinecraft.getHelper().getWorld(pLevel), new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
+                WorldInstance world = helper.nexo().world(pLevel);
+                Interaction interaction = block.onInteract(world, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;
                     case FAIL -> InteractionResult.FAIL;
@@ -97,7 +109,7 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
                 };
             }
         });
-        return new MinecraftBlock(holder, block);
+        return new MinecraftBlock(helper.nexo(), holder, block);
     }
 
 }

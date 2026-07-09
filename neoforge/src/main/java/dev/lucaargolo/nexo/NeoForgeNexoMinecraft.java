@@ -1,10 +1,12 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.util.Side;
+import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +41,12 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     @Override
     public @Nullable Mod getMod(@NotNull String id) {
-        return this.modDiscovery.getMod(id);
+        return this.discoveryHandler.getMod(id);
+    }
+
+    @Override
+    public MinecraftServer getServer() {
+        return ServerLifecycleHooks.getCurrentServer();
     }
 
 }

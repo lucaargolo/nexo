@@ -4,7 +4,7 @@ import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.provider.ModelProvider;
+import dev.lucaargolo.nexo.api.feature.ModelProvider;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.resources.ResourceLocation;

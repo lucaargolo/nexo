@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.mixin;
 
 import com.mojang.datafixers.util.Pair;
-import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.NexoRegistryHandler;
 import net.minecraft.core.LayeredRegistryAccess;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.RegistryLayer;
@@ -33,7 +33,7 @@ public class WorldLoaderMixin {
             LayeredRegistryAccess<RegistryLayer> layeredregistryaccess,
             LayeredRegistryAccess<RegistryLayer> layeredregistryaccess1,
             RegistryAccess.Frozen registryaccess$frozen) {
-        NexoMinecraft.getHelper().captureRegistry(registryaccess$frozen);
+        NexoRegistryHandler.captureRegistry(registryaccess$frozen);
     }
 
     @Inject(at = @At("RETURN"), method = "load")
@@ -44,7 +44,7 @@ public class WorldLoaderMixin {
             Executor pBackgroundExecutor,
             Executor pGameExecutor,
             CallbackInfoReturnable<CompletableFuture<R>> cir) {
-        NexoMinecraft.getHelper().captureRegistry(null);
+        NexoRegistryHandler.captureRegistry(null);
     }
 
 

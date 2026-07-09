@@ -1,14 +1,14 @@
-package dev.lucaargolo.nexo.api.feature.dimension;
+package dev.lucaargolo.nexo.api.feature.world;
 
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
-public class SimpleDimension extends NexoDimension {
+public class SimpleWorld extends NexoWorld {
 
     @NotNull
     private final Location location;
 
-    public SimpleDimension(@NotNull Location location) {
+    public SimpleWorld(@NotNull Location location) {
         this.location = location;
     }
 

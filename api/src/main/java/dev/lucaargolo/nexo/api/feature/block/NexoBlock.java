@@ -1,9 +1,9 @@
 package dev.lucaargolo.nexo.api.feature.block;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.provider.ItemProvider;
-import dev.lucaargolo.nexo.api.feature.provider.ModelProvider;
-import dev.lucaargolo.nexo.api.feature.world.WorldInstance;
+import dev.lucaargolo.nexo.api.feature.ItemProvider;
+import dev.lucaargolo.nexo.api.feature.ModelProvider;
+import dev.lucaargolo.nexo.api.instance.world.WorldInstance;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;

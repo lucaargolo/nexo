@@ -3,10 +3,10 @@ package dev.lucaargolo.test;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
-import dev.lucaargolo.nexo.api.feature.dimension.SimpleDimension;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategory;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
+import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 
@@ -40,7 +40,7 @@ public class NexoTestMod {
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
 
-        nexo.registerFeature(new SimpleDimension(
+        nexo.registerFeature(new SimpleWorld(
                 id("test")
         ));
 

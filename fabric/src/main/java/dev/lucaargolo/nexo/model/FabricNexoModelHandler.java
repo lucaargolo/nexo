@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo.model;
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.item.NexoItem;
-import dev.lucaargolo.nexo.feature.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
