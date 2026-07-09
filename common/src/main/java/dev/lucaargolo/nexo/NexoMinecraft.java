@@ -316,7 +316,6 @@ public abstract class NexoMinecraft implements Nexo {
         return loadPlatformClass(null, clazz, parameters);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
         String originalName = clazz.getName();
         Class<?>[] parameterTypes = new Class<?>[parameters.length];
@@ -331,12 +330,12 @@ public abstract class NexoMinecraft implements Nexo {
 
         if(this.getSide().isClient()) {
             try {
-                Class<? extends T> clientPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(clientClassName);
+                Class<? extends T> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
                 return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
             } catch (Exception ignored) {}
         }
         try {
-            Class<? extends T> commonPlatformClass = (Class<? extends T>) clazz.getClassLoader().loadClass(commonClassName);
+            Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
             return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
         } catch (Exception exception) {
             throw new RuntimeException(exception);

@@ -24,12 +24,11 @@ public abstract class Feature<T extends Feature<T>> {
         return getComponent(componentType) != null;
     }
 
-    @SuppressWarnings("unchecked")
     @Nullable
     public <C extends Component> C getComponent(@NotNull Class<C> componentType) {
         for (Component component : components()) {
             if (componentType.isInstance(component)) {
-                return (C) component;
+                return componentType.cast(component);
             }
         }
         return null;

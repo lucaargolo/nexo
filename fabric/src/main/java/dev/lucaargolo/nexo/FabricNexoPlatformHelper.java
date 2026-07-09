@@ -26,6 +26,7 @@ public class FabricNexoPlatformHelper extends NexoPlatformHelper<FabricNexoMinec
     @Nullable
     private MinecraftServer currentServer;
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public FabricNexoPlatformHelper(FabricNexoMinecraft nexo) {
         super(nexo);
         ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);

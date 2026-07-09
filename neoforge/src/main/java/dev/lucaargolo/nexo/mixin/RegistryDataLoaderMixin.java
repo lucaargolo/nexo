@@ -68,14 +68,10 @@ public class RegistryDataLoaderMixin {
         if (features.isEmpty()) return;
 
         for (RegistryDataLoader.Loader<?> loader : loaders) {
-            ResourceKey<? extends Registry<?>> loaderKey = loader.data().key();
-            features.forEach((featureKey, featureSupplier) -> {
-                if (featureKey.registryKey().equals(loaderKey)) {
-                    Registry.registerForHolder(
-                            (Registry) loader.registry(),
-                            (ResourceKey) featureKey,
-                            featureSupplier.get()
-                    );
+            ResourceKey<? extends Registry<?>> registryKey = loader.data().key();
+            features.forEach((key, feature) -> {
+                if (key.registryKey().equals(registryKey)) {
+                    Registry.registerForHolder((Registry) loader.registry(), key.location(), feature.get());
                 }
             });
         }

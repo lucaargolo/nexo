@@ -66,9 +66,8 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         if (delegate != null) {
             return delegate.write(data);
         }
-        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.buffer());
-        type.streamCodec().encode(buf, data);
+        componentType().streamCodec().encode(buf, data);
         return buf.nioBuffer();
     }
 
@@ -77,9 +76,8 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         if (delegate != null) {
             return delegate.read(buffer);
         }
-        DataComponentType<D> type = (DataComponentType<D>) holder.value();
         RegistryFriendlyByteBuf buf = NexoMinecraft.getHelper().befriend(Unpooled.wrappedBuffer(buffer));
-        return type.streamCodec().decode(buf);
+        return componentType().streamCodec().decode(buf);
     }
 
     @Override
@@ -87,8 +85,7 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         if (delegate != null) {
             return delegate.serialize(data);
         }
-        DataComponentType<D> type = (DataComponentType<D>) holder.value();
-        Codec<D> codec = type.codec();
+        Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(data).getOrThrow();
         } else {
@@ -104,8 +101,7 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         if (delegate != null) {
             return delegate.deserialize(element);
         }
-        DataComponentType<D> type = (DataComponentType<D>) holder.value();
-        Codec<D> codec = type.codec();
+        Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
         } else {
@@ -132,9 +128,13 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         return new MinecraftData<>(holder, data);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static MinecraftData of(Holder<DataComponentType<?>> holder) {
-        return new MinecraftData(holder);
+    @SuppressWarnings("unchecked")
+    private DataComponentType<D> componentType() {
+        return (DataComponentType<D>) holder.value();
+    }
+
+    public static MinecraftData<?> of(Holder<DataComponentType<?>> holder) {
+        return new MinecraftData<>(holder);
     }
 
 }
