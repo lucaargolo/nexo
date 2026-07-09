@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo;
 
-import com.google.common.collect.Maps;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
@@ -18,13 +17,19 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.*;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -54,7 +59,7 @@ public abstract class NexoMinecraft implements Nexo {
 
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Class<?>, Map<Location, Feature<?>>> FEATURE_REGISTRY = new ConcurrentHashMap<>();
+    private static final Map<Class<?>, Map<Location, MinecraftFeature<?, ?>>> FEATURE_REGISTRY = new ConcurrentHashMap<>();
 
     private final NexoPlatformHelper<?> helper;
 
@@ -183,7 +188,7 @@ public abstract class NexoMinecraft implements Nexo {
             case NexoData<?> data when NexoData.class.isAssignableFrom(type) -> {
                 MinecraftData<?> minecraftData = MinecraftData.register(id, data);
                 emit(new FeatureRegisteredEvent(location, minecraftData));
-                FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftData);
+                FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftData);
                 return type.cast(minecraftData);
             }
             case NexoBlock block when NexoBlock.class.isAssignableFrom(type) -> {
@@ -195,19 +200,19 @@ public abstract class NexoMinecraft implements Nexo {
             case NexoItem item when NexoItem.class.isAssignableFrom(type) -> {
                 MinecraftItem minecraftItem = MinecraftItem.register(id, item);
                 emit(new FeatureRegisteredEvent(location, minecraftItem));
-                FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftItem);
+                FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftItem);
                 return type.cast(minecraftItem);
             }
             case NexoItemCategory category when NexoItemCategory.class.isAssignableFrom(type) -> {
                 MinecraftItemCategory minecraftCategory = MinecraftItemCategory.register(id, category);
                 emit(new FeatureRegisteredEvent(location, minecraftCategory));
-                FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftCategory);
+                FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftCategory);
                 return type.cast(minecraftCategory);
             }
             case NexoDimension dimension when NexoDimension.class.isAssignableFrom(type) -> {
                 MinecraftDimension minecraftDimension = MinecraftDimension.register(id, dimension);
                 emit(new FeatureRegisteredEvent(location, minecraftDimension));
-                FEATURE_REGISTRY.computeIfAbsent(type, t -> Maps.newHashMap()).put(location, minecraftDimension);
+                FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftDimension);
                 return type.cast(minecraftDimension);
             }
             default -> throw new IllegalStateException(String.format("Cannot register %s as %s", feature.getClass(), feature.type()));
@@ -279,7 +284,32 @@ public abstract class NexoMinecraft implements Nexo {
         if (feature instanceof MinecraftItem mi) return (M) mi.holder().value();
         if (feature instanceof MinecraftData<?> md) return (M) md.holder().value();
         if (feature instanceof MinecraftItemCategory mic) return (M) mic.holder().value();
-        throw new IllegalArgumentException("Not a Minecraft feature: " + feature.getClass());
+        if (feature instanceof MinecraftDimension md) return (M) md.holder().value();
+        throw new IllegalArgumentException("Not a valid feature: " + feature.getClass());
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> MinecraftFeature<?, ?> getNexoFeature(Holder<T> holder) {
+        T feature = holder.value();
+        Location location = NexoMinecraft.id(holder.unwrapKey().orElseThrow());
+        return switch (feature) {
+            case Block ignored -> FEATURE_REGISTRY
+                    .computeIfAbsent(NexoBlock.class, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(location, l -> new MinecraftBlock((Holder<Block>) holder));
+            case Item ignored -> FEATURE_REGISTRY
+                    .computeIfAbsent(NexoItem.class, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(location, l -> new MinecraftItem((Holder<Item>) holder));
+            case DataComponentType<?> ignored -> FEATURE_REGISTRY
+                    .computeIfAbsent(NexoData.class, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(location, l -> new MinecraftData<>((Holder<DataComponentType<?>>) holder));
+            case CreativeModeTab ignored -> FEATURE_REGISTRY
+                    .computeIfAbsent(NexoItemCategory.class, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(location, l -> new MinecraftItemCategory((Holder<CreativeModeTab>) holder));
+            case LevelStem ignored -> FEATURE_REGISTRY
+                    .computeIfAbsent(NexoDimension.class, t -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(location, l -> new MinecraftDimension((Holder<LevelStem>) holder));
+            default -> throw new IllegalArgumentException("Not a valid feature: " + feature.getClass());
+        };
     }
 
     public <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {

@@ -35,6 +35,7 @@ public class SimpleBlock extends NexoBlock {
         return model;
     }
 
+    @Override
     @Nullable
     public BlockItem item() {
         return item;

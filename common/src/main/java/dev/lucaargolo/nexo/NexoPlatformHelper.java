@@ -1,7 +1,9 @@
 package dev.lucaargolo.nexo;
 
-import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.dimension.NexoDimension;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
+import dev.lucaargolo.nexo.api.feature.world.WorldInstance;
+import dev.lucaargolo.nexo.feature.MinecraftWorldInstance;
 import dev.lucaargolo.nexo.util.LazyHolder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Holder;
@@ -13,12 +15,14 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class NexoPlatformHelper<N extends Nexo> {
+public abstract class NexoPlatformHelper<N extends NexoMinecraft> {
 
     private final N nexo;
 
@@ -44,6 +48,11 @@ public abstract class NexoPlatformHelper<N extends Nexo> {
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 
     public abstract MinecraftServer getServer();
+
+    @NotNull
+    public WorldInstance getWorld(@NotNull Level level) {
+        return new MinecraftWorldInstance(nexo.getFeature(NexoDimension.class, NexoMinecraft.id(level.dimension())), level);
+    }
 
     public RegistryAccess getRegistry() {
         if (this.capturedRegistry != null && Thread.currentThread() == this.capturedRegistryThread) {

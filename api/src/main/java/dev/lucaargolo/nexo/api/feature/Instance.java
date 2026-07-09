@@ -6,11 +6,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Instance<T extends Feature<T>> {
+public class Instance<T extends Feature<T>> {
 
     @NotNull
     private final UUID uuid = UUID.randomUUID();
@@ -22,9 +21,14 @@ public final class Instance<T extends Feature<T>> {
     @NotNull
     private final Side side;
 
-    public Instance(@Nullable T feature, @NotNull Side side) {
+    protected Instance(@Nullable T feature, @NotNull Side side) {
         this.feature = feature;
         this.side = side;
+    }
+
+    @NotNull
+    public static <T extends Feature<T>> Instance<T> of(@Nullable T feature, @NotNull Side side) {
+        return new Instance<>(feature, side);
     }
 
     public @NotNull UUID id() {
@@ -47,18 +51,6 @@ public final class Instance<T extends Feature<T>> {
 
     public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
         dataMap.put(data, d);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
-        Instance<?> instance = (Instance<?>) o;
-        return Objects.equals(uuid, instance.uuid) && Objects.equals(dataMap, instance.dataMap) && Objects.equals(feature, instance.feature) && side == instance.side;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(uuid, dataMap, feature, side);
     }
 
 }
