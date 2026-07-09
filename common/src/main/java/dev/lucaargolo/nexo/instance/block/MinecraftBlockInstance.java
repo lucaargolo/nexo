@@ -37,10 +37,10 @@ public class MinecraftBlockInstance extends BlockInstance implements MinecraftIn
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     public @Nullable <D> D getData(@NotNull NexoData<D> data) {
         if(data instanceof NexoData.Constrained<?> constrained) {
-            Property property = find(constrained);
+            Property<?> property = find(constrained);
             return (D) this.state.getValue(property);
         }
         throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from BlockInstance");
@@ -58,24 +58,28 @@ public class MinecraftBlockInstance extends BlockInstance implements MinecraftIn
     }
 
     @NotNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     private <T extends Comparable<T>> Property<T> find(NexoData.Constrained<?> data) {
         for(Property<?> property : this.state.getProperties()) {
             if(!property.getName().equals(data.name())) continue;
             if(!property.getValueClass().equals(data.dataType())) continue;
             if(!same(property.getPossibleValues(), data.values())) continue;
-            boolean sameSerializer = true;
-            for(Comparable<?> o : property.getPossibleValues()) {
-                String s1 = ((Property) property).getName(o);
-                String s2 = ((NexoData.Constrained) data).serialize(o);
-                if(!Objects.equals(s1, s2)) {
-                    sameSerializer = false;
-                };
-            }
-            if(!sameSerializer) continue;
+            if(!match(property, data)) continue;
             return (Property<T>) property;
         }
         throw new IllegalArgumentException("Couldn't find non-constrained data " + data + " in BlockInstance");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Comparable<T>> boolean match(Property<?> property, NexoData.Constrained<?> data) {
+        Property<T> typedProperty = (Property<T>) property;
+        NexoData.Constrained<T> typedData = (NexoData.Constrained<T>) data;
+        for(T o : typedProperty.getPossibleValues()) {
+            if(!Objects.equals(typedProperty.getName(o), typedData.serialize(o))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean same(Collection<?> c1, Collection<?> c2) {

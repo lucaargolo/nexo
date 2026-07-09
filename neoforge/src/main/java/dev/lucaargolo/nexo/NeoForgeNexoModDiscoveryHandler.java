@@ -7,7 +7,6 @@ import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -49,38 +48,25 @@ public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Neo
         this.nexo().modBus().addListener(this::onLoadComplete);
     }
 
-    @SuppressWarnings("unchecked")
     private void onLoadComplete(FMLLoadCompleteEvent event) {
         try {
             ModList modList = ModList.get();
 
             // Replace immutable mods list with mutable copy
-            Field modsField = ModList.class.getDeclaredField("mods");
-            modsField.setAccessible(true);
-            List<Object> modsList = (List<Object>) modsField.get(modList);
-            modsList = new ArrayList<>(modsList);
-            modsField.set(modList, modsList);
+            List<Object> modsList = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "mods", modList));
+            ReflectionUtils.setField(ModList.class, "mods", modList, modsList);
 
             // Replace immutable indexedMods with mutable copy
-            Field indexedModsField = ModList.class.getDeclaredField("indexedMods");
-            indexedModsField.setAccessible(true);
-            Map<String, Object> indexedMods = (Map<String, Object>) indexedModsField.get(modList);
-            indexedMods = new HashMap<>(indexedMods);
-            indexedModsField.set(modList, indexedMods);
+            Map<String, Object> indexedMods = new HashMap<>(ReflectionUtils.<Map<String, Object>>getField(ModList.class, "indexedMods", modList));
+            ReflectionUtils.setField(ModList.class, "indexedMods", modList, indexedMods);
 
             // Replace immutable sortedContainers (what getSortedMods() returns — the mod list screen reads this)
-            Field sortedContainersField = ModList.class.getDeclaredField("sortedContainers");
-            sortedContainersField.setAccessible(true);
-            List<Object> sortedContainers = (List<Object>) sortedContainersField.get(modList);
-            sortedContainers = new ArrayList<>(sortedContainers);
-            sortedContainersField.set(modList, sortedContainers);
+            List<Object> sortedContainers = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "sortedContainers", modList));
+            ReflectionUtils.setField(ModList.class, "sortedContainers", modList, sortedContainers);
 
             // Also add to sortedList (getMods() for IModInfo access)
-            Field sortedField = ModList.class.getDeclaredField("sortedList");
-            sortedField.setAccessible(true);
-            List<Object> sortedList = (List<Object>) sortedField.get(modList);
-            sortedList = new ArrayList<>(sortedList);
-            sortedField.set(modList, sortedList);
+            List<Object> sortedList = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "sortedList", modList));
+            ReflectionUtils.setField(ModList.class, "sortedList", modList, sortedList);
 
             for (Nexo.Mod mod : this.mods.values()) {
                 NeoForgeNexoModContainer container = new NeoForgeNexoModContainer(mod);

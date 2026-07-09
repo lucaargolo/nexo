@@ -1,12 +1,12 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.util.ReflectionUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -59,18 +59,12 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         registerNexoMods();
     }
 
-    @SuppressWarnings("unchecked")
     private void registerNexoMods() {
         try {
             FabricLoaderImpl impl = (FabricLoaderImpl) FabricLoader.getInstance();
 
-            Field modsField = FabricLoaderImpl.class.getDeclaredField("mods");
-            modsField.setAccessible(true);
-            List<Object> mods = (List<Object>) modsField.get(impl);
-
-            Field modMapField = FabricLoaderImpl.class.getDeclaredField("modMap");
-            modMapField.setAccessible(true);
-            Map<String, Object> modMap = (Map<String, Object>) modMapField.get(impl);
+            List<Object> mods = ReflectionUtils.getField(FabricLoaderImpl.class, "mods", impl);
+            Map<String, Object> modMap = ReflectionUtils.getField(FabricLoaderImpl.class, "modMap", impl);
 
             for (Nexo.Mod mod : this.mods.values()) {
                 FabricNexoModContainer container = new FabricNexoModContainer(mod);
