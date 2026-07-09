@@ -72,12 +72,12 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
     }
 
     @Override
-    public @NotNull ByteBuffer write(@NotNull D data) {
+    public @NotNull ByteBuffer write(@NotNull D value) {
         if (delegate != null) {
-            return delegate.write(data);
+            return delegate.write(value);
         }
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), this.nexo.getRegistry());
-        componentType().streamCodec().encode(buf, data);
+        componentType().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
@@ -91,16 +91,16 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
     }
 
     @Override
-    public @NotNull JsonElement serialize(@NotNull D data) {
+    public @NotNull JsonElement serialize(@NotNull D value) {
         if (delegate != null) {
-            return delegate.serialize(data);
+            return delegate.serialize(value);
         }
         Codec<D> codec = componentType().codec();
         if (codec != null) {
-            return JsonOps.INSTANCE.withEncoder(codec).apply(data).getOrThrow();
+            return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
         } else {
             JsonObject json = new JsonObject();
-            ByteBuffer encoded = Base64.getEncoder().encode(this.write(data));
+            ByteBuffer encoded = Base64.getEncoder().encode(this.write(value));
             json.addProperty("data", StandardCharsets.UTF_8.decode(encoded).toString());
             return json;
         }

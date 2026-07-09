@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.NexoRegistryHandler;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.RegistryDataLoader;
@@ -64,7 +64,7 @@ public class RegistryDataLoaderMixin {
     ) {
         if (!IS_SERVER.get()) return;
 
-        Map<ResourceKey<?>, Supplier<?>> features = NexoMinecraft.getHelper().getDynamicFeatures();
+        Map<ResourceKey<?>, Supplier<?>> features = NexoRegistryHandler.getDynamicFeatures();
         if (features.isEmpty()) return;
 
         for (RegistryDataLoader.Loader<?> loader : loaders) {

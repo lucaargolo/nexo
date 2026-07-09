@@ -12,14 +12,12 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
-    private final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
 
     public NeoForgeNexoRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -41,12 +39,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
         dynamicFeatures.put(key, feature);
-        return new LazyHolder<>(key);
-    }
-
-    @Override
-    public Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
-        return dynamicFeatures;
+        return new LazyHolder<>(this.nexo(), key);
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {

@@ -12,13 +12,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
-
-    private final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
@@ -39,13 +35,8 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     @Override
     public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
-        dynamicFeatures.put(key, feature);
-        return new LazyHolder<>(key);
-    }
-
-    @Override
-    public Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
-        return dynamicFeatures;
+        this.dynamicFeatures.put(key, feature);
+        return new LazyHolder<>(this.nexo(), key);
     }
 
     public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {

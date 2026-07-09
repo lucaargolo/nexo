@@ -12,17 +12,19 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
-    private final N nexo;
-
+    protected static final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
     @Nullable
     protected static Thread capturedRegistryThread;
     @Nullable
     protected static RegistryAccess capturedRegistry;
+
+    private final N nexo;
 
     public NexoRegistryHandler(N nexo) {
         this.nexo = nexo;
@@ -36,15 +38,13 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public abstract <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
 
-    public abstract Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures();
-
     public abstract Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category);
 
     public RegistryAccess getRegistry() {
         if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
             return capturedRegistry;
         }
-        MinecraftServer currentServer = nexo.getServer();
+        MinecraftServer currentServer = this.nexo.getServer();
         if (currentServer != null) {
             if(currentServer.isSameThread()) {
                 return currentServer.registryAccess();
@@ -63,6 +63,10 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
             capturedRegistryThread = Thread.currentThread();
             capturedRegistry = registry;
         }
+    }
+
+    public static Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
+        return dynamicFeatures;
     }
 
 }
