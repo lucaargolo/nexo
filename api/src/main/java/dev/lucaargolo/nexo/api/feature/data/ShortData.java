@@ -9,10 +9,18 @@ import java.nio.ByteBuffer;
 public final class ShortData extends DataBase<Short> {
 
     @NotNull
+    private final Short initial;
+    @NotNull
     private final Location location;
 
-    public ShortData(@NotNull Location location) {
+    public ShortData(@NotNull Short initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public Short initial() {
+        return this.initial;
     }
 
     @Override

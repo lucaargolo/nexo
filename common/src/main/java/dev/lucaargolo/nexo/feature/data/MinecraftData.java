@@ -62,6 +62,14 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     }
 
     @Override
+    public D initial() {
+        if (this.delegate != null) {
+            return this.delegate.initial();
+        }
+        throw new UnsupportedOperationException("Cannot get initial value from MinecraftData without a delegate");
+    }
+
+    @Override
     public @NotNull Location location() {
         return this.location;
     }

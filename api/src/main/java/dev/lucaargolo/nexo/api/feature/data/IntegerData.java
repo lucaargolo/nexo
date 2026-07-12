@@ -9,10 +9,18 @@ import java.nio.ByteBuffer;
 public final class IntegerData extends DataBase<Integer> {
 
     @NotNull
+    private final Integer initial;
+    @NotNull
     private final Location location;
 
-    public IntegerData(@NotNull Location location) {
+    public IntegerData(@NotNull Integer initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public Integer initial() {
+        return this.initial;
     }
 
     @Override

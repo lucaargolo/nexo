@@ -9,10 +9,18 @@ import java.nio.ByteBuffer;
 public final class ByteData extends DataBase<Byte> {
 
     @NotNull
+    private final Byte initial;
+    @NotNull
     private final Location location;
 
-    public ByteData(@NotNull Location location) {
+    public ByteData(@NotNull Byte initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public Byte initial() {
+        return this.initial;
     }
 
     @Override

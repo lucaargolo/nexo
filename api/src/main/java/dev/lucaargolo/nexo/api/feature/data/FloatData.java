@@ -9,10 +9,18 @@ import java.nio.ByteBuffer;
 public final class FloatData extends DataBase<Float> {
 
     @NotNull
+    private final Float initial;
+    @NotNull
     private final Location location;
 
-    public FloatData(@NotNull Location location) {
+    public FloatData(@NotNull Float initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public Float initial() {
+        return this.initial;
     }
 
     @Override

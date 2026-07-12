@@ -9,10 +9,18 @@ import java.nio.ByteBuffer;
 public final class BooleanData extends DataBase<Boolean> {
 
     @NotNull
+    private final Boolean initial;
+    @NotNull
     private final Location location;
 
-    public BooleanData(@NotNull Location location) {
+    public BooleanData(@NotNull Boolean initial, @NotNull Location location) {
+        this.initial = initial;
         this.location = location;
+    }
+
+    @Override
+    public Boolean initial() {
+        return this.initial;
     }
 
     @Override
