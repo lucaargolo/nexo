@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo.api.feature.world;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
-public class SimpleWorld extends NexoWorld {
+public class SimpleWorld extends WorldBase {
 
     @NotNull
     private final Location location;

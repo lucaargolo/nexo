@@ -5,16 +5,16 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SimpleItem extends NexoItem {
+public class SimpleItem extends ItemBase {
 
     @NotNull
     private final Location location;
     @Nullable
     private final Model model;
     @Nullable
-    private final NexoItemCategory category;
+    private final ItemCategoryBase category;
 
-    public SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable NexoItemCategory category) {
+    public SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable ItemCategoryBase category) {
         this.location = location;
         this.model = model;
         this.category = category;
@@ -35,7 +35,7 @@ public class SimpleItem extends NexoItem {
     }
 
     @Override
-    public @Nullable NexoItemCategory category() {
+    public @Nullable ItemCategoryBase category() {
         return category;
     }
 

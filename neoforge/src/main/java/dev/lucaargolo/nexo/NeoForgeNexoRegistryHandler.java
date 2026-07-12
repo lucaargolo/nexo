@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.serialization.Codec;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
-import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.LazyHolder;
 import net.minecraft.core.Holder;
@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 
 public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
 
-    private static final Map<NexoData<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
+    private static final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
 
@@ -53,7 +53,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @Override
-    public <D> void registerDataAttachment(NexoData<D> data) {
+    public <D> void registerDataAttachment(DataBase<D> data) {
         Location location = data.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         AttachmentType.Builder<D> builder = AttachmentType.builder(data::initial);
@@ -70,7 +70,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         dataAttachmentMap.put(data, holder);
     }
 
-    public Supplier<CreativeModeTab> createCreativeTab(NexoItemCategory category) {
+    public Supplier<CreativeModeTab> createCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
         return () -> CreativeModeTab.builder().title(title).build();
@@ -78,7 +78,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
 
     @SuppressWarnings("unchecked")
     @NotNull
-    public static <D> AttachmentType<D> getDataAttachment(NexoData<D> data) {
+    public static <D> AttachmentType<D> getDataAttachment(DataBase<D> data) {
         return (AttachmentType<D>) dataAttachmentMap.get(data).value();
     }
 

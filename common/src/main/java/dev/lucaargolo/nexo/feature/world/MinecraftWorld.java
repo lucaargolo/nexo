@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.feature.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
 import dev.lucaargolo.nexo.util.LazyHolder;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 
-public class MinecraftWorld extends NexoWorld implements MinecraftFeature<NexoWorld, LevelStem> {
+public class MinecraftWorld extends WorldBase implements MinecraftFeature<WorldBase, LevelStem> {
 
     @NotNull
     private final NexoMinecraft nexo;
@@ -36,9 +36,9 @@ public class MinecraftWorld extends NexoWorld implements MinecraftFeature<NexoWo
     @NotNull
     private final LazyHolder<LevelStem> holder;
     @Nullable
-    private final NexoWorld delegate;
+    private final WorldBase delegate;
 
-    public MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull LazyHolder<LevelStem> holder, @Nullable NexoWorld delegate) {
+    public MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull LazyHolder<LevelStem> holder, @Nullable WorldBase delegate) {
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
@@ -60,7 +60,7 @@ public class MinecraftWorld extends NexoWorld implements MinecraftFeature<NexoWo
     }
 
     @Override
-    public @Nullable NexoWorld delegate() {
+    public @Nullable WorldBase delegate() {
         return this.delegate;
     }
 
@@ -74,7 +74,7 @@ public class MinecraftWorld extends NexoWorld implements MinecraftFeature<NexoWo
         return this.holder.get().tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
-    public static MinecraftWorld register(NexoRegistryHandler<?> helper, ResourceLocation id, NexoWorld dimension) {
+    public static MinecraftWorld register(NexoRegistryHandler<?> helper, ResourceLocation id, WorldBase dimension) {
         LazyHolder<DimensionType> type = helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
                 OptionalLong.empty(),
                 true,

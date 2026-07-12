@@ -2,9 +2,8 @@ package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
-import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
-import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
@@ -12,18 +11,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit {
 
-    public NeoForgeMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
+    public NeoForgeMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @NotNull Level level) {
         super(nexo, feature, level);
     }
 
     @Override
-    public @Nullable <D> D getData(@NotNull NexoData<D> data) {
+    public @Nullable <D> D getData(@NotNull DataBase<D> data) {
         AttachmentType<D> type = NeoForgeNexoRegistryHandler.getDataAttachment(data);
         return this.level.getExistingDataOrNull(type);
     }
 
     @Override
-    public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
+    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
         AttachmentType<D> type = NeoForgeNexoRegistryHandler.getDataAttachment(data);
         if (d == null) {
             this.level.removeData(type);

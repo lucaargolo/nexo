@@ -6,7 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SimpleBlock extends NexoBlock {
+public class SimpleBlock extends BlockBase {
 
     @NotNull
     private final Location location;

@@ -10,13 +10,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Optional;
 
-public abstract class NexoData<T> extends Feature<NexoData<T>> {
+public abstract class DataBase<T> extends Feature<DataBase<T>> {
 
     @Override
     @SuppressWarnings("unchecked")
     @NotNull
-    public final Class<NexoData<T>> type() {
-        return (Class<NexoData<T>>) (Class<?>) NexoData.class;
+    public final Class<DataBase<T>> type() {
+        return (Class<DataBase<T>>) (Class<?>) DataBase.class;
     }
 
     public abstract T initial();
@@ -41,7 +41,7 @@ public abstract class NexoData<T> extends Feature<NexoData<T>> {
         return true;
     }
 
-    public abstract static class StringData extends NexoData<String> {
+    public abstract static class StringData extends DataBase<String> {
 
         @Override
         public @NotNull ByteBuffer write(@NotNull String value) {

@@ -2,8 +2,8 @@ package dev.lucaargolo.nexo.feature.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
-import dev.lucaargolo.nexo.api.feature.item.NexoItem;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Interaction;
@@ -28,7 +28,7 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
-public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBlock, Block> {
+public class MinecraftBlock extends BlockBase implements MinecraftFeature<BlockBase, Block> {
 
     @NotNull
     private final NexoMinecraft nexo;
@@ -37,9 +37,9 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
     @NotNull
     private final Holder<Block> holder;
     @Nullable
-    private final NexoBlock delegate;
+    private final BlockBase delegate;
 
-    protected MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder, @Nullable NexoBlock delegate) {
+    protected MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder, @Nullable BlockBase delegate) {
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
@@ -61,7 +61,7 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
     }
 
     @Override
-    public @Nullable NexoBlock delegate() {
+    public @Nullable BlockBase delegate() {
         return this.delegate;
     }
 
@@ -82,21 +82,21 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
     }
 
     @Override
-    public @Nullable NexoItem item() {
+    public @Nullable ItemBase item() {
         if(this.delegate != null) {
             return this.delegate.item();
         }else{
             Item item = this.holder().value().asItem();
             if(item != Items.AIR) {
                 ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-                return this.nexo.getFeature(NexoItem.class, NexoMinecraft.id(itemId));
+                return this.nexo.getFeature(ItemBase.class, NexoMinecraft.id(itemId));
             }else{
                 return null;
             }
         }
     }
 
-    public static MinecraftBlock register(NexoRegistryHandler<?> helper, ResourceLocation id, NexoBlock block) {
+    public static MinecraftBlock register(NexoRegistryHandler<?> helper, ResourceLocation id, BlockBase block) {
         Holder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {

@@ -6,7 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
 import io.netty.buffer.Unpooled;
@@ -24,7 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<NexoData<D>, DataComponentType<?>> {
+public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<DataBase<D>, DataComponentType<?>> {
 
     @NotNull
     private final NexoMinecraft nexo;
@@ -33,9 +33,9 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
     @NotNull
     private final Holder<DataComponentType<?>> holder;
     @Nullable
-    private final NexoData<D> delegate;
+    private final DataBase<D> delegate;
 
-    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<DataComponentType<?>> holder, @Nullable NexoData<D> delegate) {
+    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<DataComponentType<?>> holder, @Nullable DataBase<D> delegate) {
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
@@ -57,7 +57,7 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
     }
 
     @Override
-    public @Nullable NexoData<D> delegate() {
+    public @Nullable DataBase<D> delegate() {
         return this.delegate;
     }
 
@@ -122,7 +122,7 @@ public class MinecraftData<D> extends NexoData<D> implements MinecraftFeature<Ne
         }
     }
 
-    public static <T> MinecraftData<T> register(NexoRegistryHandler<?> helper, ResourceLocation id, NexoData<T> data) {
+    public static <T> MinecraftData<T> register(NexoRegistryHandler<?> helper, ResourceLocation id, DataBase<T> data) {
         Holder<DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {

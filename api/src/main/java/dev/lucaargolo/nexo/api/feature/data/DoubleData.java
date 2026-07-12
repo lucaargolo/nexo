@@ -6,7 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
-public final class DoubleData extends NexoData<Double> {
+public final class DoubleData extends DataBase<Double> {
 
     @NotNull
     private final Location location;

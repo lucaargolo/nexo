@@ -6,7 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
-public final class FloatData extends NexoData<Float> {
+public final class FloatData extends DataBase<Float> {
 
     @NotNull
     private final Location location;

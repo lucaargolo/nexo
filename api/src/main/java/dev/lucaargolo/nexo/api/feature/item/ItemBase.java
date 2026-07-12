@@ -6,22 +6,22 @@ import dev.lucaargolo.nexo.api.feature.ModelProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class NexoItem extends Feature<NexoItem> implements ModelProvider, ItemProvider {
+public abstract class ItemBase extends Feature<ItemBase> implements ModelProvider, ItemProvider {
 
     @Override
     @NotNull
-    public final Class<NexoItem> type() {
-        return NexoItem.class;
+    public final Class<ItemBase> type() {
+        return ItemBase.class;
     }
 
     @Override
     @NotNull
-    public NexoItem item() {
+    public ItemBase item() {
         return this;
     }
 
     @Nullable
-    public NexoItemCategory category() {
+    public ItemCategoryBase category() {
         return null;
     }
 

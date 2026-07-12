@@ -6,7 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
-public final class BooleanData extends NexoData<Boolean> {
+public final class BooleanData extends DataBase<Boolean> {
 
     @NotNull
     private final Location location;

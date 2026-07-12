@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -21,7 +21,7 @@ public abstract class MinecraftWorldUnit extends WorldUnit implements MinecraftU
     @NotNull
     protected final Level level;
 
-    public MinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
+    public MinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @NotNull Level level) {
         super(feature);
         this.nexo = nexo;
         this.level = level;

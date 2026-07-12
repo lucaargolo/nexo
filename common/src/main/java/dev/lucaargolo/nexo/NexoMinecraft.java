@@ -6,11 +6,11 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
-import dev.lucaargolo.nexo.api.feature.item.NexoItem;
-import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
-import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -162,15 +162,15 @@ public abstract class NexoMinecraft implements Nexo {
             .computeIfAbsent(location, i -> {
                 RegistryAccess access = this.registryHandler.getRegistry();
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-                if(NexoData.class.isAssignableFrom(type)) {
+                if(DataBase.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(h -> new MinecraftData<>(this, h)).orElse(null);
-                }else if(NexoBlock.class.isAssignableFrom(type)) {
+                }else if(BlockBase.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.BLOCK.getHolder(id).map(h -> new MinecraftBlock(this, h)).orElse(null);
-                }else if(NexoItem.class.isAssignableFrom(type)) {
+                }else if(ItemBase.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.ITEM.getHolder(id).map(h -> new MinecraftItem(this, h)).orElse(null);
-                }else if(NexoItemCategory.class.isAssignableFrom(type)) {
+                }else if(ItemCategoryBase.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(id).map(h -> new MinecraftItemCategory(this, h)).orElse(null);
-                }else if(NexoWorld.class.isAssignableFrom(type)) {
+                }else if(WorldBase.class.isAssignableFrom(type)) {
                     return access.registry(Registries.LEVEL_STEM).flatMap(r -> r.getHolder(id)).map(h -> new MinecraftWorld(this, h)).orElse(null);
                 }else{
                     return null;
@@ -185,31 +185,31 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         switch (feature) {
-            case NexoData<?> data when NexoData.class.isAssignableFrom(type) -> {
+            case DataBase<?> data when DataBase.class.isAssignableFrom(type) -> {
                 MinecraftData<?> minecraftData = MinecraftData.register(this.registryHandler, id, data);
                 emit(new FeatureRegisteredEvent(location, minecraftData));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftData);
                 return type.cast(minecraftData);
             }
-            case NexoBlock block when NexoBlock.class.isAssignableFrom(type) -> {
+            case BlockBase block when BlockBase.class.isAssignableFrom(type) -> {
                 MinecraftBlock minecraftBlock = MinecraftBlock.register(this.registryHandler, id, block);
                 emit(new FeatureRegisteredEvent(location, minecraftBlock));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftBlock);
                 return type.cast(minecraftBlock);
             }
-            case NexoItem item when NexoItem.class.isAssignableFrom(type) -> {
+            case ItemBase item when ItemBase.class.isAssignableFrom(type) -> {
                 MinecraftItem minecraftItem = MinecraftItem.register(this.registryHandler, id, item);
                 emit(new FeatureRegisteredEvent(location, minecraftItem));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftItem);
                 return type.cast(minecraftItem);
             }
-            case NexoItemCategory category when NexoItemCategory.class.isAssignableFrom(type) -> {
+            case ItemCategoryBase category when ItemCategoryBase.class.isAssignableFrom(type) -> {
                 MinecraftItemCategory minecraftCategory = MinecraftItemCategory.register(this.registryHandler, id, category);
                 emit(new FeatureRegisteredEvent(location, minecraftCategory));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftCategory);
                 return type.cast(minecraftCategory);
             }
-            case NexoWorld dimension when NexoWorld.class.isAssignableFrom(type) -> {
+            case WorldBase dimension when WorldBase.class.isAssignableFrom(type) -> {
                 MinecraftWorld minecraftDimension = MinecraftWorld.register(this.registryHandler, id, dimension);
                 emit(new FeatureRegisteredEvent(location, minecraftDimension));
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftDimension);
@@ -221,14 +221,14 @@ public abstract class NexoMinecraft implements Nexo {
 
     @NotNull
     public BlockUnit block(@NotNull BlockState state) {
-        NexoBlock block = this.getFeature(NexoBlock.class, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
+        BlockBase block = this.getFeature(BlockBase.class, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
         return new MinecraftBlockUnit(this, block, state);
     }
 
     @NotNull
     public WorldUnit world(@NotNull Level level) {
-        NexoWorld world = this.getFeature(NexoWorld.class, NexoMinecraft.id(level.dimension()));
+        WorldBase world = this.getFeature(WorldBase.class, NexoMinecraft.id(level.dimension()));
         assert world != null;
         return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);
     }
@@ -330,14 +330,14 @@ public abstract class NexoMinecraft implements Nexo {
         return id(key.location());
     }
 
-    public static <D> Codec<D> createCodec(NexoData<D> data) {
+    public static <D> Codec<D> createCodec(DataBase<D> data) {
         return Codec.STRING.xmap(
                 str -> data.deserialize(JsonParser.parseString(str)),
                 obj -> data.serialize(obj).toString()
         );
     }
 
-    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(NexoData<D> data) {
+    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(DataBase<D> data) {
         return new StreamCodec<>() {
             @Override
             public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull D value) {

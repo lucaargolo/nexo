@@ -8,12 +8,12 @@ import dev.lucaargolo.nexo.api.util.Interaction;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
 
-public abstract class NexoBlock extends Feature<NexoBlock> implements ModelProvider, ItemProvider {
+public abstract class BlockBase extends Feature<BlockBase> implements ModelProvider, ItemProvider {
 
     @Override
     @NotNull
-    public final Class<NexoBlock> type() {
-        return NexoBlock.class;
+    public final Class<BlockBase> type() {
+        return BlockBase.class;
     }
 
     @NotNull

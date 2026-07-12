@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
 import net.minecraft.core.Holder;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class MinecraftItemCategory extends NexoItemCategory implements MinecraftFeature<NexoItemCategory, CreativeModeTab> {
+public class MinecraftItemCategory extends ItemCategoryBase implements MinecraftFeature<ItemCategoryBase, CreativeModeTab> {
 
     @NotNull
     private final NexoMinecraft nexo;
@@ -23,9 +23,9 @@ public class MinecraftItemCategory extends NexoItemCategory implements Minecraft
     @NotNull
     private final Holder<CreativeModeTab> holder;
     @Nullable
-    private final NexoItemCategory delegate;
+    private final ItemCategoryBase delegate;
 
-    public MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder, @Nullable NexoItemCategory delegate) {
+    public MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder, @Nullable ItemCategoryBase delegate) {
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
@@ -47,7 +47,7 @@ public class MinecraftItemCategory extends NexoItemCategory implements Minecraft
     }
 
     @Override
-    public @Nullable NexoItemCategory delegate() {
+    public @Nullable ItemCategoryBase delegate() {
         return this.delegate;
     }
 
@@ -61,7 +61,7 @@ public class MinecraftItemCategory extends NexoItemCategory implements Minecraft
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
-    public static MinecraftItemCategory register(NexoRegistryHandler<?> helper, ResourceLocation id, NexoItemCategory category) {
+    public static MinecraftItemCategory register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemCategoryBase category) {
         Holder<CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, helper.createCreativeTab(category));
         return new MinecraftItemCategory(helper.nexo(), holder, category);
     }

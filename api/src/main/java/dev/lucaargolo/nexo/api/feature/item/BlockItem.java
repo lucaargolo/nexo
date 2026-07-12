@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.api.feature.item;
 
 import dev.lucaargolo.nexo.api.component.BlockItemComponent;
 import dev.lucaargolo.nexo.api.component.Component;
-import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -10,22 +10,22 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class BlockItem extends NexoItem {
+public class BlockItem extends ItemBase {
 
     @NotNull
     private final Location location;
     @Nullable
     private final Model model;
     @Nullable
-    private final NexoItemCategory category;
+    private final ItemCategoryBase category;
     @NotNull
-    private final NexoBlock block;
+    private final BlockBase block;
 
     public BlockItem(
             @NotNull Location location,
             @Nullable Model model,
-            @Nullable NexoItemCategory category,
-            @NotNull NexoBlock block
+            @Nullable ItemCategoryBase category,
+            @NotNull BlockBase block
     ) {
         this.location = location;
         this.model = model;
@@ -44,7 +44,7 @@ public class BlockItem extends NexoItem {
     }
 
     @Override
-    public @Nullable NexoItemCategory category() {
+    public @Nullable ItemCategoryBase category() {
         return category;
     }
 

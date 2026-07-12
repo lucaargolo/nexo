@@ -6,7 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 
-public final class ShortData extends NexoData<Short> {
+public final class ShortData extends DataBase<Short> {
 
     @NotNull
     private final Location location;

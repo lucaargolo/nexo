@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.unit.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
-import dev.lucaargolo.nexo.api.feature.data.NexoData;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,7 +21,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
     @NotNull
     private BlockState state;
 
-    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull NexoBlock feature, @NotNull BlockState state) {
+    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @NotNull BlockState state) {
         super(feature);
         this.nexo = nexo;
         this.state = state;
@@ -38,8 +38,8 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
 
     @Override
     @SuppressWarnings("unchecked")
-    public <D> D getData(@NotNull NexoData<D> data) {
-        if(data instanceof NexoData.Constrained<?> constrained) {
+    public <D> D getData(@NotNull DataBase<D> data) {
+        if(data instanceof DataBase.Constrained<?> constrained) {
             Property<?> property = find(constrained);
             return (D) this.state.getValue(property);
         }
@@ -48,8 +48,8 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
 
     @Override
     @SuppressWarnings("rawtypes")
-    public <D> void setData(@NotNull NexoData<D> data, @Nullable D d) {
-        if(data instanceof NexoData.Constrained<?> constrained) {
+    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
+        if(data instanceof DataBase.Constrained<?> constrained) {
             Property<?> property = find(constrained);
             this.state = this.state.setValue(property, (Comparable) d);
             return;
@@ -59,7 +59,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
 
     @NotNull
     @SuppressWarnings("unchecked")
-    private <T extends Comparable<T>> Property<T> find(NexoData.Constrained<?> data) {
+    private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<?> data) {
         for(Property<?> property : this.state.getProperties()) {
             if(!property.getName().equals(data.name())) continue;
             if(!property.getValueClass().equals(data.dataType())) continue;
@@ -71,9 +71,9 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends Comparable<T>> boolean match(Property<?> property, NexoData.Constrained<?> data) {
+    private static <T extends Comparable<T>> boolean match(Property<?> property, DataBase.Constrained<?> data) {
         Property<T> typedProperty = (Property<T>) property;
-        NexoData.Constrained<T> typedData = (NexoData.Constrained<T>) data;
+        DataBase.Constrained<T> typedData = (DataBase.Constrained<T>) data;
         for(T o : typedProperty.getPossibleValues()) {
             if(!Objects.equals(typedProperty.getName(o), typedData.serialize(o))) {
                 return false;
