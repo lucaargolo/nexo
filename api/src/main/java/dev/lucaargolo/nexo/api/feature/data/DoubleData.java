@@ -10,23 +10,16 @@ public final class DoubleData extends DataBase<Double> {
 
     @NotNull
     private final Double initial;
-    @NotNull
-    private final Location location;
 
-    public DoubleData(@NotNull Double initial, @NotNull Location location) {
+    public DoubleData(@NotNull Location location, @NotNull Double initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Double initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

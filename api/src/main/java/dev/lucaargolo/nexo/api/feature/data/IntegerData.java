@@ -10,23 +10,16 @@ public final class IntegerData extends DataBase<Integer> {
 
     @NotNull
     private final Integer initial;
-    @NotNull
-    private final Location location;
 
-    public IntegerData(@NotNull Integer initial, @NotNull Location location) {
+    public IntegerData(@NotNull Location location, @NotNull Integer initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Integer initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

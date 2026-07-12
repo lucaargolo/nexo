@@ -8,26 +8,19 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimpleBlock extends BlockBase {
 
-    @NotNull
-    private final Location location;
     @Nullable
     private final Model model;
     @Nullable
     private final BlockItem item;
 
     public SimpleBlock(@NotNull Location location, @Nullable Model model, @Nullable BlockItem item) {
-        this.location = location;
+        super(location);
         this.model = model;
         this.item = item;
     }
 
     public SimpleBlock(@NotNull Location location, @Nullable Model model) {
         this(location, model, null);
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return location;
     }
 
     @Override

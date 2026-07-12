@@ -10,23 +10,16 @@ public final class CharacterData extends DataBase<Character> {
 
     @NotNull
     private final Character initial;
-    @NotNull
-    private final Location location;
 
-    public CharacterData(@NotNull Character initial, @NotNull Location location) {
+    public CharacterData(@NotNull Location location, @NotNull Character initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Character initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

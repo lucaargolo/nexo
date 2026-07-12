@@ -7,26 +7,19 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimpleItem extends ItemBase {
 
-    @NotNull
-    private final Location location;
     @Nullable
     private final Model model;
     @Nullable
     private final ItemCategoryBase category;
 
     public SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable ItemCategoryBase category) {
-        this.location = location;
+        super(location);
         this.model = model;
         this.category = category;
     }
 
     public SimpleItem(@NotNull Location location, @Nullable Model model) {
         this(location, model, null);
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return location;
     }
 
     @Override

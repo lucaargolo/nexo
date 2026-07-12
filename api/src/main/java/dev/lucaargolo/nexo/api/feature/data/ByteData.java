@@ -10,23 +10,16 @@ public final class ByteData extends DataBase<Byte> {
 
     @NotNull
     private final Byte initial;
-    @NotNull
-    private final Location location;
 
-    public ByteData(@NotNull Byte initial, @NotNull Location location) {
+    public ByteData(@NotNull Location location, @NotNull Byte initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Byte initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

@@ -5,16 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class ItemCategory extends ItemCategoryBase {
 
-    @NotNull
-    private final Location location;
-
     public ItemCategory(@NotNull Location location) {
-        this.location = location;
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return location;
+        super(location);
     }
 
 }

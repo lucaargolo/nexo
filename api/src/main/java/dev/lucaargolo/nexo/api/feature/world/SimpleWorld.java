@@ -5,16 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleWorld extends WorldBase {
 
-    @NotNull
-    private final Location location;
-
     public SimpleWorld(@NotNull Location location) {
-        this.location = location;
+        super(location);
     }
 
-    @Override
-    public @NotNull Location location() {
-        return location;
-    }
 
 }

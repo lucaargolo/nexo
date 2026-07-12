@@ -10,23 +10,16 @@ public final class LongData extends DataBase<Long> {
 
     @NotNull
     private final Long initial;
-    @NotNull
-    private final Location location;
 
-    public LongData(@NotNull Long initial, @NotNull Location location) {
+    public LongData(@NotNull Location location, @NotNull Long initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Long initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

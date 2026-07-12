@@ -10,23 +10,16 @@ public final class FloatData extends DataBase<Float> {
 
     @NotNull
     private final Float initial;
-    @NotNull
-    private final Location location;
 
-    public FloatData(@NotNull Float initial, @NotNull Location location) {
+    public FloatData(@NotNull Location location, @NotNull Float initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Float initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

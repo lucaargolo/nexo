@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api.feature.data;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -12,13 +13,11 @@ import java.util.Optional;
 
 public abstract class DataBase<T> extends Feature<DataBase<T>> {
 
-    @Override
-    @SuppressWarnings("unchecked")
-    @NotNull
-    public final Class<DataBase<T>> type() {
-        return (Class<DataBase<T>>) (Class<?>) DataBase.class;
+    public DataBase(@NotNull Location location) {
+        super(location);
     }
 
+    @NotNull
     public abstract T initial();
 
     @NotNull
@@ -42,6 +41,10 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
     }
 
     public abstract static class StringData extends DataBase<String> {
+
+        public StringData(@NotNull Location location) {
+            super(location);
+        }
 
         @Override
         public @NotNull ByteBuffer write(@NotNull String value) {
@@ -74,6 +77,10 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
     }
 
     public abstract static class Constrained<D extends Comparable<D>> extends StringData {
+
+        public Constrained(@NotNull Location location) {
+            super(location);
+        }
 
         public abstract Class<D> dataType();
 

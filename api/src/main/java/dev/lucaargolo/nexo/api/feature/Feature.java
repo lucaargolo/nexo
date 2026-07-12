@@ -1,6 +1,11 @@
 package dev.lucaargolo.nexo.api.feature;
 
 import dev.lucaargolo.nexo.api.component.Component;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,10 +15,16 @@ import java.util.List;
 public abstract class Feature<T extends Feature<T>> {
 
     @NotNull
-    public abstract Class<? extends T> type();
+    private final Location location;
+
+    public Feature(@NotNull Location location) {
+        this.location = location;
+    }
 
     @NotNull
-    public abstract Location location();
+    public final Location location() {
+        return location;
+    }
 
     @NotNull
     public List<@NotNull Component> components() {

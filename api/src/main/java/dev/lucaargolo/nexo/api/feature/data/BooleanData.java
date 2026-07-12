@@ -10,23 +10,16 @@ public final class BooleanData extends DataBase<Boolean> {
 
     @NotNull
     private final Boolean initial;
-    @NotNull
-    private final Location location;
 
-    public BooleanData(@NotNull Boolean initial, @NotNull Location location) {
+    public BooleanData(@NotNull Location location, @NotNull Boolean initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public Boolean initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return location;
     }
 
     @Override

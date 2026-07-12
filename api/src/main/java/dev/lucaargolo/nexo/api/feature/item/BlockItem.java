@@ -12,8 +12,6 @@ import java.util.List;
 
 public class BlockItem extends ItemBase {
 
-    @NotNull
-    private final Location location;
     @Nullable
     private final Model model;
     @Nullable
@@ -27,15 +25,10 @@ public class BlockItem extends ItemBase {
             @Nullable ItemCategoryBase category,
             @NotNull BlockBase block
     ) {
-        this.location = location;
+        super(location);
         this.model = model;
         this.category = category;
         this.block = block;
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return location;
     }
 
     @Override

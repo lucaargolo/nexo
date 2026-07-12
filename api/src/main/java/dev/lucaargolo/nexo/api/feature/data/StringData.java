@@ -7,23 +7,16 @@ public final class StringData extends DataBase.StringData {
 
     @NotNull
     private final String initial;
-    @NotNull
-    private final Location location;
 
-    public StringData(@NotNull String initial, @NotNull Location location) {
+    public StringData(@NotNull Location location, @NotNull String initial) {
+        super(location);
         this.initial = initial;
-        this.location = location;
     }
 
     @Override
+    @NotNull
     public String initial() {
         return this.initial;
-    }
-
-    @Override
-    @NotNull
-    public Location location() {
-        return this.location;
     }
 
 }

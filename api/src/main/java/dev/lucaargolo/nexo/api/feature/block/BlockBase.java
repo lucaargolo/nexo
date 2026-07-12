@@ -5,15 +5,14 @@ import dev.lucaargolo.nexo.api.feature.ItemProvider;
 import dev.lucaargolo.nexo.api.feature.ModelProvider;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
 
 public abstract class BlockBase extends Feature<BlockBase> implements ModelProvider, ItemProvider {
 
-    @Override
-    @NotNull
-    public final Class<BlockBase> type() {
-        return BlockBase.class;
+    public BlockBase(@NotNull Location location) {
+        super(location);
     }
 
     @NotNull
