@@ -43,7 +43,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
             Property<?> property = find(constrained);
             return (D) this.state.getValue(property);
         }
-        throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from BlockInstance");
+        throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from MinecraftBlockUnit");
     }
 
     @Override
@@ -54,7 +54,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
             this.state = this.state.setValue(property, (Comparable) d);
             return;
         }
-        throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to BlockInstance");
+        throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to MinecraftBlockUnit");
     }
 
     @NotNull
@@ -67,7 +67,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
             if(!match(property, data)) continue;
             return (Property<T>) property;
         }
-        throw new IllegalArgumentException("Couldn't find non-constrained data " + data + " in BlockInstance");
+        throw new IllegalArgumentException("Couldn't find constrained data " + data + " in MinecraftBlockUnit");
     }
 
     @SuppressWarnings("unchecked")

@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.util;
 
+import dev.lucaargolo.nexo.api.NexoException;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -15,7 +16,7 @@ public final class ReflectionUtils {
             field.setAccessible(true);
             return (T) field.get(instance);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to read field " + clazz.getName() + "." + name, e);
+            throw new NexoException("Failed to read field " + clazz.getName() + "." + name, e);
         }
     }
 
@@ -25,7 +26,7 @@ public final class ReflectionUtils {
             field.setAccessible(true);
             field.set(instance, value);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to set field " + clazz.getName() + "." + name, e);
+            throw new NexoException("Failed to set field " + clazz.getName() + "." + name, e);
         }
     }
 

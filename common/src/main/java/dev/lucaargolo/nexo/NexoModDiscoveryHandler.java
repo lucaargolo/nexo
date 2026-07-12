@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoException;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -133,7 +134,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
 
             return new ModDescriptor(id, name, description, version, authors, entrypoint, sourcePath);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse Nexo mod descriptor", e);
+            throw new NexoException("Failed to parse Nexo mod descriptor", e);
         }
     }
 
@@ -149,7 +150,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
                 return Class.forName(descriptor.entrypoint, false, parentCl);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to find Nexo mod entrypoint", e);
+            throw new NexoException("Failed to find Nexo mod entrypoint", e);
         }
     }
 
@@ -165,7 +166,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
                 ctor.newInstance();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to instantiate Nexo mod", e);
+            throw new NexoException("Failed to instantiate Nexo mod", e);
         }
     }
 

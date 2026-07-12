@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
@@ -85,7 +86,9 @@ public class FabricNexoModContainer implements ModContainer {
                 try {
                     return Version.parse("0.0.0");
                 } catch (VersionParsingException ex) {
-                    throw new RuntimeException(ex);
+                    NexoException nex = new NexoException("Failed to parse mod version '" + mod.version() + "', fallback '0.0.0' also failed", ex);
+                    nex.addSuppressed(e);
+                    throw nex;
                 }
             }
         }

@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoException;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
@@ -318,7 +319,7 @@ public abstract class NexoMinecraft implements Nexo {
             Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
             return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
         } catch (Exception exception) {
-            throw new RuntimeException(exception);
+            throw new NexoException("Failed to load platform class for " + clazz.getName(), exception);
         }
     }
 
