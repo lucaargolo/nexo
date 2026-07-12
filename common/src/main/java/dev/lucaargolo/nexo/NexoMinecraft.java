@@ -11,8 +11,8 @@ import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import dev.lucaargolo.nexo.api.feature.item.NexoItem;
 import dev.lucaargolo.nexo.api.feature.item.NexoItemCategory;
 import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
-import dev.lucaargolo.nexo.api.instance.block.BlockInstance;
-import dev.lucaargolo.nexo.api.instance.world.WorldInstance;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -22,8 +22,8 @@ import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
-import dev.lucaargolo.nexo.instance.block.MinecraftBlockInstance;
-import dev.lucaargolo.nexo.instance.world.MinecraftWorldInstance;
+import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
+import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
@@ -220,17 +220,17 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @NotNull
-    public BlockInstance block(@NotNull BlockState state) {
+    public BlockUnit block(@NotNull BlockState state) {
         NexoBlock block = this.getFeature(NexoBlock.class, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
-        return new MinecraftBlockInstance(this, block, state);
+        return new MinecraftBlockUnit(this, block, state);
     }
 
     @NotNull
-    public WorldInstance world(@NotNull Level level) {
+    public WorldUnit world(@NotNull Level level) {
         NexoWorld world = this.getFeature(NexoWorld.class, NexoMinecraft.id(level.dimension()));
         assert world != null;
-        return this.loadPlatformClass(MinecraftWorldInstance.class, this, world, level);
+        return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);
     }
 
     @Override

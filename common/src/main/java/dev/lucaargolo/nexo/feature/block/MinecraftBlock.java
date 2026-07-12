@@ -4,7 +4,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.item.NexoItem;
-import dev.lucaargolo.nexo.api.instance.world.WorldInstance;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -100,7 +100,7 @@ public class MinecraftBlock extends NexoBlock implements MinecraftFeature<NexoBl
         Holder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
-                WorldInstance world = helper.nexo().world(pLevel);
+                WorldUnit world = helper.nexo().world(pLevel);
                 Interaction interaction = block.onInteract(world, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;

@@ -1,10 +1,10 @@
-package dev.lucaargolo.nexo.instance.block;
+package dev.lucaargolo.nexo.unit.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.NexoBlock;
 import dev.lucaargolo.nexo.api.feature.data.NexoData;
-import dev.lucaargolo.nexo.api.instance.block.BlockInstance;
-import dev.lucaargolo.nexo.instance.MinecraftInstance;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.NotNull;
@@ -14,14 +14,14 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public final class MinecraftBlockInstance extends BlockInstance implements MinecraftInstance<BlockState> {
+public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit<BlockState> {
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     private BlockState state;
 
-    public MinecraftBlockInstance(@NotNull NexoMinecraft nexo, @NotNull NexoBlock feature, @NotNull BlockState state) {
+    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull NexoBlock feature, @NotNull BlockState state) {
         super(feature);
         this.nexo = nexo;
         this.state = state;

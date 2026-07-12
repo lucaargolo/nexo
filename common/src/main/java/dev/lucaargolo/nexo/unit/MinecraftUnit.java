@@ -1,9 +1,9 @@
-package dev.lucaargolo.nexo.instance;
+package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import org.jetbrains.annotations.NotNull;
 
-public interface MinecraftInstance<T> {
+public interface MinecraftUnit<T> {
 
     @NotNull NexoMinecraft nexo();
 

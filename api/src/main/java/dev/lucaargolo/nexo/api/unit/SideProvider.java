@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api.instance;
+package dev.lucaargolo.nexo.api.unit;
 
 import dev.lucaargolo.nexo.api.util.Side;
 import org.jetbrains.annotations.NotNull;

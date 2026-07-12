@@ -1,18 +1,18 @@
-package dev.lucaargolo.nexo.world;
+package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.NexoData;
 import dev.lucaargolo.nexo.api.feature.world.NexoWorld;
-import dev.lucaargolo.nexo.instance.world.MinecraftWorldInstance;
+import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftWorldInstance extends MinecraftWorldInstance {
+public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit {
 
-    public NeoForgeMinecraftWorldInstance(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
+    public NeoForgeMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
         super(nexo, feature, level);
     }
 

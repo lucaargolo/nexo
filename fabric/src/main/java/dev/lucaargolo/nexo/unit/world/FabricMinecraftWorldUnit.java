@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.instance.world;
+package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.FabricNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricMinecraftWorldInstance extends MinecraftWorldInstance {
+public class FabricMinecraftWorldUnit extends MinecraftWorldUnit {
 
-    public FabricMinecraftWorldInstance(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
+    public FabricMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull NexoWorld feature, @NotNull Level level) {
         super(nexo, feature, level);
     }
 
