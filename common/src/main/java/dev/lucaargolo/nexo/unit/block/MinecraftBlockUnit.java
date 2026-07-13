@@ -10,9 +10,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit<BlockState> {
 
@@ -37,65 +35,68 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <D> D getData(@NotNull DataBase<D> data) {
         if(data instanceof DataBase.Constrained<?> constrained) {
-            Property<?> property = find(constrained);
-            return (D) this.state.getValue(property);
+            return data.cast(getData(constrained));
         }
         throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from MinecraftBlockUnit");
     }
 
+    private <C extends Comparable<C>> C getData(@NotNull DataBase.Constrained<C> data) {
+        Property<C> property = find(data);
+        return this.state.getValue(property);
+    }
+
     @Override
-    @SuppressWarnings("rawtypes")
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
         if(data instanceof DataBase.Constrained<?> constrained) {
-            Property<?> property = find(constrained);
-            this.state = this.state.setValue(property, (Comparable) d);
+            this.state = setData(constrained, d);
             return;
         }
         throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to MinecraftBlockUnit");
     }
 
+
+    private <C extends Comparable<C>> BlockState setData(@NotNull DataBase.Constrained<C> data, Object value) {
+        Property<C> property = find(data);
+        return this.state.setValue(property, data.cast(value));
+    }
+
     @NotNull
     @SuppressWarnings("unchecked")
-    private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<?> data) {
+    private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<T> data) {
         for(Property<?> property : this.state.getProperties()) {
             if(!property.getName().equals(data.name())) continue;
-            if(!property.getValueClass().equals(data.dataType())) continue;
-            if(!same(property.getPossibleValues(), data.values())) continue;
-            if(!match(property, data)) continue;
+            if(!property.getValueClass().equals(data.type())) continue;
+            if(different(property.getPossibleValues(), data.values())) continue;
+            if(different(serializedValues(property), serializedValues(data))) continue;
             return (Property<T>) property;
         }
         throw new IllegalArgumentException("Couldn't find constrained data " + data + " in MinecraftBlockUnit");
     }
 
-    @SuppressWarnings("unchecked")
-    private static <T extends Comparable<T>> boolean match(Property<?> property, DataBase.Constrained<?> data) {
-        Property<T> typedProperty = (Property<T>) property;
-        DataBase.Constrained<T> typedData = (DataBase.Constrained<T>) data;
-        for(T o : typedProperty.getPossibleValues()) {
-            if(!Objects.equals(typedProperty.getName(o), typedData.serialize(o))) {
-                return false;
-            }
-        }
-        return true;
+    private static <T extends Comparable<T>> Collection<String> serializedValues(Property<T> property) {
+        return property.getPossibleValues().stream().map(property::getName).toList();
     }
 
-    private static boolean same(Collection<?> c1, Collection<?> c2) {
+    private static <T extends Comparable<T>> Collection<String> serializedValues(DataBase.Constrained<T> property) {
+        return property.values().stream().map(property::toString).toList();
+    }
+
+    private static boolean different(Collection<?> c1, Collection<?> c2) {
         if (c1.size() != c2.size()) {
-            return false;
+            return true;
         }
 
         Iterator<?> it1 = c1.iterator();
         Iterator<?> it2 = c2.iterator();
         while (it1.hasNext()) {
             if (!Objects.equals(it1.next(), it2.next())) {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
 }

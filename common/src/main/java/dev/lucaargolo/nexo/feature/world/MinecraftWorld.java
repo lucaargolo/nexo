@@ -3,9 +3,8 @@ package dev.lucaargolo.nexo.feature.world;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
-import dev.lucaargolo.nexo.util.LazyHolder;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -32,21 +31,19 @@ public class MinecraftWorld extends WorldBase implements MinecraftFeature<WorldB
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
-    private final Location location;
-    @NotNull
-    private final LazyHolder<LevelStem> holder;
+    private final NexoHolder<LevelStem, LevelStem> holder;
     @Nullable
     private final WorldBase delegate;
 
-    public MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull LazyHolder<LevelStem> holder, @Nullable WorldBase delegate) {
+    public MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<LevelStem, LevelStem> holder, @Nullable WorldBase delegate) {
+        super(NexoMinecraft.id(holder.key()));
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
-        this.location = NexoMinecraft.id(holder.key());
     }
 
     public MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull Holder<LevelStem> holder) {
-        this(nexo, new LazyHolder<>(nexo, holder), null);
+        this(nexo, new NexoHolder<>(nexo, holder, LevelStem.class), null);
     }
 
     @Override
@@ -55,8 +52,8 @@ public class MinecraftWorld extends WorldBase implements MinecraftFeature<WorldB
     }
 
     @Override
-    public @NotNull Holder<LevelStem> holder() {
-        return this.holder.get();
+    public @NotNull NexoHolder<LevelStem, LevelStem> holder() {
+        return this.holder;
     }
 
     @Override
@@ -65,17 +62,12 @@ public class MinecraftWorld extends WorldBase implements MinecraftFeature<WorldB
     }
 
     @Override
-    public @NotNull Location location() {
-        return this.location;
-    }
-
-    @Override
     public @NotNull List<@NotNull Tag> tags() {
-        return this.holder.get().tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
+        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     public static MinecraftWorld register(NexoRegistryHandler<?> helper, ResourceLocation id, WorldBase dimension) {
-        LazyHolder<DimensionType> type = helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
+        NexoHolder<DimensionType, DimensionType> type = helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(
                 OptionalLong.empty(),
                 true,
                 false,
@@ -91,15 +83,15 @@ public class MinecraftWorld extends WorldBase implements MinecraftFeature<WorldB
                 BuiltinDimensionTypes.OVERWORLD_EFFECTS,
                 0.0F,
                 new DimensionType.MonsterSettings(false, true, UniformInt.of(0, 7), 0)
-        ));
-        LazyHolder<LevelStem> holder = helper.registerDynamicFeature(Registries.LEVEL_STEM, id, () -> {
+        ), DimensionType.class);
+        NexoHolder<LevelStem, LevelStem> holder = helper.registerDynamicFeature(Registries.LEVEL_STEM, id, () -> {
             RegistryAccess access = helper.getRegistry();
             Registry<Biome> biomeRegistry = access.registryOrThrow(Registries.BIOME);
             Holder<Biome> biomeHolder = biomeRegistry.getHolderOrThrow(Biomes.THE_VOID);
             FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(Optional.empty(), biomeHolder, List.of());
             FlatLevelSource source = new FlatLevelSource(settings);
-            return new LevelStem(type.get(), source);
-        });
+            return new LevelStem(type.holder(), source);
+        }, LevelStem.class);
         return new MinecraftWorld(helper.nexo(), holder, dimension);
     }
 

@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -19,21 +20,19 @@ public class MinecraftItemCategory extends ItemCategoryBase implements Minecraft
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
-    private final Location location;
-    @NotNull
-    private final Holder<CreativeModeTab> holder;
+    private final NexoHolder<CreativeModeTab, CreativeModeTab> holder;
     @Nullable
     private final ItemCategoryBase delegate;
 
-    public MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder, @Nullable ItemCategoryBase delegate) {
+    public MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<CreativeModeTab, CreativeModeTab> holder, @Nullable ItemCategoryBase delegate) {
+        super(holder.location());
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
-        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     public MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder) {
-        this(nexo, holder, null);
+        this(nexo, new NexoHolder<>(nexo, holder, CreativeModeTab.class), null);
     }
 
     @Override
@@ -42,7 +41,7 @@ public class MinecraftItemCategory extends ItemCategoryBase implements Minecraft
     }
 
     @Override
-    public @NotNull Holder<CreativeModeTab> holder() {
+    public @NotNull NexoHolder<CreativeModeTab, CreativeModeTab> holder() {
         return this.holder;
     }
 
@@ -52,17 +51,12 @@ public class MinecraftItemCategory extends ItemCategoryBase implements Minecraft
     }
 
     @Override
-    public @NotNull Location location() {
-        return this.location;
-    }
-
-    @Override
     public @NotNull List<@NotNull Tag> tags() {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     public static MinecraftItemCategory register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemCategoryBase category) {
-        Holder<CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, helper.createCreativeTab(category));
+        NexoHolder<CreativeModeTab, CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, helper.createCreativeTab(category));
         return new MinecraftItemCategory(helper.nexo(), holder, category);
     }
 

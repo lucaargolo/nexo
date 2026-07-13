@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
-import dev.lucaargolo.nexo.util.LazyHolder;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -36,9 +36,9 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         return nexo;
     }
 
-    public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+    public abstract <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature);
 
-    public abstract <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature);
+    public abstract <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type);
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);
 

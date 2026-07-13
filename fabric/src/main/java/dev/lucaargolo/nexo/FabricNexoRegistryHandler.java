@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.util.LazyHolder;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -41,15 +41,18 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         });
     }
 
-    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return Registry.registerForHolder(registry, id, feature.get());
+    @Override
+    public <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature) {
+        ResourceKey<R> key = ResourceKey.create(registry.key(), id);
+        T registered = Registry.register(registry, key, feature.get());
+        return new NexoHolder<>(this.nexo(), key, () -> registered);
     }
 
     @Override
-    public <T> LazyHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
-        ResourceKey<T> key = ResourceKey.create(registryKey, id);
+    public <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
+        ResourceKey<R> key = ResourceKey.create(registryKey, id);
         dynamicFeatures.put(key, feature);
-        return new LazyHolder<>(this.nexo(), key);
+        return new NexoHolder<>(this.nexo(), key, type);
     }
 
     @Override

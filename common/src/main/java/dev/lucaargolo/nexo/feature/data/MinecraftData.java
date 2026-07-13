@@ -7,8 +7,8 @@ import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
@@ -29,21 +29,19 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
-    private final Location location;
-    @NotNull
-    private final Holder<DataComponentType<?>> holder;
+    private final NexoHolder<DataComponentType<?>, DataComponentType<D>> holder;
     @Nullable
     private final DataBase<D> delegate;
 
-    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<DataComponentType<?>> holder, @Nullable DataBase<D> delegate) {
+    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<DataComponentType<?>, DataComponentType<D>> holder, @Nullable DataBase<D> delegate) {
+        super(holder.location());
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
-        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<DataComponentType<?>> holder) {
-        this(nexo, holder, null);
+        this(nexo, new NexoHolder<>(nexo, holder, DataComponentType.class), null);
     }
 
     @Override
@@ -52,7 +50,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     }
 
     @Override
-    public @NotNull Holder<DataComponentType<?>> holder() {
+    public @NotNull NexoHolder<DataComponentType<?>, DataComponentType<D>> holder() {
         return this.holder;
     }
 
@@ -62,16 +60,11 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     }
 
     @Override
-    public D initial() {
+    public @NotNull D initial() {
         if (this.delegate != null) {
             return this.delegate.initial();
         }
         throw new UnsupportedOperationException("Cannot get initial value from MinecraftData without a delegate");
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return this.location;
     }
 
     @Override
@@ -85,7 +78,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
             return delegate.write(value);
         }
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), this.nexo.getRegistry());
-        componentType().streamCodec().encode(buf, value);
+        holder.get().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
@@ -95,7 +88,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
             return delegate.read(buffer);
         }
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), this.nexo.getRegistry());
-        return componentType().streamCodec().decode(buf);
+        return holder.get().streamCodec().decode(buf);
     }
 
     @Override
@@ -103,7 +96,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
         if (delegate != null) {
             return delegate.serialize(value);
         }
-        Codec<D> codec = componentType().codec();
+        Codec<D> codec = holder.get().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
         } else {
@@ -119,7 +112,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
         if (delegate != null) {
             return delegate.deserialize(element);
         }
-        Codec<D> codec = componentType().codec();
+        Codec<D> codec = holder.get().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
         } else {
@@ -131,7 +124,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     }
 
     public static <T> MinecraftData<T> register(NexoRegistryHandler<?> helper, ResourceLocation id, DataBase<T> data) {
-        Holder<DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
+        NexoHolder<DataComponentType<?>, DataComponentType<T>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
                 Codec<T> codec = NexoMinecraft.createCodec(data);
@@ -144,11 +137,6 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
             return builder.build();
         });
         return new MinecraftData<>(helper.nexo(), holder, data);
-    }
-
-    @SuppressWarnings("unchecked")
-    private DataComponentType<D> componentType() {
-        return (DataComponentType<D>) holder.value();
     }
 
 }

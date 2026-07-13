@@ -2,15 +2,15 @@ package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import net.minecraft.core.Holder;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface MinecraftFeature<F extends Feature<F>, T> {
+public interface MinecraftFeature<F extends Feature<F>, R> {
 
     @NotNull NexoMinecraft nexo();
 
-    @NotNull Holder<T> holder();
+    @NotNull NexoHolder<R, ? extends R> holder();
 
     @Nullable F delegate();
 

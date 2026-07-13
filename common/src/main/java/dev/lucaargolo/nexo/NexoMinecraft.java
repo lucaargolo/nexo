@@ -181,8 +181,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @NotNull <T extends Feature<T>> T registerFeature(@NotNull Feature<T> feature) {
-        Class<? extends T> type = feature.type();
+    public @NotNull <T extends Feature<T>> T registerFeature(@NotNull Class<T> type, @NotNull Feature<T> feature) {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         switch (feature) {
@@ -216,7 +215,7 @@ public abstract class NexoMinecraft implements Nexo {
                 FEATURE_REGISTRY.computeIfAbsent(type, t -> new ConcurrentHashMap<>()).put(location, minecraftDimension);
                 return type.cast(minecraftDimension);
             }
-            default -> throw new IllegalStateException(String.format("Cannot register %s as %s", feature.getClass(), feature.type()));
+            default -> throw new IllegalStateException(String.format("Cannot register %s as %s", feature.getClass(), type));
         }
     }
 

@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeature;
+import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -24,21 +25,19 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
-    private final Location location;
-    @NotNull
-    private final Holder<Item> holder;
+    private final NexoHolder<Item, Item> holder;
     @Nullable
     private final ItemBase delegate;
 
-    public MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull Holder<Item> holder, @Nullable ItemBase delegate) {
+    public MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Item, Item> holder, @Nullable ItemBase delegate) {
+        super(holder.location());
         this.nexo = nexo;
         this.delegate = delegate;
         this.holder = holder;
-        this.location = NexoMinecraft.id(holder.unwrapKey().orElseThrow().location());
     }
 
     public MinecraftItem(@NotNull NexoMinecraft nexo, Holder<Item> holder) {
-        this(nexo, holder, null);
+        this(nexo, new NexoHolder<>(nexo, holder, Item.class), null);
     }
 
     @Override
@@ -47,18 +46,13 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase
     }
 
     @Override
-    public @NotNull Holder<Item> holder() {
+    public @NotNull NexoHolder<Item, Item> holder() {
         return this.holder;
     }
 
     @Override
     public @Nullable ItemBase delegate() {
         return this.delegate;
-    }
-
-    @Override
-    public @NotNull Location location() {
-        return this.location;
     }
 
     @Override
@@ -79,11 +73,11 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase
     }
 
     public static MinecraftItem register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
-        Holder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
+        NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;
-                Block block = (Block) ((MinecraftFeature<?, ?>) component.block()).holder().value();
+                Block block = (Block) ((MinecraftFeature<?, ?>) component.block()).holder().get();
                 return new BlockItem(block, new Item.Properties());
             } else {
                 return new Item(new Item.Properties());
