@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 
 public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
 
-    private static final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
+    private static final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
 
@@ -34,27 +34,12 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         super(nexo);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<R> key = ResourceKey.create(registry.key(), id);
-        DeferredRegister<R> deferredRegistry = (DeferredRegister<R>) deferredRegistries
-                .computeIfAbsent(registry, r -> new HashMap<>())
-                .computeIfAbsent(id.getNamespace(), n -> {
-                    DeferredRegister<?> r = DeferredRegister.create(registry, id.getNamespace());
-                    r.register(this.nexo().modBus());
-                    return r;
-                });
+        DeferredRegister<R> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
         DeferredHolder<R, T> registered = deferredRegistry.register(id.getPath(), feature);
         return new NexoHolder<>(this.nexo(), key, registered);
-
-    }
-
-    @Override
-    public <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
-        ResourceKey<R> key = ResourceKey.create(registryKey, id);
-        dynamicFeatures.put(key, feature);
-        return new NexoHolder<>(this.nexo(), key, type);
     }
 
     @Override
@@ -82,9 +67,28 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @SuppressWarnings("unchecked")
+    private <R> DeferredRegister<R> getOrCreateDeferredRegister(Registry<R> registry, String namespace) {
+        // Safe: the registry key determines the DeferredRegister type; we store and retrieve them together
+        return (DeferredRegister<R>) deferredRegistries
+                .computeIfAbsent(registry, r -> new HashMap<>())
+                .computeIfAbsent(namespace, n -> {
+                    DeferredRegister<R> r = DeferredRegister.create(registry, namespace);
+                    r.register(this.nexo().modBus());
+                    return r;
+                });
+    }
+
+    @SuppressWarnings("unchecked")
     @NotNull
-    public static <D> AttachmentType<D> getDataAttachment(DataBase<D> data) {
-        return (AttachmentType<D>) dataAttachmentMap.get(data).value();
+    private static <D> AttachmentType<D> unsafeGetAttachment(@NotNull DataBase<D> data) {
+        // Safe: registerDataAttachment always stores Holder<AttachmentType<D>> keyed by DataBase<D>
+        Holder<AttachmentType<?>> holder = (Holder<AttachmentType<?>>) dataAttachmentMap.get(data);
+        return (AttachmentType<D>) holder.value();
+    }
+
+    @NotNull
+    public static <D> AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+        return unsafeGetAttachment(data);
     }
 
 }

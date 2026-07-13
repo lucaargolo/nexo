@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.util.NexoHolder;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,11 +14,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
-    protected static final Map<ResourceKey<?>, Supplier<?>> dynamicFeatures = new LinkedHashMap<>();
+    protected static final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
 
     @Nullable
     protected static Thread capturedRegistryThread;
@@ -38,7 +38,13 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public abstract <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature);
 
-    public abstract <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type);
+    @SuppressWarnings("unchecked")
+    public <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
+        ResourceKey<R> key = ResourceKey.create(registryKey, id);
+        Consumer<Registry<?>> registrar = registry -> Registry.registerForHolder((Registry<T>) registry, key.location(), feature.get());
+        dynamicRegistrars.put(key, registrar);
+        return new NexoHolder<>(this.nexo(), key, type);
+    }
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);
 
@@ -69,8 +75,8 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         }
     }
 
-    public static Map<ResourceKey<?>, Supplier<?>> getDynamicFeatures() {
-        return dynamicFeatures;
+    public static Map<ResourceKey<?>, Consumer<Registry<?>>> getDynamicRegistrars() {
+        return dynamicRegistrars;
     }
 
 }

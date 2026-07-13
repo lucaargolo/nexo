@@ -138,6 +138,7 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
             }
             return builder.build();
         });
+        helper.registerDataAttachment(data);
         return new MinecraftData<>(helper.nexo(), holder, data);
     }
 

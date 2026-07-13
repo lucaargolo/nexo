@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
+import java.util.function.Consumer;
 
 @Mixin(RegistryDataLoader.class)
 public class RegistryDataLoaderMixin {
@@ -46,7 +46,6 @@ public class RegistryDataLoaderMixin {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Inject(
             method = "load(Lnet/minecraft/resources/RegistryDataLoader$LoadingFunction;Lnet/minecraft/core/RegistryAccess;Ljava/util/List;)Lnet/minecraft/core/RegistryAccess$Frozen;",
             at = @At(
@@ -64,14 +63,14 @@ public class RegistryDataLoaderMixin {
     ) {
         if (!IS_SERVER.get()) return;
 
-        Map<ResourceKey<?>, Supplier<?>> features = NexoRegistryHandler.getDynamicFeatures();
+        Map<ResourceKey<?>, Consumer<Registry<?>>> features = NexoRegistryHandler.getDynamicRegistrars();
         if (features.isEmpty()) return;
 
         for (RegistryDataLoader.Loader<?> loader : loaders) {
             ResourceKey<? extends Registry<?>> registryKey = loader.data().key();
-            features.forEach((key, feature) -> {
+            features.forEach((key, registrar) -> {
                 if (key.registryKey().equals(registryKey)) {
-                    Registry.registerForHolder((Registry) loader.registry(), key.location(), feature.get());
+                    registrar.accept(loader.registry());
                 }
             });
         }

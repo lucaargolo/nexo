@@ -10,7 +10,6 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -24,19 +23,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+@SuppressWarnings("UnstableApiUsage")
 public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
 
-    @SuppressWarnings("UnstableApiUsage")
-    private static final Map<DataBase<?>, AttachmentType<?>> dataAttachmentMap = new LinkedHashMap<>();
+    private static final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
         DynamicRegistrySetupCallback.EVENT.register(view -> {
-            dynamicFeatures.forEach((key, feature) -> {
-                view.getOptional(key.registryKey()).ifPresent(registry -> {
-                    Registry.registerForHolder((Registry) registry, key.location(), feature.get());
-                });
+            dynamicRegistrars.forEach((key, registrar) -> {
+                view.getOptional(key.registryKey()).ifPresent(registrar);
             });
         });
     }
@@ -49,14 +45,6 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     }
 
     @Override
-    public <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
-        ResourceKey<R> key = ResourceKey.create(registryKey, id);
-        dynamicFeatures.put(key, feature);
-        return new NexoHolder<>(this.nexo(), key, type);
-    }
-
-    @Override
-    @SuppressWarnings("UnstableApiUsage")
     public <D> void registerDataAttachment(DataBase<D> data) {
         Location location = data.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -80,7 +68,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         return () -> FabricItemGroup.builder().title(title).build();
     }
 
-    @SuppressWarnings({"unchecked", "UnstableApiUsage"})
+    @SuppressWarnings("unchecked")
     @NotNull
     public static <D> AttachmentType<D> getDataAttachment(DataBase<D> data) {
         return (AttachmentType<D>) dataAttachmentMap.get(data);
