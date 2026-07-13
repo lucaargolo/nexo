@@ -10,4 +10,9 @@ public abstract class ItemCategoryBase extends Feature<ItemCategoryBase> {
         super(location);
     }
 
+    @Override
+    public final @NotNull Type<ItemCategoryBase> type() {
+        return Type.ITEM_CATEGORY;
+    }
+
 }

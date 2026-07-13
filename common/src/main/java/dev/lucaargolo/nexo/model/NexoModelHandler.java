@@ -34,7 +34,7 @@ public abstract class NexoModelHandler<N extends Nexo> {
 
     protected static <T extends Feature<T>> void collectModels(
             Nexo nexo,
-            Class<T> type,
+            Feature.Type<T> type,
             String modelPrefix,
             Map<ResourceLocation, NexoMinecraftModel> unbakedModels,
             FeatureModelCallback<T> callback

@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Feature<T extends Feature<T>> {
@@ -20,6 +21,9 @@ public abstract class Feature<T extends Feature<T>> {
     public Feature(@NotNull Location location) {
         this.location = location;
     }
+
+    @NotNull
+    public abstract Type<T> type();
 
     @NotNull
     public final Location location() {
@@ -55,5 +59,35 @@ public abstract class Feature<T extends Feature<T>> {
     }
 
     public record Tag(Location location) {}
+
+    public record Type<T extends Feature<T>>(Class<T> type) {
+
+        private static final List<Type<?>> ALL = new ArrayList<>();
+
+        public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
+        public static final Type<?> DATA = new Type<>(DataBase.class);
+        public static final Type<ItemBase> ITEM = new Type<>(ItemBase.class);
+        public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
+        public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);
+
+        public Type(Class<T> type) {
+            this.type = type;
+            ALL.add(this);
+        }
+
+        public T cast(Feature<?> feature) {
+            return type.cast(feature);
+        }
+
+        public static Iterable<Type<?>> values() {
+            return ALL;
+        }
+
+        @SuppressWarnings("unchecked")
+        public static @NotNull <T> Feature.Type<DataBase<T>> data() {
+            return (Type<DataBase<T>>) DATA;
+        }
+
+    }
 
 }

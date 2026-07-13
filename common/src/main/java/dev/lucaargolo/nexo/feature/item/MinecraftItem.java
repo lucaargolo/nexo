@@ -19,25 +19,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase, Item> {
+public class MinecraftItem extends ItemBase implements MinecraftFeature<Item> {
+
+    private static final ConcurrentHashMap<Location, ItemBase> FEATURE_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<Item, Item>> HOLDER_MAP = new ConcurrentHashMap<>();
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     private final NexoHolder<Item, Item> holder;
-    @Nullable
-    private final ItemBase delegate;
 
-    public MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Item, Item> holder, @Nullable ItemBase delegate) {
+    private MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Item, Item> holder) {
         super(holder.location());
         this.nexo = nexo;
-        this.delegate = delegate;
         this.holder = holder;
     }
 
-    public MinecraftItem(@NotNull NexoMinecraft nexo, Holder<Item> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, Item.class), null);
+    private MinecraftItem(@NotNull NexoMinecraft nexo, Holder<Item> holder) {
+        this(nexo, new NexoHolder<>(nexo, holder, Item.class));
     }
 
     @Override
@@ -51,11 +53,6 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase
     }
 
     @Override
-    public @Nullable ItemBase delegate() {
-        return this.delegate;
-    }
-
-    @Override
     public @NotNull List<@NotNull Tag> tags() {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
@@ -63,27 +60,42 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<ItemBase
     @Override
     public @Nullable Model model() {
         //TODO: This
-        return this.delegate != null ? this.delegate.model() : null;
+        return null;
     }
 
     @Override
     public @Nullable ItemCategoryBase category() {
         //TODO: This
-        return this.delegate != null ? this.delegate.category() : null;
+        return null;
     }
 
-    public static MinecraftItem register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
+    public static ItemBase lookup(NexoRegistryHandler<?> helper, Location location) {
+        return FEATURE_MAP.computeIfAbsent(location, l -> {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            MinecraftItem item = BuiltInRegistries.ITEM.getHolder(id).map(h -> new MinecraftItem(helper.nexo(), h)).orElse(null);
+            if(item != null) HOLDER_MAP.put(location, item.holder);
+            return item;
+        });
+    }
+
+    public static ItemBase register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
         NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;
-                Block block = (Block) ((MinecraftFeature<?, ?>) component.block()).holder().get();
+                Block block = (Block) ((MinecraftFeature<?>) component.block()).holder().get();
                 return new BlockItem(block, new Item.Properties());
             } else {
                 return new Item(new Item.Properties());
             }
         });
-        return new MinecraftItem(helper.nexo(), holder, item);
+        FEATURE_MAP.put(item.location(), item);
+        HOLDER_MAP.put(item.location(), holder);
+        return item;
+    }
+
+    public static Item craft(ItemBase item) {
+        return Objects.requireNonNull(HOLDER_MAP.get(item.location()).get());
     }
 
 }

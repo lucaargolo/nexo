@@ -67,7 +67,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
     private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<T> data) {
         for(Property<?> property : this.state.getProperties()) {
             if(!property.getName().equals(data.name())) continue;
-            if(!property.getValueClass().equals(data.type())) continue;
+            if(!property.getValueClass().equals(data.valueClass())) continue;
             if(different(property.getPossibleValues(), data.values())) continue;
             if(different(serializedValues(property), serializedValues(data))) continue;
             return (Property<T>) property;

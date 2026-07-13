@@ -15,6 +15,11 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
         super(location);
     }
 
+    @Override
+    public final @NotNull Type<DataBase<T>> type() {
+        return Type.data();
+    }
+
     @NotNull
     public abstract T initial();
 
@@ -40,7 +45,7 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
 
     @NotNull
     public T cast(@NotNull Object value) {
-        throw  new UnsupportedOperationException("Can't cast value for non-constrained data");
+        throw new UnsupportedOperationException("Can't cast value for non-constrained data");
     }
 
     public abstract static class Constrained<D extends Comparable<D>> extends DataBase<D> {
@@ -50,7 +55,7 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
         }
 
         @NotNull
-        public abstract Class<D> type();
+        public abstract Class<D> valueClass();
 
         @NotNull
         public abstract Collection<D> values();
@@ -63,7 +68,7 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
 
         @Override
         public @NotNull D cast(@NotNull Object value) {
-            return type().cast(value);
+            return valueClass().cast(value);
         }
 
         public String name() {

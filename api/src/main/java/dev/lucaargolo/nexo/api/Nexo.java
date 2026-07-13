@@ -20,11 +20,9 @@ public interface Nexo {
 
     byte @Nullable [] loadResource(@NotNull Location location);
 
-    @NotNull <T extends Feature<T>> Map<Location, T> getFeatureRegistry(@NotNull Class<T> type);
+    @Nullable <T extends Feature<T>> T getFeature(@NotNull Feature.Type<T> type, @NotNull Location location);
 
-    @Nullable <T extends Feature<T>> T getFeature(@NotNull Class<T> type, @NotNull Location location);
-
-    @NotNull <T extends Feature<T>> T registerFeature(@NotNull Class<T> type, @NotNull Feature<T> feature);
+    @NotNull <T extends Feature<T>> T registerFeature(@NotNull T feature);
 
     <E extends Event<T>, T> void on(@NotNull Class<E> eventType, @NotNull Event.Priority priority, @NotNull Predicate<E> listener);
 

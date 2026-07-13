@@ -10,4 +10,8 @@ public abstract class WorldBase extends Feature<WorldBase> {
         super(location);
     }
 
+    @Override
+    public final @NotNull Type<WorldBase> type() {
+        return Type.WORLD;
+    }
 }

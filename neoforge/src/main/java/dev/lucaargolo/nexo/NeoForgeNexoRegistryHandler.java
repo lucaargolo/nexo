@@ -68,27 +68,17 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
 
     @SuppressWarnings("unchecked")
     private <R> DeferredRegister<R> getOrCreateDeferredRegister(Registry<R> registry, String namespace) {
-        // Safe: the registry key determines the DeferredRegister type; we store and retrieve them together
-        return (DeferredRegister<R>) deferredRegistries
-                .computeIfAbsent(registry, r -> new HashMap<>())
-                .computeIfAbsent(namespace, n -> {
-                    DeferredRegister<R> r = DeferredRegister.create(registry, namespace);
-                    r.register(this.nexo().modBus());
-                    return r;
-                });
+        return (DeferredRegister<R>) deferredRegistries.computeIfAbsent(registry, r -> new HashMap<>())
+            .computeIfAbsent(namespace, n -> {
+                DeferredRegister<R> r = DeferredRegister.create(registry, namespace);
+                r.register(this.nexo().modBus());
+                return r;
+            });
     }
 
     @SuppressWarnings("unchecked")
-    @NotNull
-    private static <D> AttachmentType<D> unsafeGetAttachment(@NotNull DataBase<D> data) {
-        // Safe: registerDataAttachment always stores Holder<AttachmentType<D>> keyed by DataBase<D>
-        Holder<AttachmentType<?>> holder = (Holder<AttachmentType<?>>) dataAttachmentMap.get(data);
-        return (AttachmentType<D>) holder.value();
-    }
-
-    @NotNull
-    public static <D> AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
-        return unsafeGetAttachment(data);
+    public static <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+        return (AttachmentType<D>) ((Holder<AttachmentType<?>>) dataAttachmentMap.get(data)).value();
     }
 
 }

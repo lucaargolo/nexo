@@ -5,7 +5,7 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategory;
+import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
@@ -17,7 +17,7 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        ItemCategoryBase category = nexo.registerFeature(ItemCategoryBase.class, new ItemCategory(
+        ItemCategoryBase category = nexo.registerFeature(ItemCategoryBase.class, new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
 

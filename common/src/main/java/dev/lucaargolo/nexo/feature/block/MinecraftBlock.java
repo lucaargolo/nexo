@@ -28,25 +28,27 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class MinecraftBlock extends BlockBase implements MinecraftFeature<BlockBase, Block> {
+public class MinecraftBlock extends BlockBase implements MinecraftFeature<Block> {
+
+    private static final ConcurrentHashMap<Location, BlockBase> FEATURE_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<Block, Block>> HOLDER_MAP = new ConcurrentHashMap<>();
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     private final NexoHolder<Block, Block> holder;
-    @Nullable
-    private final BlockBase delegate;
 
-    protected MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Block, Block> holder, @Nullable BlockBase delegate) {
+    private MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Block, Block> holder) {
         super(holder.location());
         this.nexo = nexo;
-        this.delegate = delegate;
         this.holder = holder;
     }
 
-    public MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, Block.class), null);
+    private MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder) {
+        this(nexo, new NexoHolder<>(nexo, holder, Block.class));
     }
 
     @Override
@@ -60,11 +62,6 @@ public class MinecraftBlock extends BlockBase implements MinecraftFeature<BlockB
     }
 
     @Override
-    public @Nullable BlockBase delegate() {
-        return this.delegate;
-    }
-
-    @Override
     public @NotNull List<@NotNull Tag> tags() {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
@@ -72,25 +69,30 @@ public class MinecraftBlock extends BlockBase implements MinecraftFeature<BlockB
     @Override
     public @Nullable Model model() {
         //TODO: This
-        return this.delegate != null ? this.delegate.model() : null;
+        return null;
     }
 
     @Override
     public @Nullable ItemBase item() {
-        if(this.delegate != null) {
-            return this.delegate.item();
+        Item item = this.holder().get().asItem();
+        if(item != Items.AIR) {
+            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
+            return this.nexo.getFeature(Type.ITEM, NexoMinecraft.id(itemId));
         }else{
-            Item item = this.holder().get().asItem();
-            if(item != Items.AIR) {
-                ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-                return this.nexo.getFeature(ItemBase.class, NexoMinecraft.id(itemId));
-            }else{
-                return null;
-            }
+            return null;
         }
     }
 
-    public static MinecraftBlock register(NexoRegistryHandler<?> helper, ResourceLocation id, BlockBase block) {
+    public static BlockBase lookup(NexoRegistryHandler<?> helper, Location location) {
+        return FEATURE_MAP.computeIfAbsent(location, l -> {
+            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            MinecraftBlock block = BuiltInRegistries.BLOCK.getHolder(id).map(h -> new MinecraftBlock(helper.nexo(), h)).orElse(null);
+            if(block != null) HOLDER_MAP.put(location, block.holder);
+            return block;
+        });
+    }
+
+    public static BlockBase register(NexoRegistryHandler<?> helper, ResourceLocation id, BlockBase block) {
         NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
@@ -103,7 +105,13 @@ public class MinecraftBlock extends BlockBase implements MinecraftFeature<BlockB
                 };
             }
         });
-        return new MinecraftBlock(helper.nexo(), holder, block);
+        FEATURE_MAP.put(block.location(), block);
+        HOLDER_MAP.put(block.location(), holder);
+        return block;
+    }
+
+    public static Block craft(BlockBase block) {
+        return Objects.requireNonNull(HOLDER_MAP.get(block.location()).get());
     }
 
 }

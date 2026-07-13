@@ -26,24 +26,21 @@ import java.util.Base64;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<DataBase<D>, DataComponentType<?>> {
+public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<DataComponentType<?>> {
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     private final NexoHolder<DataComponentType<?>, DataComponentType<D>> holder;
-    @Nullable
-    private final DataBase<D> delegate;
 
-    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<DataComponentType<?>, DataComponentType<D>> holder, @Nullable DataBase<D> delegate) {
+    private MinecraftData(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<DataComponentType<?>, DataComponentType<D>> holder) {
         super(holder.location());
         this.nexo = nexo;
-        this.delegate = delegate;
         this.holder = holder;
     }
 
-    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<DataComponentType<?>> key, @NotNull Supplier<DataComponentType<D>> supplier) {
-        this(nexo, new NexoHolder<>(nexo, key, supplier), null);
+    private MinecraftData(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<DataComponentType<?>> key, @NotNull Supplier<DataComponentType<D>> supplier) {
+        this(nexo, new NexoHolder<>(nexo, key, supplier));
     }
 
     @Override
@@ -57,16 +54,8 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
     }
 
     @Override
-    public @Nullable DataBase<D> delegate() {
-        return this.delegate;
-    }
-
-    @Override
     public @NotNull D initial() {
-        if (this.delegate != null) {
-            return this.delegate.initial();
-        }
-        throw new UnsupportedOperationException("Cannot get initial value from MinecraftData without a delegate");
+        throw new UnsupportedOperationException("Cannot get initial value from MinecraftData");
     }
 
     @Override
@@ -76,9 +65,6 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
 
     @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
-        if (delegate != null) {
-            return delegate.write(value);
-        }
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), this.nexo.getRegistry());
         holder.get().streamCodec().encode(buf, value);
         return buf.nioBuffer();
@@ -86,18 +72,12 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
-        if (delegate != null) {
-            return delegate.read(buffer);
-        }
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), this.nexo.getRegistry());
         return holder.get().streamCodec().decode(buf);
     }
 
     @Override
     public @NotNull JsonElement serialize(@NotNull D value) {
-        if (delegate != null) {
-            return delegate.serialize(value);
-        }
         Codec<D> codec = holder.get().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
@@ -111,9 +91,6 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
 
     @Override
     public @NotNull D deserialize(@NotNull JsonElement element) {
-        if (delegate != null) {
-            return delegate.deserialize(element);
-        }
         Codec<D> codec = holder.get().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
@@ -125,8 +102,9 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
         }
     }
 
-    public static <T> MinecraftData<T> register(NexoRegistryHandler<?> helper, ResourceLocation id, DataBase<T> data) {
-        NexoHolder<DataComponentType<?>, DataComponentType<T>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
+    public static <T> NexoHolder<DataComponentType<?>, DataComponentType<T>> register(NexoRegistryHandler<?> helper, ResourceLocation id, DataBase<T> data) {
+        helper.registerDataAttachment(data);
+        return helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
             DataComponentType.Builder<T> builder = DataComponentType.builder();
             if (data.persistent()) {
                 Codec<T> codec = NexoMinecraft.createCodec(data);
@@ -138,8 +116,6 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
             }
             return builder.build();
         });
-        helper.registerDataAttachment(data);
-        return new MinecraftData<>(helper.nexo(), holder, data);
     }
 
 }

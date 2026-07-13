@@ -15,6 +15,11 @@ public abstract class BlockBase extends Feature<BlockBase> implements ModelProvi
         super(location);
     }
 
+    @Override
+    public final @NotNull Type<BlockBase> type() {
+        return Type.BLOCK;
+    }
+
     @NotNull
     public Interaction onInteract(@NotNull WorldUnit world, @NotNull Vector3i pos) {
         return Interaction.PASS;
