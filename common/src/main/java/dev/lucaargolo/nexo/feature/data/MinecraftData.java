@@ -15,6 +15,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<DataBase<D>, DataComponentType<?>> {
 
@@ -40,8 +42,8 @@ public class MinecraftData<D> extends DataBase<D> implements MinecraftFeature<Da
         this.holder = holder;
     }
 
-    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<DataComponentType<?>> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, DataComponentType.class), null);
+    public MinecraftData(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<DataComponentType<?>> key, @NotNull Supplier<DataComponentType<D>> supplier) {
+        this(nexo, new NexoHolder<>(nexo, key, supplier), null);
     }
 
     @Override

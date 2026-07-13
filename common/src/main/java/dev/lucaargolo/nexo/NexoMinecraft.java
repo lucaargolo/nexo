@@ -164,7 +164,7 @@ public abstract class NexoMinecraft implements Nexo {
                 RegistryAccess access = this.registryHandler.getRegistry();
                 ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
                 if(DataBase.class.isAssignableFrom(type)) {
-                    return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(h -> new MinecraftData<>(this, h)).orElse(null);
+                    return BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(h -> new MinecraftData<>(this, h.key(), h::value)).orElse(null);
                 }else if(BlockBase.class.isAssignableFrom(type)) {
                     return BuiltInRegistries.BLOCK.getHolder(id).map(h -> new MinecraftBlock(this, h)).orElse(null);
                 }else if(ItemBase.class.isAssignableFrom(type)) {
