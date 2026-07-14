@@ -78,7 +78,7 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull Vector3i pos) {
+    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull Vector3i pos) {
         BlockState state = ((MinecraftBlockUnit) block).get();
         Level level = ((MinecraftWorldUnit) world).get();
         Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
@@ -104,8 +104,8 @@ public class MinecraftBlock extends BlockBase {
         NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
-                BlockUnit state = helper.nexo().stateToUnit(pState);
-                WorldUnit level = helper.nexo().levelToUnit(pLevel);
+                BlockUnit<?> state = helper.nexo().stateToUnit(pState);
+                WorldUnit<?> level = helper.nexo().levelToUnit(pLevel);
                 Interaction interaction = block.onInteract(state, level, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;

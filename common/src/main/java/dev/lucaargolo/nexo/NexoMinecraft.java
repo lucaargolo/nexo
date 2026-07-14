@@ -161,14 +161,14 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
 @NotNull
-    public BlockUnit stateToUnit(@NotNull BlockState state) {
+    public BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
         return new MinecraftBlockUnit(this, block, state);
     }
 
     @NotNull
-    public WorldUnit levelToUnit(@NotNull Level level) {
+    public WorldUnit<?> levelToUnit(@NotNull Level level) {
         WorldBase world = this.getFeature(Feature.Type.WORLD, NexoMinecraft.id(level.dimension()));
         assert world != null;
         return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);

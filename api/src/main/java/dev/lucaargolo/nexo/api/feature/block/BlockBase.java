@@ -21,6 +21,6 @@ public abstract class BlockBase extends Feature<BlockBase> implements ModelProvi
         return Type.BLOCK;
     }
 
-    public abstract @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull Vector3i pos);
+    public abstract @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull Vector3i pos);
 
 }

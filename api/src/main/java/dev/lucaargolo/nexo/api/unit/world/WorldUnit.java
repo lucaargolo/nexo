@@ -8,15 +8,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class WorldUnit extends Unit<WorldBase> implements SideProvider {
+public abstract class WorldUnit<T extends WorldBase> extends Unit<T> implements SideProvider {
 
-    protected WorldUnit(@NotNull WorldBase feature) {
-        super(WorldBase.class, feature);
+    protected WorldUnit(@NotNull T feature) {
+        super(feature);
     }
 
     @Nullable
-    public abstract BlockUnit getBlock(@NotNull Vector3i pos);
+    public abstract BlockUnit<?> getBlock(@NotNull Vector3i pos);
 
-    public abstract void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit block);
+    public abstract void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block);
 
 }

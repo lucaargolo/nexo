@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit<BlockState> {
+public final class MinecraftBlockUnit extends BlockUnit<BlockBase> implements MinecraftUnit<BlockState> {
 
     @NotNull
     private final NexoMinecraft nexo;

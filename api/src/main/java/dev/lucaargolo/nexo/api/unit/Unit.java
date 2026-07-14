@@ -5,12 +5,12 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Unit<T extends Feature<T>> {
+public abstract class Unit<T extends Feature<?>> {
 
     @NotNull
     private final T feature;
 
-    protected Unit(@NotNull Class<T> type, @NotNull T feature) {
+    protected Unit(@NotNull T feature) {
         this.feature = feature;
     }
 
