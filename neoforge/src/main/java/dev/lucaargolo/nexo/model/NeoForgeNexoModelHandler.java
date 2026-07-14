@@ -1,15 +1,17 @@
 package dev.lucaargolo.nexo.model;
 
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -20,35 +22,33 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
     private static final Map<ResourceLocation, UnbakedModel> CUSTOM_MODELS = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, UnbakedModel> BLOCK_MODELS = new ConcurrentHashMap<>();
 
+    private final Set<ResourceLocation> itemModelIds = new HashSet<>();
+
     public NeoForgeNexoModelHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 
     @Override
     public void init() {
-        Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
-        Set<ResourceLocation> itemModelIds = new HashSet<>();
-
-        collectModels(this.nexo(), BlockBase.class, "block/", unbakedModels,
-                (blockId, block, model, modelId) -> {
-                    NexoMinecraftModel mcModel = unbakedModels.get(modelId);
-                    CUSTOM_MODELS.put(modelId, mcModel);
-                    ResourceLocation blockKey = ResourceLocation.fromNamespaceAndPath(
-                            blockId.namespace(), blockId.path());
-                    BLOCK_MODELS.put(blockKey, mcModel);
-                });
-
-        collectModels(this.nexo(), ItemBase.class, "item/", unbakedModels,
-                (itemId, item, model, modelId) -> {
-                    CUSTOM_MODELS.put(modelId, unbakedModels.get(modelId));
-                    itemModelIds.add(modelId);
-                });
+        super.init();
 
         this.nexo().modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
             for (ResourceLocation modelId : itemModelIds) {
                 event.register(new ModelResourceLocation(modelId, ModelResourceLocation.STANDALONE_VARIANT));
             }
         });
+    }
+
+    @Override
+    protected void collectModel(Feature<?> feature, Model model, ResourceLocation modelId, NexoMinecraftModel mcModel) {
+        CUSTOM_MODELS.put(modelId, mcModel);
+        if (feature instanceof BlockBase) {
+            Location location = feature.location();
+            ResourceLocation blockKey = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            BLOCK_MODELS.put(blockKey, mcModel);
+        } else if (feature instanceof ItemBase) {
+            itemModelIds.add(modelId);
+        }
     }
 
     @Nullable
@@ -60,4 +60,5 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
     public static UnbakedModel getBlockModel(ResourceLocation blockKey) {
         return BLOCK_MODELS.get(blockKey);
     }
+
 }

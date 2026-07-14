@@ -4,7 +4,6 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.feature.MinecraftFeature;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MinecraftItemCategory extends ItemCategoryBase implements MinecraftFeature<CreativeModeTab> {
+public class MinecraftItemCategory extends ItemCategoryBase {
 
     private static final ConcurrentHashMap<Location, ItemCategoryBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Location, NexoHolder<CreativeModeTab, CreativeModeTab>> HOLDER_MAP = new ConcurrentHashMap<>();
@@ -34,16 +33,6 @@ public class MinecraftItemCategory extends ItemCategoryBase implements Minecraft
 
     private MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder) {
         this(nexo, new NexoHolder<>(nexo, holder, CreativeModeTab.class));
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return this.nexo;
-    }
-
-    @Override
-    public @NotNull NexoHolder<CreativeModeTab, CreativeModeTab> holder() {
-        return this.holder;
     }
 
     @Override

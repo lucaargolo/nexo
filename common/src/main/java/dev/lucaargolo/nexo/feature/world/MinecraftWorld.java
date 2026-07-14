@@ -2,22 +2,16 @@ package dev.lucaargolo.nexo.feature.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.block.BlockBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.feature.MinecraftFeature;
-import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
@@ -33,7 +27,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MinecraftWorld extends WorldBase implements MinecraftFeature<LevelStem> {
+public class MinecraftWorld extends WorldBase {
 
     private static final ConcurrentHashMap<Location, WorldBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Location, NexoHolder<LevelStem, LevelStem>> HOLDER_MAP = new ConcurrentHashMap<>();
@@ -51,16 +45,6 @@ public class MinecraftWorld extends WorldBase implements MinecraftFeature<LevelS
 
     private MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull Holder<LevelStem> holder) {
         this(nexo, new NexoHolder<>(nexo, holder, LevelStem.class));
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return this.nexo;
-    }
-
-    @Override
-    public @NotNull NexoHolder<LevelStem, LevelStem> holder() {
-        return this.holder;
     }
 
     @Override

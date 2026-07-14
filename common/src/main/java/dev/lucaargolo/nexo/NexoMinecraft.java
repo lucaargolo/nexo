@@ -5,40 +5,29 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoException;
 import dev.lucaargolo.nexo.api.event.Event;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
-import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
-import dev.lucaargolo.nexo.feature.data.MinecraftData;
-import dev.lucaargolo.nexo.feature.item.MinecraftItem;
-import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
-import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -54,11 +43,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class NexoMinecraft implements Nexo {
 
@@ -81,8 +68,8 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.discoveryHandler.init();
         this.modelHandler.init();
+        this.discoveryHandler.init();
     }
 
     public abstract Side getSide();
@@ -154,7 +141,8 @@ public abstract class NexoMinecraft implements Nexo {
 
     @Override
     public @Nullable <T extends Feature<T>> T getFeature(@NotNull Feature.Type<T> type, @NotNull Location location) {
-        return FeatureType.type(type).lookup(this.registryHandler, location).map(type::cast).orElse(null);
+        Feature<?> feature = MinecraftFeatureType.of(type).lookup(this.registryHandler, location);
+        return type.cast(feature);
     }
 
     @Override
@@ -162,23 +150,26 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         for(Feature.Type<?> type : Feature.Type.values()) {
-            FeatureType<?, ?> t = FeatureType.type(type);
-            if(t.tryRegister(this.registryHandler, id, feature).isPresent()) {
+            MinecraftFeatureType<?, ?> t = MinecraftFeatureType.of(type);
+            if(t.isInstance(feature)) {
+                t.register(this.registryHandler, id, feature);
+                this.emit(new FeatureRegisteredEvent(location, feature));
                 return feature;
             }
         }
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
     }
 
+
     @NotNull
-    public BlockUnit block(@NotNull BlockState state) {
+    public BlockUnit stateToUnit(@NotNull BlockState state) {
         BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
         return new MinecraftBlockUnit(this, block, state);
     }
 
     @NotNull
-    public WorldUnit world(@NotNull Level level) {
+    public WorldUnit levelToUnit(@NotNull Level level) {
         WorldBase world = this.getFeature(Feature.Type.WORLD, NexoMinecraft.id(level.dimension()));
         assert world != null;
         return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);
@@ -308,62 +299,5 @@ public abstract class NexoMinecraft implements Nexo {
             }
         };
     }
-
-    @FunctionalInterface
-    private interface FeatureRegistrar<T extends Feature<T>> {
-        T register(NexoRegistryHandler<?> helper, ResourceLocation id, T feature);
-    }
-
-    @FunctionalInterface
-    private interface FeatureLookup<T extends Feature<T>, M> {
-        T lookup(NexoRegistryHandler<?> helper, Location location);
-    }
-
-    @FunctionalInterface
-    private interface FeatureCraftar<T extends Feature<T>, M> {
-        M craft(T feature);
-    }
-
-    private record FeatureType<T extends Feature<T>, M>(Class<T> type, FeatureRegistrar<T> registrar, FeatureLookup<T, M> nexar, FeatureCraftar<T, M> craftar) {
-
-        private static final FeatureType<BlockBase, Block> BLOCK = new FeatureType<>(BlockBase.class, MinecraftBlock::register, MinecraftBlock::lookup, MinecraftBlock::craft);
-        private static final FeatureType<ItemBase, Item> ITEM = new FeatureType<>(ItemBase.class, MinecraftItem::register, MinecraftItem::lookup, MinecraftItem::craft);
-        private static final FeatureType<ItemCategoryBase, CreativeModeTab> ITEM_CATEGORY = new FeatureType<>(ItemCategoryBase.class, MinecraftItemCategory::register, MinecraftItemCategory::lookup, MinecraftItemCategory::craft);
-        private static final FeatureType<WorldBase, LevelStem> WORLD = new FeatureType<>(WorldBase.class, MinecraftWorld::register, MinecraftWorld::lookup, MinecraftWorld::craft);
-
-        private Optional<T> lookup(NexoRegistryHandler<?> helper, Location id) {
-            return Optional.ofNullable(nexar.lookup(helper, id));
-        }
-
-        private Optional<T> tryRegister(NexoRegistryHandler<?> helper, ResourceLocation id, Feature<?> feature) {
-            if(type.isInstance(feature)) {
-                return Optional.of(registrar.register(helper, id, type.cast(feature)));
-            }else{
-                return Optional.empty();
-            }
-        }
-
-        @NotNull
-        private static FeatureType<?, ?> type(Feature.Type<?> type) {
-            if (type == Feature.Type.BLOCK) {
-                return BLOCK;
-            }else if (type == Feature.Type.ITEM) {
-                return ITEM;
-            }else if (type == Feature.Type.ITEM_CATEGORY) {
-                return ITEM_CATEGORY;
-            }else if (type == Feature.Type.WORLD) {
-                return WORLD;
-            }
-            throw new UnsupportedOperationException("Unsupported feature type: " + type);
-        }
-
-    }
-
-
-
-
-
-
-
 
 }

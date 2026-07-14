@@ -48,7 +48,7 @@ public abstract class MinecraftWorldUnit extends WorldUnit implements MinecraftU
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);
         if (state.isAir()) return null;
-        return this.nexo.block(state);
+        return this.nexo.stateToUnit(state);
     }
 
     @Override

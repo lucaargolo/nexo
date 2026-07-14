@@ -7,7 +7,7 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.feature.MinecraftFeature;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class MinecraftItem extends ItemBase implements MinecraftFeature<Item> {
+public class MinecraftItem extends ItemBase {
 
     private static final ConcurrentHashMap<Location, ItemBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Location, NexoHolder<Item, Item>> HOLDER_MAP = new ConcurrentHashMap<>();
@@ -40,16 +40,6 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<Item> {
 
     private MinecraftItem(@NotNull NexoMinecraft nexo, Holder<Item> holder) {
         this(nexo, new NexoHolder<>(nexo, holder, Item.class));
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return this.nexo;
-    }
-
-    @Override
-    public @NotNull NexoHolder<Item, Item> holder() {
-        return this.holder;
     }
 
     @Override
@@ -83,7 +73,7 @@ public class MinecraftItem extends ItemBase implements MinecraftFeature<Item> {
             if (item.hasComponent(BlockItemComponent.class)) {
                 BlockItemComponent component = item.getComponent(BlockItemComponent.class);
                 assert component != null;
-                Block block = (Block) ((MinecraftFeature<?>) component.block()).holder().get();
+                Block block = MinecraftFeatureType.BLOCK.craft(component.block());
                 return new BlockItem(block, new Item.Properties());
             } else {
                 return new Item(new Item.Properties());
