@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api.feature;
 import dev.lucaargolo.nexo.api.component.Component;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
@@ -66,6 +67,7 @@ public abstract class Feature<T extends Feature<T>> {
 
         public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
         public static final Type<?> DATA = new Type<>(DataBase.class);
+        public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<ItemBase> ITEM = new Type<>(ItemBase.class);
         public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
         public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);

@@ -3,6 +3,7 @@ package dev.lucaargolo.test;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
+import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -45,6 +46,8 @@ public class NexoTestMod {
         nexo.registerFeature(new SimpleWorld(
                 id("test")
         ));
+
+        nexo.registerFeature(new SimpleEntity(id("test_entity")));
 
     }
 

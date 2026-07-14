@@ -4,17 +4,20 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
+import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -30,6 +33,7 @@ public class MinecraftFeatureType<M> {
 
     public static final MinecraftFeatureType<Block> BLOCK = create(BlockBase.class, MinecraftBlock::lookup, MinecraftBlock::register, MinecraftBlock::craft);
     public static final MinecraftFeatureType<DataComponentType<?>> DATA = new MinecraftFeatureType<>(DataBase.class, MinecraftData::lookup, MinecraftData::registerFeature, MinecraftData::craftFeature);
+    public static final MinecraftFeatureType<EntityType<?>> ENTITY = create(EntityBase.class, MinecraftEntity::lookup, MinecraftEntity::register, MinecraftEntity::craft);
     public static final MinecraftFeatureType<Item> ITEM = create(ItemBase.class, MinecraftItem::lookup, MinecraftItem::register, MinecraftItem::craft);
     public static final MinecraftFeatureType<CreativeModeTab> ITEM_CATEGORY = create(ItemCategoryBase.class, MinecraftItemCategory::lookup, MinecraftItemCategory::register, MinecraftItemCategory::craft);
     public static final MinecraftFeatureType<LevelStem> WORLD = create(WorldBase.class, MinecraftWorld::lookup, MinecraftWorld::register, MinecraftWorld::craft);
@@ -37,6 +41,7 @@ public class MinecraftFeatureType<M> {
     private static final Map<Feature.Type<?>, MinecraftFeatureType<?>> TYPES = Map.of(
             Feature.Type.BLOCK, BLOCK,
             Feature.Type.DATA, DATA,
+            Feature.Type.ENTITY, ENTITY,
             Feature.Type.ITEM, ITEM,
             Feature.Type.ITEM_CATEGORY, ITEM_CATEGORY,
             Feature.Type.WORLD, WORLD
