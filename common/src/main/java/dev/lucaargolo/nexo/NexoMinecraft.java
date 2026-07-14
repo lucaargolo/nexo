@@ -150,7 +150,7 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         for(Feature.Type<?> type : Feature.Type.values()) {
-            MinecraftFeatureType<?, ?> t = MinecraftFeatureType.of(type);
+            MinecraftFeatureType<?> t = MinecraftFeatureType.of(type);
             if(t.isInstance(feature)) {
                 t.register(this.registryHandler, id, feature);
                 this.emit(new FeatureRegisteredEvent(location, feature));

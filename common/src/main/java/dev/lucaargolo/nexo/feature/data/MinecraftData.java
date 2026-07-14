@@ -6,6 +6,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.NexoHolder;
@@ -124,8 +125,23 @@ public class MinecraftData<D> extends DataBase<D> {
         return data;
     }
 
+    public static Feature<?> registerFeature(NexoRegistryHandler<?> helper, ResourceLocation id, Feature<?> feature) {
+        return register(helper, id, dataFeature(feature));
+    }
+
     public static DataComponentType<?> craft(DataBase<?> data) {
         return Objects.requireNonNull(HOLDER_MAP.get(data.location()).get());
+    }
+
+    public static DataComponentType<?> craftFeature(Feature<?> feature) {
+        return craft(dataFeature(feature));
+    }
+
+    private static DataBase<?> dataFeature(Feature<?> feature) {
+        if (feature instanceof DataBase<?> data) {
+            return data;
+        }
+        throw new ClassCastException("Expected a data feature, got " + feature.getClass().getName());
     }
 
 
