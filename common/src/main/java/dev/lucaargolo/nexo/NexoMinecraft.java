@@ -9,15 +9,18 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
+import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
@@ -26,6 +29,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
@@ -174,6 +179,13 @@ public abstract class NexoMinecraft implements Nexo {
         return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);
     }
 
+    @NotNull
+    public EntityUnit<?> entityToUnit(@NotNull Entity entity) {
+        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(entity.getType().builtInRegistryHolder().unwrapKey().orElseThrow()));
+        assert feature != null;
+        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, entity);
+    }
+
     @Override
     public <E extends Event<T>, T> void on(@NotNull Class<E> eventType, @NotNull Event.Priority priority, @NotNull Predicate<E> listener) {
         listeners.computeIfAbsent(eventType, k -> new ConcurrentHashMap<>())
@@ -252,16 +264,36 @@ public abstract class NexoMinecraft implements Nexo {
         if (this.getSide().isClient()) {
             try {
                 Class<? extends T> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
-                return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+                return this.instantiate(clientPlatformClass, parameterTypes, parameters);
             } catch (Exception ignored) {
             }
         }
         try {
             Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
-            return commonPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
+            return this.instantiate(commonPlatformClass, parameterTypes, parameters);
         } catch (Exception exception) {
             throw new NexoException("Failed to load platform class for " + clazz.getName(), exception);
         }
+    }
+
+    private <T> T instantiate(Class<? extends T> type, Class<?>[] parameterTypes, Object[] parameters) throws ReflectiveOperationException {
+        for (Constructor<?> constructor : type.getConstructors()) {
+            Class<?>[] constructorTypes = constructor.getParameterTypes();
+            if (constructorTypes.length != parameterTypes.length) continue;
+            boolean compatible = true;
+            for (int i = 0; i < constructorTypes.length; i++) {
+                if (!constructorTypes[i].isAssignableFrom(parameterTypes[i])) {
+                    compatible = false;
+                    break;
+                }
+            }
+            if (compatible) {
+                @SuppressWarnings("unchecked")
+                T instance = (T) constructor.newInstance(parameters);
+                return instance;
+            }
+        }
+        throw new NoSuchMethodException(type.getName());
     }
 
     public static Location id(ResourceLocation location) {
