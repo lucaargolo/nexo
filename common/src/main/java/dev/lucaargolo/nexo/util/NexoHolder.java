@@ -28,7 +28,7 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
     @Nullable
     private Class<T> type;
 
-public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Class<T> type) {
+    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Class<T> type) {
         this.nexo = nexo;
         this.key = key;
         this.location = NexoMinecraft.id(key);
@@ -50,7 +50,7 @@ public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @Not
         this.type = type;
     }
 
-public ResourceKey<R> key() {
+    public ResourceKey<R> key() {
         return key;
     }
 

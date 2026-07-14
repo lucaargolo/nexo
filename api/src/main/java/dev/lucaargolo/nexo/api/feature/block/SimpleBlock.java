@@ -2,9 +2,13 @@ package dev.lucaargolo.nexo.api.feature.block;
 
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
+import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3i;
 
 public class SimpleBlock extends BlockBase {
 
@@ -29,9 +33,13 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    @Nullable
-    public BlockItem item() {
+    public @Nullable BlockItem item() {
         return item;
+    }
+
+    @Override
+    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull Vector3i pos) {
+        return Interaction.PASS;
     }
 
 }

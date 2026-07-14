@@ -5,11 +5,15 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
+import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -22,6 +26,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
@@ -72,6 +77,20 @@ public class MinecraftBlock extends BlockBase {
         }
     }
 
+    @Override
+    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull Vector3i pos) {
+        BlockState state = ((MinecraftBlockUnit) block).get();
+        Level level = ((MinecraftWorldUnit) world).get();
+        Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
+        BlockHitResult hitResult = new BlockHitResult(position, Direction.UP, BlockPos.containing(position), true);
+        InteractionResult result = state.useWithoutItem(level, null, hitResult);
+        return switch (result) {
+            case SUCCESS, SUCCESS_NO_ITEM_USED, CONSUME, CONSUME_PARTIAL -> Interaction.SUCCESS;
+            case PASS -> Interaction.PASS;
+            case FAIL -> Interaction.FAIL;
+        };
+    }
+
     public static BlockBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -85,8 +104,9 @@ public class MinecraftBlock extends BlockBase {
         NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
-                WorldUnit world = helper.nexo().levelToUnit(pLevel);
-                Interaction interaction = block.onInteract(world, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
+                BlockUnit state = helper.nexo().stateToUnit(pState);
+                WorldUnit level = helper.nexo().levelToUnit(pLevel);
+                Interaction interaction = block.onInteract(state, level, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;
                     case FAIL -> InteractionResult.FAIL;

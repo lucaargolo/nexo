@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api.feature.block;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.ItemProvider;
 import dev.lucaargolo.nexo.api.feature.ModelProvider;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -20,9 +21,6 @@ public abstract class BlockBase extends Feature<BlockBase> implements ModelProvi
         return Type.BLOCK;
     }
 
-    @NotNull
-    public Interaction onInteract(@NotNull WorldUnit world, @NotNull Vector3i pos) {
-        return Interaction.PASS;
-    }
+    public abstract @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull Vector3i pos);
 
 }
