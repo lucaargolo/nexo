@@ -1,6 +1,10 @@
 package dev.lucaargolo.nexo.api.model.loader;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.model.Cube;
 import dev.lucaargolo.nexo.api.model.Face;
@@ -12,7 +16,11 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class MinecraftModelLoader extends ModelLoader {
 

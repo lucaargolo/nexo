@@ -46,5 +46,4 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
         return this.currentServer;
     }
 
-
 }

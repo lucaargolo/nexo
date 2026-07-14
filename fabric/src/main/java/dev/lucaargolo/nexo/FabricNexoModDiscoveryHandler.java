@@ -37,7 +37,8 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
                 for (String entry : Files.readString(Path.of(fabricCp)).split(File.pathSeparator)) {
                     NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
                 }
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         String sysCp = System.getProperty("java.class.path");
@@ -52,7 +53,8 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
             try (var stream = Files.list(modsDir)) {
                 stream.filter(p -> p.getFileName().toString().endsWith(".jar"))
                       .forEach(p -> NexoModDiscoveryHandler.addPath(p, jars, dirs));
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         init(jars, dirs);

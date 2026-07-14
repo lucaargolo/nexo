@@ -82,7 +82,8 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
             } else if (path.getFileName().toString().endsWith(".jar") && Files.exists(path)) {
                 jars.add(path);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private static void scanJarForModJson(Path jarPath, List<ModDescriptor> descriptors) {

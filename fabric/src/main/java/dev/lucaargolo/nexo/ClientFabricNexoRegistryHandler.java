@@ -17,11 +17,11 @@ public class ClientFabricNexoRegistryHandler extends FabricNexoRegistryHandler {
             return this.capturedRegistry;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        if(minecraft.isSameThread()) {
+        if (minecraft.isSameThread()) {
             Level level = minecraft.level;
             if (level != null) {
                 return level.registryAccess();
-            }else{
+            } else {
                 return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
             }
         }

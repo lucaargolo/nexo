@@ -56,7 +56,7 @@ public class MinecraftWorld extends WorldBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             MinecraftWorld world = helper.getRegistry().registry(Registries.LEVEL_STEM).flatMap(r -> r.getHolder(id)).map(h -> new MinecraftWorld(helper.nexo(), h)).orElse(null);
-            if(world != null) HOLDER_MAP.put(location, world.holder);
+            if (world != null) HOLDER_MAP.put(location, world.holder);
             return world;
         });
    }

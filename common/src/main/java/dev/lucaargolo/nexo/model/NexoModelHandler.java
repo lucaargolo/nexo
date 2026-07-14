@@ -71,7 +71,10 @@ public abstract class NexoModelHandler<N extends Nexo> {
         if (!Files.isRegularFile(filePath)) {
             URL resourceUrl = Thread.currentThread().getContextClassLoader().getResource(texture.path());
             if (resourceUrl != null && "file".equals(resourceUrl.getProtocol())) {
-                try { filePath = Path.of(resourceUrl.toURI()); } catch (URISyntaxException ignored) {}
+                try {
+                    filePath = Path.of(resourceUrl.toURI());
+                } catch (URISyntaxException ignored) {
+                }
             }
         }
         if (Files.isRegularFile(filePath)) {

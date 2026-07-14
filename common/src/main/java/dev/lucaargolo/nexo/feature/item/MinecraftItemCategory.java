@@ -44,7 +44,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             MinecraftItemCategory category = BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(id).map(h -> new MinecraftItemCategory(helper.nexo(), h)).orElse(null);
-            if(category != null) HOLDER_MAP.put(location, category.holder);
+            if (category != null) HOLDER_MAP.put(location, category.holder);
             return category;
         });
     }

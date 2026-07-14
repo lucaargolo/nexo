@@ -10,7 +10,9 @@ import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
 
 public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit<BlockState> {
 
@@ -36,7 +38,7 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
 
     @Override
     public <D> D getData(@NotNull DataBase<D> data) {
-        if(data instanceof DataBase.Constrained<?> constrained) {
+        if (data instanceof DataBase.Constrained<?> constrained) {
             return data.cast(getData(constrained));
         }
         throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from MinecraftBlockUnit");
@@ -49,15 +51,14 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
 
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
-        if(data instanceof DataBase.Constrained<?> constrained) {
+        if (data instanceof DataBase.Constrained<?> constrained) {
             this.state = setData(constrained, d);
             return;
         }
         throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to MinecraftBlockUnit");
     }
 
-
-    private <C extends Comparable<C>> BlockState setData(@NotNull DataBase.Constrained<C> data, Object value) {
+private <C extends Comparable<C>> BlockState setData(@NotNull DataBase.Constrained<C> data, Object value) {
         Property<C> property = find(data);
         return this.state.setValue(property, data.cast(value));
     }
@@ -65,11 +66,11 @@ public final class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit
     @NotNull
     @SuppressWarnings("unchecked")
     private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<T> data) {
-        for(Property<?> property : this.state.getProperties()) {
-            if(!property.getName().equals(data.name())) continue;
-            if(!property.getValueClass().equals(data.valueClass())) continue;
-            if(different(property.getPossibleValues(), data.values())) continue;
-            if(different(serializedValues(property), serializedValues(data))) continue;
+        for (Property<?> property : this.state.getProperties()) {
+            if (!property.getName().equals(data.name())) continue;
+            if (!property.getValueClass().equals(data.valueClass())) continue;
+            if (different(property.getPossibleValues(), data.values())) continue;
+            if (different(serializedValues(property), serializedValues(data))) continue;
             return (Property<T>) property;
         }
         throw new IllegalArgumentException("Couldn't find constrained data " + data + " in MinecraftBlockUnit");

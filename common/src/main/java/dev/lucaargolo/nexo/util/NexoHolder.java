@@ -28,8 +28,7 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
     @Nullable
     private Class<T> type;
 
-
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Class<T> type) {
+public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Class<T> type) {
         this.nexo = nexo;
         this.key = key;
         this.location = NexoMinecraft.id(key);
@@ -51,9 +50,7 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
         this.type = type;
     }
 
-
-
-    public ResourceKey<R> key() {
+public ResourceKey<R> key() {
         return key;
     }
 
@@ -63,14 +60,14 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
 
     @Override
     public T get() {
-        if(this.supplier != null) {
+        if (this.supplier != null) {
             return this.supplier.get();
-        }else if(this.type != null) {
+        } else if (this.type != null) {
             if (this.holder == null) {
                 this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
             }
             return this.type.cast(this.holder.value());
-        }else{
+        } else {
             throw new IllegalStateException("NexoHolder has no supplier or type to satisfy holder");
         }
     }

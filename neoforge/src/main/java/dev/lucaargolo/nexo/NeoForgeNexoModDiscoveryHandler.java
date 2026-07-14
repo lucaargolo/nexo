@@ -10,7 +10,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<NeoForgeNexoMinecraft> {
 
@@ -42,7 +47,8 @@ public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Neo
             try (var stream = Files.list(modsDir)) {
                 stream.filter(p -> p.getFileName().toString().endsWith(".jar"))
                       .forEach(p -> NexoModDiscoveryHandler.addPath(p, jars, dirs));
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
 
         init(jars, dirs);

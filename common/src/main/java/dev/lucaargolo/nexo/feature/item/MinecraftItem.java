@@ -63,7 +63,7 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             MinecraftItem item = BuiltInRegistries.ITEM.getHolder(id).map(h -> new MinecraftItem(helper.nexo(), h)).orElse(null);
-            if(item != null) HOLDER_MAP.put(location, item.holder);
+            if (item != null) HOLDER_MAP.put(location, item.holder);
             return item;
         });
     }

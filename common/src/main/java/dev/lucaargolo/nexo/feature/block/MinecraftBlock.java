@@ -4,8 +4,8 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.NexoHolder;
@@ -64,10 +64,10 @@ public class MinecraftBlock extends BlockBase {
     @Override
     public @Nullable ItemBase item() {
         Item item = this.holder.get().asItem();
-        if(item != Items.AIR) {
+        if (item != Items.AIR) {
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
             return this.nexo.getFeature(Type.ITEM, NexoMinecraft.id(itemId));
-        }else{
+        } else {
             return null;
         }
     }
@@ -76,7 +76,7 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             MinecraftBlock block = BuiltInRegistries.BLOCK.getHolder(id).map(h -> new MinecraftBlock(helper.nexo(), h)).orElse(null);
-            if(block != null) HOLDER_MAP.put(location, block.holder);
+            if (block != null) HOLDER_MAP.put(location, block.holder);
             return block;
         });
     }

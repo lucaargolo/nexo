@@ -1,11 +1,19 @@
 package dev.lucaargolo.nexo.buildsrc
 
-import org.objectweb.asm.*
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import org.objectweb.asm.TypePath
+import org.objectweb.asm.TypeReference
 
 class NullAwayScanner {
 
     static final String NULLABLE_DESC = 'Lorg/jetbrains/annotations/Nullable;'
-    static final String NOTNULL_DESC  = 'Lorg/jetbrains/annotations/NotNull;'
+    static final String NOTNULL_DESC = 'Lorg/jetbrains/annotations/NotNull;'
     static final Set<String> PRIMITIVES = ['Z','B','C','S','I','J','F','D','V'] as Set
 
     static List<String> scan(File dir) {
@@ -32,7 +40,10 @@ class AnnotationCheckVisitor extends ClassVisitor {
 
     AnnotationCheckVisitor(String a, String b, Set<String> ps, List<String> e) {
         super(Opcodes.ASM9)
-        nd = a; nnd = b; p = ps; err = e
+        nd = a
+        nnd = b
+        p = ps
+        err = e
     }
 
     @Override
@@ -87,7 +98,8 @@ class FieldAnnotationVisitor extends FieldVisitor {
 
     FieldAnnotationVisitor(AnnotationCheckVisitor c, String n) {
         super(Opcodes.ASM9)
-        cv = c; this.n = n
+        cv = c
+        this.n = n
     }
 
     @Override
@@ -118,7 +130,10 @@ class MethodAnnotationVisitor extends MethodVisitor {
     MethodAnnotationVisitor(AnnotationCheckVisitor c, String n, String d,
                             boolean ct) {
         super(Opcodes.ASM9)
-        cv = c; mn = n; md = d; ctor = ct
+        cv = c
+        mn = n
+        md = d
+        ctor = ct
         pOk = new boolean[Type.getArgumentTypes(d).length]
     }
 

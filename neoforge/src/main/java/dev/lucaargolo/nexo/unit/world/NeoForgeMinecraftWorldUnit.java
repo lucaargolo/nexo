@@ -26,7 +26,7 @@ public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit {
         AttachmentType<D> type = NeoForgeNexoRegistryHandler.getDataAttachment(data);
         if (d == null) {
             this.level.removeData(type);
-        }else {
+        } else {
             this.level.setData(type, d);
         }
     }

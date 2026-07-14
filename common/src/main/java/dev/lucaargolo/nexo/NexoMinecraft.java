@@ -10,15 +10,15 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
+import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
-import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.model.NexoModelHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
-import dev.lucaargolo.nexo.model.NexoModelHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -149,9 +149,9 @@ public abstract class NexoMinecraft implements Nexo {
     public @NotNull <T extends Feature<T>> T registerFeature(@NotNull T feature) {
         Location location = feature.location();
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-        for(Feature.Type<?> type : Feature.Type.values()) {
+        for (Feature.Type<?> type : Feature.Type.values()) {
             MinecraftFeatureType<?> t = MinecraftFeatureType.of(type);
-            if(t.isInstance(feature)) {
+            if (t.isInstance(feature)) {
                 t.register(this.registryHandler, id, feature);
                 this.emit(new FeatureRegisteredEvent(location, feature));
                 return feature;
@@ -160,8 +160,7 @@ public abstract class NexoMinecraft implements Nexo {
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
     }
 
-
-    @NotNull
+@NotNull
     public BlockUnit stateToUnit(@NotNull BlockState state) {
         BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
@@ -208,9 +207,9 @@ public abstract class NexoMinecraft implements Nexo {
                 }
             }
         }
-        if(event.cancelable() && cancel) {
+        if (event.cancelable() && cancel) {
             return null;
-        }else{
+        } else {
             return event.value();
         }
     }
@@ -250,11 +249,12 @@ public abstract class NexoMinecraft implements Nexo {
         String clientClassPrefix = "Client" + commonClassPrefix;
         String clientClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clientClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
 
-        if(this.getSide().isClient()) {
+        if (this.getSide().isClient()) {
             try {
                 Class<? extends T> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
                 return clientPlatformClass.getConstructor(parameterTypes).newInstance(parameters);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         try {
             Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);

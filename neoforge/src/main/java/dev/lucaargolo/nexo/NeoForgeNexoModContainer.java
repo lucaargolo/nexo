@@ -166,16 +166,29 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
     private static class Loader implements IModLanguageLoader {
         static final Loader INSTANCE = new Loader();
-        @Override public String name() { return "nexo"; }
-        @Override public String version() { return "1.0"; }
-        @Override public ModContainer loadMod(IModInfo info, net.neoforged.neoforgespi.language.ModFileScanData scanData, java.lang.ModuleLayer layer) {
+        @Override
+        public String name() {
+            return "nexo";
+        }
+        @Override
+        public String version() {
+            return "1.0";
+        }
+        @Override
+        public ModContainer loadMod(IModInfo info, net.neoforged.neoforgespi.language.ModFileScanData scanData, java.lang.ModuleLayer layer) {
             return null;
         }
     }
 
     private static class Config implements IConfigurable {
         static final Config INSTANCE = new Config();
-        @Override public <T> Optional<T> getConfigElement(String... keys) { return Optional.empty(); }
-        @Override public List<? extends IConfigurable> getConfigList(String... keys) { return List.of(); }
+        @Override
+        public <T> Optional<T> getConfigElement(String... keys) {
+            return Optional.empty();
+        }
+        @Override
+        public List<? extends IConfigurable> getConfigList(String... keys) {
+            return List.of();
+        }
     }
 }

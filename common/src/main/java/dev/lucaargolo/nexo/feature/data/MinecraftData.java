@@ -100,7 +100,7 @@ public class MinecraftData<D> extends DataBase<D> {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
             MinecraftData<?> data = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).map(h -> new MinecraftData<>(helper.nexo(), h.key(), h::value)).orElse(null);
-            if(data != null) HOLDER_MAP.put(location, data.holder);
+            if (data != null) HOLDER_MAP.put(location, data.holder);
             return data;
         });
     }
@@ -143,6 +143,5 @@ public class MinecraftData<D> extends DataBase<D> {
         }
         throw new ClassCastException("Expected a data feature, got " + feature.getClass().getName());
     }
-
 
 }

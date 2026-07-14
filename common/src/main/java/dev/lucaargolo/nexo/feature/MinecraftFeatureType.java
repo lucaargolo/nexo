@@ -33,6 +33,7 @@ public class MinecraftFeatureType<M> {
     public static final MinecraftFeatureType<Item> ITEM = create(ItemBase.class, MinecraftItem::lookup, MinecraftItem::register, MinecraftItem::craft);
     public static final MinecraftFeatureType<CreativeModeTab> ITEM_CATEGORY = create(ItemCategoryBase.class, MinecraftItemCategory::lookup, MinecraftItemCategory::register, MinecraftItemCategory::craft);
     public static final MinecraftFeatureType<LevelStem> WORLD = create(WorldBase.class, MinecraftWorld::lookup, MinecraftWorld::register, MinecraftWorld::craft);
+
     private static final Map<Feature.Type<?>, MinecraftFeatureType<?>> TYPES = Map.of(
             Feature.Type.BLOCK, BLOCK,
             Feature.Type.DATA, DATA,
@@ -113,5 +114,4 @@ public class MinecraftFeatureType<M> {
     }
 
 }
-
 

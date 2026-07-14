@@ -56,9 +56,9 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         }
         MinecraftServer currentServer = this.nexo.getServer();
         if (currentServer != null) {
-            if(currentServer.isSameThread()) {
+            if (currentServer.isSameThread()) {
                 return currentServer.registryAccess();
-            }else{
+            } else {
                 return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
             }
         }
@@ -66,10 +66,10 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
     }
 
     public static void captureRegistry(RegistryAccess registry) {
-        if(registry == null) {
+        if (registry == null) {
             capturedRegistryThread = null;
             capturedRegistry = null;
-        }else{
+        } else {
             capturedRegistryThread = Thread.currentThread();
             capturedRegistry = registry;
         }
