@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 public class MinecraftData<D> extends DataBase<D> {
 
     private static final ConcurrentHashMap<Location, DataBase<?>> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<DataComponentType<?>, DataComponentType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<DataComponentType<?>, ? extends DataComponentType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
 
     @NotNull
     private final NexoMinecraft nexo;

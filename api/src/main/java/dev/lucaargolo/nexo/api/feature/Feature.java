@@ -75,6 +75,10 @@ public abstract class Feature<T extends Feature<T>> {
             ALL.add(this);
         }
 
+        public boolean isInstance(Feature<?> feature) {
+            return type.isInstance(feature);
+        }
+
         public T cast(Feature<?> feature) {
             return type.cast(feature);
         }

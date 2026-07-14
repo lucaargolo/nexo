@@ -17,32 +17,32 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-        ItemCategoryBase category = nexo.registerFeature(ItemCategoryBase.class, new SimpleItemCategory(
+        ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(
                 NexoTestMod.id("test")
         ));
 
-        BlockBase testBlock = nexo.registerFeature(BlockBase.class, new SimpleBlock(
+        BlockBase testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png"))
         ));
 
-        nexo.registerFeature(ItemBase.class, new BlockItem(
+        nexo.registerFeature(new BlockItem(
             NexoTestMod.id("test_block"),
             Model.full(nexo, NexoTestMod.id("test_block.png")),
             category,
             testBlock
         ));
 
-        nexo.registerFeature(BlockBase.class, new SimpleBlock(
+        nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
                 Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
         ));
-        nexo.registerFeature(BlockBase.class, new SimpleBlock(
+        nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
 
-        nexo.registerFeature(WorldBase.class, new SimpleWorld(
+        nexo.registerFeature(new SimpleWorld(
                 id("test")
         ));
 

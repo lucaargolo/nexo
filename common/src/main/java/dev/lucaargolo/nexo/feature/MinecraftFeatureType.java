@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.feature;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
@@ -24,18 +23,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class MinecraftFeatureType<T extends Feature<T>, M> {
 
-    public static final MinecraftFeatureType<BlockBase, Block> BLOCK = new MinecraftFeatureType<>(BlockBase.class, MinecraftBlock::lookup, MinecraftBlock::register, MinecraftBlock::craft);
-    public static final MinecraftFeatureType<?, DataComponentType<?>> DATA = new MinecraftFeatureType<>(DataBase.class, MinecraftData::lookup, MinecraftData::register, MinecraftData::craft);
-    public static final MinecraftFeatureType<ItemBase, Item> ITEM = new MinecraftFeatureType<>(ItemBase.class, MinecraftItem::lookup, MinecraftItem::register, MinecraftItem::craft);
-    public static final MinecraftFeatureType<ItemCategoryBase, CreativeModeTab> ITEM_CATEGORY = new MinecraftFeatureType<>(ItemCategoryBase.class, MinecraftItemCategory::lookup, MinecraftItemCategory::register, MinecraftItemCategory::craft);
-    public static final MinecraftFeatureType<WorldBase, LevelStem> WORLD = new MinecraftFeatureType<>(WorldBase.class, MinecraftWorld::lookup, MinecraftWorld::register, MinecraftWorld::craft);
+    public static final MinecraftFeatureType<BlockBase, Block> BLOCK = new MinecraftFeatureType<>(Feature.Type.BLOCK, MinecraftBlock::lookup, MinecraftBlock::register, MinecraftBlock::craft);
+    public static final MinecraftFeatureType<?, DataComponentType<?>> DATA = new MinecraftFeatureType<>(Feature.Type.data(), MinecraftData::lookup, MinecraftData::register, MinecraftData::craft);
+    public static final MinecraftFeatureType<ItemBase, Item> ITEM = new MinecraftFeatureType<>(Feature.Type.ITEM, MinecraftItem::lookup, MinecraftItem::register, MinecraftItem::craft);
+    public static final MinecraftFeatureType<ItemCategoryBase, CreativeModeTab> ITEM_CATEGORY = new MinecraftFeatureType<>(Feature.Type.ITEM_CATEGORY, MinecraftItemCategory::lookup, MinecraftItemCategory::register, MinecraftItemCategory::craft);
+    public static final MinecraftFeatureType<WorldBase, LevelStem> WORLD = new MinecraftFeatureType<>(Feature.Type.WORLD, MinecraftWorld::lookup, MinecraftWorld::register, MinecraftWorld::craft);
 
-    private final Class<T> type;
+    private final Feature.Type<T> type;
     private final FeatureLookup<T> lookup;
     private final FeatureRegistrar<T> registrar;
     private final FeatureCraftar<T, M> craftar;
 
-    private MinecraftFeatureType(Class<T> type, FeatureLookup<T> lookup, FeatureRegistrar<T> registrar, FeatureCraftar<T, M> craftar) {
+    private MinecraftFeatureType(Feature.Type<T> type, FeatureLookup<T> lookup, FeatureRegistrar<T> registrar, FeatureCraftar<T, M> craftar) {
         this.type = type;
         this.lookup = lookup;
         this.registrar = registrar;
@@ -61,6 +60,8 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static MinecraftFeatureType<?, ?> of(Feature.Type<?> type) {
         if (type == Feature.Type.BLOCK) {
             return BLOCK;
+        } else if(type == Feature.Type.DATA) {
+            return DATA;
         } else if (type == Feature.Type.ITEM) {
             return ITEM;
         } else if (type == Feature.Type.ITEM_CATEGORY) {
