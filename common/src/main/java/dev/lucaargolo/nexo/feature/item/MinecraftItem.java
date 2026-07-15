@@ -67,6 +67,10 @@ public class MinecraftItem extends ItemBase {
     }
 
     public static ItemBase register(NexoRegistryHandler<?> helper, ItemBase item) {
+        ItemBase registered = FEATURE_MAP.get(item.location());
+        if (registered != null) {
+            return registered;
+        }
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(item.location().namespace(), item.location().path());
         NexoHolder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
@@ -77,9 +81,14 @@ public class MinecraftItem extends ItemBase {
     @SuppressWarnings("deprecation")
     public static NexoHolder<Item> index(NexoRegistryHandler<?> helper, Item item) {
         Holder<Item> h = item.builtInRegistryHolder();
-        NexoHolder<Item> holder =new NexoHolder<>(helper.nexo(), h, Item.class);
-        FEATURE_MAP.put(holder.location(), new MinecraftItem(holder));
-        HOLDER_MAP.put(holder.location(), holder);
+        Location location = NexoMinecraft.id(h);
+        NexoHolder<Item> indexed = HOLDER_MAP.get(location);
+        if (indexed != null) {
+            return indexed;
+        }
+        NexoHolder<Item> holder = new NexoHolder<>(helper.nexo(), h, Item.class);
+        FEATURE_MAP.putIfAbsent(location, new MinecraftItem(holder));
+        HOLDER_MAP.put(location, holder);
         return holder;
     }
 

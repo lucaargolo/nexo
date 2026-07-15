@@ -48,9 +48,9 @@ public class MinecraftData<D> extends DataBase<D> {
     };
 
     @NotNull
-    private final NexoHolder<DataComponentType<D>> holder;
+    private final NexoHolder<?> holder;
 
-    private MinecraftData(@NotNull NexoHolder<DataComponentType<D>> holder) {
+    private MinecraftData(@NotNull NexoHolder<?> holder) {
         super(holder.location());
         this.holder = holder;
     }
@@ -68,19 +68,19 @@ public class MinecraftData<D> extends DataBase<D> {
     @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), holder.nexo().getRegistry());
-        holder.get().streamCodec().encode(buf, value);
+        componentType().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), holder.nexo().getRegistry());
-        return holder.get().streamCodec().decode(buf);
+        return componentType().streamCodec().decode(buf);
     }
 
     @Override
     public @NotNull JsonElement serialize(@NotNull D value) {
-        Codec<D> codec = holder.get().codec();
+        Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
         } else {
@@ -93,7 +93,7 @@ public class MinecraftData<D> extends DataBase<D> {
 
     @Override
     public @NotNull D deserialize(@NotNull JsonElement element) {
-        Codec<D> codec = holder.get().codec();
+        Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
         } else {
@@ -104,11 +104,20 @@ public class MinecraftData<D> extends DataBase<D> {
         }
     }
 
+    private @NotNull DataComponentType<D> componentType() {
+        Class<DataComponentType<D>> type = NexoUtils.type(DataComponentType.class);
+        return type.cast(this.holder.get());
+    }
+
     public static DataBase<?> lookup(Location location) {
         return FEATURE_MAP.get(location);
     }
 
     public static DataBase<?> register(NexoRegistryHandler<?> helper, DataBase<?> data) {
+        DataBase<?> registered = FEATURE_MAP.get(data.location());
+        if (registered != null) {
+            return registered;
+        }
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(data.location().namespace(), data.location().path());
         NexoHolder<DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
         FEATURE_MAP.put(data.location(), data);
@@ -119,10 +128,16 @@ public class MinecraftData<D> extends DataBase<D> {
 
     public static NexoHolder<DataComponentType<?>> index(NexoRegistryHandler<?> helper, DataComponentType<?> type) {
         ResourceLocation id = Objects.requireNonNull(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type));
+        Location location = NexoMinecraft.id(id);
+        NexoHolder<DataComponentType<?>> indexed = HOLDER_MAP.get(location);
+        if (indexed != null) {
+            return indexed;
+        }
         Holder<DataComponentType<?>> h = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).orElseThrow();
         NexoHolder<DataComponentType<?>> holder = new NexoHolder<>(helper.nexo(), h, NexoUtils.type(DataComponentType.class));
-        FEATURE_MAP.put(holder.location(), new MinecraftData<>(holder));
-        HOLDER_MAP.put(holder.location(), holder);
+        MinecraftData<?> feature = new MinecraftData<>(holder);
+        FEATURE_MAP.putIfAbsent(location, feature);
+        HOLDER_MAP.put(location, holder);
         return holder;
     }
 

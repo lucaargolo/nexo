@@ -57,6 +57,10 @@ public final class MinecraftEntity extends EntityBase {
     }
 
     public static EntityBase register(NexoRegistryHandler<?> helper, EntityBase entity) {
+        EntityBase registered = FEATURE_MAP.get(entity.location());
+        if (registered != null) {
+            return registered;
+        }
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(entity.location().namespace(), entity.location().path());
         NexoHolder<EntityType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(helper, entity));
         FEATURE_MAP.put(entity.location(), entity);
@@ -67,9 +71,14 @@ public final class MinecraftEntity extends EntityBase {
     @SuppressWarnings("deprecation")
     public static NexoHolder<EntityType<?>> index(NexoRegistryHandler<?> helper, EntityType<?> entity) {
         Holder<EntityType<?>> h = entity.builtInRegistryHolder();
+        Location location = NexoMinecraft.id(h);
+        NexoHolder<EntityType<?>> indexed = HOLDER_MAP.get(location);
+        if (indexed != null) {
+            return indexed;
+        }
         NexoHolder<EntityType<?>> holder = new NexoHolder<>(helper.nexo(), h, NexoUtils.type(EntityType.class));
-        FEATURE_MAP.put(holder.location(), new MinecraftEntity(holder));
-        HOLDER_MAP.put(holder.location(), holder);
+        FEATURE_MAP.putIfAbsent(location, new MinecraftEntity(holder));
+        HOLDER_MAP.put(location, holder);
         return holder;
     }
 
