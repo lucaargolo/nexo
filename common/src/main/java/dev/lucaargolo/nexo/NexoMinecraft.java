@@ -15,7 +15,6 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
-import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -26,6 +25,7 @@ import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -169,9 +170,9 @@ public abstract class NexoMinecraft implements Nexo {
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
     }
 
-@NotNull
+    @NotNull
     public BlockUnit<?> stateToUnit(@NotNull BlockState state) {
-        BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
+        BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder()));
         assert block != null;
         return new MinecraftBlockUnit(this, block, block.role(), state);
     }
@@ -184,34 +185,15 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @NotNull
-    public EntityUnit<?> entityToUnit(@NotNull Entity entity) {
-        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(entity.getType().builtInRegistryHolder().unwrapKey().orElseThrow()));
-        assert feature != null;
-        Role role = feature.role();
-        if (entity instanceof net.minecraft.world.entity.player.Player player && role == null) {
-            role = new PlayerRole(player.getUUID(), player.getGameProfile().getName());
-        }
-        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, role, entity);
-    }
-
-    @NotNull
     @SuppressWarnings("unchecked")
-    public <C extends Role> EntityUnit<C> entityToUnit(@NotNull Entity entity, @NotNull Class<C> roleType) {
-        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(entity.getType().builtInRegistryHolder().unwrapKey().orElseThrow()));
+    public <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
+        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(EntityType.getKey(entity.getType())));
         assert feature != null;
-        Role role = feature.role();
-        if (entity instanceof net.minecraft.world.entity.player.Player player && role == null) {
-            role = new PlayerRole(player.getUUID(), player.getGameProfile().getName());
-        }
-        C typedRole = roleType.cast(role);
-        if (typedRole == null) {
-            throw new IllegalArgumentException("Entity " + entity.getType() + " does not have role " + roleType.getName());
-        }
-        return (EntityUnit<C>) this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, typedRole, entity);
+        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, feature.role(), entity);
     }
 
     public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
-        return MinecraftEntity.defaultEntity(type, level);
+        return MinecraftEntity.summon(type, level);
     }
 
     @Override
@@ -330,6 +312,10 @@ public abstract class NexoMinecraft implements Nexo {
 
     public static Location id(ResourceKey<?> key) {
         return id(key.location());
+    }
+
+    public static Location id(Holder<?> holder) {
+        return id(holder.unwrapKey().orElseThrow());
     }
 
     public static <D> Codec<D> createCodec(DataBase<D> data) {

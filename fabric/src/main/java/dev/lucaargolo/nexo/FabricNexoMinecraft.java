@@ -17,6 +17,8 @@ import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.UUID;
+
 public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
 
     @Nullable
@@ -35,9 +37,9 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     }
 
     @Override
-    public Entity createEntity(EntityType<?> type, Level level, EntityBase feature) {
-        if (feature.getRole(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
-            return FakePlayer.get(serverLevel, new GameProfile(player.uuid(), player.name()));
+    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
+        if (feature.get(PlayerRole.class) instanceof PlayerRole(UUID uuid, String name) && level instanceof ServerLevel serverLevel) {
+            return FakePlayer.get(serverLevel, new GameProfile(uuid, name));
         }
         return super.createEntity(type, level, feature);
     }

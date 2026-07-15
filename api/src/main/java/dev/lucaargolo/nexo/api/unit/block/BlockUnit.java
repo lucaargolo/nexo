@@ -12,4 +12,9 @@ public abstract class BlockUnit<C extends Role> extends Unit<C> {
         super(feature, role);
     }
 
+    @Override
+    public @NotNull <R extends Role> BlockUnit<R> with(@NotNull Class<R> type) {
+        return (BlockUnit<R>) super.with(type);
+    }
+
 }

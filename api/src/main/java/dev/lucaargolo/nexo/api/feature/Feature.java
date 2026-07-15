@@ -43,16 +43,16 @@ public abstract class Feature<T extends Feature<T>> {
         return role;
     }
 
-    public <C extends Role> boolean hasRole(@NotNull Class<C> roleType) {
-        return getRole(roleType) != null;
+    public <C extends Role> boolean has(@NotNull Class<C> type) {
+        return type.isInstance(role);
     }
 
-    @Nullable
-    public <C extends Role> C getRole(@NotNull Class<C> roleType) {
-        if (roleType.isInstance(role)) {
-            return roleType.cast(role);
+    @NotNull
+    public <C extends Role> C get(@NotNull Class<C> type) {
+        if (type.isInstance(role)) {
+            return type.cast(role);
         }
-        return null;
+        throw new IllegalArgumentException("Feature does not have role type " + type.getName());
     }
 
     @NotNull
@@ -80,10 +80,6 @@ public abstract class Feature<T extends Feature<T>> {
         public Type(Class<T> type) {
             this.type = type;
             ALL.add(this);
-        }
-
-        public boolean isInstance(Feature<?> feature) {
-            return type.isInstance(feature);
         }
 
         public T cast(Feature<?> feature) {

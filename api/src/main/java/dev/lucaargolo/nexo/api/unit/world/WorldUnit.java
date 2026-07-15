@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.SideProvider;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
@@ -13,6 +14,11 @@ public abstract class WorldUnit<C extends Role> extends Unit<C> implements SideP
 
     protected WorldUnit(@NotNull WorldBase feature, @Nullable C role) {
         super(feature, role);
+    }
+
+    @Override
+    public @NotNull <R extends Role> WorldUnit<R> with(@NotNull Class<R> type) {
+        return (WorldUnit<R>) super.with(type);
     }
 
     @Nullable

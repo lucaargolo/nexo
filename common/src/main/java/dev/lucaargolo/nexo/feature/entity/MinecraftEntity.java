@@ -55,13 +55,12 @@ public final class MinecraftEntity extends EntityBase {
     }
 
     public static EntityBase register(NexoRegistryHandler<?> helper, ResourceLocation id, EntityBase entity) {
-        NexoHolder<EntityType<?>, EntityType<?>> holder = helper.registerBuiltinFeature(
-                BuiltInRegistries.ENTITY_TYPE,
-                id,
-                () -> EntityType.Builder.of((type, level) -> helper.nexo().createEntity(type, level, entity), MobCategory.MISC)
-                        .sized(0.6F, 1.8F)
-                        .build(id.toString())
-        );
+        NexoHolder<EntityType<?>, EntityType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, () -> {
+            return EntityType.Builder
+                    .of((type, level) -> helper.nexo().createEntity(type, level, entity), MobCategory.MISC)
+                    .sized(0.6F, 1.8F)
+                    .build(id.toString());
+        });
         FEATURE_MAP.put(entity.location(), entity);
         HOLDER_MAP.put(entity.location(), holder);
         return entity;
@@ -71,7 +70,7 @@ public final class MinecraftEntity extends EntityBase {
         return Objects.requireNonNull(HOLDER_MAP.get(entity.location())).get();
     }
 
-    public static Entity defaultEntity(@NotNull EntityType<?> type, @NotNull Level level) {
+    public static Entity summon(@NotNull EntityType<?> type, @NotNull Level level) {
         return new Entity(type, level) {
             @Override
             protected void defineSynchedData(@NotNull net.minecraft.network.syncher.SynchedEntityData.Builder builder) {

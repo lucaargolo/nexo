@@ -37,8 +37,8 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    public Entity createEntity(EntityType<?> type, Level level, EntityBase feature) {
-        if (feature.getRole(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
+    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
+        if (feature.get(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
             return new net.neoforged.neoforge.common.util.FakePlayer(serverLevel, new GameProfile(player.uuid(), player.name()));
         }
         return super.createEntity(type, level, feature);

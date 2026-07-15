@@ -70,9 +70,8 @@ public class MinecraftItem extends ItemBase {
 
     public static ItemBase register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
         NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
-            if (item.hasRole(BlockItemRole.class)) {
-                BlockItemRole role = item.getRole(BlockItemRole.class);
-                assert role != null;
+            if (item.has(BlockItemRole.class)) {
+                BlockItemRole role = item.get(BlockItemRole.class);
                 Block block = MinecraftFeatureType.BLOCK.craft(role.block());
                 return new BlockItem(block, new Item.Properties());
             } else {
