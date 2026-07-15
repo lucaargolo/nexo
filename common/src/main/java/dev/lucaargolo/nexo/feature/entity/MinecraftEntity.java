@@ -7,12 +7,11 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -59,22 +58,7 @@ public final class MinecraftEntity extends EntityBase {
         NexoHolder<EntityType<?>, EntityType<?>> holder = helper.registerBuiltinFeature(
                 BuiltInRegistries.ENTITY_TYPE,
                 id,
-                () -> EntityType.Builder.of((type, level) -> new Entity(type, level) {
-                            @Override
-                            protected void defineSynchedData(@NotNull SynchedEntityData.Builder builder) {
-
-                            }
-
-                            @Override
-                            protected void readAdditionalSaveData(@NotNull CompoundTag compoundTag) {
-
-                            }
-
-                            @Override
-                            protected void addAdditionalSaveData(@NotNull CompoundTag compoundTag) {
-
-                            }
-                        }, MobCategory.MISC)
+                () -> EntityType.Builder.of((type, level) -> helper.nexo().createEntity(type, level, entity), MobCategory.MISC)
                         .sized(0.6F, 1.8F)
                         .build(id.toString())
         );
@@ -85,6 +69,22 @@ public final class MinecraftEntity extends EntityBase {
 
     public static EntityType<?> craft(EntityBase entity) {
         return Objects.requireNonNull(HOLDER_MAP.get(entity.location())).get();
+    }
+
+    public static Entity defaultEntity(@NotNull EntityType<?> type, @NotNull Level level) {
+        return new Entity(type, level) {
+            @Override
+            protected void defineSynchedData(@NotNull net.minecraft.network.syncher.SynchedEntityData.Builder builder) {
+            }
+
+            @Override
+            protected void readAdditionalSaveData(@NotNull net.minecraft.nbt.CompoundTag tag) {
+            }
+
+            @Override
+            protected void addAdditionalSaveData(@NotNull net.minecraft.nbt.CompoundTag tag) {
+            }
+        };
     }
 
 }

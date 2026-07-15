@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.unit.block;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,15 +15,15 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public final class MinecraftBlockUnit extends BlockUnit<BlockBase> implements MinecraftUnit<BlockState> {
+public final class MinecraftBlockUnit extends BlockUnit<Role> implements MinecraftUnit<BlockState> {
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     private BlockState state;
 
-    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @NotNull BlockState state) {
-        super(feature);
+    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @NotNull BlockState state) {
+        super(feature, role);
         this.nexo = nexo;
         this.state = state;
     }

@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.ItemProvider;
 import dev.lucaargolo.nexo.api.feature.ModelProvider;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
@@ -12,6 +13,10 @@ public abstract class ItemBase extends Feature<ItemBase> implements ModelProvide
 
     public ItemBase(@NotNull Location location) {
         super(location);
+    }
+
+    public ItemBase(@NotNull Location location, @Nullable Role role) {
+        super(location, role);
     }
 
     @Override

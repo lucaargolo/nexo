@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.component.Component;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
@@ -18,9 +18,16 @@ public abstract class Feature<T extends Feature<T>> {
 
     @NotNull
     private final Location location;
+    @Nullable
+    private final Role role;
 
     public Feature(@NotNull Location location) {
+        this(location, null);
+    }
+
+    public Feature(@NotNull Location location, @Nullable Role role) {
         this.location = location;
+        this.role = role;
     }
 
     @NotNull
@@ -31,21 +38,19 @@ public abstract class Feature<T extends Feature<T>> {
         return location;
     }
 
-    @NotNull
-    public List<@NotNull Component> components() {
-        return List.of();
+    @Nullable
+    public Role role() {
+        return role;
     }
 
-    public <C extends Component> boolean hasComponent(@NotNull Class<C> componentType) {
-        return getComponent(componentType) != null;
+    public <C extends Role> boolean hasRole(@NotNull Class<C> roleType) {
+        return getRole(roleType) != null;
     }
 
     @Nullable
-    public <C extends Component> C getComponent(@NotNull Class<C> componentType) {
-        for (Component component : components()) {
-            if (componentType.isInstance(component)) {
-                return componentType.cast(component);
-            }
+    public <C extends Role> C getRole(@NotNull Class<C> roleType) {
+        if (roleType.isInstance(role)) {
+            return roleType.cast(role);
         }
         return null;
     }

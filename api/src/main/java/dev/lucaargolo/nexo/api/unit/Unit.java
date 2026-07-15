@@ -1,21 +1,29 @@
 package dev.lucaargolo.nexo.api.unit;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Unit<T extends Feature<?>> {
+public abstract class Unit<C extends Role> {
 
     @NotNull
-    private final T feature;
+    private final Feature<?> feature;
+    @Nullable
+    private final C role;
 
-    protected Unit(@NotNull T feature) {
+    protected Unit(@NotNull Feature<?> feature, @Nullable C role) {
         this.feature = feature;
+        this.role = role;
     }
 
-    public @Nullable T value() {
+    public @NotNull Feature<?> feature() {
         return feature;
+    }
+
+    public @Nullable C role() {
+        return role;
     }
 
     public abstract <D> @Nullable D getData(@NotNull DataBase<D> data);

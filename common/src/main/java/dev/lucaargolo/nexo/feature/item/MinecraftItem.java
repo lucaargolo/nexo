@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.component.BlockItemComponent;
+import dev.lucaargolo.nexo.api.role.BlockItemRole;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -70,10 +70,10 @@ public class MinecraftItem extends ItemBase {
 
     public static ItemBase register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
         NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
-            if (item.hasComponent(BlockItemComponent.class)) {
-                BlockItemComponent component = item.getComponent(BlockItemComponent.class);
-                assert component != null;
-                Block block = MinecraftFeatureType.BLOCK.craft(component.block());
+            if (item.hasRole(BlockItemRole.class)) {
+                BlockItemRole role = item.getRole(BlockItemRole.class);
+                assert role != null;
+                Block block = MinecraftFeatureType.BLOCK.craft(role.block());
                 return new BlockItem(block, new Item.Properties());
             } else {
                 return new Item(new Item.Properties());

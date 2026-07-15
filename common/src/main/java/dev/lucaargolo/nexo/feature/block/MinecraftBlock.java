@@ -3,9 +3,11 @@ package dev.lucaargolo.nexo.feature.block;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.role.PlayerRole;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -18,7 +20,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -78,7 +79,7 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull Vector3i pos) {
+    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> player, @NotNull Vector3i pos) {
         BlockState state = ((MinecraftBlockUnit) block).get();
         Level level = ((MinecraftWorldUnit) world).get();
         Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
@@ -103,10 +104,10 @@ public class MinecraftBlock extends BlockBase {
     public static BlockBase register(NexoRegistryHandler<?> helper, ResourceLocation id, BlockBase block) {
         NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
             @Override
-            protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull Player pPlayer, @NotNull BlockHitResult pHitResult) {
+            protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull net.minecraft.world.entity.player.Player pPlayer, @NotNull BlockHitResult pHitResult) {
                 BlockUnit<?> state = helper.nexo().stateToUnit(pState);
                 WorldUnit<?> level = helper.nexo().levelToUnit(pLevel);
-                Interaction interaction = block.onInteract(state, level, new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
+                Interaction interaction = block.onInteract(state, level, helper.nexo().entityToUnit(pPlayer, PlayerRole.class), new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;
                     case FAIL -> InteractionResult.FAIL;

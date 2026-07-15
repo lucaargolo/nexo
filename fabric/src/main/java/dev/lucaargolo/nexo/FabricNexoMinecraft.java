@@ -1,11 +1,19 @@
 package dev.lucaargolo.nexo;
 
+import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.role.PlayerRole;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,6 +32,14 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public String getPlatform() {
         return "Fabric";
+    }
+
+    @Override
+    public Entity createEntity(EntityType<?> type, Level level, EntityBase feature) {
+        if (feature.getRole(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
+            return FakePlayer.get(serverLevel, new GameProfile(player.uuid(), player.name()));
+        }
+        return super.createEntity(type, level, feature);
     }
 
     @Override

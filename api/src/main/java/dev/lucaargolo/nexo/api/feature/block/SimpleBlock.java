@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.api.feature.block;
 
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
+import dev.lucaargolo.nexo.api.role.PlayerRole;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -38,7 +40,7 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull Vector3i pos) {
+    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> player, @NotNull Vector3i pos) {
         return Interaction.PASS;
     }
 

@@ -1,14 +1,11 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
-import dev.lucaargolo.nexo.api.component.BlockItemComponent;
-import dev.lucaargolo.nexo.api.component.Component;
+import dev.lucaargolo.nexo.api.role.BlockItemRole;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class BlockItem extends ItemBase {
 
@@ -16,19 +13,15 @@ public class BlockItem extends ItemBase {
     private final Model model;
     @Nullable
     private final ItemCategoryBase category;
-    @NotNull
-    private final BlockBase block;
-
     public BlockItem(
             @NotNull Location location,
             @Nullable Model model,
             @Nullable ItemCategoryBase category,
             @NotNull BlockBase block
     ) {
-        super(location);
+        super(location, new BlockItemRole(block));
         this.model = model;
         this.category = category;
-        this.block = block;
     }
 
     @Override
@@ -39,11 +32,6 @@ public class BlockItem extends ItemBase {
     @Override
     public @Nullable ItemCategoryBase category() {
         return category;
-    }
-
-    @Override
-    public @NotNull List<@NotNull Component> components() {
-        return List.of(new BlockItemComponent(block));
     }
 
 }

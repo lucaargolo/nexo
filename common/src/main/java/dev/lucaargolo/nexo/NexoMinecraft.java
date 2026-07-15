@@ -6,6 +6,8 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoException;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
+import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.role.PlayerRole;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -18,6 +20,7 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
@@ -30,6 +33,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -169,21 +173,45 @@ public abstract class NexoMinecraft implements Nexo {
     public BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder().unwrapKey().orElseThrow()));
         assert block != null;
-        return new MinecraftBlockUnit(this, block, state);
+        return new MinecraftBlockUnit(this, block, block.role(), state);
     }
 
     @NotNull
     public WorldUnit<?> levelToUnit(@NotNull Level level) {
         WorldBase world = this.getFeature(Feature.Type.WORLD, NexoMinecraft.id(level.dimension()));
         assert world != null;
-        return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, level);
+        return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, world.role(), level);
     }
 
     @NotNull
     public EntityUnit<?> entityToUnit(@NotNull Entity entity) {
         EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(entity.getType().builtInRegistryHolder().unwrapKey().orElseThrow()));
         assert feature != null;
-        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, entity);
+        Role role = feature.role();
+        if (entity instanceof net.minecraft.world.entity.player.Player player && role == null) {
+            role = new PlayerRole(player.getUUID(), player.getGameProfile().getName());
+        }
+        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, role, entity);
+    }
+
+    @NotNull
+    @SuppressWarnings("unchecked")
+    public <C extends Role> EntityUnit<C> entityToUnit(@NotNull Entity entity, @NotNull Class<C> roleType) {
+        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(entity.getType().builtInRegistryHolder().unwrapKey().orElseThrow()));
+        assert feature != null;
+        Role role = feature.role();
+        if (entity instanceof net.minecraft.world.entity.player.Player player && role == null) {
+            role = new PlayerRole(player.getUUID(), player.getGameProfile().getName());
+        }
+        C typedRole = roleType.cast(role);
+        if (typedRole == null) {
+            throw new IllegalArgumentException("Entity " + entity.getType() + " does not have role " + roleType.getName());
+        }
+        return (EntityUnit<C>) this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, typedRole, entity);
+    }
+
+    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
+        return MinecraftEntity.defaultEntity(type, level);
     }
 
     @Override

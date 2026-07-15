@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -14,15 +15,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class MinecraftWorldUnit extends WorldUnit<WorldBase> implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit extends WorldUnit<Role> implements MinecraftUnit<Level> {
 
     @NotNull
     private final NexoMinecraft nexo;
     @NotNull
     protected final Level level;
 
-    public MinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @NotNull Level level) {
-        super(feature);
+    public MinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+        super(feature, role);
         this.nexo = nexo;
         this.level = level;
     }

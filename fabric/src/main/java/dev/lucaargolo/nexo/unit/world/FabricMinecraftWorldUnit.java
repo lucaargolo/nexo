@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.FabricNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -12,8 +13,8 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings("UnstableApiUsage")
 public class FabricMinecraftWorldUnit extends MinecraftWorldUnit {
 
-    public FabricMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @NotNull Level level) {
-        super(nexo, feature, level);
+    public FabricMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+        super(nexo, feature, role, level);
     }
 
     @Override

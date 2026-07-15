@@ -1,13 +1,15 @@
 package dev.lucaargolo.nexo.api.unit.block;
 
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockUnit<T extends BlockBase> extends Unit<T> {
+public abstract class BlockUnit<C extends Role> extends Unit<C> {
 
-    protected BlockUnit(@NotNull T feature) {
-        super(feature);
+    protected BlockUnit(@NotNull BlockBase feature, @Nullable C role) {
+        super(feature, role);
     }
 
 }

@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import net.minecraft.world.entity.Entity;
@@ -9,10 +10,10 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftEntityUnit extends MinecraftEntityUnit {
+public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<C, E> {
 
-    public NeoForgeMinecraftEntityUnit(@NotNull NexoMinecraft nexo, @NotNull EntityBase feature, @NotNull Entity entity) {
-        super(nexo, feature, entity);
+    public NeoForgeMinecraftEntityUnit(@NotNull NexoMinecraft nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+        super(nexo, feature, role, entity);
     }
 
     @Override

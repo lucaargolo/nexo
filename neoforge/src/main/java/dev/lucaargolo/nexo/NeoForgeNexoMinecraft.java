@@ -1,7 +1,14 @@
 package dev.lucaargolo.nexo;
 
+import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.role.PlayerRole;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
@@ -27,6 +34,14 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     @Override
     public String getPlatform() {
         return "NeoForge";
+    }
+
+    @Override
+    public Entity createEntity(EntityType<?> type, Level level, EntityBase feature) {
+        if (feature.getRole(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
+            return new net.neoforged.neoforge.common.util.FakePlayer(serverLevel, new GameProfile(player.uuid(), player.name()));
+        }
+        return super.createEntity(type, level, feature);
     }
 
     @Override
