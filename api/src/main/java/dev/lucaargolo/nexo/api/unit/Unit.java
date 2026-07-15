@@ -2,9 +2,7 @@ package dev.lucaargolo.nexo.api.unit;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
-import dev.lucaargolo.nexo.api.role.PlayerRole;
 import dev.lucaargolo.nexo.api.role.Role;
-import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

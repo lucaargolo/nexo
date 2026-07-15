@@ -2,13 +2,16 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -53,11 +56,16 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         });
     }
 
-    public static ItemCategoryBase register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemCategoryBase category) {
-        NexoHolder<CreativeModeTab, CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, helper.createCreativeTab(category));
+    public static ItemCategoryBase register(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(category.location().namespace(), category.location().path());
+        NexoHolder<CreativeModeTab, CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(helper, category));
         FEATURE_MAP.put(category.location(), category);
         HOLDER_MAP.put(category.location(), holder);
         return category;
+    }
+
+    public static CreativeModeTab craft(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
+        return helper.createCreativeTab(category);
     }
 
 }

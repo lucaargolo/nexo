@@ -67,9 +67,9 @@ public abstract class Feature<T extends Feature<T>> {
 
         public static final Type<?> DATA = new Type<>(DataBase.class);
         public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
-        public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<ItemBase> ITEM = new Type<>(ItemBase.class);
         public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
+        public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);
 
         public Type(Class<T> type) {

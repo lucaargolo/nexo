@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.authlib.GameProfile;
-import dev.lucaargolo.nexo.api.role.PlayerRole;
+import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.fabricmc.api.EnvType;

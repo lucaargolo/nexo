@@ -60,10 +60,10 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         dataAttachmentMap.put(data, holder.holder());
     }
 
-    public Supplier<CreativeModeTab> createCreativeTab(ItemCategoryBase category) {
+    public CreativeModeTab createCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
-        return () -> CreativeModeTab.builder().title(title).build();
+        return CreativeModeTab.builder().title(title).build();
     }
 
     @SuppressWarnings("unchecked")

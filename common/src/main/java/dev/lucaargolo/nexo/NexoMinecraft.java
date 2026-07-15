@@ -6,8 +6,6 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoException;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
-import dev.lucaargolo.nexo.api.role.Role;
-import dev.lucaargolo.nexo.api.role.PlayerRole;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -19,7 +17,6 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.model.NexoModelHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
@@ -34,7 +31,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -158,11 +154,10 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @NotNull <T extends Feature<T>> T registerFeature(@NotNull T feature) {
         Location location = feature.location();
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
         for (Feature.Type<?> type : Feature.Type.values()) {
             MinecraftFeatureType<?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
-                t.register(this.registryHandler, id, feature);
+                t.register(this.registryHandler, feature);
                 this.emit(new FeatureRegisteredEvent(location, feature));
                 return feature;
             }
@@ -187,10 +182,6 @@ public abstract class NexoMinecraft implements Nexo {
         EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(EntityType.getKey(entity.getType())));
         assert feature != null;
         return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, feature.role(), entity);
-    }
-
-    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
-        return MinecraftEntity.summon(type, level);
     }
 
     @Override

@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.role.BlockItemRole;
+import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
@@ -72,19 +72,16 @@ public class MinecraftItem extends ItemBase {
         });
     }
 
-    public static ItemBase register(NexoRegistryHandler<?> helper, ResourceLocation id, ItemBase item) {
-        NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, () -> {
-            if (item.has(BlockItemRole.class)) {
-                BlockItemRole role = item.get(BlockItemRole.class);
-                Block block = MinecraftFeatureType.BLOCK.craft(role.block());
-                return new BlockItem(block, new Item.Properties());
-            } else {
-                return new Item(new Item.Properties());
-            }
-        });
+    public static ItemBase register(NexoRegistryHandler<?> helper, ItemBase item) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(item.location().namespace(), item.location().path());
+        NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
         HOLDER_MAP.put(item.location(), holder);
         return item;
+    }
+
+    public static Item craft(NexoRegistryHandler<?> helper, ItemBase item) {
+        return new Item(new Item.Properties());
     }
 
 }

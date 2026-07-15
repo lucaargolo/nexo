@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo.feature.block;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
-import dev.lucaargolo.nexo.api.role.PlayerRole;
+import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -11,6 +11,7 @@ import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
@@ -108,8 +109,16 @@ public class MinecraftBlock extends BlockBase {
         });
     }
 
-    public static BlockBase register(NexoRegistryHandler<?> helper, ResourceLocation id, BlockBase block) {
-        NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, () -> new Block(BlockBehaviour.Properties.of()) {
+    public static BlockBase register(NexoRegistryHandler<?> helper, BlockBase block) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(block.location().namespace(), block.location().path());
+        NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
+        FEATURE_MAP.put(block.location(), block);
+        HOLDER_MAP.put(block.location(), holder);
+        return block;
+    }
+
+    public static Block craft(NexoRegistryHandler<?> helper, BlockBase block) {
+        return new Block(BlockBehaviour.Properties.of()) {
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull net.minecraft.world.entity.player.Player pPlayer, @NotNull BlockHitResult pHitResult) {
                 BlockUnit<?> state = helper.nexo().stateToUnit(pState);
@@ -121,12 +130,8 @@ public class MinecraftBlock extends BlockBase {
                     case SUCCESS -> InteractionResult.SUCCESS;
                 };
             }
-        });
-        FEATURE_MAP.put(block.location(), block);
-        HOLDER_MAP.put(block.location(), holder);
-        return block;
+        };
     }
-
 
 
 }

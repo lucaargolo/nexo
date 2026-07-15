@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentType;
@@ -108,24 +109,26 @@ public class MinecraftData<D> extends DataBase<D> {
         });
     }
 
-    public static <T> DataBase<T> register(NexoRegistryHandler<?> helper, ResourceLocation id, DataBase<T> data) {
-        NexoHolder<DataComponentType<?>, DataComponentType<T>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, () -> {
-            DataComponentType.Builder<T> builder = DataComponentType.builder();
-            if (data.persistent()) {
-                Codec<T> codec = NexoMinecraft.createCodec(data);
-                builder.persistent(codec);
-            }
-            if (data.synced()) {
-                StreamCodec<RegistryFriendlyByteBuf, T> codec = NexoMinecraft.createPacketCodec(data);
-                builder.networkSynchronized(codec);
-            }
-            return builder.build();
-        });
-
+    public static DataBase<?> register(NexoRegistryHandler<?> helper, DataBase<?> data) {
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(data.location().namespace(), data.location().path());
+        NexoHolder<DataComponentType<?>, DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
         FEATURE_MAP.put(data.location(), data);
         HOLDER_MAP.put(data.location(), holder);
         helper.registerDataAttachment(data);
         return data;
+    }
+
+    public static <T> DataComponentType<T> craft(NexoRegistryHandler<?> helper, DataBase<T> data) {
+        DataComponentType.Builder<T> builder = DataComponentType.builder();
+        if (data.persistent()) {
+            Codec<T> codec = NexoMinecraft.createCodec(data);
+            builder.persistent(codec);
+        }
+        if (data.synced()) {
+            StreamCodec<RegistryFriendlyByteBuf, T> codec = NexoMinecraft.createPacketCodec(data);
+            builder.networkSynchronized(codec);
+        }
+        return builder.build();
     }
 
 }

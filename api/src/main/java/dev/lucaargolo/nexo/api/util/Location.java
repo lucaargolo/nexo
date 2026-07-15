@@ -50,4 +50,8 @@ public final class Location {
                 .computeIfAbsent(path, p -> new Location(namespace, path));
     }
 
+    @Override
+    public @NotNull String toString() {
+        return this.namespace + ":" + this.path;
+    }
 }

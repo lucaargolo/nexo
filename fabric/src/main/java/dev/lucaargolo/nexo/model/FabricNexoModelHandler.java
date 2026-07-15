@@ -51,7 +51,7 @@ public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft
     protected void collectModel(Feature<?> feature, Model model, ResourceLocation modelId, NexoMinecraftModel mcModel) {
         unbakedModels.put(modelId, mcModel);
         if (feature instanceof BlockBase block) {
-            blockToModel.put(MinecraftFeatureType.BLOCK.craft(block), modelId);
+            blockToModel.put(MinecraftFeatureType.BLOCK.crafted(block), modelId);
         } else if (feature instanceof ItemBase) {
             itemModelIds.add(modelId);
         }
