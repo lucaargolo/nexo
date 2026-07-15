@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.api.unit.entity;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
-import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

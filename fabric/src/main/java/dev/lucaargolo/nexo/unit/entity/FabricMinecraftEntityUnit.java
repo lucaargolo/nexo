@@ -2,9 +2,9 @@ package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.FabricNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;

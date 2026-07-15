@@ -1,14 +1,7 @@
 package dev.lucaargolo.nexo;
 
-import com.mojang.authlib.GameProfile;
-import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
-import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;

@@ -2,9 +2,9 @@ package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;

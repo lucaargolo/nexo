@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.api.feature.item;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.ItemProvider;
 import dev.lucaargolo.nexo.api.feature.ModelProvider;
-import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;

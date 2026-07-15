@@ -5,7 +5,6 @@ import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.SideProvider;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
-import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;

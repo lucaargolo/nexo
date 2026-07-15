@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.function.Predicate;
 
 public interface Nexo {

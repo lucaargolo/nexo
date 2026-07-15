@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.entity.Entity;
