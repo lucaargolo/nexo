@@ -37,14 +37,6 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     }
 
     @Override
-    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
-        if (feature.get(PlayerRole.class) instanceof PlayerRole(UUID uuid, String name) && level instanceof ServerLevel serverLevel) {
-            return FakePlayer.get(serverLevel, new GameProfile(uuid, name));
-        }
-        return super.createEntity(type, level, feature);
-    }
-
-    @Override
     public boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
     }

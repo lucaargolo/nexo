@@ -37,14 +37,6 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    public @NotNull Entity createEntity(@NotNull EntityType<?> type, @NotNull Level level, @NotNull EntityBase feature) {
-        if (feature.get(PlayerRole.class) instanceof PlayerRole player && level instanceof ServerLevel serverLevel) {
-            return new net.neoforged.neoforge.common.util.FakePlayer(serverLevel, new GameProfile(player.uuid(), player.name()));
-        }
-        return super.createEntity(type, level, feature);
-    }
-
-    @Override
     public boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
     }
