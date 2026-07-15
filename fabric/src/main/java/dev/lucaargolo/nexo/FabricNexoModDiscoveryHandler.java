@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.util.ReflectionUtils;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
@@ -65,8 +65,8 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         try {
             FabricLoaderImpl impl = (FabricLoaderImpl) FabricLoader.getInstance();
 
-            List<Object> mods = ReflectionUtils.getField(FabricLoaderImpl.class, "mods", impl);
-            Map<String, Object> modMap = ReflectionUtils.getField(FabricLoaderImpl.class, "modMap", impl);
+            List<Object> mods = NexoUtils.getField(FabricLoaderImpl.class, "mods", impl);
+            Map<String, Object> modMap = NexoUtils.getField(FabricLoaderImpl.class, "modMap", impl);
 
             for (Nexo.Mod mod : this.mods.values()) {
                 FabricNexoModContainer container = new FabricNexoModContainer(mod);

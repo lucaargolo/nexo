@@ -5,11 +5,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 
-public final class ReflectionUtils {
+@SuppressWarnings("unchecked")
+public final class NexoUtils {
 
-    private ReflectionUtils() {}
+    private NexoUtils() {}
 
-    @SuppressWarnings("unchecked")
+    public static <T> Class<T> type(Class<?> type) {
+        return (Class<T>) type;
+    }
+
     public static <T> T getField(@NotNull Class<?> clazz, @NotNull String name, @NotNull Object instance) {
         try {
             Field field = clazz.getDeclaredField(name);

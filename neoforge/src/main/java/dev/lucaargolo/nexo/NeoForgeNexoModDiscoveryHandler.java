@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.util.ReflectionUtils;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.fml.loading.FMLPaths;
@@ -60,20 +60,20 @@ public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Neo
             ModList modList = ModList.get();
 
             // Replace immutable mods list with mutable copy
-            List<Object> modsList = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "mods", modList));
-            ReflectionUtils.setField(ModList.class, "mods", modList, modsList);
+            List<Object> modsList = new ArrayList<>(NexoUtils.<List<Object>>getField(ModList.class, "mods", modList));
+            NexoUtils.setField(ModList.class, "mods", modList, modsList);
 
             // Replace immutable indexedMods with mutable copy
-            Map<String, Object> indexedMods = new HashMap<>(ReflectionUtils.<Map<String, Object>>getField(ModList.class, "indexedMods", modList));
-            ReflectionUtils.setField(ModList.class, "indexedMods", modList, indexedMods);
+            Map<String, Object> indexedMods = new HashMap<>(NexoUtils.<Map<String, Object>>getField(ModList.class, "indexedMods", modList));
+            NexoUtils.setField(ModList.class, "indexedMods", modList, indexedMods);
 
             // Replace immutable sortedContainers (what getSortedMods() returns — the mod list screen reads this)
-            List<Object> sortedContainers = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "sortedContainers", modList));
-            ReflectionUtils.setField(ModList.class, "sortedContainers", modList, sortedContainers);
+            List<Object> sortedContainers = new ArrayList<>(NexoUtils.<List<Object>>getField(ModList.class, "sortedContainers", modList));
+            NexoUtils.setField(ModList.class, "sortedContainers", modList, sortedContainers);
 
             // Also add to sortedList (getMods() for IModInfo access)
-            List<Object> sortedList = new ArrayList<>(ReflectionUtils.<List<Object>>getField(ModList.class, "sortedList", modList));
-            ReflectionUtils.setField(ModList.class, "sortedList", modList, sortedList);
+            List<Object> sortedList = new ArrayList<>(NexoUtils.<List<Object>>getField(ModList.class, "sortedList", modList));
+            NexoUtils.setField(ModList.class, "sortedList", modList, sortedList);
 
             for (Nexo.Mod mod : this.mods.values()) {
                 NeoForgeNexoModContainer container = new NeoForgeNexoModContainer(mod);
