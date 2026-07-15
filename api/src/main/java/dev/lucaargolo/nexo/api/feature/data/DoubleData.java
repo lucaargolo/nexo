@@ -18,9 +18,8 @@ public final class DoubleData extends DataBase<Double> {
     }
 
     @Override
-    @NotNull
-    public Double initial() {
-        return this.initial;
+    public @NotNull Double initial() {
+        return initial;
     }
 
     @Override

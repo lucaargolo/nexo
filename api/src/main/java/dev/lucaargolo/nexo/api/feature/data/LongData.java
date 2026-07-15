@@ -18,9 +18,8 @@ public final class LongData extends DataBase<Long> {
     }
 
     @Override
-    @NotNull
-    public Long initial() {
-        return this.initial;
+    public @NotNull Long initial() {
+        return initial;
     }
 
     @Override

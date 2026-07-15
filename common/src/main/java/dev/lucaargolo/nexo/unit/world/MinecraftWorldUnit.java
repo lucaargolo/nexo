@@ -44,8 +44,7 @@ public abstract class MinecraftWorldUnit extends WorldUnit<Role> implements Mine
     }
 
     @Override
-    @Nullable
-    public BlockUnit<?> getBlock(@NotNull Vector3i pos) {
+    public @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);
         if (state.isAir()) return null;

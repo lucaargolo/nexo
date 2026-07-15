@@ -38,7 +38,7 @@ public class MinecraftItem extends ItemBase {
         this.holder = holder;
     }
 
-    private MinecraftItem(@NotNull NexoMinecraft nexo, Holder<Item> holder) {
+    private MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull Holder<Item> holder) {
         this(nexo, new NexoHolder<>(nexo, holder, Item.class));
     }
 

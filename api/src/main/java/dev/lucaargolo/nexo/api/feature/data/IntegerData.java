@@ -18,9 +18,8 @@ public final class IntegerData extends DataBase<Integer> {
     }
 
     @Override
-    @NotNull
-    public Integer initial() {
-        return this.initial;
+    public @NotNull Integer initial() {
+        return initial;
     }
 
     @Override

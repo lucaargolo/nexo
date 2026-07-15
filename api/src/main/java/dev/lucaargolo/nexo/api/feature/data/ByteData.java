@@ -18,9 +18,8 @@ public final class ByteData extends DataBase<Byte> {
     }
 
     @Override
-    @NotNull
-    public Byte initial() {
-        return this.initial;
+    public @NotNull Byte initial() {
+        return initial;
     }
 
     @Override

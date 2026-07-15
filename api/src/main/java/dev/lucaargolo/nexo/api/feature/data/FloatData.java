@@ -18,9 +18,8 @@ public final class FloatData extends DataBase<Float> {
     }
 
     @Override
-    @NotNull
-    public Float initial() {
-        return this.initial;
+    public @NotNull Float initial() {
+        return initial;
     }
 
     @Override

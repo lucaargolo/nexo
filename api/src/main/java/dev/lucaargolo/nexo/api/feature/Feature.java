@@ -1,12 +1,12 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,16 +30,13 @@ public abstract class Feature<T extends Feature<T>> {
         this.role = role;
     }
 
-    @NotNull
-    public abstract Type<T> type();
+    public abstract @NotNull Type<T> type();
 
-    @NotNull
-    public final Location location() {
+    public final @NotNull Location location() {
         return location;
     }
 
-    @Nullable
-    public Role role() {
+    public @Nullable Role role() {
         return role;
     }
 
@@ -47,16 +44,14 @@ public abstract class Feature<T extends Feature<T>> {
         return type.isInstance(role);
     }
 
-    @NotNull
-    public <C extends Role> C get(@NotNull Class<C> type) {
+    public @NotNull <C extends Role> C get(@NotNull Class<C> type) {
         if (type.isInstance(role)) {
             return type.cast(role);
         }
         throw new IllegalArgumentException("Feature does not have role type " + type.getName());
     }
 
-    @NotNull
-    public List<@NotNull Tag> tags() {
+    public @NotNull List<@NotNull Tag> tags() {
         return List.of();
     }
 
@@ -91,8 +86,8 @@ public abstract class Feature<T extends Feature<T>> {
         }
 
         @SuppressWarnings("unchecked")
-        public static @NotNull <T> Feature.Type<DataBase<T>> data() {
-            return (Type<DataBase<T>>) DATA;
+        public static @NotNull <D> Feature.Type<DataBase<D>> data() {
+            return (Type<DataBase<D>>) DATA;
         }
 
     }

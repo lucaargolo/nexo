@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.api.feature.data;
 
 import com.google.gson.JsonElement;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,20 +26,15 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
         return Type.data();
     }
 
-    @NotNull
-    public abstract T initial();
+    public abstract @NotNull T initial();
 
-    @NotNull
-    public abstract ByteBuffer write(@NotNull T value);
+    public abstract @NotNull ByteBuffer write(@NotNull T value);
 
-    @NotNull
-    public abstract T read(@NotNull ByteBuffer buffer);
+    public abstract @NotNull T read(@NotNull ByteBuffer buffer);
 
-    @NotNull
-    public abstract JsonElement serialize(@NotNull T value);
+    public abstract @NotNull JsonElement serialize(@NotNull T value);
 
-    @NotNull
-    public abstract T deserialize(@NotNull JsonElement element);
+    public abstract @NotNull T deserialize(@NotNull JsonElement element);
 
     public boolean persistent() {
         return true;
@@ -49,36 +44,31 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
         return true;
     }
 
-    @NotNull
-    public T cast(@NotNull Object value) {
+    public @NotNull T cast(@NotNull Object value) {
         throw new UnsupportedOperationException("Can't cast value for non-constrained data");
     }
 
-    public abstract static class Constrained<D extends Comparable<D>> extends DataBase<D> {
+    public abstract static class Constrained<T extends Comparable<T>> extends DataBase<T> {
 
         public Constrained(@NotNull Location location) {
             super(location);
         }
 
-        @NotNull
-        public abstract Class<D> valueClass();
+        public abstract @NotNull Class<T> valueClass();
 
-        @NotNull
-        public abstract Collection<D> values();
+        public abstract @NotNull Collection<T> values();
 
-        @NotNull
-        public abstract String toString(@NotNull D value);
+        public abstract @NotNull String toString(@NotNull T value);
 
-        @NotNull
-        public abstract Optional<D> fromString(@NotNull String string);
+        public abstract @NotNull Optional<T> fromString(@NotNull String string);
 
         @Override
-        public @NotNull D cast(@NotNull Object value) {
+        public @NotNull T cast(@NotNull Object value) {
             return valueClass().cast(value);
         }
 
         public String name() {
-            return this.location().path();
+            return location().path();
         }
 
     }

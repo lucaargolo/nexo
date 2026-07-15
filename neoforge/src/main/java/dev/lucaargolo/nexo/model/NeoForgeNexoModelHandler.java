@@ -51,13 +51,11 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
         }
     }
 
-    @Nullable
-    public static UnbakedModel getCustomModel(ResourceLocation id) {
+    public static @Nullable UnbakedModel getCustomModel(ResourceLocation id) {
         return CUSTOM_MODELS.get(id);
     }
 
-    @Nullable
-    public static UnbakedModel getBlockModel(ResourceLocation blockKey) {
+    public static @Nullable UnbakedModel getBlockModel(ResourceLocation blockKey) {
         return BLOCK_MODELS.get(blockKey);
     }
 

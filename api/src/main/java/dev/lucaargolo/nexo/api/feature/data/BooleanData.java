@@ -18,9 +18,8 @@ public final class BooleanData extends DataBase<Boolean> {
     }
 
     @Override
-    @NotNull
-    public Boolean initial() {
-        return this.initial;
+    public @NotNull Boolean initial() {
+        return initial;
     }
 
     @Override

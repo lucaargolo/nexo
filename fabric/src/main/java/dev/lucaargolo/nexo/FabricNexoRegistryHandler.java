@@ -69,7 +69,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     }
 
     @SuppressWarnings("unchecked")
-    public static <D> @NotNull AttachmentType<D> getDataAttachment(DataBase<D> data) {
+    public static <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         return (AttachmentType<D>) dataAttachmentMap.get(data);
     }
 

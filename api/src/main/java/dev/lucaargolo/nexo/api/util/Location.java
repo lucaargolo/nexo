@@ -8,10 +8,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class Location {
 
-    @NotNull private static final Map<String, Map<String, Location>> CACHE = new ConcurrentHashMap<>();
+    @NotNull
+    private static final Map<String, Map<String, Location>> CACHE = new ConcurrentHashMap<>();
 
-    @NotNull private final String namespace;
-    @NotNull private final String path;
+    @NotNull
+    private final String namespace;
+    @NotNull
+    private final String path;
 
     private Location(@NotNull String namespace, @NotNull String path) {
         this.namespace = namespace;
@@ -41,8 +44,7 @@ public final class Location {
         return result;
     }
 
-    @NotNull
-    public static Location of(@NotNull String namespace, @NotNull String path) {
+    public static @NotNull Location of(@NotNull String namespace, @NotNull String path) {
         return CACHE
                 .computeIfAbsent(namespace, ns -> new ConcurrentHashMap<>())
                 .computeIfAbsent(path, p -> new Location(namespace, path));

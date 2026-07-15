@@ -18,9 +18,8 @@ public final class CharacterData extends DataBase<Character> {
     }
 
     @Override
-    @NotNull
-    public Character initial() {
-        return this.initial;
+    public @NotNull Character initial() {
+        return initial;
     }
 
     @Override

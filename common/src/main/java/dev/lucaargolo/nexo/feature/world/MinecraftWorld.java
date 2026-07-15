@@ -59,7 +59,7 @@ public class MinecraftWorld extends WorldBase {
             if (world != null) HOLDER_MAP.put(location, world.holder);
             return world;
         });
-   }
+    }
 
     public static WorldBase register(NexoRegistryHandler<?> helper, ResourceLocation id, WorldBase world) {
         NexoHolder<DimensionType, DimensionType> type = helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, () -> new DimensionType(

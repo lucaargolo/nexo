@@ -170,23 +170,20 @@ public abstract class NexoMinecraft implements Nexo {
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
     }
 
-    @NotNull
-    public BlockUnit<?> stateToUnit(@NotNull BlockState state) {
+    public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder()));
         assert block != null;
         return new MinecraftBlockUnit(this, block, block.role(), state);
     }
 
-    @NotNull
-    public WorldUnit<?> levelToUnit(@NotNull Level level) {
+    public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
         WorldBase world = this.getFeature(Feature.Type.WORLD, NexoMinecraft.id(level.dimension()));
         assert world != null;
         return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, world.role(), level);
     }
 
-    @NotNull
     @SuppressWarnings("unchecked")
-    public <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
+    public @NotNull <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
         EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(EntityType.getKey(entity.getType())));
         assert feature != null;
         return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, feature.role(), entity);

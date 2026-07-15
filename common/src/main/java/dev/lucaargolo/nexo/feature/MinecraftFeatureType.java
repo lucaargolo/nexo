@@ -64,18 +64,15 @@ public class MinecraftFeatureType<M> {
         this.craftar = craftar;
     }
 
-    @Nullable
-    public Feature<?> lookup(NexoRegistryHandler<?> helper, Location id) {
+    public @Nullable Feature<?> lookup(NexoRegistryHandler<?> helper, Location id) {
         return lookup.apply(helper, id);
     }
 
-    @NotNull
-    public Feature<?> register(NexoRegistryHandler<?> helper, ResourceLocation id, Feature<?> feature) {
+    public @NotNull Feature<?> register(NexoRegistryHandler<?> helper, ResourceLocation id, Feature<?> feature) {
         return registrar.apply(helper, id, checked(feature));
     }
 
-    @NotNull
-    public M craft(Feature<?> feature) {
+    public @NotNull M craft(Feature<?> feature) {
         return craftar.apply(checked(feature));
     }
 
@@ -100,8 +97,7 @@ public class MinecraftFeatureType<M> {
         );
     }
 
-    @NotNull
-    public static MinecraftFeatureType<?> of(Feature.Type<?> type) {
+    public static @NotNull MinecraftFeatureType<?> of(Feature.Type<?> type) {
         MinecraftFeatureType<?> featureType = TYPES.get(type);
         if (featureType == null) {
             throw new UnsupportedOperationException("Unsupported feature type: " + type);

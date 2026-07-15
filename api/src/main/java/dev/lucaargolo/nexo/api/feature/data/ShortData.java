@@ -18,9 +18,8 @@ public final class ShortData extends DataBase<Short> {
     }
 
     @Override
-    @NotNull
-    public Short initial() {
-        return this.initial;
+    public @NotNull Short initial() {
+        return initial;
     }
 
     @Override

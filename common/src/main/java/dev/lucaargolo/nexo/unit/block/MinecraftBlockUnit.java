@@ -45,8 +45,8 @@ public final class MinecraftBlockUnit extends BlockUnit<Role> implements Minecra
         throw new IllegalArgumentException("Tried to get non-constrained data " + data + " from MinecraftBlockUnit");
     }
 
-    private <C extends Comparable<C>> C getData(@NotNull DataBase.Constrained<C> data) {
-        Property<C> property = find(data);
+    private <T extends Comparable<T>> T getData(@NotNull DataBase.Constrained<T> data) {
+        Property<T> property = find(data);
         return this.state.getValue(property);
     }
 
@@ -59,14 +59,13 @@ public final class MinecraftBlockUnit extends BlockUnit<Role> implements Minecra
         throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to MinecraftBlockUnit");
     }
 
-private <C extends Comparable<C>> BlockState setData(@NotNull DataBase.Constrained<C> data, Object value) {
-        Property<C> property = find(data);
+    private <T extends Comparable<T>> BlockState setData(@NotNull DataBase.Constrained<T> data, Object value) {
+        Property<T> property = find(data);
         return this.state.setValue(property, data.cast(value));
     }
 
-    @NotNull
     @SuppressWarnings("unchecked")
-    private <T extends Comparable<T>> Property<T> find(DataBase.Constrained<T> data) {
+    private @NotNull <T extends Comparable<T>> Property<T> find(@NotNull DataBase.Constrained<T> data) {
         for (Property<?> property : this.state.getProperties()) {
             if (!property.getName().equals(data.name())) continue;
             if (!property.getValueClass().equals(data.valueClass())) continue;

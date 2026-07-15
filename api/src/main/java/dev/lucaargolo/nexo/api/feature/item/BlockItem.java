@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
-import dev.lucaargolo.nexo.api.role.BlockItemRole;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.role.BlockItemRole;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

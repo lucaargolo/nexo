@@ -42,8 +42,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
 
     public abstract void init();
 
-    @Nullable
-    public final Nexo.Mod getMod(String id) {
+    public final @Nullable Nexo.Mod getMod(String id) {
         return mods.get(id);
     }
 

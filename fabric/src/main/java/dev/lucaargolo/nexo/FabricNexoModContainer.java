@@ -114,7 +114,7 @@ public class FabricNexoModContainer implements ModContainer {
             return mod.description();
         }
 
-@Override
+        @Override
         public Collection<Person> getAuthors() {
             String[] authors = mod.authors();
             if (authors.length == 0) return List.of();

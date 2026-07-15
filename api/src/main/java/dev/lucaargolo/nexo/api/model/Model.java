@@ -43,16 +43,6 @@ public record Model(
         this(cubes, textures, transforms, true);
     }
 
-    @Override
-    public @NotNull Map<String, Location> textures() {
-        return textures;
-    }
-
-    @Override
-    public @NotNull List<Cube> cubes() {
-        return cubes;
-    }
-
     public @Nullable Transform getTransform(@NotNull Location location) {
         return transforms.get(location);
     }

@@ -106,8 +106,7 @@ public class NexoMinecraftModel implements UnbakedModel {
         return blockModel.bake(baker, textureGetter, modelState);
     }
 
-    @NotNull
-    private static ItemTransform toItemTransform(@Nullable Model.Transform nexoT) {
+    private static @NotNull ItemTransform toItemTransform(@Nullable Model.Transform nexoT) {
         if (nexoT == null) return ItemTransform.NO_TRANSFORM;
         Vector3f translation = new Vector3f(nexoT.translation());
         translation.mul(0.0625f);
@@ -118,14 +117,12 @@ public class NexoMinecraftModel implements UnbakedModel {
         );
     }
 
-    @NotNull
-    private static ItemTransform getDisplayTransform(@NotNull Model model, @NotNull ItemDisplayContext context) {
+    private static @NotNull ItemTransform getDisplayTransform(@NotNull Model model, @NotNull ItemDisplayContext context) {
         Location loc = Location.of("minecraft", context.getSerializedName());
         return toItemTransform(model.getTransform(loc));
     }
 
-    @NotNull
-    private static ItemTransforms toItemTransforms(@NotNull Model model) {
+    private static @NotNull ItemTransforms toItemTransforms(@NotNull Model model) {
         ItemTransform thirdPersonRight = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
         ItemTransform thirdPersonLeft  = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
         ItemTransform firstPersonRight = getDisplayTransform(model, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);

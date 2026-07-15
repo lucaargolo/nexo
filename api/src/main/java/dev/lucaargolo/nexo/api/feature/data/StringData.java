@@ -19,9 +19,8 @@ public final class StringData extends DataBase<String> {
     }
 
     @Override
-    @NotNull
-    public String initial() {
-        return this.initial;
+    public @NotNull String initial() {
+        return initial;
     }
 
     @Override
