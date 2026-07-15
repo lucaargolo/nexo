@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     protected static final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
-    protected static final Map<ResourceKey<?>, NexoHolder<?, ?>> dynamicHolders = new LinkedHashMap<>();
+    protected static final Map<ResourceKey<?>, NexoHolder<?>> dynamicHolders = new LinkedHashMap<>();
 
     @Nullable
     protected static Thread capturedRegistryThread;
@@ -37,21 +37,21 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         return nexo;
     }
 
-    public abstract <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature);
+    public abstract <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     @SuppressWarnings("unchecked")
-    public <R, T extends R> NexoHolder<R, T> registerDynamicFeature(ResourceKey<? extends Registry<R>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
-        ResourceKey<R> key = ResourceKey.create(registryKey, id);
+    public <T> NexoHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
+        ResourceKey<T> key = ResourceKey.create(registryKey, id);
         Consumer<Registry<?>> registrar = registry -> Registry.registerForHolder((Registry<T>) registry, key.location(), feature.get());
         dynamicRegistrars.put(key, registrar);
-        NexoHolder<R, T> holder = new NexoHolder<>(this.nexo(), key, type);
+        NexoHolder<T> holder = new NexoHolder<>(this.nexo(), key, type);
         dynamicHolders.put(key, holder);
         return holder;
     }
 
     @SuppressWarnings("unchecked")
-    public <R> NexoHolder<R, ? extends R> getDynamicFeature(ResourceKey<R> key) {
-        return (NexoHolder<R, ? extends R>) dynamicHolders.get(key);
+    public <T> NexoHolder<T> getDynamicFeature(ResourceKey<T> key) {
+        return (NexoHolder<T>) dynamicHolders.get(key);
     }
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);

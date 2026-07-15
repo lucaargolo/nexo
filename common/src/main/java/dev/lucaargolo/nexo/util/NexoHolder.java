@@ -11,38 +11,37 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class NexoHolder<R, T extends R> implements Supplier<T> {
+public class NexoHolder<T> implements Supplier<T> {
 
     @NotNull
     private final NexoMinecraft nexo;
-
     @NotNull
-    private final ResourceKey<R> key;
+    private final ResourceKey<T> key;
     @NotNull
     private final Location location;
 
     @Nullable
     private Supplier<T> supplier;
     @Nullable
-    private Holder<R> holder;
+    private Holder<T> holder;
     @Nullable
     private Class<T> type;
 
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Class<T> type) {
+    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<T> key, @NotNull Class<T> type) {
         this.nexo = nexo;
         this.key = key;
         this.location = NexoMinecraft.id(key);
         this.type = type;
     }
 
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<R> key, @NotNull Supplier<T> supplier) {
+    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<T> key, @NotNull Supplier<T> supplier) {
         this.nexo = nexo;
         this.key = key;
         this.location = NexoMinecraft.id(key);
         this.supplier = supplier;
     }
 
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull Holder<R> holder, @NotNull Class<T> type) {
+    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull Holder<T> holder, @NotNull Class<T> type) {
         this.nexo = nexo;
         this.key = holder.unwrapKey().orElseThrow();
         this.location = NexoMinecraft.id(key);
@@ -50,11 +49,15 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
         this.type = type;
     }
 
-    public ResourceKey<R> key() {
+    public @NotNull NexoMinecraft nexo() {
+        return nexo;
+    }
+
+    public @NotNull ResourceKey<T> key() {
         return key;
     }
 
-    public Location location() {
+    public @NotNull Location location() {
         return location;
     }
 
@@ -72,14 +75,14 @@ public class NexoHolder<R, T extends R> implements Supplier<T> {
         }
     }
 
-    public Stream<TagKey<R>> tags() {
+    public Stream<TagKey<T>> tags() {
         if (this.holder == null) {
             this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
         }
         return this.holder.tags();
     }
 
-    public Holder<R> holder() {
+    public Holder<T> holder() {
         if (this.holder == null) {
             this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
         }

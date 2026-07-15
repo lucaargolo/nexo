@@ -90,8 +90,8 @@ public abstract class Feature<T extends Feature<T>> {
         }
 
         @SuppressWarnings("unchecked")
-        public static @NotNull <D> Feature.Type<DataBase<D>> data() {
-            return (Type<DataBase<D>>) DATA;
+        public static @NotNull Feature.Type<DataBase<?>> data() {
+            return (Type<DataBase<?>>) DATA;
         }
 
     }

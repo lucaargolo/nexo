@@ -5,6 +5,8 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.data.MinecraftData;
+import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -32,21 +34,26 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MinecraftWorld extends WorldBase {
 
     private static final ConcurrentHashMap<Location, WorldBase> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<LevelStem, LevelStem>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<LevelStem>> HOLDER_MAP = new ConcurrentHashMap<>();
+
+    public static Bijection<WorldBase, NexoHolder<LevelStem>> CONVERT = new Bijection<>() {
+        @Override
+        public NexoHolder<LevelStem> forward(WorldBase feature) {
+            return HOLDER_MAP.get(feature.location());
+        }
+
+        @Override
+        public WorldBase backward(NexoHolder<LevelStem> holder) {
+            return FEATURE_MAP.get(holder.location());
+        }
+    };
 
     @NotNull
-    private final NexoMinecraft nexo;
-    @NotNull
-    private final NexoHolder<LevelStem, LevelStem> holder;
+    private final NexoHolder<LevelStem> holder;
 
-    private MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<LevelStem, LevelStem> holder) {
+    private MinecraftWorld(@NotNull NexoHolder<LevelStem> holder) {
         super(NexoMinecraft.id(holder.key()));
-        this.nexo = nexo;
         this.holder = holder;
-    }
-
-    private MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull Holder<LevelStem> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, LevelStem.class));
     }
 
     @Override
@@ -54,26 +61,28 @@ public class MinecraftWorld extends WorldBase {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
-    public static LevelStem crafted(WorldBase world) {
-        return Objects.requireNonNull(HOLDER_MAP.get(world.location()).get());
-    }
-
-    public static WorldBase lookup(NexoRegistryHandler<?> helper, Location location) {
-        return FEATURE_MAP.computeIfAbsent(location, l -> {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            MinecraftWorld world = helper.getRegistry().registry(Registries.LEVEL_STEM).flatMap(r -> r.getHolder(id)).map(h -> new MinecraftWorld(helper.nexo(), h)).orElse(null);
-            if (world != null) HOLDER_MAP.put(location, world.holder);
-            return world;
-        });
+    public static WorldBase lookup(Location location) {
+        return FEATURE_MAP.get(location);
     }
 
     public static WorldBase register(NexoRegistryHandler<?> helper, WorldBase world) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(world.location().namespace(), world.location().path());
         helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(DimensionType.class, helper, world), DimensionType.class);
-        NexoHolder<LevelStem, LevelStem> holder = helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world), LevelStem.class);
+        NexoHolder<LevelStem> holder = helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world), LevelStem.class);
         FEATURE_MAP.put(world.location(), world);
         HOLDER_MAP.put(world.location(), holder);
         return world;
+    }
+
+    public static NexoHolder<LevelStem> index(NexoRegistryHandler<?> helper, LevelStem world) {
+        RegistryAccess access = helper.getRegistry();
+        Registry<LevelStem> registry = access.registryOrThrow(Registries.LEVEL_STEM);
+        ResourceLocation location = Objects.requireNonNull(registry.getKey(world));
+        Holder<LevelStem> h = registry.getHolder(location).orElseThrow();
+        NexoHolder<LevelStem> holder = new NexoHolder<>(helper.nexo(), h, LevelStem.class);
+        FEATURE_MAP.put(holder.location(), new MinecraftWorld(holder));
+        HOLDER_MAP.put(holder.location(), holder);
+        return holder;
     }
 
     public static DimensionType craftType(NexoRegistryHandler<?> helper, WorldBase world) {
@@ -99,7 +108,7 @@ public class MinecraftWorld extends WorldBase {
     public static LevelStem craftStem(NexoRegistryHandler<?> helper, WorldBase world) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(world.location().namespace(), world.location().path());
         ResourceKey<DimensionType> key = ResourceKey.create(Registries.DIMENSION_TYPE, id);
-        NexoHolder<DimensionType, ? extends DimensionType> type = helper.getDynamicFeature(key);
+        NexoHolder<DimensionType> type = helper.getDynamicFeature(key);
         RegistryAccess access = helper.getRegistry();
         Registry<Biome> biomeRegistry = access.registryOrThrow(Registries.BIOME);
         Holder<Biome> biomeHolder = biomeRegistry.getHolderOrThrow(Biomes.THE_VOID);

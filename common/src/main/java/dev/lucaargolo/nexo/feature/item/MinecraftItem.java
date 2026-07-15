@@ -2,11 +2,13 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -16,27 +18,31 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftItem extends ItemBase {
 
     private static final ConcurrentHashMap<Location, ItemBase> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<Item, Item>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<Item>> HOLDER_MAP = new ConcurrentHashMap<>();
+
+    public static Bijection<ItemBase, NexoHolder<Item>> CONVERT = new Bijection<>() {
+        @Override
+        public NexoHolder<Item> forward(ItemBase feature) {
+            return HOLDER_MAP.get(feature.location());
+        }
+
+        @Override
+        public ItemBase backward(NexoHolder<Item> holder) {
+            return FEATURE_MAP.get(holder.location());
+        }
+    };
 
     @NotNull
-    private final NexoMinecraft nexo;
-    @NotNull
-    private final NexoHolder<Item, Item> holder;
+    private final NexoHolder<Item> holder;
 
-    private MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Item, Item> holder) {
+    private MinecraftItem(@NotNull NexoHolder<Item> holder) {
         super(holder.location());
-        this.nexo = nexo;
         this.holder = holder;
-    }
-
-    private MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull Holder<Item> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, Item.class));
     }
 
     @Override
@@ -56,25 +62,25 @@ public class MinecraftItem extends ItemBase {
         return null;
     }
 
-    public static Item crafted(ItemBase item) {
-        return Objects.requireNonNull(HOLDER_MAP.get(item.location()).get());
-    }
-
-    public static ItemBase lookup(NexoRegistryHandler<?> helper, Location location) {
-        return FEATURE_MAP.computeIfAbsent(location, l -> {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            MinecraftItem item = BuiltInRegistries.ITEM.getHolder(id).map(h -> new MinecraftItem(helper.nexo(), h)).orElse(null);
-            if (item != null) HOLDER_MAP.put(location, item.holder);
-            return item;
-        });
+    public static ItemBase lookup(Location location) {
+        return FEATURE_MAP.get(location);
     }
 
     public static ItemBase register(NexoRegistryHandler<?> helper, ItemBase item) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(item.location().namespace(), item.location().path());
-        NexoHolder<Item, Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
+        NexoHolder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
         HOLDER_MAP.put(item.location(), holder);
         return item;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static NexoHolder<Item> index(NexoRegistryHandler<?> helper, Item item) {
+        Holder<Item> h = item.builtInRegistryHolder();
+        NexoHolder<Item> holder =new NexoHolder<>(helper.nexo(), h, Item.class);
+        FEATURE_MAP.put(holder.location(), new MinecraftItem(holder));
+        HOLDER_MAP.put(holder.location(), holder);
+        return holder;
     }
 
     public static Item craft(NexoRegistryHandler<?> helper, ItemBase item) {

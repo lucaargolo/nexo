@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Optional;
 
-public abstract class DataBase<T> extends Feature<DataBase<T>> {
+public abstract class DataBase<T> extends Feature<DataBase<?>> {
 
     public DataBase(@NotNull Location location) {
         super(location);
@@ -22,7 +22,7 @@ public abstract class DataBase<T> extends Feature<DataBase<T>> {
     }
 
     @Override
-    public final @NotNull Type<DataBase<T>> type() {
+    public final @NotNull Type<DataBase<?>> type() {
         return Type.data();
     }
 

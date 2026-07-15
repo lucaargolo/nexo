@@ -12,9 +12,11 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
+import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,27 +38,31 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftBlock extends BlockBase {
 
     private static final ConcurrentHashMap<Location, BlockBase> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<Block, Block>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, NexoHolder<Block>> HOLDER_MAP = new ConcurrentHashMap<>();
+
+    public static Bijection<BlockBase, NexoHolder<Block>> CONVERT = new Bijection<>() {
+        @Override
+        public NexoHolder<Block> forward(BlockBase feature) {
+            return HOLDER_MAP.get(feature.location());
+        }
+
+        @Override
+        public BlockBase backward(NexoHolder<Block> holder) {
+            return FEATURE_MAP.get(holder.location());
+        }
+    };
 
     @NotNull
-    private final NexoMinecraft nexo;
-    @NotNull
-    private final NexoHolder<Block, Block> holder;
+    private final NexoHolder<Block> holder;
 
-    private MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull NexoHolder<Block, Block> holder) {
+    private MinecraftBlock(@NotNull NexoHolder<Block> holder) {
         super(holder.location());
-        this.nexo = nexo;
         this.holder = holder;
-    }
-
-    private MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder) {
-        this(nexo, new NexoHolder<>(nexo, holder, Block.class));
     }
 
     @Override
@@ -75,7 +81,7 @@ public class MinecraftBlock extends BlockBase {
         Item item = this.holder.get().asItem();
         if (item != Items.AIR) {
             ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-            return this.nexo.getFeature(Type.ITEM, NexoMinecraft.id(itemId));
+            return this.holder.nexo().getFeature(Type.ITEM, NexoMinecraft.id(itemId));
         } else {
             return null;
         }
@@ -96,25 +102,25 @@ public class MinecraftBlock extends BlockBase {
         };
     }
 
-    public static Block crafted(BlockBase block) {
-        return Objects.requireNonNull(HOLDER_MAP.get(block.location()).get());
-    }
-
-    public static BlockBase lookup(NexoRegistryHandler<?> helper, Location location) {
-        return FEATURE_MAP.computeIfAbsent(location, l -> {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
-            MinecraftBlock block = BuiltInRegistries.BLOCK.getHolder(id).map(h -> new MinecraftBlock(helper.nexo(), h)).orElse(null);
-            if (block != null) HOLDER_MAP.put(location, block.holder);
-            return block;
-        });
+    public static BlockBase lookup(Location location) {
+        return FEATURE_MAP.get(location);
     }
 
     public static BlockBase register(NexoRegistryHandler<?> helper, BlockBase block) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(block.location().namespace(), block.location().path());
-        NexoHolder<Block, Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
+        NexoHolder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
         FEATURE_MAP.put(block.location(), block);
         HOLDER_MAP.put(block.location(), holder);
         return block;
+    }
+
+    @SuppressWarnings("deprecation")
+    public static NexoHolder<Block> index(NexoRegistryHandler<?> helper, Block block) {
+        Holder<Block> h = block.builtInRegistryHolder();
+        NexoHolder<Block> holder = new NexoHolder<>(helper.nexo(), h, Block.class);
+        FEATURE_MAP.put(holder.location(), new MinecraftBlock(holder));
+        HOLDER_MAP.put(holder.location(), holder);
+        return holder;
     }
 
     public static Block craft(NexoRegistryHandler<?> helper, BlockBase block) {
