@@ -101,13 +101,18 @@ public class MinecraftFeatureType<M> {
             BiFunction<NexoRegistryHandler<?>, T, T> registrar,
             Map<Class<?>, BiFunction<NexoRegistryHandler<?>, T, ?>> crafters
     ) {
+        Map<Class<?>, BiFunction<NexoRegistryHandler<?>, Feature<?>, ?>> typedCrafters = new HashMap<>();
+        crafters.forEach((craftType, crafter) -> typedCrafters.put(
+                craftType,
+                (helper, feature) -> crafter.apply(helper, type.cast(feature))
+        ));
         MinecraftFeatureType<M> mft = new MinecraftFeatureType<>(
                 type,
                 clazz,
                 (feature) -> crafted.apply(type.cast(feature)),
                 lookup::apply,
                 (helper, feature) -> registrar.apply(helper, type.cast(feature)),
-                crafters
+                typedCrafters
             );
         TYPES.put(type, mft);
         return mft;
