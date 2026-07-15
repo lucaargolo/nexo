@@ -52,6 +52,10 @@ public class MinecraftWorld extends WorldBase {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
+    public static LevelStem crafted(WorldBase world) {
+        return Objects.requireNonNull(HOLDER_MAP.get(world.location()).get());
+    }
+
     public static WorldBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -90,10 +94,6 @@ public class MinecraftWorld extends WorldBase {
         FEATURE_MAP.put(world.location(), world);
         HOLDER_MAP.put(world.location(), holder);
         return world;
-    }
-
-    public static LevelStem craft(WorldBase world) {
-        return Objects.requireNonNull(HOLDER_MAP.get(world.location()).get());
     }
 
 }

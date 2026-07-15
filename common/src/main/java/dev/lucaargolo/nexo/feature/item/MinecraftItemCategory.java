@@ -40,6 +40,10 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
+    public static CreativeModeTab crafted(ItemCategoryBase category) {
+        return Objects.requireNonNull(HOLDER_MAP.get(category.location()).get());
+    }
+
     public static ItemCategoryBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -54,10 +58,6 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         FEATURE_MAP.put(category.location(), category);
         HOLDER_MAP.put(category.location(), holder);
         return category;
-    }
-
-    public static CreativeModeTab craft(ItemCategoryBase category) {
-        return Objects.requireNonNull(HOLDER_MAP.get(category.location()).get());
     }
 
 }

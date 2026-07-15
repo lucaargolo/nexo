@@ -65,8 +65,8 @@ public abstract class Feature<T extends Feature<T>> {
 
         private static final List<Type<?>> ALL = new ArrayList<>();
 
-        public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
         public static final Type<?> DATA = new Type<>(DataBase.class);
+        public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
         public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<ItemBase> ITEM = new Type<>(ItemBase.class);
         public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
@@ -75,6 +75,10 @@ public abstract class Feature<T extends Feature<T>> {
         public Type(Class<T> type) {
             this.type = type;
             ALL.add(this);
+        }
+
+        public boolean isInstance(Feature<?> feature) {
+            return type.isInstance(feature);
         }
 
         public T cast(Feature<?> feature) {

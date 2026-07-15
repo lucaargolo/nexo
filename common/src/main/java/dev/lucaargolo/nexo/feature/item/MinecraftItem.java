@@ -59,6 +59,10 @@ public class MinecraftItem extends ItemBase {
         return null;
     }
 
+    public static Item crafted(ItemBase item) {
+        return Objects.requireNonNull(HOLDER_MAP.get(item.location()).get());
+    }
+
     public static ItemBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -81,10 +85,6 @@ public class MinecraftItem extends ItemBase {
         FEATURE_MAP.put(item.location(), item);
         HOLDER_MAP.put(item.location(), holder);
         return item;
-    }
-
-    public static Item craft(ItemBase item) {
-        return Objects.requireNonNull(HOLDER_MAP.get(item.location()).get());
     }
 
 }

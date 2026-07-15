@@ -21,7 +21,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -96,6 +95,10 @@ public class MinecraftBlock extends BlockBase {
         };
     }
 
+    public static Block crafted(BlockBase block) {
+        return Objects.requireNonNull(HOLDER_MAP.get(block.location()).get());
+    }
+
     public static BlockBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -124,8 +127,6 @@ public class MinecraftBlock extends BlockBase {
         return block;
     }
 
-    public static Block craft(BlockBase block) {
-        return Objects.requireNonNull(HOLDER_MAP.get(block.location()).get());
-    }
+
 
 }

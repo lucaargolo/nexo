@@ -36,6 +36,10 @@ public final class MinecraftEntity extends EntityBase {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
+    public static EntityType<?> crafted(EntityBase entity) {
+        return Objects.requireNonNull(HOLDER_MAP.get(entity.location())).get();
+    }
+
     public static EntityBase lookup(NexoRegistryHandler<?> helper, Location location) {
         return FEATURE_MAP.computeIfAbsent(location, l -> {
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
@@ -64,10 +68,6 @@ public final class MinecraftEntity extends EntityBase {
         FEATURE_MAP.put(entity.location(), entity);
         HOLDER_MAP.put(entity.location(), holder);
         return entity;
-    }
-
-    public static EntityType<?> craft(EntityBase entity) {
-        return Objects.requireNonNull(HOLDER_MAP.get(entity.location())).get();
     }
 
     public static Entity summon(@NotNull EntityType<?> type, @NotNull Level level) {

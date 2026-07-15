@@ -2,12 +2,7 @@ package dev.lucaargolo.nexo.feature;
 
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
-import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
-import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
@@ -25,43 +20,42 @@ import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class MinecraftFeatureType<M> {
 
-    public static final MinecraftFeatureType<Block> BLOCK = create(BlockBase.class, MinecraftBlock::lookup, MinecraftBlock::register, MinecraftBlock::craft);
-    public static final MinecraftFeatureType<DataComponentType<?>> DATA = new MinecraftFeatureType<>(DataBase.class, MinecraftData::lookup, MinecraftData::registerFeature, MinecraftData::craftFeature);
-    public static final MinecraftFeatureType<EntityType<?>> ENTITY = create(EntityBase.class, MinecraftEntity::lookup, MinecraftEntity::register, MinecraftEntity::craft);
-    public static final MinecraftFeatureType<Item> ITEM = create(ItemBase.class, MinecraftItem::lookup, MinecraftItem::register, MinecraftItem::craft);
-    public static final MinecraftFeatureType<CreativeModeTab> ITEM_CATEGORY = create(ItemCategoryBase.class, MinecraftItemCategory::lookup, MinecraftItemCategory::register, MinecraftItemCategory::craft);
-    public static final MinecraftFeatureType<LevelStem> WORLD = create(WorldBase.class, MinecraftWorld::lookup, MinecraftWorld::register, MinecraftWorld::craft);
+    private static final Map<Feature.Type<?>, MinecraftFeatureType<?>> TYPES = new HashMap<>();
 
-    private static final Map<Feature.Type<?>, MinecraftFeatureType<?>> TYPES = Map.of(
-            Feature.Type.BLOCK, BLOCK,
-            Feature.Type.DATA, DATA,
-            Feature.Type.ENTITY, ENTITY,
-            Feature.Type.ITEM, ITEM,
-            Feature.Type.ITEM_CATEGORY, ITEM_CATEGORY,
-            Feature.Type.WORLD, WORLD
-    );
+    public static final MinecraftFeatureType<DataComponentType<?>> DATA = data();
+    public static final MinecraftFeatureType<Block> BLOCK = create(Feature.Type.BLOCK, MinecraftBlock::crafted, MinecraftBlock::lookup, MinecraftBlock::register);
+    public static final MinecraftFeatureType<EntityType<?>> ENTITY = create(Feature.Type.ENTITY, MinecraftEntity::crafted, MinecraftEntity::lookup, MinecraftEntity::register);
+    public static final MinecraftFeatureType<Item> ITEM = create(Feature.Type.ITEM, MinecraftItem::crafted, MinecraftItem::lookup, MinecraftItem::register);
+    public static final MinecraftFeatureType<CreativeModeTab> ITEM_CATEGORY = create(Feature.Type.ITEM_CATEGORY, MinecraftItemCategory::crafted, MinecraftItemCategory::lookup, MinecraftItemCategory::register);
+    public static final MinecraftFeatureType<LevelStem> WORLD = create(Feature.Type.WORLD, MinecraftWorld::crafted, MinecraftWorld::lookup, MinecraftWorld::register);
 
-    private final Class<?> featureClass;
+    private final Feature.Type<?> type;
+    private final Function<Feature<?>, M> crafted;
     private final BiFunction<NexoRegistryHandler<?>, Location, Feature<?>> lookup;
     private final TriFunction<NexoRegistryHandler<?>, ResourceLocation, Feature<?>, Feature<?>> registrar;
-    private final Function<Feature<?>, M> craftar;
 
     private MinecraftFeatureType(
-            Class<?> featureClass,
+            Feature.Type<?> type,
+            Function<Feature<?>, M> crafted,
             BiFunction<NexoRegistryHandler<?>, Location, Feature<?>> lookup,
-            TriFunction<NexoRegistryHandler<?>, ResourceLocation, Feature<?>, Feature<?>> registrar,
-            Function<Feature<?>, M> craftar
+            TriFunction<NexoRegistryHandler<?>, ResourceLocation, Feature<?>, Feature<?>> registrar
+
     ) {
-        this.featureClass = featureClass;
+        this.type = type;
+        this.crafted = crafted;
         this.lookup = lookup;
         this.registrar = registrar;
-        this.craftar = craftar;
+    }
+
+    public boolean isInstance(Feature<?> feature) {
+        return this.type.isInstance(feature);
     }
 
     public @Nullable Feature<?> lookup(NexoRegistryHandler<?> helper, Location id) {
@@ -69,32 +63,11 @@ public class MinecraftFeatureType<M> {
     }
 
     public @NotNull Feature<?> register(NexoRegistryHandler<?> helper, ResourceLocation id, Feature<?> feature) {
-        return registrar.apply(helper, id, checked(feature));
+        return registrar.apply(helper, id, type.cast(feature));
     }
 
     public @NotNull M craft(Feature<?> feature) {
-        return craftar.apply(checked(feature));
-    }
-
-    private Feature<?> checked(Feature<?> feature) {
-        if (!featureClass.isInstance(feature)) {
-            throw new ClassCastException("Expected " + featureClass.getName() + ", got " + feature.getClass().getName());
-        }
-        return feature;
-    }
-
-    private static <T extends Feature<?>, M> MinecraftFeatureType<M> create(
-            Class<T> featureClass,
-            BiFunction<NexoRegistryHandler<?>, Location, T> lookup,
-            TriFunction<NexoRegistryHandler<?>, ResourceLocation, T, T> registrar,
-            Function<T, M> craftar
-    ) {
-        return new MinecraftFeatureType<>(
-                featureClass,
-                lookup::apply,
-                (helper, id, feature) -> registrar.apply(helper, id, featureClass.cast(feature)),
-                feature -> craftar.apply(featureClass.cast(feature))
-        );
+        return crafted.apply(type.cast(feature));
     }
 
     public static @NotNull MinecraftFeatureType<?> of(Feature.Type<?> type) {
@@ -105,8 +78,31 @@ public class MinecraftFeatureType<M> {
         return featureType;
     }
 
-    public boolean isInstance(Feature<?> feature) {
-        return this.featureClass.isInstance(feature);
+    private static <T extends Feature<T>, M> MinecraftFeatureType<M> create(
+            Feature.Type<T> type,
+            Function<T, M> crafted,
+            BiFunction<NexoRegistryHandler<?>, Location, T> lookup,
+            TriFunction<NexoRegistryHandler<?>, ResourceLocation, T, T> registrar
+    ) {
+        MinecraftFeatureType<M> mft = new MinecraftFeatureType<>(
+                type,
+                (feature) -> crafted.apply(type.cast(feature)),
+                lookup::apply,
+                (helper, id, feature) -> registrar.apply(helper, id, type.cast(feature))
+        );
+        TYPES.put(type, mft);
+        return mft;
+    }
+
+    private static MinecraftFeatureType<DataComponentType<?>> data() {
+        MinecraftFeatureType<DataComponentType<?>> mft = new MinecraftFeatureType<>(
+                Feature.Type.DATA,
+                (feature) -> MinecraftData.crafted((DataBase<?>) feature),
+                MinecraftData::lookup,
+                (helper, id, feature) -> MinecraftData.register(helper, id, (DataBase<?>) feature)
+        );
+        TYPES.put(Feature.Type.DATA, mft);
+        return mft;
     }
 
     @FunctionalInterface
