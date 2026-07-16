@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.api.feature.block;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.ItemProvider;
-import dev.lucaargolo.nexo.api.feature.ModelProvider;
+import dev.lucaargolo.nexo.api.feature.StaticRendererProvider;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -15,7 +15,7 @@ import org.joml.Vector3i;
 
 import java.util.function.Supplier;
 
-public abstract class BlockBase extends Feature<BlockBase> implements ModelProvider, ItemProvider {
+public abstract class BlockBase extends Feature<BlockBase> implements StaticRendererProvider<BlockUnit<?>>, ItemProvider {
 
     public BlockBase(@NotNull Location location) {
         super(location);

@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.api;
 
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

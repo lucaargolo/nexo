@@ -4,7 +4,9 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
@@ -51,7 +53,7 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public @Nullable Model model() {
+    public @Nullable StaticRenderer<Graphics3D, ItemUnit<?>> renderer() {
         //TODO: This
         return null;
     }

@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.model;
+package dev.lucaargolo.nexo.render.model;
 
 import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
@@ -6,10 +6,11 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.ModelProvider;
+import dev.lucaargolo.nexo.api.feature.StaticRendererProvider;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.resources.ResourceLocation;
 
@@ -36,10 +37,11 @@ public abstract class NexoModelHandler<N extends Nexo> {
     public void init() {
         nexo.on(FeatureRegisteredEvent.class, Event.Priority.NORMAL, event -> {
             Feature<?> feature = event.value();
-            if (feature instanceof ModelProvider modelProvider) {
-                Model model = modelProvider.model();
-                if (model != null) {
-                    for (Location texture : model.textures().values()) {
+            if (feature instanceof StaticRendererProvider<?> provider) {
+                StaticRenderer<Graphics3D, ?> renderer = provider.renderer();
+                if (renderer != null) {
+                    NexoMinecraftModel<?> mcModel = new NexoMinecraftModel<>(renderer);
+                    for (Location texture : mcModel.textures()) {
                         registerTexture(nexo, texture, NexoAtlas.BLOCK_ATLAS);
                     }
 
@@ -47,16 +49,14 @@ public abstract class NexoModelHandler<N extends Nexo> {
                     ResourceLocation modelId = ResourceLocation.fromNamespaceAndPath(
                             event.location().namespace(), prefix + event.location().path()
                     );
-                    NexoMinecraftModel mcModel = new NexoMinecraftModel(model);
-
-                    collectModel(feature, model, modelId, mcModel);
+                    collectModel(feature, modelId, mcModel);
                 }
             }
             return true;
         });
     }
 
-    protected abstract void collectModel(Feature<?> feature, Model model, ResourceLocation modelId, NexoMinecraftModel mcModel);
+    protected abstract void collectModel(Feature<?> feature, ResourceLocation modelId, NexoMinecraftModel mcModel);
 
     private static String modelPrefix(Feature<?> feature) {
         if (feature instanceof BlockBase) return "block/";

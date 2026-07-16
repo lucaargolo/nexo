@@ -1,21 +1,28 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.model.Model;
+import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SimpleItem extends ItemBase {
 
-    @Nullable
-    private final Model model;
-    @Nullable
-    private final ItemCategoryBase category;
+    private final @Nullable ItemCategoryBase category;
+    private final @Nullable StaticRenderer<Graphics3D, ItemUnit<?>> renderer;
 
-    public SimpleItem(@NotNull Location location, @Nullable Model model, @Nullable ItemCategoryBase category) {
+    public SimpleItem(
+            @NotNull Location location,
+            @Nullable Model model,
+            @Nullable ItemCategoryBase category
+    ) {
         super(location);
-        this.model = model;
         this.category = category;
+        this.renderer = model != null ? new ModelRenderer<>(model) : null;
+
     }
 
     public SimpleItem(@NotNull Location location, @Nullable Model model) {
@@ -23,8 +30,8 @@ public class SimpleItem extends ItemBase {
     }
 
     @Override
-    public @Nullable Model model() {
-        return model;
+    public @Nullable StaticRenderer<Graphics3D, ItemUnit<?>> renderer() {
+        return renderer;
     }
 
     @Override

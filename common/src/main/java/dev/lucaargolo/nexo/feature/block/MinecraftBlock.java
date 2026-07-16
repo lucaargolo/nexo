@@ -4,7 +4,8 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
@@ -71,7 +72,7 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @Nullable Model model() {
+    public @Nullable StaticRenderer<Graphics3D, BlockUnit<?>> renderer() {
         //TODO: This
         return null;
     }

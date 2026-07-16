@@ -35,11 +35,11 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @Override
-    public <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature) {
-        ResourceKey<R> key = ResourceKey.create(registry.key(), id);
-        DeferredRegister<R> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
-        DeferredHolder<R, T> registered = deferredRegistry.register(id.getPath(), feature);
-        return new NexoHolder<>(this.nexo(), key, registered);
+    public <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        ResourceKey<T> key = ResourceKey.create(registry.key(), id);
+        DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
+        DeferredHolder<T, T> registered = deferredRegistry.register(id.getPath(), feature);
+        return new NexoHolder<>(this.nexo(), key, registered::get);
     }
 
     @Override
@@ -56,7 +56,8 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
             StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.createPacketCodec(data);
             builder.sync(codec);
         }
-        NexoHolder<AttachmentType<?>, AttachmentType<?>> holder = registerBuiltinFeature(NeoForgeRegistries.ATTACHMENT_TYPES, id, builder::build);
+        Supplier<AttachmentType<?>> attachment = builder::build;
+        NexoHolder<AttachmentType<?>> holder = registerBuiltinFeature(NeoForgeRegistries.ATTACHMENT_TYPES, id, attachment);
         dataAttachmentMap.put(data, holder.holder());
     }
 

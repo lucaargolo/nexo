@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api.model;
+package dev.lucaargolo.nexo.api.render.model;
 
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;

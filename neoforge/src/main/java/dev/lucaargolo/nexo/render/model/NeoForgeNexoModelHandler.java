@@ -1,10 +1,9 @@
-package dev.lucaargolo.nexo.model;
+package dev.lucaargolo.nexo.render.model;
 
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -40,7 +39,7 @@ public class NeoForgeNexoModelHandler extends NexoModelHandler<NeoForgeNexoMinec
     }
 
     @Override
-    protected void collectModel(Feature<?> feature, Model model, ResourceLocation modelId, NexoMinecraftModel mcModel) {
+    protected void collectModel(Feature<?> feature, ResourceLocation modelId, NexoMinecraftModel mcModel) {
         CUSTOM_MODELS.put(modelId, mcModel);
         if (feature instanceof BlockBase) {
             Location location = feature.location();

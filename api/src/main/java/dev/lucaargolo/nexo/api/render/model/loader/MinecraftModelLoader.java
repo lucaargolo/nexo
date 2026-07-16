@@ -1,10 +1,10 @@
-package dev.lucaargolo.nexo.api.model.loader;
+package dev.lucaargolo.nexo.api.render.model.loader;
 
 import com.google.gson.*;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.model.Cube;
-import dev.lucaargolo.nexo.api.model.Face;
-import dev.lucaargolo.nexo.api.model.Model;
+import dev.lucaargolo.nexo.api.render.model.Cube;
+import dev.lucaargolo.nexo.api.render.model.Face;
+import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;

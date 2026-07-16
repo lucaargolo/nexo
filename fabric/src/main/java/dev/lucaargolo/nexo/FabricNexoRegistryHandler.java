@@ -38,8 +38,8 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     }
 
     @Override
-    public <R, T extends R> NexoHolder<R, T> registerBuiltinFeature(Registry<R> registry, ResourceLocation id, Supplier<T> feature) {
-        ResourceKey<R> key = ResourceKey.create(registry.key(), id);
+    public <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        ResourceKey<T> key = ResourceKey.create(registry.key(), id);
         T registered = Registry.register(registry, key, feature.get());
         return new NexoHolder<>(this.nexo(), key, () -> registered);
     }

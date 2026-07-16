@@ -1,10 +1,9 @@
-package dev.lucaargolo.nexo.model;
+package dev.lucaargolo.nexo.render.model;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.minecraft.resources.ResourceLocation;
@@ -48,10 +47,10 @@ public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft
     }
 
     @Override
-    protected void collectModel(Feature<?> feature, Model model, ResourceLocation modelId, NexoMinecraftModel mcModel) {
+    protected void collectModel(Feature<?> feature, ResourceLocation modelId, NexoMinecraftModel mcModel) {
         unbakedModels.put(modelId, mcModel);
         if (feature instanceof BlockBase block) {
-            blockToModel.put(MinecraftFeatureType.BLOCK.crafted(block), modelId);
+            blockToModel.put(MinecraftFeatureType.BLOCK.convert(block), modelId);
         } else if (feature instanceof ItemBase) {
             itemModelIds.add(modelId);
         }

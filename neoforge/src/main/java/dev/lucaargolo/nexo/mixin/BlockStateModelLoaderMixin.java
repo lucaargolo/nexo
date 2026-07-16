@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.mixin;
 
-import dev.lucaargolo.nexo.model.NeoForgeNexoModelHandler;
+import dev.lucaargolo.nexo.render.model.NeoForgeNexoModelHandler;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.client.resources.model.ModelResourceLocation;

@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.lucaargolo.nexo.model.NeoForgeNexoModelHandler;
+import dev.lucaargolo.nexo.render.model.NeoForgeNexoModelHandler;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
