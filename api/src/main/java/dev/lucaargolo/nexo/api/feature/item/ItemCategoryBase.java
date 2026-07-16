@@ -4,7 +4,8 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public abstract class ItemCategoryBase extends Feature<ItemCategoryBase> {
 
@@ -12,7 +13,7 @@ public abstract class ItemCategoryBase extends Feature<ItemCategoryBase> {
         super(location);
     }
 
-    public ItemCategoryBase(@NotNull Location location, @Nullable Role role) {
+    public ItemCategoryBase(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 

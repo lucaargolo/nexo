@@ -52,7 +52,7 @@ public class NexoTestMod {
 
         nexo.registerFeature(new SimpleEntity(
                 id("test_player"),
-                new PlayerRole(UUID.fromString("00000000-0000-0000-0000-000000000001"), "test_player")
+                () -> new PlayerRole(UUID.fromString("00000000-0000-0000-0000-000000000001"), "test_player")
         ));
 
     }

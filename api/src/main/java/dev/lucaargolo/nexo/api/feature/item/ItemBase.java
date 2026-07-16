@@ -8,13 +8,15 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public abstract class ItemBase extends Feature<ItemBase> implements ModelProvider, ItemProvider {
 
     public ItemBase(@NotNull Location location) {
         super(location);
     }
 
-    public ItemBase(@NotNull Location location, @Nullable Role role) {
+    public ItemBase(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 

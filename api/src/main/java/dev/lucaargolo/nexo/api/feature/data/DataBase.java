@@ -5,11 +5,11 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public abstract class DataBase<T> extends Feature<DataBase<?>> {
 
@@ -17,7 +17,7 @@ public abstract class DataBase<T> extends Feature<DataBase<?>> {
         super(location);
     }
 
-    public DataBase(@NotNull Location location, @Nullable Role role) {
+    public DataBase(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 

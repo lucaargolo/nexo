@@ -4,7 +4,8 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public abstract class WorldBase extends Feature<WorldBase> {
 
@@ -12,7 +13,7 @@ public abstract class WorldBase extends Feature<WorldBase> {
         super(location);
     }
 
-    public WorldBase(@NotNull Location location, @Nullable Role role) {
+    public WorldBase(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 

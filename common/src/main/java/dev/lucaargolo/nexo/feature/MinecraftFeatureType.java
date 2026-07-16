@@ -15,6 +15,7 @@ import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
@@ -151,7 +152,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     }
 
     public @NotNull <C> Supplier<C> craft(Class<C> type, NexoRegistryHandler<?> helper, T feature) {
-        return () -> type.cast(this.crafters.get(type).apply(helper, feature));
+        return () -> MinecraftRoleType.craft(type, type.cast(this.crafters.get(type).apply(helper, feature)), feature);
     }
 
     public static @NotNull MinecraftFeatureType<?, ?> of(Feature.Type<?> type) {

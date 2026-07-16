@@ -13,19 +13,20 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public abstract class Feature<T extends Feature<T>> {
 
     @NotNull
     private final Location location;
-    @Nullable
-    private final Role role;
+    @NotNull
+    private final Supplier<Role> role;
 
     public Feature(@NotNull Location location) {
-        this(location, null);
+        this(location, () -> null);
     }
 
-    public Feature(@NotNull Location location, @Nullable Role role) {
+    public Feature(@NotNull Location location, @NotNull Supplier<Role> role) {
         this.location = location;
         this.role = role;
     }
@@ -37,14 +38,15 @@ public abstract class Feature<T extends Feature<T>> {
     }
 
     public @Nullable Role role() {
-        return role;
+        return role.get();
     }
 
     public <C extends Role> boolean has(@NotNull Class<C> type) {
-        return type.isInstance(role);
+        return type.isInstance(role());
     }
 
     public @NotNull <C extends Role> C get(@NotNull Class<C> type) {
+        Role role = role();
         if (type.isInstance(role)) {
             return type.cast(role);
         }

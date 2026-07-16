@@ -5,7 +5,7 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.feature.data.MinecraftData;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
@@ -51,8 +51,8 @@ public class MinecraftWorld extends WorldBase {
     @NotNull
     private final NexoHolder<LevelStem> holder;
 
-    private MinecraftWorld(@NotNull NexoHolder<LevelStem> holder) {
-        super(NexoMinecraft.id(holder.key()));
+    private MinecraftWorld(NexoRegistryHandler<?> helper, @NotNull NexoHolder<LevelStem> holder) {
+        super(NexoMinecraft.id(holder.key()), MinecraftRoleType.uncraft(helper, Type.WORLD, holder));
         this.holder = holder;
     }
 
@@ -89,7 +89,7 @@ public class MinecraftWorld extends WorldBase {
         }
         Holder<LevelStem> h = registry.getHolder(location).orElseThrow();
         NexoHolder<LevelStem> holder = new NexoHolder<>(helper.nexo(), h, LevelStem.class);
-        FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftWorld(holder));
+        FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftWorld(helper, holder));
         HOLDER_MAP.put(featureLocation, holder);
         return holder;
     }

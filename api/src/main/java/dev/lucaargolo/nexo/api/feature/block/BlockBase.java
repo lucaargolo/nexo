@@ -11,8 +11,9 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
+
+import java.util.function.Supplier;
 
 public abstract class BlockBase extends Feature<BlockBase> implements ModelProvider, ItemProvider {
 
@@ -20,7 +21,7 @@ public abstract class BlockBase extends Feature<BlockBase> implements ModelProvi
         super(location);
     }
 
-    public BlockBase(@NotNull Location location, @Nullable Role role) {
+    public BlockBase(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 

@@ -2,10 +2,10 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
@@ -38,8 +38,8 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     @NotNull
     private final NexoHolder<CreativeModeTab> holder;
 
-    private MinecraftItemCategory(@NotNull NexoHolder<CreativeModeTab> holder) {
-        super(holder.location());
+    private MinecraftItemCategory(NexoRegistryHandler<?> helper, @NotNull NexoHolder<CreativeModeTab> holder) {
+        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ITEM_CATEGORY, holder));
         this.holder = holder;
     }
 
@@ -73,7 +73,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         }
         Holder<CreativeModeTab> h = BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(location).orElseThrow();
         NexoHolder<CreativeModeTab> holder = new NexoHolder<>(helper.nexo(), h, CreativeModeTab.class);
-        FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftItemCategory(holder));
+        FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftItemCategory(helper, holder));
         HOLDER_MAP.put(featureLocation, holder);
         return holder;
     }

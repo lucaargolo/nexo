@@ -19,7 +19,7 @@ public class BlockItem extends ItemBase {
             @Nullable ItemCategoryBase category,
             @NotNull BlockBase block
     ) {
-        super(location, new BlockItemRole(block));
+        super(location, () -> new BlockItemRole(block));
         this.model = model;
         this.category = category;
     }

@@ -12,7 +12,7 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.feature.item.MinecraftItem;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
@@ -60,8 +60,8 @@ public class MinecraftBlock extends BlockBase {
     @NotNull
     private final NexoHolder<Block> holder;
 
-    private MinecraftBlock(@NotNull NexoHolder<Block> holder) {
-        super(holder.location());
+    private MinecraftBlock(NexoRegistryHandler<?> helper, @NotNull NexoHolder<Block> holder) {
+        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.BLOCK, holder));
         this.holder = holder;
     }
 
@@ -127,7 +127,7 @@ public class MinecraftBlock extends BlockBase {
             return indexed;
         }
         NexoHolder<Block> holder = new NexoHolder<>(helper.nexo(), h, Block.class);
-        FEATURE_MAP.putIfAbsent(location, new MinecraftBlock(holder));
+        FEATURE_MAP.putIfAbsent(location, new MinecraftBlock(helper, holder));
         HOLDER_MAP.put(location, holder);
         return holder;
     }

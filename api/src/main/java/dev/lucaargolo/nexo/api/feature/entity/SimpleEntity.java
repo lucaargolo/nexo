@@ -3,15 +3,16 @@ package dev.lucaargolo.nexo.api.feature.entity;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Supplier;
 
 public class SimpleEntity extends EntityBase {
 
     public SimpleEntity(@NotNull Location location) {
-        this(location, null);
+        super(location);
     }
 
-    public SimpleEntity(@NotNull Location location, @Nullable Role role) {
+    public SimpleEntity(@NotNull Location location, @NotNull Supplier<Role> role) {
         super(location, role);
     }
 }

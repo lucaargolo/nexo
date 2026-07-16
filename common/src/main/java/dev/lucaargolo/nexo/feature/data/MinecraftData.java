@@ -9,6 +9,7 @@ import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
@@ -18,7 +19,6 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 public class MinecraftData<D> extends DataBase<D> {
 
@@ -50,8 +49,8 @@ public class MinecraftData<D> extends DataBase<D> {
     @NotNull
     private final NexoHolder<?> holder;
 
-    private MinecraftData(@NotNull NexoHolder<?> holder) {
-        super(holder.location());
+    private MinecraftData(NexoRegistryHandler<?> helper, @NotNull NexoHolder<?> holder) {
+        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.DATA, holder));
         this.holder = holder;
     }
 
@@ -135,7 +134,7 @@ public class MinecraftData<D> extends DataBase<D> {
         }
         Holder<DataComponentType<?>> h = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).orElseThrow();
         NexoHolder<DataComponentType<?>> holder = new NexoHolder<>(helper.nexo(), h, NexoUtils.type(DataComponentType.class));
-        MinecraftData<?> feature = new MinecraftData<>(holder);
+        MinecraftData<?> feature = new MinecraftData<>(helper, holder);
         FEATURE_MAP.putIfAbsent(location, feature);
         HOLDER_MAP.put(location, holder);
         return holder;

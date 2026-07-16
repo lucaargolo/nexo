@@ -3,9 +3,9 @@ package dev.lucaargolo.nexo.feature.entity;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
@@ -42,8 +42,8 @@ public final class MinecraftEntity extends EntityBase {
     @NotNull
     private final NexoHolder<EntityType<?>> holder;
 
-    private MinecraftEntity(@NotNull NexoHolder<EntityType<?>> holder) {
-        super(holder.location());
+    private MinecraftEntity(NexoRegistryHandler<?> helper, @NotNull NexoHolder<EntityType<?>> holder) {
+        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ENTITY, holder));
         this.holder = holder;
     }
 
@@ -77,7 +77,7 @@ public final class MinecraftEntity extends EntityBase {
             return indexed;
         }
         NexoHolder<EntityType<?>> holder = new NexoHolder<>(helper.nexo(), h, NexoUtils.type(EntityType.class));
-        FEATURE_MAP.putIfAbsent(location, new MinecraftEntity(holder));
+        FEATURE_MAP.putIfAbsent(location, new MinecraftEntity(helper, holder));
         HOLDER_MAP.put(location, holder);
         return holder;
     }

@@ -2,12 +2,12 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.model.Model;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
@@ -40,8 +40,8 @@ public class MinecraftItem extends ItemBase {
     @NotNull
     private final NexoHolder<Item> holder;
 
-    private MinecraftItem(@NotNull NexoHolder<Item> holder) {
-        super(holder.location());
+    private MinecraftItem(NexoRegistryHandler<?> helper, @NotNull NexoHolder<Item> holder) {
+        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
         this.holder = holder;
     }
 
@@ -87,7 +87,7 @@ public class MinecraftItem extends ItemBase {
             return indexed;
         }
         NexoHolder<Item> holder = new NexoHolder<>(helper.nexo(), h, Item.class);
-        FEATURE_MAP.putIfAbsent(location, new MinecraftItem(holder));
+        FEATURE_MAP.putIfAbsent(location, new MinecraftItem(helper, holder));
         HOLDER_MAP.put(location, holder);
         return holder;
     }
