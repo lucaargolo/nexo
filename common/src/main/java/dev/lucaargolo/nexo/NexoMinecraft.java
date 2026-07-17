@@ -3,36 +3,41 @@ package dev.lucaargolo.nexo;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.NexoException;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.render.model.NexoModelHandler;
+import dev.lucaargolo.nexo.render.NexoRenderingHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
+import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -40,7 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
@@ -63,14 +67,14 @@ public abstract class NexoMinecraft implements Nexo {
 
     protected final NexoModDiscoveryHandler<?> discoveryHandler;
     protected final NexoRegistryHandler<?> registryHandler;
-    protected final NexoModelHandler<?> modelHandler;
+    protected final NexoRenderingHandler<?> modelHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
-        this.discoveryHandler = loadPlatformClass(NexoModDiscoveryHandler.class, this);
-        this.registryHandler = loadPlatformClass(NexoRegistryHandler.class, this);
-        this.modelHandler = loadPlatformClass(NexoModelHandler.class, this);
+        this.discoveryHandler = NexoUtils.loadPlatformClass(this, NexoModDiscoveryHandler.class, this);
+        this.registryHandler = NexoUtils.loadPlatformClass(this, NexoRegistryHandler.class, this);
+        this.modelHandler = NexoUtils.loadPlatformClass(this, NexoRenderingHandler.class, this);
     }
 
     protected final void init() {
@@ -166,22 +170,26 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
-        BlockBase block = this.getFeature(Feature.Type.BLOCK, NexoMinecraft.id(state.getBlockHolder()));
-        assert block != null;
+        BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
         return new MinecraftBlockUnit(this, block, block.role(), state);
     }
 
+    public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
+        ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
+        return new MinecraftItemUnit(this, item, item.role(), stack);
+    }
+
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
-        WorldBase world = this.getFeature(Feature.Type.WORLD, NexoMinecraft.id(level.dimension()));
-        assert world != null;
-        return this.loadPlatformClass(MinecraftWorldUnit.class, this, world, world.role(), level);
+        ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
+        LevelStem stem = this.registryHandler.getRegistry().registryOrThrow(Registries.LEVEL_STEM).getOrThrow(key);
+        WorldBase world = MinecraftFeatureType.WORLD.convert(this.registryHandler, stem);
+        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
     }
 
     @SuppressWarnings("unchecked")
     public @NotNull <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
-        EntityBase feature = this.getFeature(Feature.Type.ENTITY, NexoMinecraft.id(EntityType.getKey(entity.getType())));
-        assert feature != null;
-        return this.loadPlatformClass(MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
+        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
     }
 
     @Override
@@ -241,57 +249,6 @@ public abstract class NexoMinecraft implements Nexo {
             }
             return null;
         });
-    }
-
-    public <T> T loadPlatformClass(Class<T> clazz, Object... parameters) {
-        return loadPlatformClass(null, clazz, parameters);
-    }
-
-    public <T> T loadPlatformClass(String mod, Class<T> clazz, Object... parameters) {
-        String originalName = clazz.getName();
-        Class<?>[] parameterTypes = new Class<?>[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            parameterTypes[i] = parameters[i].getClass();
-        }
-
-        String commonClassPrefix = mod == null ? this.getPlatform() : this.isModLoaded(mod) ? this.getPlatform() : "Empty";
-        String commonClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + commonClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
-        String clientClassPrefix = "Client" + commonClassPrefix;
-        String clientClassName = originalName.substring(0, originalName.lastIndexOf('.')) + "." + clientClassPrefix + originalName.substring(originalName.lastIndexOf('.') + 1);
-
-        if (this.getSide().isClient()) {
-            try {
-                Class<? extends T> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
-                return this.instantiate(clientPlatformClass, parameterTypes, parameters);
-            } catch (Exception ignored) {
-            }
-        }
-        try {
-            Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
-            return this.instantiate(commonPlatformClass, parameterTypes, parameters);
-        } catch (Exception exception) {
-            throw new NexoException("Failed to load platform class for " + clazz.getName(), exception);
-        }
-    }
-
-    private <T> T instantiate(Class<? extends T> type, Class<?>[] parameterTypes, Object[] parameters) throws ReflectiveOperationException {
-        for (Constructor<?> constructor : type.getConstructors()) {
-            Class<?>[] constructorTypes = constructor.getParameterTypes();
-            if (constructorTypes.length != parameterTypes.length) continue;
-            boolean compatible = true;
-            for (int i = 0; i < constructorTypes.length; i++) {
-                if (!constructorTypes[i].isAssignableFrom(parameterTypes[i])) {
-                    compatible = false;
-                    break;
-                }
-            }
-            if (compatible) {
-                @SuppressWarnings("unchecked")
-                T instance = (T) constructor.newInstance(parameters);
-                return instance;
-            }
-        }
-        throw new NoSuchMethodException(type.getName());
     }
 
     public static Location id(ResourceLocation location) {

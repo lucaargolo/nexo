@@ -1,26 +1,33 @@
-package dev.lucaargolo.nexo.render.model;
+package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
-public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft> {
+public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoMinecraft> {
 
     private final Map<Block, ResourceLocation> blockToModel = new HashMap<>();
-    private final Map<ResourceLocation, NexoMinecraftModel> unbakedModels = new HashMap<>();
+    private final Map<ResourceLocation, UnbakedModel> unbakedModels = new HashMap<>();
     private final Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-    public FabricNexoModelHandler(FabricNexoMinecraft nexo) {
+    public FabricNexoRenderingHandler(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -47,13 +54,25 @@ public class FabricNexoModelHandler extends NexoModelHandler<FabricNexoMinecraft
     }
 
     @Override
-    protected void collectModel(Feature<?> feature, ResourceLocation modelId, NexoMinecraftModel mcModel) {
-        unbakedModels.put(modelId, mcModel);
+    protected void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel) {
+        unbakedModels.put(modelId, mcModel.get());
         if (feature instanceof BlockBase block) {
             blockToModel.put(MinecraftFeatureType.BLOCK.convert(block), modelId);
         } else if (feature instanceof ItemBase) {
             itemModelIds.add(modelId);
         }
+    }
+
+    @Override
+    protected void registerItemRenderer(ItemBase item) {
+        ItemRenderer renderer = createItemRenderer(this.nexo(), item);
+        BuiltinItemRendererRegistry.INSTANCE.register(MinecraftFeatureType.ITEM.convert(item), renderer::render);
+    }
+
+    @Override
+    protected void registerEntityRenderer(EntityBase entity) {
+        EntityType<? extends Entity> entityType = MinecraftFeatureType.ENTITY.convert(entity);
+        registerEntityRenderer(this.nexo(), entityType, entity, EntityRendererRegistry::register);
     }
 
 }

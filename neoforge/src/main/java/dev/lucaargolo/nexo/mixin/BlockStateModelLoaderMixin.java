@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.mixin;
 
-import dev.lucaargolo.nexo.render.model.NeoForgeNexoModelHandler;
+import dev.lucaargolo.nexo.render.NeoForgeNexoRenderingHandler;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.resources.model.BlockStateModelLoader;
 import net.minecraft.client.resources.model.ModelResourceLocation;
@@ -25,7 +25,7 @@ public abstract class BlockStateModelLoaderMixin {
 
     @Inject(method = "loadBlockStateDefinitions", at = @At("HEAD"), cancellable = true)
     private void nexo$injectBlockStates(ResourceLocation id, StateDefinition<Block, BlockState> definition, CallbackInfo ci) {
-        UnbakedModel customModel = NeoForgeNexoModelHandler.getBlockModel(id);
+        UnbakedModel customModel = NeoForgeNexoRenderingHandler.getBlockModel(id);
         if (customModel != null) {
             BiConsumer<ModelResourceLocation, UnbakedModel> output = getDiscoveredModelOutput();
             definition.getPossibleStates().forEach(state -> {

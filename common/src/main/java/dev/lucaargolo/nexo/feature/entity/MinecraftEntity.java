@@ -3,6 +3,9 @@ package dev.lucaargolo.nexo.feature.entity;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Renderer;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
@@ -18,6 +21,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,6 +54,12 @@ public final class MinecraftEntity extends EntityBase {
     @Override
     public @NotNull List<@NotNull Tag> tags() {
         return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
+    }
+
+    @Override
+    public @Nullable Renderer<Graphics3D, EntityUnit<?>> renderer() {
+        //TODO: This
+        return null;
     }
 
     public static EntityBase lookup(Location location) {

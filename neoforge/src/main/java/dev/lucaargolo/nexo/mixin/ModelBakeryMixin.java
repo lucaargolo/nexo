@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.lucaargolo.nexo.render.model.NeoForgeNexoModelHandler;
+import dev.lucaargolo.nexo.render.NeoForgeNexoRenderingHandler;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
@@ -23,7 +23,7 @@ public abstract class ModelBakeryMixin {
 
     @Inject(method = "getModel", at = @At("HEAD"), cancellable = true)
     private void nexo$injectCustomModel(ResourceLocation id, CallbackInfoReturnable<UnbakedModel> cir) {
-        UnbakedModel custom = NeoForgeNexoModelHandler.getCustomModel(id);
+        UnbakedModel custom = NeoForgeNexoRenderingHandler.getCustomModel(id);
         if (custom != null) {
             getUnbakedCache().put(id, custom);
             cir.setReturnValue(custom);
@@ -39,7 +39,7 @@ public abstract class ModelBakeryMixin {
         )
     )
     private void nexo$replaceBlockStateModel(ModelBakery instance, ModelResourceLocation mrl, UnbakedModel model, Operation<Void> original) {
-        UnbakedModel customModel = NeoForgeNexoModelHandler.getBlockModel(mrl.id());
+        UnbakedModel customModel = NeoForgeNexoRenderingHandler.getBlockModel(mrl.id());
         if (customModel != null) {
             original.call(instance, mrl, customModel);
         } else {

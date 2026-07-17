@@ -17,7 +17,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.function.Function;
 
 public final class MinecraftBakedGraphics3D implements Graphics3D {
@@ -27,7 +30,6 @@ public final class MinecraftBakedGraphics3D implements Graphics3D {
     private final Function<Material, TextureAtlasSprite> textureGetter;
     private final Deque<Matrix4f> matrices = new ArrayDeque<>();
     private final Deque<State> states = new ArrayDeque<>();
-    private final Set<Location> textures = new LinkedHashSet<>();
     private final List<BakedQuad> quads = new ArrayList<>();
     private final List<Vertex> vertices = new ArrayList<>();
 
@@ -43,6 +45,7 @@ public final class MinecraftBakedGraphics3D implements Graphics3D {
 
     public static <U> @NotNull MinecraftBakedGraphics3D bake(
             @NotNull StaticRenderer<Graphics3D, U> renderer,
+            @NotNull U unit,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter,
             @NotNull Matrix4f modelTransform
     ) {
@@ -50,18 +53,9 @@ public final class MinecraftBakedGraphics3D implements Graphics3D {
         graphics.matrix.translate(0.5F, 0.5F, 0.5F)
                 .mul(modelTransform)
                 .translate(-0.5F, -0.5F, -0.5F);
-        renderer.render(graphics, null);
+        renderer.render(graphics, unit);
         graphics.requireComplete();
         return graphics;
-    }
-
-    public static <U> @NotNull Set<Location> textures(
-            @NotNull StaticRenderer<Graphics3D, U> renderer
-    ) {
-        MinecraftBakedGraphics3D graphics = new MinecraftBakedGraphics3D(null);
-        renderer.render(graphics, null);
-        graphics.requireComplete();
-        return Set.copyOf(graphics.textures);
     }
 
     @NotNull
@@ -282,7 +276,6 @@ public final class MinecraftBakedGraphics3D implements Graphics3D {
     @Override
     public void bindTexture(@NotNull Location texture) {
         state.texture = texture;
-        textures.add(texture);
     }
 
     @Override

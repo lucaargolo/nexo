@@ -4,8 +4,8 @@ import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import org.jetbrains.annotations.Nullable;
 
-public interface StaticRendererProvider<U> {
+public interface StaticRendererProvider<U> extends RendererProvider<U> {
 
+    @Override
     @Nullable StaticRenderer<Graphics3D, U> renderer();
-
 }

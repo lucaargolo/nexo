@@ -27,7 +27,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -59,10 +58,13 @@ public class MinecraftBlock extends BlockBase {
     };
 
     @NotNull
+    private final NexoRegistryHandler<?> helper;
+    @NotNull
     private final NexoHolder<Block> holder;
 
-    private MinecraftBlock(NexoRegistryHandler<?> helper, @NotNull NexoHolder<Block> holder) {
+    private MinecraftBlock(@NotNull NexoRegistryHandler<?> helper, @NotNull NexoHolder<Block> holder) {
         super(holder.location(), MinecraftRoleType.uncraft(helper, Type.BLOCK, holder));
+        this.helper = helper;
         this.holder = holder;
     }
 
@@ -80,12 +82,7 @@ public class MinecraftBlock extends BlockBase {
     @Override
     public @Nullable ItemBase item() {
         Item item = this.holder.get().asItem();
-        if (item != Items.AIR) {
-            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
-            return this.holder.nexo().getFeature(Type.ITEM, NexoMinecraft.id(itemId));
-        } else {
-            return null;
-        }
+        return MinecraftFeatureType.ITEM.convert(helper, item);
     }
 
     @Override

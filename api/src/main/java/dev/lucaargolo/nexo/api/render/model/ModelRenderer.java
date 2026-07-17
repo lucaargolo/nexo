@@ -10,8 +10,7 @@ import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
@@ -19,10 +18,13 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
     private final @NotNull Model model;
     private final @NotNull List<DrawCall<Graphics3D>> calls;
+    private final @NotNull Set<Location> textures;
 
     public ModelRenderer(@NotNull Model model) {
         this.model = model;
-        this.calls = createCalls(model);
+        CompiledModel compiled = compile(model);
+        this.calls = compiled.calls();
+        this.textures = compiled.textures();
     }
 
     public @NotNull Model model() {
@@ -30,25 +32,33 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
     }
 
     @Override
-    public @NotNull List<@NotNull DrawCall<Graphics3D>> calls(@Nullable U unit) {
+    public @NotNull List<@NotNull DrawCall<Graphics3D>> calls(@NotNull U unit) {
         return calls;
     }
 
-    private static @NotNull List<DrawCall<Graphics3D>> createCalls(@NotNull Model model) {
+    @Override
+    public @NotNull Set<@NotNull Location> textures() {
+        return textures;
+    }
+
+    private static @NotNull CompiledModel compile(@NotNull Model model) {
         List<DrawCall<Graphics3D>> calls = new ArrayList<>();
+        Set<Location> textures = new LinkedHashSet<>();
         for (Cube cube : model.cubes()) {
             List<FaceGeometry> faces = new ArrayList<>(cube.faces().size());
             for (var entry : cube.faces().entrySet()) {
                 Face face = entry.getValue();
+                Location texture = resolveTexture(model, face);
+                textures.add(texture);
                 faces.add(new FaceGeometry(
-                        resolveTexture(model, face),
+                        texture,
                         vertices(cube, entry.getKey(), face),
                         normal(entry.getKey())
                 ));
             }
             calls.add(graphics -> renderCube(graphics, cube.rotation(), faces));
         }
-        return List.copyOf(calls);
+        return new CompiledModel(List.copyOf(calls), Collections.unmodifiableSet(textures));
     }
 
     private static void renderCube(
@@ -176,6 +186,12 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
             case WEST -> new float[]{-1.0F, 0.0F, 0.0F};
             case EAST -> new float[]{1.0F, 0.0F, 0.0F};
         };
+    }
+
+    private record CompiledModel(
+            @NotNull List<DrawCall<Graphics3D>> calls,
+            @NotNull Set<Location> textures
+    ) {
     }
 
     private record FaceGeometry(

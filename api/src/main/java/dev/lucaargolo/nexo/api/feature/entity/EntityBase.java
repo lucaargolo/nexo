@@ -1,13 +1,15 @@
 package dev.lucaargolo.nexo.api.feature.entity;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.RendererProvider;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class EntityBase extends Feature<EntityBase> {
+public abstract class EntityBase extends Feature<EntityBase> implements RendererProvider<EntityUnit<?>> {
 
     public EntityBase(@NotNull Location location) {
         super(location);
