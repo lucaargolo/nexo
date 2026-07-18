@@ -30,7 +30,7 @@ import org.lwjgl.opengl.GL14;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class MinecraftGraphics3D implements Graphics3D {
+public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D {
 
     private static final int CURVE_SEGMENTS = 32;
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
@@ -39,11 +39,7 @@ public final class MinecraftGraphics3D implements Graphics3D {
     private final @NotNull MultiBufferSource buffers;
     private final int packedLight;
     private final int packedOverlay;
-    private final Deque<State> states = new ArrayDeque<>();
 
-    private State state = new State();
-    private @Nullable PrimitiveType primitive;
-    private @Nullable VertexFormat format;
     private @Nullable VertexConsumer consumer;
     private float @Nullable [] firstVertex;
     private int vertexCount;
@@ -72,6 +68,7 @@ public final class MinecraftGraphics3D implements Graphics3D {
         finished = true;
     }
 
+
     @Override
     public void pushMatrix() {
         requireOutsidePrimitive("change the matrix");
@@ -88,129 +85,37 @@ public final class MinecraftGraphics3D implements Graphics3D {
     }
 
     @Override
-    public void pushState() {
-        requireOutsidePrimitive("change render state");
-        states.push(new State(state));
-    }
-
-    @Override
-    public void popState() {
-        requireOutsidePrimitive("change render state");
-        if (states.isEmpty()) throw new IllegalStateException("Cannot pop an empty render-state stack");
-        state = states.pop();
-    }
-
-    @Override
-    public void translate(float x, float y) {
-        translate(x, y, 0.0F);
-    }
-
-    @Override
-    public void translate(float x, float y, float z) {
-        requireOutsidePrimitive("change the matrix");
+    protected void matrixTranslate(float x, float y, float z) {
         poses.translate(x, y, z);
     }
 
     @Override
-    public void rotate(float angle) {
-        rotate(angle, 0.0F, 0.0F, 1.0F);
-    }
-
-    @Override
-    public void rotate(float angle, float axisX, float axisY, float axisZ) {
-        requireOutsidePrimitive("change the matrix");
+    protected void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
         poses.mulPose(new org.joml.Quaternionf().fromAxisAngleDeg(axisX, axisY, axisZ, angle));
     }
 
     @Override
-    public void rotate(@NotNull Vector3f axis, float angle) {
-        rotate(angle, axis.x(), axis.y(), axis.z());
-    }
-
-    @Override
-    public void scale(float x, float y) {
-        scale(x, y, 1.0F);
-    }
-
-    @Override
-    public void scale(float x, float y, float z) {
-        requireOutsidePrimitive("change the matrix");
+    protected void matrixScale(float x, float y, float z) {
         poses.scale(x, y, z);
     }
 
     @Override
-    public void mulMatrix(@NotNull Matrix4f matrix) {
-        requireOutsidePrimitive("change the matrix");
+    protected void matrixMul(@NotNull Matrix4f matrix) {
         poses.mulPose(matrix);
     }
 
     @Override
-    public @NotNull Matrix4f matrix() {
+    protected @NotNull Matrix4f matrixGet() {
         return new Matrix4f(poses.last().pose());
     }
 
-    @Override
-    public void color(float r, float g, float b, float a) {
-        requireOutsidePrimitive("change render state");
-        state.color = new float[]{r, g, b, a};
-    }
 
     @Override
-    public void color(float @NotNull [] rgba) {
-        if (rgba.length != 4) throw new IllegalArgumentException("A color requires exactly four components");
-        color(rgba[0], rgba[1], rgba[2], rgba[3]);
+    public void bindTexture(@NotNull Location texture) {
+        super.bindTexture(texture);
+        state.sprite = sprite(texture);
     }
 
-    @Override
-    public float @NotNull [] color() {
-        return state.color.clone();
-    }
-
-    @Override
-    public void blendMode(@NotNull BlendMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.blendMode = mode;
-    }
-
-    @Override
-    public @NotNull BlendMode blendMode() {
-        return state.blendMode;
-    }
-
-    @Override
-    public void lineWidth(float width) {
-        requireOutsidePrimitive("change render state");
-        if (width <= 0.0F) throw new IllegalArgumentException("Line width must be positive");
-        state.lineWidth = width;
-    }
-
-    @Override
-    public float lineWidth() {
-        return state.lineWidth;
-    }
-
-    @Override
-    public void clip(float x, float y, float width, float height) {
-        throw unsupported("clip regions");
-    }
-
-    @Override
-    public void disableClip() {
-    }
-
-    @Override
-    public void scissor(int x, int y, int width, int height) {
-        throw unsupported("scissor regions");
-    }
-
-    @Override
-    public void disableScissor() {
-    }
-
-    @Override
-    public void drawLine(float x1, float y1, float x2, float y2) {
-        drawLine(x1, y1, 0.0F, x2, y2, 0.0F);
-    }
 
     @Override
     public void drawRect(float x, float y, float width, float height) {
@@ -230,16 +135,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
         vertex(x + width, y, 0.0F);
         vertex(x, y, 0.0F);
         end();
-    }
-
-    @Override
-    public void drawCircle(float x, float y, float radius) {
-        drawEllipse(x, y, radius * 2.0F, radius * 2.0F);
-    }
-
-    @Override
-    public void fillCircle(float x, float y, float radius) {
-        fillEllipse(x, y, radius * 2.0F, radius * 2.0F);
     }
 
     @Override
@@ -328,54 +223,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
         }
     }
 
-    @Override
-    public void bindTexture(@NotNull Location texture) {
-        requireOutsidePrimitive("bind a texture");
-        state.texture = texture;
-        state.sprite = sprite(texture);
-    }
-
-    @Override
-    public void drawTexture(float x, float y, float width, float height) {
-        drawTextureRegion(x, y, width, height, 0.0F, 0.0F, 1.0F, 1.0F);
-    }
-
-    @Override
-    public void drawTextureRegion(
-            float x,
-            float y,
-            float width,
-            float height,
-            float u0,
-            float v0,
-            float u1,
-            float v1
-    ) {
-        if (state.texture == null) throw new IllegalStateException("Cannot draw a texture before binding one");
-        begin(PrimitiveType.QUADS, VertexFormat.POSITION_TEX_NORMAL);
-        vertex(x, y + height, 0.0F, u0, v1, 0.0F, 0.0F, 1.0F);
-        vertex(x + width, y + height, 0.0F, u1, v1, 0.0F, 0.0F, 1.0F);
-        vertex(x + width, y, 0.0F, u1, v0, 0.0F, 0.0F, 1.0F);
-        vertex(x, y, 0.0F, u0, v0, 0.0F, 0.0F, 1.0F);
-        end();
-    }
-
-    @Override
-    public void textureFilter(@NotNull TextureFilter min, @NotNull TextureFilter mag) {
-        requireOutsidePrimitive("change texture filtering");
-        state.minFilter = min;
-        state.magFilter = mag;
-    }
-
-    @Override
-    public void textureWrap(@NotNull TextureWrap wrapS, @NotNull TextureWrap wrapT) {
-        requireOutsidePrimitive("change texture wrapping");
-        if (wrapS != TextureWrap.CLAMP || wrapT != TextureWrap.CLAMP) {
-            throw unsupported("texture wrapping other than CLAMP");
-        }
-        state.wrapS = wrapS;
-        state.wrapT = wrapT;
-    }
 
     @Override
     public void drawText(@NotNull String text, float x, float y) {
@@ -395,75 +242,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
         }
     }
 
-    @Override
-    public void font(@Nullable Location font) {
-        requireOutsidePrimitive("change the font");
-        state.font = font;
-    }
-
-    @Override
-    public @Nullable Location font() {
-        return state.font;
-    }
-
-    @Override
-    public void fontSize(float size) {
-        requireOutsidePrimitive("change the font size");
-        if (size <= 0.0F) throw new IllegalArgumentException("Font size must be positive");
-        state.fontSize = size;
-    }
-
-    @Override
-    public float fontSize() {
-        return state.fontSize;
-    }
-
-    @Override
-    public void depthMode(@NotNull DepthMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.depthMode = mode;
-    }
-
-    @Override
-    public @NotNull DepthMode depthMode() {
-        return state.depthMode;
-    }
-
-    @Override
-    public void depthMask(boolean write) {
-        requireOutsidePrimitive("change render state");
-        state.depthMask = write;
-    }
-
-    @Override
-    public void cullMode(@NotNull CullMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.cullMode = mode;
-    }
-
-    @Override
-    public @NotNull CullMode cullMode() {
-        return state.cullMode;
-    }
-
-    @Override
-    public void lightmap(float u, float v) {
-        requireOutsidePrimitive("change render state");
-        state.customLight = true;
-        state.lightU = Math.round(u);
-        state.lightV = Math.round(v);
-    }
-
-    @Override
-    public void normal(float nx, float ny, float nz) {
-        requireOutsidePrimitive("change render state");
-        state.normal = new Vector3f(nx, ny, nz);
-    }
-
-    @Override
-    public void normal(@NotNull Vector3f normal) {
-        normal(normal.x(), normal.y(), normal.z());
-    }
 
     @Override
     public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
@@ -473,39 +251,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
         end();
     }
 
-    @Override
-    public void drawCube(float x, float y, float z, float sizeX, float sizeY, float sizeZ) {
-        Vector3f p000 = new Vector3f(x, y, z);
-        Vector3f p001 = new Vector3f(x, y, z + sizeZ);
-        Vector3f p010 = new Vector3f(x, y + sizeY, z);
-        Vector3f p011 = new Vector3f(x, y + sizeY, z + sizeZ);
-        Vector3f p100 = new Vector3f(x + sizeX, y, z);
-        Vector3f p101 = new Vector3f(x + sizeX, y, z + sizeZ);
-        Vector3f p110 = new Vector3f(x + sizeX, y + sizeY, z);
-        Vector3f p111 = new Vector3f(x + sizeX, y + sizeY, z + sizeZ);
-        drawQuad(p001, p000, p100, p101);
-        drawQuad(p000, p010, p110, p100);
-        drawQuad(p101, p100, p110, p111);
-        drawQuad(p001, p011, p010, p000);
-        drawQuad(p011, p111, p110, p010);
-        drawQuad(p001, p101, p111, p011);
-    }
-
-    @Override
-    public void drawQuad(
-            @NotNull Vector3f v0,
-            @NotNull Vector3f v1,
-            @NotNull Vector3f v2,
-            @NotNull Vector3f v3
-    ) {
-        Vector3f computedNormal = new Vector3f(v1).sub(v0).cross(new Vector3f(v2).sub(v0)).normalize();
-        begin(PrimitiveType.QUADS, VertexFormat.POSITION_TEX_NORMAL);
-        vertex(v0.x(), v0.y(), v0.z(), 0.0F, 1.0F, computedNormal.x(), computedNormal.y(), computedNormal.z());
-        vertex(v1.x(), v1.y(), v1.z(), 0.0F, 0.0F, computedNormal.x(), computedNormal.y(), computedNormal.z());
-        vertex(v2.x(), v2.y(), v2.z(), 1.0F, 0.0F, computedNormal.x(), computedNormal.y(), computedNormal.z());
-        vertex(v3.x(), v3.y(), v3.z(), 1.0F, 1.0F, computedNormal.x(), computedNormal.y(), computedNormal.z());
-        end();
-    }
 
     @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format) {
@@ -570,7 +315,7 @@ public final class MinecraftGraphics3D implements Graphics3D {
         actualConsumer.addVertex(poses.last(), data[0], data[1], data[2])
                 .setColor(r, g, b, a);
         if (state.texture != null) {
-            TextureAtlasSprite sprite = state.sprite;
+            TextureAtlasSprite sprite = (TextureAtlasSprite) state.sprite;
             float u = textureOffset >= 0 ? data[textureOffset] : 0.0F;
             float v = textureOffset >= 0 ? data[textureOffset + 1] : 0.0F;
             actualConsumer.setUv(sprite.getU(u), sprite.getV(v))
@@ -618,20 +363,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
         if (count < minimum) throw new IllegalStateException(type + " needs at least " + minimum + " vertices");
     }
 
-    @Override
-    public void perspective(float fov, float aspect, float near, float far) {
-        mulMatrix(new Matrix4f().perspective((float) Math.toRadians(fov), aspect, near, far));
-    }
-
-    @Override
-    public void ortho(float left, float right, float bottom, float top, float near, float far) {
-        mulMatrix(new Matrix4f().ortho(left, right, bottom, top, near, far));
-    }
-
-    @Override
-    public void lookAt(@NotNull Vector3f eye, @NotNull Vector3f center, @NotNull Vector3f up) {
-        mulMatrix(new Matrix4f().lookAt(eye, center, up));
-    }
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
         boolean textured = state.texture != null;
@@ -677,7 +408,7 @@ public final class MinecraftGraphics3D implements Graphics3D {
     }
 
     private int light() {
-        return state.customLight ? state.lightU | state.lightV << 16 : packedLight;
+        return state.customLight ? ((int) state.lightU) | (((int) state.lightV) << 16) : packedLight;
     }
 
     private static @NotNull TextureAtlasSprite sprite(@NotNull Location texture) {
@@ -688,18 +419,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
 
     private static int packColor(float @NotNull [] color) {
         return channel(color[3]) << 24 | channel(color[0]) << 16 | channel(color[1]) << 8 | channel(color[2]);
-    }
-
-    private static int channel(float value) {
-        return Math.round(Math.clamp(value, 0.0F, 1.0F) * 255.0F);
-    }
-
-    private void requireOutsidePrimitive(@NotNull String operation) {
-        if (primitive != null) throw new IllegalStateException("Cannot " + operation + " inside begin/end");
-    }
-
-    private static @NotNull UnsupportedOperationException unsupported(@NotNull String operation) {
-        return new UnsupportedOperationException("Minecraft dynamic rendering does not support " + operation);
     }
 
     private record RenderKey(
@@ -814,51 +533,6 @@ public final class MinecraftGraphics3D implements Graphics3D {
             return (mode == DepthMode.ENABLED || mode == DepthMode.REVERSED) && depthMask
                     ? COLOR_DEPTH_WRITE
                     : COLOR_WRITE;
-        }
-    }
-
-    private static final class State {
-        private float[] color = {1.0F, 1.0F, 1.0F, 1.0F};
-        private BlendMode blendMode = BlendMode.DISABLED;
-        private float lineWidth = 1.0F;
-        private @Nullable Location texture;
-        private @Nullable TextureAtlasSprite sprite;
-        private TextureFilter minFilter = TextureFilter.NEAREST;
-        private TextureFilter magFilter = TextureFilter.NEAREST;
-        private TextureWrap wrapS = TextureWrap.CLAMP;
-        private TextureWrap wrapT = TextureWrap.CLAMP;
-        private @Nullable Location font;
-        private float fontSize = 9.0F;
-        private DepthMode depthMode = DepthMode.ENABLED;
-        private boolean depthMask = true;
-        private CullMode cullMode = CullMode.BACK;
-        private boolean customLight;
-        private int lightU;
-        private int lightV;
-        private Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
-
-        private State() {
-        }
-
-        private State(@NotNull State other) {
-            color = other.color.clone();
-            blendMode = other.blendMode;
-            lineWidth = other.lineWidth;
-            texture = other.texture;
-            sprite = other.sprite;
-            minFilter = other.minFilter;
-            magFilter = other.magFilter;
-            wrapS = other.wrapS;
-            wrapT = other.wrapT;
-            font = other.font;
-            fontSize = other.fontSize;
-            depthMode = other.depthMode;
-            depthMask = other.depthMask;
-            cullMode = other.cullMode;
-            customLight = other.customLight;
-            lightU = other.lightU;
-            lightV = other.lightV;
-            normal = new Vector3f(other.normal);
         }
     }
 }
