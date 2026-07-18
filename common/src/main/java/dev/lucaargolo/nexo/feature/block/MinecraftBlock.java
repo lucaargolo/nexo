@@ -109,7 +109,7 @@ public class MinecraftBlock extends BlockBase {
         if (registered != null) {
             return registered;
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(block.location().namespace(), block.location().path());
+        ResourceLocation id = NexoMinecraft.rl(block.location());
         NexoHolder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
         FEATURE_MAP.put(block.location(), block);
         HOLDER_MAP.put(block.location(), holder);

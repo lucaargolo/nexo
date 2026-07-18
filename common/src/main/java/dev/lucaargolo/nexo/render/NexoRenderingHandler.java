@@ -65,7 +65,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     StaticRenderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
-                    registerTextures(nexo, renderer.textures(), NexoAtlas.BLOCK_ATLAS);
+                    registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
                     collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                         nexo,
                         BlockState.class,
@@ -79,7 +79,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
-                        registerTextures(nexo, renderer.textures(), NexoAtlas.BLOCK_ATLAS);
+                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
                         collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
                                 ItemStack.class,
@@ -88,7 +88,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                                 staticRenderer
                         ));
                     } else {
-                        collectModel(feature, modelId, () -> NexoUnbakedModel.BUILTIN);
+                        collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
                         registerItemRenderer(item);
                     }
                 }
@@ -152,7 +152,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             case ItemBase ignored -> "item/";
             default -> "";
         };
-        return ResourceLocation.fromNamespaceAndPath(location.namespace(), prefix + location.path());
+        return NexoMinecraft.rl(location).withPrefix(prefix);
     }
 
     private static void registerTextures(Nexo nexo, Collection<Location> textures, Location atlas) {

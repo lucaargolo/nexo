@@ -57,7 +57,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         if (registered != null) {
             return registered;
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(category.location().namespace(), category.location().path());
+        ResourceLocation id = NexoMinecraft.rl(category.location());
         NexoHolder<CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(helper, category));
         FEATURE_MAP.put(category.location(), category);
         HOLDER_MAP.put(category.location(), holder);

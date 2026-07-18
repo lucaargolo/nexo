@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public final class Location {
 
@@ -27,6 +28,47 @@ public final class Location {
 
     public @NotNull String path() {
         return path;
+    }
+
+    public @NotNull Location withNamespace(@NotNull String namespace) {
+        return Location.of(namespace, path);
+    }
+
+    public @NotNull Location withNamespace(@NotNull Function<Location, String> function) {
+        return Location.of(function.apply(this), path);
+    }
+
+    public @NotNull Location withPath(@NotNull String path) {
+        return Location.of(namespace, path);
+    }
+
+    public @NotNull Location withPath(@NotNull Function<Location, String> function) {
+        return Location.of(namespace, function.apply(this));
+    }
+
+    public @NotNull Location withNamespacePrefix(@NotNull String prefix) {
+        return Location.of(prefix + namespace, path);
+    }
+
+    public @NotNull Location withPathPrefix(@NotNull String prefix) {
+        return Location.of(namespace, prefix + path);
+    }
+
+    public @NotNull Location withNamespaceSuffix(@NotNull String suffix) {
+        return Location.of(namespace + suffix, path);
+    }
+
+    public @NotNull Location withPathSuffix(@NotNull String suffix) {
+        return Location.of(namespace, path + suffix);
+    }
+
+    public @NotNull Location withoutExtension() {
+        return withPath(l -> {
+            String path = l.path();
+            int dot = path.lastIndexOf('.');
+            if (dot > -1) path = path.substring(0, dot);
+            return path;
+        });
     }
 
     @Override
@@ -54,4 +96,5 @@ public final class Location {
     public @NotNull String toString() {
         return this.namespace + ":" + this.path;
     }
+
 }

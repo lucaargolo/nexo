@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.render.model.loader;
 
 import com.google.gson.*;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.model.Cube;
 import dev.lucaargolo.nexo.api.render.model.Face;
 import dev.lucaargolo.nexo.api.render.model.Model;
@@ -17,7 +18,7 @@ import java.util.*;
 public class MinecraftModelLoader extends ModelLoader {
 
     @Override
-    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, @NotNull byte[] data) {
+    public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         if (!path.path().toLowerCase(Locale.ROOT).endsWith(".json")) {
             return null;
         }
@@ -56,7 +57,7 @@ public class MinecraftModelLoader extends ModelLoader {
         cubes.addAll(parseElements(root));
 
         // Merge transforms: parent base, child overrides
-        Map<Location, Model.Transform> transforms = new HashMap<>();
+        Map<Location, Transform> transforms = new HashMap<>();
         if (parentModel != null) {
             transforms.putAll(parentModel.transforms());
         }
@@ -112,12 +113,12 @@ public class MinecraftModelLoader extends ModelLoader {
         return Location.of(val.substring(0, colon), val.substring(colon + 1));
     }
 
-    private static @NotNull Map<Location, Model.Transform> parseDisplay(@NotNull JsonObject root) {
+    private static @NotNull Map<Location, Transform> parseDisplay(@NotNull JsonObject root) {
         if (!root.has("transforms"))
             return Map.of();
 
         JsonObject displayObj = root.getAsJsonObject("transforms");
-        Map<Location, Model.Transform> display = new HashMap<>();
+        Map<Location, Transform> display = new HashMap<>();
 
         for (var entry : displayObj.entrySet()) {
             Location loc = Location.of("minecraft", entry.getKey());
@@ -128,11 +129,11 @@ public class MinecraftModelLoader extends ModelLoader {
         return display;
     }
 
-    private static @NotNull Model.Transform parseTransform(@NotNull JsonObject obj) {
+    private static @NotNull Transform parseTransform(@NotNull JsonObject obj) {
         Vector3f rotation = parseFloat3(obj, "rotation", 0);
         Vector3f translation = parseFloat3(obj, "translation", 0);
         Vector3f scale = parseFloat3(obj, "scale", 1);
-        return new Model.Transform(rotation, translation, scale);
+        return new Transform(rotation, translation, scale);
     }
 
     private static @NotNull Vector3f parseFloat3(@NotNull JsonObject obj, @NotNull String key, float defaultValue) {

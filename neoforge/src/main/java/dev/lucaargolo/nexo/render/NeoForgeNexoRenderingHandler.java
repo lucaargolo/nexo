@@ -75,8 +75,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     protected void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel) {
         CUSTOM_MODELS.put(modelId, mcModel);
         if (feature instanceof BlockBase) {
-            Location location = feature.location();
-            ResourceLocation blockKey = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+            ResourceLocation blockKey = NexoMinecraft.rl(feature.location());;
             BLOCK_MODELS.put(blockKey, mcModel);
         } else if (feature instanceof ItemBase) {
             itemModels.add(modelId);

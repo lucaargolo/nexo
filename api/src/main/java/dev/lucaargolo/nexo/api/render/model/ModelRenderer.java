@@ -3,12 +3,14 @@ package dev.lucaargolo.nexo.api.render.model;
 import dev.lucaargolo.nexo.api.render.DrawCall;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -18,7 +20,7 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
     private final @NotNull Model model;
     private final @NotNull List<DrawCall<Graphics3D>> calls;
-    private final @NotNull Set<Location> textures;
+    private final @NotNull Map<String, Location> textures;
 
     public ModelRenderer(@NotNull Model model) {
         this.model = model;
@@ -37,19 +39,33 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
     }
 
     @Override
-    public @NotNull Set<@NotNull Location> textures() {
+    public @NotNull Map<String, Location> textures() {
         return textures;
+    }
+
+    @Override
+    public @NotNull Transform transform(@NotNull Location location) {
+        Transform transform = model.getTransform(location);
+        if (transform != null) return transform;
+        return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F));
+    }
+
+    @Override
+    public boolean shaded() {
+        return model.shade();
     }
 
     private static @NotNull CompiledModel compile(@NotNull Model model) {
         List<DrawCall<Graphics3D>> calls = new ArrayList<>();
-        Set<Location> textures = new LinkedHashSet<>();
+        Map<String, Location> textures = new LinkedHashMap<>();
         for (Cube cube : model.cubes()) {
             List<FaceGeometry> faces = new ArrayList<>(cube.faces().size());
             for (var entry : cube.faces().entrySet()) {
                 Face face = entry.getValue();
                 Location texture = resolveTexture(model, face);
-                textures.add(texture);
+                String textureKey = face.texture();
+                if (textureKey.startsWith("#")) textureKey = textureKey.substring(1);
+                textures.put(textureKey, texture);
                 faces.add(new FaceGeometry(
                         texture,
                         vertices(cube, entry.getKey(), face),
@@ -58,7 +74,7 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
             }
             calls.add(graphics -> renderCube(graphics, cube.rotation(), faces));
         }
-        return new CompiledModel(List.copyOf(calls), Collections.unmodifiableSet(textures));
+        return new CompiledModel(List.copyOf(calls), Collections.unmodifiableMap(textures));
     }
 
     private static void renderCube(
@@ -190,7 +206,7 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
     private record CompiledModel(
             @NotNull List<DrawCall<Graphics3D>> calls,
-            @NotNull Set<Location> textures
+            @NotNull Map<String, Location> textures
     ) {
     }
 

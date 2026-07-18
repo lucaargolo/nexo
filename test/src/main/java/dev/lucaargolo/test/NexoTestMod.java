@@ -6,14 +6,16 @@ import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3f;
 
-import java.util.Set;
+import java.util.Map;
 
 public class NexoTestMod {
 
@@ -94,8 +96,17 @@ public class NexoTestMod {
             }
 
             @Override
-            public @NotNull Set<@NotNull Location> textures() {
-                return Set.of(texture);
+            public @NotNull Map<String, Location> textures() {
+                return Map.of("main", texture);
+            }
+
+            @Override
+            public @NotNull Transform transform(@NotNull Location location) {
+                return new Transform(
+                        new Vector3f(),
+                        new Vector3f(),
+                        new Vector3f(1.0F, 1.0F, 1.0F)
+                );
             }
         };
     }

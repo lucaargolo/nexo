@@ -73,7 +73,7 @@ public class MinecraftItem extends ItemBase {
         if (registered != null) {
             return registered;
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(item.location().namespace(), item.location().path());
+        ResourceLocation id = NexoMinecraft.rl(item.location());
         NexoHolder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
         HOLDER_MAP.put(item.location(), holder);

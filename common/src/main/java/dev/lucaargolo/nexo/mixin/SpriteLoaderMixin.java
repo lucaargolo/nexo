@@ -37,16 +37,8 @@ public class SpriteLoaderMixin {
 
         List<SpriteContents> augmented = new ArrayList<>(contents);
         for (var entry : registered.entrySet()) {
-            Location location = entry.getKey();
-            Path path = entry.getValue();
-
-            //Remove extensions in the registry
-            String texPath = location.path();
-            int dot = texPath.lastIndexOf('.');
-            if (dot > -1) {
-                texPath = texPath.substring(0, dot);
-            }
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), texPath);
+            Location location = entry.getKey().withoutExtension();
+            ResourceLocation id = NexoMinecraft.rl(location);
 
             // Don't override if already present in the atlas
             boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
@@ -55,6 +47,7 @@ public class SpriteLoaderMixin {
                 continue;
             }
 
+            Path path = entry.getValue();
             try (InputStream in = Files.newInputStream(path)) {
                 NativeImage image = NativeImage.read(in);
                 FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());

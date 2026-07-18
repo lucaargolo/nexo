@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.api.render.model;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.api.render.model.loader.ModelLoader;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -85,12 +86,6 @@ public record Model(
         }
         return null;
     }
-
-    public record Transform(
-        @NotNull Vector3f rotation,
-        @NotNull Vector3f translation,
-        @NotNull Vector3f scale
-    ) {}
 
     static {
         Model.registerLoader(new MinecraftModelLoader());

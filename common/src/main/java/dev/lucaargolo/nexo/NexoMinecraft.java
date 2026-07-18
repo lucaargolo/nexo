@@ -62,6 +62,7 @@ public abstract class NexoMinecraft implements Nexo {
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
+    private static final Map<Location, ResourceLocation> RL_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
     private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
 
@@ -133,7 +134,7 @@ public abstract class NexoMinecraft implements Nexo {
         }
 
         // 2. Try Minecraft resource manager (any namespace, any resource type)
-        ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+        ResourceLocation rl = NexoMinecraft.rl(location); ;
         try {
             Minecraft minecraft = Minecraft.getInstance();
             var optResource = minecraft.getResourceManager().getResource(rl);
@@ -249,6 +250,10 @@ public abstract class NexoMinecraft implements Nexo {
             }
             return null;
         });
+    }
+
+    public static ResourceLocation rl(Location location) {
+        return RL_CACHE.computeIfAbsent(location, k -> ResourceLocation.fromNamespaceAndPath(k.namespace(), k.path()));
     }
 
     public static Location id(ResourceLocation location) {

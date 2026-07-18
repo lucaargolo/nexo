@@ -71,7 +71,7 @@ public final class MinecraftEntity extends EntityBase {
         if (registered != null) {
             return registered;
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(entity.location().namespace(), entity.location().path());
+        ResourceLocation id = NexoMinecraft.rl(entity.location());
         NexoHolder<EntityType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(helper, entity));
         FEATURE_MAP.put(entity.location(), entity);
         HOLDER_MAP.put(entity.location(), holder);

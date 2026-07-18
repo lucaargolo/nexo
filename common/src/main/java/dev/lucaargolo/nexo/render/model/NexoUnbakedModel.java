@@ -1,10 +1,11 @@
 package dev.lucaargolo.nexo.render.model;
 
+import com.mojang.math.Transformation;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
-import dev.lucaargolo.nexo.api.render.model.Model;
-import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
@@ -17,7 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.Collection;
@@ -25,24 +26,6 @@ import java.util.List;
 import java.util.function.Function;
 
 public final class NexoUnbakedModel<M, U> implements UnbakedModel {
-
-    public static final UnbakedModel BUILTIN = new UnbakedModel() {
-        @Override
-        public @NotNull Collection<ResourceLocation> getDependencies() {
-            return List.of();
-        }
-
-        @Override
-        public void resolveParents(@NotNull Function<ResourceLocation, UnbakedModel> pResolver) {
-
-        }
-
-        @Override
-        public BakedModel bake(@NotNull ModelBaker pBaker, @NotNull Function<Material, TextureAtlasSprite> pSpriteGetter, @NotNull ModelState pState) {
-            //TODO
-            return new BuiltInModel(ItemTransforms.NO_TRANSFORMS, ItemOverrides.EMPTY, particle(pSpriteGetter), true);
-        }
-    };
 
     private final @NotNull NexoMinecraft nexo;
     final @NotNull Class<M> type;
@@ -79,75 +62,60 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
             @NotNull Function<Material, TextureAtlasSprite> textureGetter,
             @NotNull ModelState modelState
     ) {
+        Transformation transformation = modelState.getRotation();
+        Matrix4f matrix = transformation.getMatrix();
         return NexoUtils.loadPlatformClass(this.nexo, NexoBakedModel.class,
                 this,
                 textureGetter,
-                modelState.getRotation().getMatrix(),
-                ambientOcclusion(),
-                itemTransforms(),
-                particle(textureGetter)
+                matrix,
+                renderer.shaded(),
+                getItemTransforms(renderer),
+                getParticleSprite(renderer, textureGetter)
         );
     }
 
-    //TODO
-    private static @NotNull TextureAtlasSprite particle(
+    private static @NotNull TextureAtlasSprite getParticleSprite(
+            @NotNull Renderer<?, ?> renderer,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter
     ) {
+        Location location = renderer.texture("particle");
         return textureGetter.apply(new Material(
                 InventoryMenu.BLOCK_ATLAS,
-                MissingTextureAtlasSprite.getLocation()
+                location == null ? MissingTextureAtlasSprite.getLocation() : NexoMinecraft.rl(location)
         ));
     }
 
-    //TODO
-    private boolean ambientOcclusion() {
-        if (renderer instanceof ModelRenderer<?> modelRenderer) {
-            return modelRenderer.model().shade();
-        }
-        return true;
+    public static UnbakedModel builtin(Renderer<?, ?> renderer) {
+        return new UnbakedModel() {
+            @Override
+            public @NotNull Collection<ResourceLocation> getDependencies() {
+                return List.of();
+            }
+
+            @Override
+            public void resolveParents(@NotNull Function<ResourceLocation, UnbakedModel> pResolver) {
+
+            }
+
+            @Override
+            public BakedModel bake(@NotNull ModelBaker pBaker, @NotNull Function<Material, TextureAtlasSprite> pSpriteGetter, @NotNull ModelState pState) {
+                return new BuiltInModel(getItemTransforms(renderer), ItemOverrides.EMPTY, getParticleSprite(renderer, pSpriteGetter), true);
+            }
+        };
     }
 
-    //TODO
-    private @NotNull ItemTransforms itemTransforms() {
-        if (renderer instanceof ModelRenderer<?> modelRenderer) {
-            return toItemTransforms(modelRenderer.model());
-        }
-        return ItemTransforms.NO_TRANSFORMS;
-    }
+    private static @NotNull ItemTransforms getItemTransforms(@NotNull Renderer<?, ?> renderer) {
+        ItemTransform thirdPersonRight = transform(renderer, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
+        ItemTransform thirdPersonLeft = transform(renderer, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
+        ItemTransform firstPersonRight = transform(renderer, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);
+        ItemTransform firstPersonLeft = transform(renderer, ItemDisplayContext.FIRST_PERSON_LEFT_HAND);
+        ItemTransform head = transform(renderer, ItemDisplayContext.HEAD);
+        ItemTransform gui = transform(renderer, ItemDisplayContext.GUI);
+        ItemTransform ground = transform(renderer, ItemDisplayContext.GROUND);
+        ItemTransform fixed = transform(renderer, ItemDisplayContext.FIXED);
 
-    //TODO
-    private static @NotNull ItemTransform toItemTransform(@Nullable Model.Transform transform) {
-        if (transform == null) return ItemTransform.NO_TRANSFORM;
-        Vector3f translation = new Vector3f(transform.translation()).mul(0.0625F);
-        return new ItemTransform(
-                new Vector3f(transform.rotation()),
-                translation,
-                new Vector3f(transform.scale())
-        );
-    }
-
-    //TODO
-    private static @NotNull ItemTransform getDisplayTransform(
-            @NotNull Model model,
-            @NotNull ItemDisplayContext context
-    ) {
-        Location location = Location.of("minecraft", context.getSerializedName());
-        return toItemTransform(model.getTransform(location));
-    }
-
-    //TODO
-    private static @NotNull ItemTransforms toItemTransforms(@NotNull Model model) {
-        ItemTransform thirdPersonRight = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
-        ItemTransform thirdPersonLeft = getDisplayTransform(model, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
-        ItemTransform firstPersonRight = getDisplayTransform(model, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);
-        ItemTransform firstPersonLeft = getDisplayTransform(model, ItemDisplayContext.FIRST_PERSON_LEFT_HAND);
-        ItemTransform head = getDisplayTransform(model, ItemDisplayContext.HEAD);
-        ItemTransform gui = getDisplayTransform(model, ItemDisplayContext.GUI);
-        ItemTransform ground = getDisplayTransform(model, ItemDisplayContext.GROUND);
-        ItemTransform fixed = getDisplayTransform(model, ItemDisplayContext.FIXED);
-
-        if (thirdPersonLeft == ItemTransform.NO_TRANSFORM) thirdPersonLeft = thirdPersonRight;
-        if (firstPersonLeft == ItemTransform.NO_TRANSFORM) firstPersonLeft = firstPersonRight;
+        if (ItemTransform.NO_TRANSFORM.equals(thirdPersonLeft)) thirdPersonLeft = thirdPersonRight;
+        if (ItemTransform.NO_TRANSFORM.equals(firstPersonLeft)) firstPersonLeft = firstPersonRight;
 
         return new ItemTransforms(
                 thirdPersonLeft,
@@ -158,6 +126,19 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
                 gui,
                 ground,
                 fixed
+        );
+    }
+
+    private static @NotNull ItemTransform transform(
+            @NotNull Renderer<?, ?> renderer,
+            @NotNull ItemDisplayContext context
+    ) {
+        Location location = Location.of("minecraft", context.getSerializedName());
+        Transform transform = renderer.transform(location);
+        return new ItemTransform(
+                new Vector3f(transform.rotation()),
+                new Vector3f(transform.translation()).mul(0.0625F),
+                new Vector3f(transform.scale())
         );
     }
 

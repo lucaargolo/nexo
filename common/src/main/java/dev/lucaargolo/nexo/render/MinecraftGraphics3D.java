@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -388,7 +389,7 @@ public final class MinecraftGraphics3D implements Graphics3D {
         if (state.font == null) {
             minecraftFont.drawInBatch(text, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
         } else {
-            ResourceLocation font = resource(state.font);
+            ResourceLocation font = NexoMinecraft.rl(state.font);
             Component component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
             minecraftFont.drawInBatch(component, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
         }
@@ -681,18 +682,8 @@ public final class MinecraftGraphics3D implements Graphics3D {
 
     private static @NotNull TextureAtlasSprite sprite(@NotNull Location texture) {
         TextureAtlas atlas = Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS);
-        return atlas.getSprite(resourceWithoutExtension(texture));
-    }
-
-    private static @NotNull ResourceLocation resourceWithoutExtension(@NotNull Location location) {
-        String path = location.path();
-        int extension = path.lastIndexOf('.');
-        if (extension >= 0) path = path.substring(0, extension);
-        return ResourceLocation.fromNamespaceAndPath(location.namespace(), path);
-    }
-
-    private static @NotNull ResourceLocation resource(@NotNull Location location) {
-        return ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+        ResourceLocation location = NexoMinecraft.rl(texture.withoutExtension());
+        return atlas.getSprite(location);
     }
 
     private static int packColor(float @NotNull [] color) {

@@ -44,8 +44,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
 
     @Override
     public <D> void registerDataAttachment(DataBase<D> data) {
-        Location location = data.location();
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(location.namespace(), location.path());
+        ResourceLocation id = NexoMinecraft.rl(data.location());
         AttachmentType.Builder<D> builder = AttachmentType.builder(data::initial);
         if (data.persistent()) {
             Codec<D> codec = NexoMinecraft.createCodec(data);

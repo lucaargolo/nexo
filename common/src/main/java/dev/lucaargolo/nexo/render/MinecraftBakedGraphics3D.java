@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.render;
 
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.util.*;
@@ -561,11 +562,8 @@ public final class MinecraftBakedGraphics3D implements Graphics3D {
     }
 
     private @NotNull TextureAtlasSprite sprite(@Nullable Location texture) {
-        Location actual = texture != null ? texture : MISSING_TEXTURE;
-        String path = actual.path();
-        int dot = path.lastIndexOf('.');
-        if (dot > -1) path = path.substring(0, dot);
-        ResourceLocation location = ResourceLocation.fromNamespaceAndPath(actual.namespace(), path);
+        Location actual = texture != null ? texture.withoutExtension() : MISSING_TEXTURE;
+        ResourceLocation location = NexoMinecraft.rl(actual);
         Material material = new Material(InventoryMenu.BLOCK_ATLAS, location);
         assert textureGetter != null;
         return textureGetter.apply(material);
