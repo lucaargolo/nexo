@@ -63,7 +63,7 @@ public abstract class Feature<T extends Feature<T>> {
 
     public record Tag(Location location) {}
 
-    public record Type<T extends Feature<T>>(Class<T> type) {
+    public static final class Type<T extends Feature<T>> {
 
         private static final List<Type<?>> ALL = new ArrayList<>();
 
@@ -74,9 +74,15 @@ public abstract class Feature<T extends Feature<T>> {
         public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);
 
-        public Type(Class<T> type) {
+        private final Class<T> type;
+
+        private Type(Class<T> type) {
             this.type = type;
             ALL.add(this);
+        }
+
+        public Class<T> type() {
+            return type;
         }
 
         public boolean isInstance(Feature<?> feature) {
@@ -85,6 +91,18 @@ public abstract class Feature<T extends Feature<T>> {
 
         public T cast(Feature<?> feature) {
             return type.cast(feature);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Type<?> that)) return false;
+            return type.equals(that.type);
+        }
+
+        @Override
+        public int hashCode() {
+            return type.hashCode();
         }
 
         public static Iterable<Type<?>> values() {
