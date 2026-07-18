@@ -161,7 +161,12 @@ class MethodAnnotationVisitor extends MethodVisitor {
             if (cv.ref(rd) && rd != 'V' && !retOk)
                 cv.err << "${cv.cn}: return type of '${mn}' missing @Nullable/@NotNull"
         }
-        for (int i = 0; i < at.length; i++) {
+        // Enum constructors have synthetic (String name, int ordinal) parameters prepended by the
+        // compiler. These cannot be annotated by the user, so skip them when checking annotations.
+        int startIdx = (cv.en && ctor && at.length >= 2
+            && at[0].descriptor == "Ljava/lang/String;"
+            && at[1].descriptor == "I") ? 2 : 0
+        for (int i = startIdx; i < at.length; i++) {
             if (!cv.ref(at[i].descriptor)) continue
             if (!pOk[i])
                 cv.err << "${cv.cn}: parameter ${i} of '${mn}' missing @Nullable/@NotNull"

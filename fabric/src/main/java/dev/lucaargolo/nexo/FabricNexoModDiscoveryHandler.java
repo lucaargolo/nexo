@@ -75,7 +75,7 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
                 NexoMinecraft.LOGGER.info("Registered Nexo mod '{}' in FabricLoader internals", container.getMetadata().getId());
             }
         } catch (Exception e) {
-            NexoMinecraft.LOGGER.error("Failed to register Nexo mods in FabricLoader: {}", e.getMessage());
+            NexoMinecraft.LOGGER.error("Failed to register Nexo mods in FabricLoader", e);
         }
     }
 }

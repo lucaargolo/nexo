@@ -1,7 +1,5 @@
 package dev.lucaargolo.nexo.api.render.util;
 
-import org.jetbrains.annotations.NotNull;
-
 public enum VertexFormat {
     POSITION(3),
     POSITION_COLOR(7),
@@ -12,7 +10,7 @@ public enum VertexFormat {
 
     private final int stride;
 
-    VertexFormat(@NotNull int stride) {
+    VertexFormat(int stride) {
         this.stride = stride;
     }
 

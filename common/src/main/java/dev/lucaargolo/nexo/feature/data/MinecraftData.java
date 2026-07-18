@@ -117,7 +117,7 @@ public class MinecraftData<D> extends DataBase<D> {
         if (registered != null) {
             return registered;
         }
-        ResourceLocation id = NexoMinecraft.rl(data.location());;
+        ResourceLocation id = NexoMinecraft.rl(data.location());
         NexoHolder<DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
         FEATURE_MAP.put(data.location(), data);
         HOLDER_MAP.put(data.location(), holder);

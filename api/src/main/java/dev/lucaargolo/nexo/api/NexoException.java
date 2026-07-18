@@ -14,6 +14,6 @@ public class NexoException extends RuntimeException {
     }
 
     public NexoException(@Nullable Throwable cause) {
-        super(cause);
+        super(cause != null ? cause.getMessage() : null, cause);
     }
 }

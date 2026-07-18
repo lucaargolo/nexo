@@ -134,7 +134,7 @@ public abstract class NexoMinecraft implements Nexo {
         }
 
         // 2. Try Minecraft resource manager (any namespace, any resource type)
-        ResourceLocation rl = NexoMinecraft.rl(location); ;
+        ResourceLocation rl = NexoMinecraft.rl(location);
         try {
             Minecraft minecraft = Minecraft.getInstance();
             var optResource = minecraft.getResourceManager().getResource(rl);

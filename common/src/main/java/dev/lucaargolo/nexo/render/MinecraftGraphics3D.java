@@ -30,7 +30,7 @@ import org.lwjgl.opengl.GL14;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D {
+public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D implements AutoCloseable {
 
     private static final int CURVE_SEGMENTS = 32;
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
@@ -66,6 +66,11 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D {
         if (!states.isEmpty()) throw new IllegalStateException("Renderer ended with " + states.size() + " unclosed render states");
         poses.popPose();
         finished = true;
+    }
+
+    @Override
+    public void close() {
+        finish();
     }
 
 

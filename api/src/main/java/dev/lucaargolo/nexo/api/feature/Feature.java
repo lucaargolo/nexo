@@ -50,7 +50,10 @@ public abstract class Feature<T extends Feature<T>> {
         if (type.isInstance(role)) {
             return type.cast(role);
         }
-        throw new IllegalArgumentException("Feature does not have role type " + type.getName());
+        if (role == null) {
+            throw new IllegalArgumentException("Feature " + location() + " has no role configured");
+        }
+        throw new IllegalArgumentException("Feature " + location() + " does not have role type " + type.getName() + ", found " + role.getClass().getName());
     }
 
     public @NotNull List<@NotNull Tag> tags() {

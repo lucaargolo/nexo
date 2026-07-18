@@ -8,6 +8,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -15,19 +16,42 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(FaceBakery.class)
 public class FaceBakeryMixin {
 
+    @Unique
     private static final float RESCALE_22_5 = 1.0F / (float) Math.cos(Math.PI / 8.0) - 1.0F;
+    @Unique
     private static final float RESCALE_45 = 1.0F / (float) Math.cos(Math.PI / 4.0) - 1.0F;
 
-    @Inject(method = "applyElementRotation", at = @At("HEAD"), cancellable = true)
-    private void onApplyElementRotation(
+    private static final ThreadLocal<Vector3f> SAVED_VERTEX = new ThreadLocal<>();
+
+    @Inject(method = "applyElementRotation", at = @At("HEAD"))
+    private void nexo$onApplyElementRotationHead(
             Vector3f vertex,
             BlockElementRotation rotation,
             CallbackInfo ci
     ) {
-        if (rotation == null) return;
-
+        if (rotation == null) {
+            SAVED_VERTEX.remove();
+            return;
+        }
         Vector3f euler = ((BlockElementRotationMixed) (Object) rotation).nexo$getEulerRotation();
-        if (euler == null) return;
+        if (euler != null) {
+            SAVED_VERTEX.set(new Vector3f(vertex));
+        } else {
+            SAVED_VERTEX.remove();
+        }
+    }
+
+    @Inject(method = "applyElementRotation", at = @At("RETURN"))
+    private void nexo$onApplyElementRotationReturn(
+            Vector3f vertex,
+            BlockElementRotation rotation,
+            CallbackInfo ci
+    ) {
+        Vector3f original = SAVED_VERTEX.get();
+        if (original == null) return;
+
+        vertex.set(original);
+        Vector3f euler = ((BlockElementRotationMixed) (Object) rotation).nexo$getEulerRotation();
 
         Vector3f origin = rotation.origin();
         float toRad = (float) Math.PI / 180.0F;
@@ -37,7 +61,7 @@ public class FaceBakeryMixin {
 
         Vector3f rescaleVec;
         if (rotation.rescale()) {
-            rescaleVec = computeEulerRescale(euler);
+            rescaleVec = nexo$computeEulerRescale(euler);
         } else {
             rescaleVec = new Vector3f(1.0F, 1.0F, 1.0F);
         }
@@ -50,11 +74,10 @@ public class FaceBakeryMixin {
         ));
         v.mul(new Vector4f(rescaleVec, 1.0F));
         vertex.set(v.x() + origin.x(), v.y() + origin.y(), v.z() + origin.z());
-
-        ci.cancel();
     }
 
-    private static Vector3f computeEulerRescale(Vector3f euler) {
+    @Unique
+    private static Vector3f nexo$computeEulerRescale(Vector3f euler) {
         float rx = 1.0F, ry = 1.0F, rz = 1.0F;
         final float absX = Math.abs(euler.x());
         final float absY = Math.abs(euler.y());

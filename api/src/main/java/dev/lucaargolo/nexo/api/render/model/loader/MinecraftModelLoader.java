@@ -11,11 +11,15 @@ import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MinecraftModelLoader extends ModelLoader {
+
+    private static final @NotNull Logger LOGGER = LoggerFactory.getLogger(MinecraftModelLoader.class);
 
     @Override
     public @Nullable Model tryLoad(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
@@ -27,6 +31,7 @@ public class MinecraftModelLoader extends ModelLoader {
         try {
             root = JsonParser.parseString(new String(data, StandardCharsets.UTF_8)).getAsJsonObject();
         } catch (JsonParseException | IllegalStateException e) {
+            LOGGER.warn("Failed to parse model JSON at {}: {}", path, e.getMessage());
             return null;
         }
 
@@ -224,7 +229,8 @@ public class MinecraftModelLoader extends ModelLoader {
             if (faceObj.has("cullface")) {
                 try {
                     cullFace = Orientation.valueOf(faceObj.get("cullface").getAsString().toUpperCase(Locale.ROOT));
-                } catch (IllegalArgumentException ignored) {
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Invalid cullface value '{}'", faceObj.get("cullface").getAsString());
                 }
             }
 
