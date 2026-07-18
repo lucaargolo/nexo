@@ -36,6 +36,9 @@ public final class StringData extends DataBase<String> {
     @Override
     public @NotNull String read(@NotNull ByteBuffer buffer) {
         int length = buffer.getInt();
+        if (length < 0 || length > buffer.remaining()) {
+            throw new IllegalArgumentException("Invalid string length: " + length);
+        }
         byte[] bytes = new byte[length];
         buffer.get(bytes);
         return new String(bytes, StandardCharsets.UTF_8);

@@ -41,14 +41,6 @@ public record Cube(
         this.emissive = emissive;
     }
 
-    /**
-     * Element rotation supporting all three Minecraft model formats:
-     * <ul>
-     *   <li><b>Format 1 (1.9–1.21.5):</b> single-axis {@code axis} + {@code angle}</li>
-     *   <li><b>Format 2 (1.21.6–1.21.10):</b> single-axis {@code axis} + {@code angle}, unbounded</li>
-     *   <li><b>Format 3 (1.21.11+):</b> multi-axis {@code x}/{@code y}/{@code z} independent angles</li>
-     * </ul>
-     */
     public record Rotation(
         @NotNull Vector3f origin,
         @Nullable String axis,   // "x", "y", "z" — formats 1 & 2
