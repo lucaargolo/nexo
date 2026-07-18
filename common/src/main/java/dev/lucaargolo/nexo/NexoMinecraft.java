@@ -221,7 +221,11 @@ public abstract class NexoMinecraft implements Nexo {
                     for (Predicate<?> predicate : predicates) {
                         @SuppressWarnings("unchecked")
                         Predicate<E> typedPredicate = (Predicate<E>) predicate;
-                        cancel = cancel || !typedPredicate.test(event);
+                        try {
+                            cancel = cancel || !typedPredicate.test(event);
+                        } catch (Exception e) {
+                            LOGGER.error("Failed to emit event {} to listener {}", event.getClass().getSimpleName(), predicate, e);
+                        }
                     }
                 }
             }
