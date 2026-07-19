@@ -83,8 +83,9 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.modelHandler.init();
         this.discoveryHandler.init();
+        this.registryHandler.init();
+        this.modelHandler.init();
     }
 
     public abstract Side getSide();
@@ -162,12 +163,10 @@ public abstract class NexoMinecraft implements Nexo {
 
     @Override
     public @NotNull <T extends Feature<T>> T registerFeature(@NotNull T feature) {
-        Location location = feature.location();
         for (Feature.Type<?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
                 t.register(this.registryHandler, feature);
-                this.emit(new FeatureRegisteredEvent(location, feature));
                 return feature;
             }
         }

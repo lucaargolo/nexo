@@ -38,6 +38,8 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         return nexo;
     }
 
+    public abstract void init();
+
     public abstract <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     @SuppressWarnings("unchecked")

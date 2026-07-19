@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.serialization.Codec;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -11,6 +12,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
+import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -40,6 +42,11 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
                 view.getOptional(key.registryKey()).ifPresent(registrar);
             });
         });
+    }
+
+    @Override
+    public void init() {
+        MinecraftFeatureType.all().forEach(this::addRegistryListener);
     }
 
     @Override
@@ -79,6 +86,12 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     @Override
     protected RegistryAccess getLocalRegistry() {
         return null;
+    }
+
+    private <M> void addRegistryListener(MinecraftFeatureType<?, M> type) {
+        RegistryEntryAddedCallback.event(type.registry(this)).register((raw, id, value) -> {
+            this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.convert(this, value)));
+        });
     }
 
     @SuppressWarnings("unchecked")

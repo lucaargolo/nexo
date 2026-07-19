@@ -19,7 +19,10 @@ import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -29,6 +32,7 @@ import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -42,6 +46,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<DataBase<?>, DataComponentType<?>> DATA = new MinecraftFeatureType<>(
             NexoUtils.type(DataComponentType.class),
             Feature.Type.data(),
+            helper -> BuiltInRegistries.DATA_COMPONENT_TYPE,
             MinecraftData.CONVERT,
             MinecraftData::lookup,
             MinecraftData::register,
@@ -52,6 +57,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<BlockBase, Block> BLOCK = new MinecraftFeatureType<>(
             Block.class,
             Feature.Type.BLOCK,
+            helper -> BuiltInRegistries.BLOCK,
             MinecraftBlock.CONVERT,
             MinecraftBlock::lookup,
             MinecraftBlock::register,
@@ -62,6 +68,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<ItemBase, Item> ITEM = new MinecraftFeatureType<>(
             Item.class,
             Feature.Type.ITEM,
+            helper -> BuiltInRegistries.ITEM,
             MinecraftItem.CONVERT,
             MinecraftItem::lookup,
             MinecraftItem::register,
@@ -72,6 +79,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<ItemCategoryBase, CreativeModeTab> ITEM_CATEGORY = new MinecraftFeatureType<>(
             CreativeModeTab.class,
             Feature.Type.ITEM_CATEGORY,
+            helper -> BuiltInRegistries.CREATIVE_MODE_TAB,
             MinecraftItemCategory.CONVERT,
             MinecraftItemCategory::lookup,
             MinecraftItemCategory::register,
@@ -82,6 +90,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<EntityBase, EntityType<?>> ENTITY = new MinecraftFeatureType<>(
             NexoUtils.type(EntityType.class),
             Feature.Type.ENTITY,
+            helper -> BuiltInRegistries.ENTITY_TYPE,
             MinecraftEntity.CONVERT,
             MinecraftEntity::lookup,
             MinecraftEntity::register,
@@ -92,6 +101,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     public static final MinecraftFeatureType<WorldBase, LevelStem> WORLD = new MinecraftFeatureType<>(
             LevelStem.class,
             Feature.Type.WORLD,
+            helper -> helper.getRegistry().registryOrThrow(Registries.LEVEL_STEM),
             MinecraftWorld.CONVERT,
             MinecraftWorld::lookup,
             MinecraftWorld::register,
@@ -101,6 +111,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
 
     private final Class<M> clazz;
     private final Feature.Type<T> type;
+    private final Function<NexoRegistryHandler<?>, Registry<M>> registry;
     private final Bijection<T, NexoHolder<M>> convert;
     private final Function<Location, T> lookup;
     private final BiFunction<NexoRegistryHandler<?>, T, T> registrar;
@@ -110,20 +121,26 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     private MinecraftFeatureType(
             Class<M> clazz,
             Feature.Type<T> type,
+            Function<NexoRegistryHandler<?>, Registry<M>> registry,
             Bijection<T, NexoHolder<M>> convert,
             Function<Location, T> lookup,
             BiFunction<NexoRegistryHandler<?>, T, T> registrar,
             BiFunction<NexoRegistryHandler<?>, M, NexoHolder<M>> index,
             Map<Class<?>, BiFunction<NexoRegistryHandler<?>, T, ?>> crafters
     ) {
-        this.type = type;
         this.clazz = clazz;
+        this.type = type;
+        this.registry = registry;
         this.convert = convert;
         this.lookup = lookup;
         this.registrar = registrar;
         this.index = index;
         this.crafters = crafters;
         TYPES.put(type, this);
+    }
+
+    public Registry<M> registry(NexoRegistryHandler<?> helper) {
+        return this.registry.apply(helper);
     }
 
     public boolean isInstance(Feature<?> feature) {
@@ -161,6 +178,10 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
             throw new UnsupportedOperationException("Unsupported feature type: " + type);
         }
         return featureType;
+    }
+
+    public static @NotNull Collection<MinecraftFeatureType<?, ?>> all() {
+        return TYPES.values();
     }
 
 }
