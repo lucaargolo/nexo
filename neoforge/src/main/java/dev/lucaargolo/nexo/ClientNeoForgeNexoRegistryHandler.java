@@ -12,10 +12,7 @@ public class ClientNeoForgeNexoRegistryHandler extends NeoForgeNexoRegistryHandl
     }
 
     @Override
-    public RegistryAccess getRegistry() {
-        if (this.capturedRegistry != null && Thread.currentThread() == this.capturedRegistryThread) {
-            return this.capturedRegistry;
-        }
+    public RegistryAccess getLocalRegistry() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.isSameThread()) {
             Level level = minecraft.level;
@@ -25,6 +22,6 @@ public class ClientNeoForgeNexoRegistryHandler extends NeoForgeNexoRegistryHandl
                 return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
             }
         }
-        return super.getRegistry();
+        return null;
     }
 }

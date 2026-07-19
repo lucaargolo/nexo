@@ -56,11 +56,17 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);
 
-    public abstract CreativeModeTab createCreativeTab(ItemCategoryBase category);
+    public abstract CreativeModeTab craftCreativeTab(ItemCategoryBase category);
 
-    public RegistryAccess getRegistry() {
+    protected abstract RegistryAccess getLocalRegistry();
+
+    public final RegistryAccess getRegistry() {
         if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
             return capturedRegistry;
+        }
+        RegistryAccess localRegistry = getLocalRegistry();
+        if(localRegistry != null) {
+            return localRegistry;
         }
         MinecraftServer currentServer = this.nexo.getServer();
         if (currentServer != null) {

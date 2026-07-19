@@ -83,7 +83,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     }
 
     public static CreativeModeTab craft(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
-        return helper.createCreativeTab(category);
+        return helper.craftCreativeTab(category);
     }
 
 }

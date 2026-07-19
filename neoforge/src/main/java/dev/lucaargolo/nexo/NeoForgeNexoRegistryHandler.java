@@ -9,6 +9,8 @@ import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -42,7 +44,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         ResourceKey<T> key = ResourceKey.create(registry.key(), id);
         DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
         DeferredHolder<T, T> registered = deferredRegistry.register(id.getPath(), feature);
-        return new NexoHolder<>(this.nexo(), key, registered::get);
+        return new NexoHolder<>(this.nexo(), key, registered);
     }
 
     @Override
@@ -63,7 +65,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         dataAttachmentMap.put(data, holder.holder());
     }
 
-    public CreativeModeTab createCreativeTab(ItemCategoryBase category) {
+    public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
         return CreativeModeTab.builder().title(title).displayItems((parameters, output) -> {
@@ -71,6 +73,11 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
                 output.accept(MinecraftFeatureType.ITEM.convert(item));
             });
         }).build();
+    }
+
+    @Override
+    protected RegistryAccess getLocalRegistry() {
+        return null;
     }
 
     @SuppressWarnings("unchecked")

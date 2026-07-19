@@ -13,6 +13,8 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -64,7 +66,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         dataAttachmentMap.put(data, type);
     }
 
-    public CreativeModeTab createCreativeTab(ItemCategoryBase category) {
+    public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
         return FabricItemGroup.builder().title(title).displayItems((parameters, output) -> {
@@ -72,6 +74,11 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
                output.accept(MinecraftFeatureType.ITEM.convert(item));
             });
         }).build();
+    }
+
+    @Override
+    protected RegistryAccess getLocalRegistry() {
+        return null;
     }
 
     @SuppressWarnings("unchecked")
