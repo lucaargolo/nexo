@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -21,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -63,7 +66,11 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     public CreativeModeTab createCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
-        return CreativeModeTab.builder().title(title).build();
+        return CreativeModeTab.builder().title(title).displayItems((parameters, output) -> {
+            MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
+                output.accept(MinecraftFeatureType.ITEM.convert(item));
+            });
+        }).build();
     }
 
     @SuppressWarnings("unchecked")

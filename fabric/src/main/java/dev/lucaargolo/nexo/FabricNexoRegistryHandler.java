@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.util.NexoHolder;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
@@ -20,6 +22,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -64,7 +67,11 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     public CreativeModeTab createCreativeTab(ItemCategoryBase category) {
         Location location = category.location();
         Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
-        return FabricItemGroup.builder().title(title).build();
+        return FabricItemGroup.builder().title(title).displayItems((parameters, output) -> {
+            MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
+               output.accept(MinecraftFeatureType.ITEM.convert(item));
+            });
+        }).build();
     }
 
     @SuppressWarnings("unchecked")

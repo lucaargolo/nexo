@@ -10,9 +10,11 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -21,6 +23,7 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.render.NexoRenderingHandler;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
+import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.NexoUtils;
@@ -34,6 +37,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -178,6 +182,11 @@ public abstract class NexoMinecraft implements Nexo {
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
         ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
         return new MinecraftItemUnit(this, item, item.role(), stack);
+    }
+
+    public @NotNull ItemCategoryUnit<?> tabToUnit(@NotNull CreativeModeTab tab) {
+        ItemCategoryBase itemCategory = MinecraftFeatureType.ITEM_CATEGORY.convert(this.registryHandler, tab);
+        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, itemCategory, itemCategory.role(), tab);
     }
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {

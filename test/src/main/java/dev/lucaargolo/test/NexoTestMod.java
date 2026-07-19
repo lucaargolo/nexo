@@ -4,6 +4,10 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
+import dev.lucaargolo.nexo.api.feature.item.BlockItem;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
+import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Transform;
@@ -22,43 +26,58 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(Nexo nexo) {
-//        ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(
-//                NexoTestMod.id("test")
-//        ));
+        ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(
+                NexoTestMod.id("test")
+        ));
 
         BlockBase testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
             Model.full(NexoTestMod.id("test_block.png"))
         ));
+        nexo.registerFeature(new BlockItem(
+            testBlock,
+            category
+        ));
 
-//        nexo.registerFeature(new BlockItem(
-//            NexoTestMod.id("test_block"),
-//            renderer(Model.full(NexoTestMod.id("test_block.png"))),
-//            category,
-//            testBlock
-//        ));
-
-        nexo.registerFeature(new SimpleBlock(
+        BlockBase testBlock2 = nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
                 Model.full(Location.of("minecraft", "block/yellow_wool.png"))
         ));
-        nexo.registerFeature(new SimpleBlock(
+        nexo.registerFeature(new BlockItem(
+                testBlock2,
+                category
+        ));
+
+        BlockBase testBlock3 = nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
         ));
-        nexo.registerFeature(new SimpleBlock(
+        nexo.registerFeature(new BlockItem(
+                testBlock3,
+                category
+        ));
+
+        BlockBase testGltf = nexo.registerFeature(new SimpleBlock(
                 id("test_gltf"),
                 Model.load(nexo, id("test_model.gltf"))
         ));
-        nexo.registerFeature(new SimpleBlock(
+        nexo.registerFeature(new BlockItem(
+                testGltf,
+                category
+        ));
+
+        BlockBase testObj = nexo.registerFeature(new SimpleBlock(
                 id("test_obj"),
                 Model.load(nexo, id("test_model.obj"))
         ));
+        nexo.registerFeature(new BlockItem(
+                testObj,
+                category
+        ));
 
-//        nexo.registerFeature(new SimpleWorld(
-//                id("test")
-//        ));
-
+        nexo.registerFeature(new SimpleWorld(
+                id("test")
+        ));
         nexo.registerFeature(new SimpleEntity(
                 id("test_entity"),
                 dynamicRenderer(NexoTestMod.id("test_block.png"))

@@ -15,10 +15,13 @@ import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,11 +42,15 @@ public class MinecraftItem extends ItemBase {
         }
     };
 
-    @NotNull
-    private final NexoHolder<Item> holder;
+    private final @NotNull NexoRegistryHandler<?> helper;
+    private final @NotNull NexoHolder<Item> holder;
 
-    private MinecraftItem(NexoRegistryHandler<?> helper, @NotNull NexoHolder<Item> holder) {
+    private boolean computedCategory = false;
+    private @Nullable ItemCategoryBase category;
+
+    private MinecraftItem(@NotNull NexoRegistryHandler<?> helper, @NotNull NexoHolder<Item> holder) {
         super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
+        this.helper = helper;
         this.holder = holder;
     }
 
@@ -60,8 +67,19 @@ public class MinecraftItem extends ItemBase {
 
     @Override
     public @Nullable ItemCategoryBase category() {
-        //TODO: This
-        return null;
+        if(!this.computedCategory) {
+            this.computedCategory = true;
+            Item item = MinecraftFeatureType.ITEM.convert(this);
+            for(CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
+                for(ItemStack stack : tab.getDisplayItems()) {
+                    if(stack.getItem() == item) {
+                        this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.helper, tab);
+                        return this.category;
+                    }
+                }
+            }
+        }
+        return this.category;
     }
 
     public static ItemBase lookup(Location location) {
@@ -77,6 +95,9 @@ public class MinecraftItem extends ItemBase {
         NexoHolder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
         HOLDER_MAP.put(item.location(), holder);
+        if(item.category() != null) {
+            MinecraftItemCategory.ITEM_MAP.computeIfAbsent(item.category(), c -> new LinkedList<>()).add(item);
+        }
         return item;
     }
 

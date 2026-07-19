@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
@@ -19,6 +20,9 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftItemCategory extends ItemCategoryBase {
+
+    //TODO: Improve this
+    public static final ConcurrentHashMap<ItemCategoryBase, List<ItemBase>> ITEM_MAP = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<Location, ItemCategoryBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Location, NexoHolder<CreativeModeTab>> HOLDER_MAP = new ConcurrentHashMap<>();

@@ -55,7 +55,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
         return Optional.empty();
     }
 
-    public static <F extends Feature<F>, M> M craft(Class<M> type, M crafted, F feature) {
+    public static <F extends Feature<F>, M> M craft(Class<M> type, F feature, Supplier<M> craftar) {
         List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
         for(MinecraftRoleType<?, ?, ?, ?> role : list) {
             Optional<M> optional = role.craft(feature).map(type::cast);
@@ -63,7 +63,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
                 return optional.get();
             }
         }
-        return crafted;
+        return craftar.get();
     }
 
     public static <F extends Feature<F>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F> type, NexoHolder<M> holder) {

@@ -152,7 +152,7 @@ public class MinecraftFeatureType<T extends Feature<T>, M> {
     }
 
     public @NotNull <C> Supplier<C> craft(Class<C> type, NexoRegistryHandler<?> helper, T feature) {
-        return () -> MinecraftRoleType.craft(type, type.cast(this.crafters.get(type).apply(helper, feature)), feature);
+        return () -> MinecraftRoleType.craft(type, feature, () -> type.cast(this.crafters.get(type).apply(helper, feature)));
     }
 
     public static @NotNull MinecraftFeatureType<?, ?> of(Feature.Type<?> type) {
