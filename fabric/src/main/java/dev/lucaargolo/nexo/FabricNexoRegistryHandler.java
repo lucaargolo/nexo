@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
+import net.fabricmc.fabric.api.event.registry.DynamicRegistryView;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Registry;
@@ -28,7 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 @SuppressWarnings("UnstableApiUsage")
 public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
@@ -38,22 +41,34 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
         DynamicRegistrySetupCallback.EVENT.register(view -> {
+            RegistryAccess access = getRegistry();
+            captureRegistry(new RegistryAccess.Frozen() {
+                @Override
+                public <E> @NotNull Optional<Registry<E>> registry(ResourceKey<? extends Registry<? extends E>> registryKey) {
+                    return access.registry(registryKey).or(() -> view.getOptional(registryKey));
+                }
+
+                @Override
+                public @NotNull Stream<RegistryEntry<?>> registries() {
+                    return Stream.concat(access.registries(), view.asDynamicRegistryManager().registries());
+                }
+
+                public @NotNull Frozen freeze() {
+                    return this;
+                }
+            });
+            MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(view, type));
             dynamicRegistrars.forEach((key, registrar) -> {
                 view.getOptional(key.registryKey()).ifPresent(registrar);
             });
+            captureRegistry(access);
         });
+        MinecraftFeatureType.all().forEach(this::addBuiltinRegistryListener);
     }
 
     @Override
-    public void init() {
-        MinecraftFeatureType.all().forEach(this::addRegistryListener);
-    }
-
-    @Override
-    public <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        ResourceKey<T> key = ResourceKey.create(registry.key(), id);
-        T registered = Registry.register(registry, key, feature.get());
-        return new NexoHolder<>(this.nexo(), key, () -> registered);
+    public <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        Registry.register(registry, id, feature.get());
     }
 
     @Override
@@ -88,8 +103,16 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         return null;
     }
 
-    private <M> void addRegistryListener(MinecraftFeatureType<?, M> type) {
-        RegistryEntryAddedCallback.event(type.registry(this)).register((raw, id, value) -> {
+    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
+        RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
+            RegistryEntryAddedCallback.event(registry).register((raw, id, value) -> {
+                this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.convert(this, value)));
+            });
+        });
+    }
+
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, M> type) {
+        view.registerEntryAdded(type.registry(), (raw, id, value) -> {
             this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.convert(this, value)));
         });
     }

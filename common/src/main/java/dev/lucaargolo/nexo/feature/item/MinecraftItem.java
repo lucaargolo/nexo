@@ -92,12 +92,11 @@ public class MinecraftItem extends ItemBase {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(item.location());
-        NexoHolder<Item> holder = helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         FEATURE_MAP.put(item.location(), item);
-        HOLDER_MAP.put(item.location(), holder);
         if(item.category() != null) {
             MinecraftItemCategory.ITEM_MAP.computeIfAbsent(item.category(), c -> new LinkedList<>()).add(item);
         }
+        helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
         return item;
     }
 
@@ -109,7 +108,7 @@ public class MinecraftItem extends ItemBase {
         if (indexed != null) {
             return indexed;
         }
-        NexoHolder<Item> holder = new NexoHolder<>(helper.nexo(), h, Item.class);
+        NexoHolder<Item> holder = new NexoHolder<>(helper.nexo(), h);
         FEATURE_MAP.putIfAbsent(location, new MinecraftItem(helper, holder));
         HOLDER_MAP.put(location, holder);
         return holder;

@@ -110,9 +110,8 @@ public class MinecraftBlock extends BlockBase {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(block.location());
-        NexoHolder<Block> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
         FEATURE_MAP.put(block.location(), block);
-        HOLDER_MAP.put(block.location(), holder);
+        helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
         return block;
     }
 
@@ -124,7 +123,7 @@ public class MinecraftBlock extends BlockBase {
         if (indexed != null) {
             return indexed;
         }
-        NexoHolder<Block> holder = new NexoHolder<>(helper.nexo(), h, Block.class);
+        NexoHolder<Block> holder = new NexoHolder<>(helper.nexo(), h);
         FEATURE_MAP.putIfAbsent(location, new MinecraftBlock(helper, holder));
         HOLDER_MAP.put(location, holder);
         return holder;

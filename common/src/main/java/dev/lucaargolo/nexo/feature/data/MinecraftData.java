@@ -118,9 +118,8 @@ public class MinecraftData<D> extends DataBase<D> {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(data.location());
-        NexoHolder<DataComponentType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
         FEATURE_MAP.put(data.location(), data);
-        HOLDER_MAP.put(data.location(), holder);
+        helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
         helper.registerDataAttachment(data);
         return data;
     }
@@ -133,7 +132,7 @@ public class MinecraftData<D> extends DataBase<D> {
             return indexed;
         }
         Holder<DataComponentType<?>> h = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).orElseThrow();
-        NexoHolder<DataComponentType<?>> holder = new NexoHolder<>(helper.nexo(), h, NexoUtils.type(DataComponentType.class));
+        NexoHolder<DataComponentType<?>> holder = new NexoHolder<>(helper.nexo(), h);
         MinecraftData<?> feature = new MinecraftData<>(helper, holder);
         FEATURE_MAP.putIfAbsent(location, feature);
         HOLDER_MAP.put(location, holder);

@@ -62,9 +62,8 @@ public class MinecraftItemCategory extends ItemCategoryBase {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(category.location());
-        NexoHolder<CreativeModeTab> holder = helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(helper, category));
         FEATURE_MAP.put(category.location(), category);
-        HOLDER_MAP.put(category.location(), holder);
+        helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(helper, category));
         return category;
     }
 
@@ -76,7 +75,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
             return indexed;
         }
         Holder<CreativeModeTab> h = BuiltInRegistries.CREATIVE_MODE_TAB.getHolder(location).orElseThrow();
-        NexoHolder<CreativeModeTab> holder = new NexoHolder<>(helper.nexo(), h, CreativeModeTab.class);
+        NexoHolder<CreativeModeTab> holder = new NexoHolder<>(helper.nexo(), h);
         FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftItemCategory(helper, holder));
         HOLDER_MAP.put(featureLocation, holder);
         return holder;

@@ -38,22 +38,17 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         return nexo;
     }
 
-    public abstract void init();
-
-    public abstract <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+    public abstract <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     @SuppressWarnings("unchecked")
-    public <T> NexoHolder<T> registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature, Class<T> type) {
+    public <T> void registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
-        NexoHolder<T> holder = new NexoHolder<>(this.nexo(), key, type);
         Consumer<Registry<?>> registrar = registry -> {
             T value = feature.get();
             Holder.Reference<T> ref = Registry.registerForHolder((Registry<T>) registry, key.location(), value);
-            dynamicHolders.put(key, new NexoHolder<>(this.nexo(), ref, type));
+            dynamicHolders.put(key, new NexoHolder<>(this.nexo(), ref));
         };
         dynamicRegistrars.put(key, registrar);
-        dynamicHolders.put(key, holder);
-        return holder;
     }
 
     @SuppressWarnings("unchecked")

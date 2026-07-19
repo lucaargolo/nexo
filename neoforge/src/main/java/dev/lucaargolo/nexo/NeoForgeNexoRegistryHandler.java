@@ -40,11 +40,9 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @Override
-    public <T> NexoHolder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        ResourceKey<T> key = ResourceKey.create(registry.key(), id);
+    public <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
-        DeferredHolder<T, T> registered = deferredRegistry.register(id.getPath(), feature);
-        return new NexoHolder<>(this.nexo(), key, registered);
+        deferredRegistry.register(id.getPath(), feature);
     }
 
     @Override
@@ -60,9 +58,9 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
             StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.createPacketCodec(data);
             builder.sync(codec);
         }
-        Supplier<AttachmentType<?>> attachment = builder::build;
-        NexoHolder<AttachmentType<?>> holder = registerBuiltinFeature(NeoForgeRegistries.ATTACHMENT_TYPES, id, attachment);
-        dataAttachmentMap.put(data, holder.holder());
+        DeferredRegister<AttachmentType<?>> deferredRegistry = getOrCreateDeferredRegister(NeoForgeRegistries.ATTACHMENT_TYPES, id.getNamespace());
+        Holder<AttachmentType<?>> holder = deferredRegistry.register(id.getPath(), builder::build);
+        dataAttachmentMap.put(data, holder);
     }
 
     public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {

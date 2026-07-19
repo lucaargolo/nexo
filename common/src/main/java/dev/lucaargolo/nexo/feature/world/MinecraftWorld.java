@@ -71,10 +71,9 @@ public class MinecraftWorld extends WorldBase {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(world.location());
-        helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(DimensionType.class, helper, world), DimensionType.class);
-        NexoHolder<LevelStem> holder = helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world), LevelStem.class);
         FEATURE_MAP.put(world.location(), world);
-        HOLDER_MAP.put(world.location(), holder);
+        helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(DimensionType.class, helper, world));
+        helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world));
         return world;
     }
 
@@ -88,7 +87,7 @@ public class MinecraftWorld extends WorldBase {
             return indexed;
         }
         Holder<LevelStem> h = registry.getHolder(location).orElseThrow();
-        NexoHolder<LevelStem> holder = new NexoHolder<>(helper.nexo(), h, LevelStem.class);
+        NexoHolder<LevelStem> holder = new NexoHolder<>(helper.nexo(), h);
         FEATURE_MAP.putIfAbsent(featureLocation, new MinecraftWorld(helper, holder));
         HOLDER_MAP.put(featureLocation, holder);
         return holder;

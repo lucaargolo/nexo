@@ -19,34 +19,14 @@ public class NexoHolder<T> implements Supplier<T> {
     private final ResourceKey<T> key;
     @NotNull
     private final Location location;
+    @NotNull
+    private final Holder<T> holder;
 
-    @Nullable
-    private Supplier<T> supplier;
-    @Nullable
-    private Holder<T> holder;
-    @Nullable
-    private Class<T> type;
-
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<T> key, @NotNull Class<T> type) {
-        this.nexo = nexo;
-        this.key = key;
-        this.location = NexoMinecraft.id(key);
-        this.type = type;
-    }
-
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull ResourceKey<T> key, @NotNull Supplier<T> supplier) {
-        this.nexo = nexo;
-        this.key = key;
-        this.location = NexoMinecraft.id(key);
-        this.supplier = supplier;
-    }
-
-    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull Holder<T> holder, @NotNull Class<T> type) {
+    public NexoHolder(@NotNull NexoMinecraft nexo, @NotNull Holder<T> holder) {
         this.nexo = nexo;
         this.key = holder.unwrapKey().orElseThrow();
         this.location = NexoMinecraft.id(key);
         this.holder = holder;
-        this.type = type;
     }
 
     public @NotNull NexoMinecraft nexo() {
@@ -63,29 +43,14 @@ public class NexoHolder<T> implements Supplier<T> {
 
     @Override
     public T get() {
-        if (this.supplier != null) {
-            return this.supplier.get();
-        } else if (this.type != null) {
-            if (this.holder == null) {
-                this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
-            }
-            return this.type.cast(this.holder.value());
-        } else {
-            throw new IllegalStateException("NexoHolder has no supplier or type to satisfy holder");
-        }
+        return this.holder.value();
     }
 
     public Stream<TagKey<T>> tags() {
-        if (this.holder == null) {
-            this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
-        }
         return this.holder.tags();
     }
 
     public Holder<T> holder() {
-        if (this.holder == null) {
-            this.holder = this.nexo.getRegistry().registry(key.registryKey()).flatMap(r -> r.getHolder(key)).orElseThrow();
-        }
         return this.holder;
     }
 }
