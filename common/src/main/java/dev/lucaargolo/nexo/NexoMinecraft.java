@@ -191,8 +191,9 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
         ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
-        LevelStem stem = this.registryHandler.getRegistry().registryOrThrow(Registries.LEVEL_STEM).getOrThrow(key);
-        WorldBase world = MinecraftFeatureType.WORLD.convert(this.registryHandler, stem);
+        Location location = NexoMinecraft.id(key.location());
+        WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
+        assert world != null;
         return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
     }
 
