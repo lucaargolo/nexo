@@ -28,23 +28,31 @@ public class NexoTestMod {
 
         BlockBase testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
-            Model.full(nexo, NexoTestMod.id("test_block.png"))
+            Model.full(NexoTestMod.id("test_block.png"))
         ));
 
 //        nexo.registerFeature(new BlockItem(
 //            NexoTestMod.id("test_block"),
-//            renderer(Model.full(nexo, NexoTestMod.id("test_block.png"))),
+//            renderer(Model.full(NexoTestMod.id("test_block.png"))),
 //            category,
 //            testBlock
 //        ));
 
         nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
-                Model.full(nexo, Location.of("minecraft", "block/yellow_wool.png"))
+                Model.full(Location.of("minecraft", "block/yellow_wool.png"))
         ));
         nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
             Model.load(nexo, NexoTestMod.id("test_block.json"))
+        ));
+        nexo.registerFeature(new SimpleBlock(
+                id("test_gltf"),
+                Model.load(nexo, id("test_model.gltf"))
+        ));
+        nexo.registerFeature(new SimpleBlock(
+                id("test_obj"),
+                Model.load(nexo, id("test_model.obj"))
         ));
 
 //        nexo.registerFeature(new SimpleWorld(

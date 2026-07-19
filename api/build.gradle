@@ -6,4 +6,6 @@ dependencies {
     api "org.slf4j:slf4j-api:2.0.9"
     api "com.google.code.gson:gson:2.10.1"
     api "org.joml:joml:1.10.5"
+    api "de.javagl:obj:0.4.0"
+    api "de.javagl:jgltf-model:2.0.4"
 }

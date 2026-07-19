@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -35,13 +36,16 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -66,6 +70,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
                     registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                    registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                     collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                         nexo,
                         BlockState.class,
@@ -80,6 +85,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
                         registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                        registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                         collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
                                 ItemStack.class,
@@ -92,7 +98,14 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                         registerItemRenderer(item);
                     }
                 }
-                case EntityBase entity -> registerEntityRenderer(entity);
+                case EntityBase entity -> {
+                    Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
+                    if (renderer != null) {
+                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                        registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
+                    }
+                    registerEntityRenderer(entity);
+                }
                 default -> {}
             }
             return true;
@@ -161,6 +174,14 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         }
     }
 
+    private static void registerEmbeddedTextures(Renderer<?, ?> renderer, Location atlas) {
+        if (renderer instanceof ModelRenderer<?> modelRenderer) {
+            modelRenderer.model().embeddedTextures().forEach(
+                    (texture, data) -> NexoAtlas.register(atlas, texture, data)
+            );
+        }
+    }
+
     private static void registerTexture(Nexo nexo, Location texture, Location atlas) {
         Nexo.Mod mod = nexo.getMod(texture.namespace());
         if (mod == null) return;
@@ -176,17 +197,25 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         }
         if (Files.isRegularFile(filePath)) {
             NexoAtlas.register(atlas, texture, filePath);
-        } else {
-            try {
-                FileSystem jarFs = FileSystems.newFileSystem(mod.path(), (ClassLoader) null);
-                Path jarPath = jarFs.getPath(texture.path());
-                if (Files.isRegularFile(jarPath)) {
-                    NexoAtlas.register(atlas, texture, jarPath);
-                }
-            } catch (IOException e) {
-                NexoMinecraft.LOGGER.error("Failed to read from JAR {}", mod.path(), e);
-            }
+            return;
         }
+        try {
+            URI jarUri = URI.create("jar:" + mod.path().toUri());
+            FileSystem jarFs;
+            try {
+                jarFs = FileSystems.getFileSystem(jarUri);
+            } catch (FileSystemNotFoundException ignored) {
+                jarFs = FileSystems.newFileSystem(jarUri, Map.of());
+            }
+            Path jarPath = jarFs.getPath("/", texture.path());
+            if (Files.isRegularFile(jarPath)) {
+                NexoAtlas.register(atlas, texture, jarPath);
+                return;
+            }
+        } catch (IOException e) {
+            NexoMinecraft.LOGGER.error("Failed to read from JAR {}", mod.path(), e);
+        }
+        NexoMinecraft.LOGGER.warn("Failed to locate texture {} in mod {}", texture, mod.path());
     }
 
     @FunctionalInterface

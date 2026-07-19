@@ -1,0 +1,9 @@
+# Nexo visual test material
+newmtl metallic_grid
+Ka 0.2 0.2 0.2
+Kd 1.0 1.0 1.0
+Ks 0.8 0.8 0.8
+Ns 96.0
+d 1.0
+illum 2
+map_Kd test_block.png

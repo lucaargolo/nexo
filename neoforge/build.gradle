@@ -38,6 +38,26 @@ neoForge {
 
 
 dependencies {
+    jarJar "de.javagl:obj:0.4.0"
+    jarJar "de.javagl:jgltf-model:2.0.4"
+    jarJar "de.javagl:jgltf-impl-v1:2.0.4"
+    jarJar "de.javagl:jgltf-impl-v2:2.0.4"
+
+    clientAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
+    clientAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
+    clientAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"
+    clientAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v2:2.0.4"
+
+    dataAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
+    dataAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
+    dataAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"
+    dataAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v2:2.0.4"
+
+    serverAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
+    serverAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
+    serverAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"
+    serverAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v2:2.0.4"
+
     runtimeOnly(project(':test'))
 }
 sourceSets.main.resources { srcDir 'src/generated/resources' }

@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -55,6 +56,24 @@ public class SpriteLoaderMixin {
                 augmented.add(spriteContents);
             } catch (IOException e) {
                 NexoMinecraft.LOGGER.error("Failed to load Nexo atlas sprite '{}' from {}", id, path, e);
+            }
+        }
+
+        Map<Location, byte[]> embedded = NexoAtlas.getEmbedded(atlasKey);
+        for (var entry : embedded.entrySet()) {
+            Location location = entry.getKey().withoutExtension();
+            ResourceLocation id = NexoMinecraft.rl(location);
+            boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
+            if (alreadyPresent) {
+                NexoMinecraft.LOGGER.warn("Tried to override already existing texture {}", id);
+                continue;
+            }
+            try (InputStream in = new ByteArrayInputStream(entry.getValue())) {
+                NativeImage image = NativeImage.read(in);
+                FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
+                augmented.add(new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY));
+            } catch (IOException e) {
+                NexoMinecraft.LOGGER.error("Failed to load embedded Nexo atlas sprite '{}'", id, e);
             }
         }
 
