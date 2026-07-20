@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -76,6 +77,7 @@ public abstract class Feature<T extends Feature<T>> {
         public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
         public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
         public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);
+        public static final Type<BiomeBase> BIOME = new Type<>(BiomeBase.class);
 
         private final Class<T> type;
 

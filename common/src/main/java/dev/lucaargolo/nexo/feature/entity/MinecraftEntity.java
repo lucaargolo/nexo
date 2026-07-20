@@ -10,8 +10,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoHolder;
-import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -29,25 +27,25 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class MinecraftEntity extends EntityBase {
 
     private static final ConcurrentHashMap<Location, EntityBase> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<EntityType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, Holder<EntityType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
 
-    public static Bijection<EntityBase, NexoHolder<EntityType<?>>> CONVERT = new Bijection<>() {
+    public static Bijection<EntityBase, Holder<EntityType<?>>> CONVERT = new Bijection<>() {
         @Override
-        public NexoHolder<EntityType<?>> forward(EntityBase feature) {
+        public Holder<EntityType<?>> forward(EntityBase feature) {
             return HOLDER_MAP.get(feature.location());
         }
 
         @Override
-        public EntityBase backward(NexoHolder<EntityType<?>> holder) {
-            return FEATURE_MAP.get(holder.location());
+        public EntityBase backward(Holder<EntityType<?>> holder) {
+            return FEATURE_MAP.get(NexoMinecraft.id(holder));
         }
     };
 
     @NotNull
-    private final NexoHolder<EntityType<?>> holder;
+    private final Holder<EntityType<?>> holder;
 
-    private MinecraftEntity(NexoRegistryHandler<?> helper, @NotNull NexoHolder<EntityType<?>> holder) {
-        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ENTITY, holder));
+    private MinecraftEntity(NexoRegistryHandler<?> helper, @NotNull Holder<EntityType<?>> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ENTITY, holder));
         this.holder = holder;
     }
 
@@ -77,18 +75,10 @@ public final class MinecraftEntity extends EntityBase {
         return entity;
     }
 
-    @SuppressWarnings("deprecation")
-    public static NexoHolder<EntityType<?>> index(NexoRegistryHandler<?> helper, EntityType<?> entity) {
-        Holder<EntityType<?>> h = entity.builtInRegistryHolder();
-        Location location = NexoMinecraft.id(h);
-        NexoHolder<EntityType<?>> indexed = HOLDER_MAP.get(location);
-        if (indexed != null) {
-            return indexed;
-        }
-        NexoHolder<EntityType<?>> holder = new NexoHolder<>(helper.nexo(), h);
-        FEATURE_MAP.putIfAbsent(location, new MinecraftEntity(helper, holder));
+    public static EntityBase index(NexoRegistryHandler<?> helper, Holder<EntityType<?>> holder) {
+        Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return holder;
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(helper, holder));
     }
 
     public static EntityType<?> craft(NexoRegistryHandler<?> helper, EntityBase entity) {

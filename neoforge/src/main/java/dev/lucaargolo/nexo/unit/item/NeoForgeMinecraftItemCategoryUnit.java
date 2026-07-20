@@ -1,8 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
-import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;

@@ -2,7 +2,6 @@ package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
-import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -11,27 +10,25 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
-    protected static final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
-    protected static final Map<ResourceKey<?>, NexoHolder<?>> dynamicHolders = new LinkedHashMap<>();
+    private static NexoRegistryHandler<?> instance;
 
-    @Nullable
-    protected static Thread capturedRegistryThread;
-    @Nullable
-    protected static RegistryAccess capturedRegistry;
+    protected final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
+    protected final Map<ResourceKey<?>, Holder<?>> dynamicHolders = new LinkedHashMap<>();
 
     private final N nexo;
 
     public NexoRegistryHandler(N nexo) {
         this.nexo = nexo;
+        instance = this;
     }
 
     public N nexo() {
@@ -43,17 +40,14 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
     @SuppressWarnings("unchecked")
     public <T> void registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
-        Consumer<Registry<?>> registrar = registry -> {
-            T value = feature.get();
-            Holder.Reference<T> ref = Registry.registerForHolder((Registry<T>) registry, key.location(), value);
-            dynamicHolders.put(key, new NexoHolder<>(this.nexo(), ref));
-        };
-        dynamicRegistrars.put(key, registrar);
+        dynamicRegistrars.put(key, registry -> {
+            dynamicHolders.put(key, Registry.registerForHolder((Registry<T>) registry, key.location(), feature.get()));
+        });
     }
 
     @SuppressWarnings("unchecked")
-    public <T> NexoHolder<T> getDynamicFeature(ResourceKey<T> key) {
-        return (NexoHolder<T>) dynamicHolders.get(key);
+    public <T> Holder<T> getDynamicFeature(ResourceKey<T> key) {
+        return (Holder<T>) Objects.requireNonNull(dynamicHolders.get(key));
     }
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);
@@ -63,9 +57,6 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
     protected abstract RegistryAccess getLocalRegistry();
 
     public final RegistryAccess getRegistry() {
-        if (capturedRegistry != null && Thread.currentThread() == capturedRegistryThread) {
-            return capturedRegistry;
-        }
         RegistryAccess localRegistry = getLocalRegistry();
         if(localRegistry != null) {
             return localRegistry;
@@ -74,25 +65,16 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         if (currentServer != null) {
             if (currentServer.isSameThread()) {
                 return currentServer.registryAccess();
-            } else {
-                return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
             }
         }
-        return RegistryAccess.EMPTY;
+        return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }
 
-    public static void captureRegistry(RegistryAccess registry) {
-        if (registry == null) {
-            capturedRegistryThread = null;
-            capturedRegistry = null;
-        } else {
-            capturedRegistryThread = Thread.currentThread();
-            capturedRegistry = registry;
-        }
-    }
-
-    public static Map<ResourceKey<?>, Consumer<Registry<?>>> getDynamicRegistrars() {
+    public Map<ResourceKey<?>, Consumer<Registry<?>>> getDynamicRegistrars() {
         return dynamicRegistrars;
     }
 
+    public static NexoRegistryHandler<?> get() {
+        return instance;
+    }
 }

@@ -63,7 +63,7 @@ public class RegistryDataLoaderMixin {
     ) {
         if (!IS_SERVER.get()) return;
 
-        Map<ResourceKey<?>, Consumer<Registry<?>>> features = NexoRegistryHandler.getDynamicRegistrars();
+        Map<ResourceKey<?>, Consumer<Registry<?>>> features = NexoRegistryHandler.get().getDynamicRegistrars();
         if (features.isEmpty()) return;
 
         for (RegistryDataLoader.Loader<?> loader : loaders) {

@@ -11,7 +11,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoHolder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -28,28 +27,28 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MinecraftItem extends ItemBase {
 
     private static final ConcurrentHashMap<Location, ItemBase> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<Item>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, Holder<Item>> HOLDER_MAP = new ConcurrentHashMap<>();
 
-    public static Bijection<ItemBase, NexoHolder<Item>> CONVERT = new Bijection<>() {
+    public static Bijection<ItemBase, Holder<Item>> CONVERT = new Bijection<>() {
         @Override
-        public NexoHolder<Item> forward(ItemBase feature) {
+        public Holder<Item> forward(ItemBase feature) {
             return HOLDER_MAP.get(feature.location());
         }
 
         @Override
-        public ItemBase backward(NexoHolder<Item> holder) {
-            return FEATURE_MAP.get(holder.location());
+        public ItemBase backward(Holder<Item> holder) {
+            return FEATURE_MAP.get(NexoMinecraft.id(holder));
         }
     };
 
     private final @NotNull NexoRegistryHandler<?> helper;
-    private final @NotNull NexoHolder<Item> holder;
+    private final @NotNull Holder<Item> holder;
 
     private boolean computedCategory = false;
     private @Nullable ItemCategoryBase category;
 
-    private MinecraftItem(@NotNull NexoRegistryHandler<?> helper, @NotNull NexoHolder<Item> holder) {
-        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
+    private MinecraftItem(@NotNull NexoRegistryHandler<?> helper, @NotNull Holder<Item> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
         this.helper = helper;
         this.holder = holder;
     }
@@ -100,18 +99,10 @@ public class MinecraftItem extends ItemBase {
         return item;
     }
 
-    @SuppressWarnings("deprecation")
-    public static NexoHolder<Item> index(NexoRegistryHandler<?> helper, Item item) {
-        Holder<Item> h = item.builtInRegistryHolder();
-        Location location = NexoMinecraft.id(h);
-        NexoHolder<Item> indexed = HOLDER_MAP.get(location);
-        if (indexed != null) {
-            return indexed;
-        }
-        NexoHolder<Item> holder = new NexoHolder<>(helper.nexo(), h);
-        FEATURE_MAP.putIfAbsent(location, new MinecraftItem(helper, holder));
+    public static ItemBase index(NexoRegistryHandler<?> helper, Holder<Item> holder) {
+        Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return holder;
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(helper, holder));
     }
 
     public static Item craft(NexoRegistryHandler<?> helper, ItemBase item) {

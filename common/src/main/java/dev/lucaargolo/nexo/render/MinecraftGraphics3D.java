@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.Minecraft;
@@ -27,7 +26,10 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D implements AutoCloseable {

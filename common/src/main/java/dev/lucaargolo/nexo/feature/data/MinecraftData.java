@@ -11,7 +11,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
@@ -26,31 +25,31 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftData<D> extends DataBase<D> {
 
     private static final ConcurrentHashMap<Location, DataBase<?>> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<Location, NexoHolder<DataComponentType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, Holder<DataComponentType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
 
-    public static Bijection<DataBase<?>, NexoHolder<DataComponentType<?>>> CONVERT = new Bijection<>() {
+    public static Bijection<DataBase<?>, Holder<DataComponentType<?>>> CONVERT = new Bijection<>() {
         @Override
-        public NexoHolder<DataComponentType<?>> forward(DataBase<?> feature) {
+        public Holder<DataComponentType<?>> forward(DataBase<?> feature) {
             return HOLDER_MAP.get(feature.location());
         }
 
         @Override
-        public DataBase<?> backward(NexoHolder<DataComponentType<?>> holder) {
-            return FEATURE_MAP.get(holder.location());
+        public DataBase<?> backward(Holder<DataComponentType<?>> holder) {
+            return FEATURE_MAP.get(NexoMinecraft.id(holder));
         }
     };
 
-    @NotNull
-    private final NexoHolder<?> holder;
+    private final @NotNull NexoRegistryHandler<?> helper;
+    private final @NotNull Holder<?> holder;
 
-    private MinecraftData(NexoRegistryHandler<?> helper, @NotNull NexoHolder<?> holder) {
-        super(holder.location(), MinecraftRoleType.uncraft(helper, Type.DATA, holder));
+    private MinecraftData(@NotNull NexoRegistryHandler<?> helper, @NotNull Holder<?> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.DATA, holder));
+        this.helper = helper;
         this.holder = holder;
     }
 
@@ -66,14 +65,14 @@ public class MinecraftData<D> extends DataBase<D> {
 
     @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), holder.nexo().getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), this.helper.getRegistry());
         componentType().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), holder.nexo().getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), this.helper.getRegistry());
         return componentType().streamCodec().decode(buf);
     }
 
@@ -105,7 +104,7 @@ public class MinecraftData<D> extends DataBase<D> {
 
     private @NotNull DataComponentType<D> componentType() {
         Class<DataComponentType<D>> type = NexoUtils.type(DataComponentType.class);
-        return type.cast(this.holder.get());
+        return type.cast(this.holder.value());
     }
 
     public static DataBase<?> lookup(Location location) {
@@ -124,19 +123,10 @@ public class MinecraftData<D> extends DataBase<D> {
         return data;
     }
 
-    public static NexoHolder<DataComponentType<?>> index(NexoRegistryHandler<?> helper, DataComponentType<?> type) {
-        ResourceLocation id = Objects.requireNonNull(BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type));
-        Location location = NexoMinecraft.id(id);
-        NexoHolder<DataComponentType<?>> indexed = HOLDER_MAP.get(location);
-        if (indexed != null) {
-            return indexed;
-        }
-        Holder<DataComponentType<?>> h = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolder(id).orElseThrow();
-        NexoHolder<DataComponentType<?>> holder = new NexoHolder<>(helper.nexo(), h);
-        MinecraftData<?> feature = new MinecraftData<>(helper, holder);
-        FEATURE_MAP.putIfAbsent(location, feature);
+    public static DataBase<?> index(NexoRegistryHandler<?> helper, Holder<DataComponentType<?>> holder) {
+        Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return holder;
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftData<>(helper, holder));
     }
 
     public static <T> DataComponentType<T> craft(NexoRegistryHandler<?> helper, DataBase<T> data) {

@@ -7,7 +7,6 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;

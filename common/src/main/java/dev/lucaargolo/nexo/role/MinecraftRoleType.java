@@ -9,8 +9,8 @@ import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.role.entity.MinecraftPlayerRole;
 import dev.lucaargolo.nexo.role.item.MinecraftBlockItemRole;
-import dev.lucaargolo.nexo.util.NexoHolder;
 import dev.lucaargolo.nexo.util.NexoUtils;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -66,9 +66,9 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
         return craftar.get();
     }
 
-    public static <F extends Feature<F>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F> type, NexoHolder<M> holder) {
+    public static <F extends Feature<F>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F> type, Holder<M> holder) {
         return () -> {
-            M crafted = holder.get();
+            M crafted = holder.value();
             List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(type, List.of());
             for(MinecraftRoleType<?, ?, ?, ?> role : list) {
                 Optional<? extends Role> optional = role.uncraft(helper, crafted);

@@ -10,11 +10,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 

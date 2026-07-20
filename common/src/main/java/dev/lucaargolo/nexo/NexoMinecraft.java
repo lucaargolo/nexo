@@ -4,7 +4,6 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.Event;
-import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -29,7 +28,6 @@ import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -94,10 +92,6 @@ public abstract class NexoMinecraft implements Nexo {
     public abstract boolean isModLoaded(String modId);
 
     public abstract MinecraftServer getServer();
-
-    public RegistryAccess getRegistry() {
-        return this.registryHandler.getRegistry();
-    }
 
     @Override
     public @NotNull Logger getLogger() {

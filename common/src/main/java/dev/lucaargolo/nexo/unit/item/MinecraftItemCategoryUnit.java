@@ -8,12 +8,9 @@ import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;

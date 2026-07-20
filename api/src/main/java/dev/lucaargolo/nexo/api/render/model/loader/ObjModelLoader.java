@@ -1,12 +1,6 @@
 package dev.lucaargolo.nexo.api.render.model.loader;
 
-import de.javagl.obj.FloatTuple;
-import de.javagl.obj.Mtl;
-import de.javagl.obj.MtlReader;
-import de.javagl.obj.Obj;
-import de.javagl.obj.ObjFace;
-import de.javagl.obj.ObjReader;
-import de.javagl.obj.ObjUtils;
+import de.javagl.obj.*;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
@@ -20,12 +14,7 @@ import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public final class ObjModelLoader implements ModelLoader {
 
