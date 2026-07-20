@@ -22,7 +22,7 @@ public final class Model {
     private static final @NotNull List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
     public static final @NotNull Location WHITE_TEXTURE = Location.of("nexo", "generated/model/white.png");
     private static final byte @NotNull [] WHITE_TEXTURE_DATA = Base64.getDecoder().decode(
-            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGP4DwQACfsD/fteaysAAAAASUVORK5CYII="
+            "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAHElEQVR4XmP4TyFgQBcgFYwaMGoACIwaMBgMAABdePwuz1LPZQAAAABJRU5ErkJggg=="
     );
 
     private final @NotNull List<Mesh> meshes;

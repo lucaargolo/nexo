@@ -42,6 +42,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -66,7 +67,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     StaticRenderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
-                    this.registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                    this.registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS, embeddedKeys(renderer));
                     this.registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                     collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                         nexo,
@@ -81,7 +82,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
-                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS, embeddedKeys(renderer));
                         registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                         collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
@@ -98,7 +99,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                 case EntityBase entity -> {
                     Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
                     if (renderer != null) {
-                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                        registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS, embeddedKeys(renderer));
                         registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                     }
                     registerEntityRenderer(entity);
@@ -165,8 +166,16 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         return NexoMinecraft.rl(location).withPrefix(prefix);
     }
 
-    private void registerTextures(Nexo nexo, Collection<Location> textures, Location atlas) {
+    private static @NotNull Set<Location> embeddedKeys(@NotNull Renderer<?, ?> renderer) {
+        if (renderer instanceof ModelRenderer<?> modelRenderer) {
+            return modelRenderer.model().embeddedTextures().keySet();
+        }
+        return Set.of();
+    }
+
+    private void registerTextures(Nexo nexo, Collection<Location> textures, Location atlas, @NotNull Set<Location> embeddedKeys) {
         for (Location texture : textures) {
+            if (embeddedKeys.contains(texture)) continue;
             registerTexture(nexo, texture, atlas);
         }
     }
