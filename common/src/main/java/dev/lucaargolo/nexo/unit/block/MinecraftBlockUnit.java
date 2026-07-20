@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -18,19 +17,11 @@ import java.util.Objects;
 public final class MinecraftBlockUnit extends BlockUnit<Role> implements MinecraftUnit<BlockState> {
 
     @NotNull
-    private final NexoMinecraft nexo;
-    @NotNull
     private BlockState state;
 
-    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @NotNull BlockState state) {
+    public MinecraftBlockUnit(@NotNull BlockBase feature, @Nullable Role role, @NotNull BlockState state) {
         super(feature, role);
-        this.nexo = nexo;
         this.state = state;
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return this.nexo;
     }
 
     public @NotNull BlockState get() {

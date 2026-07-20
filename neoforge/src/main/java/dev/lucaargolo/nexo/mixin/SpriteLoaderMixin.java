@@ -1,14 +1,15 @@
 package dev.lucaargolo.nexo.mixin;
 
 import com.mojang.blaze3d.platform.NativeImage;
-import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.event.SpriteAtlasStitchEvent;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.SpriteLoader;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceMetadata;
+import net.neoforged.fml.ModLoader;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,6 +22,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +36,9 @@ public class SpriteLoaderMixin {
     private List<SpriteContents> injectNexoSprites(List<SpriteContents> contents) {
         // Match this SpriteLoader's atlas against registered atlas keys
         Location atlasKey = Location.of(location.getNamespace(), location.getPath());
-        Map<Location, Path> registered = NexoAtlas.getRegistered(atlasKey);
+        Map<Location, Path> registered = new LinkedHashMap<>();
+        Map<Location, byte[]> embedded = new LinkedHashMap<>();
+        ModLoader.postEvent(new SpriteAtlasStitchEvent(atlasKey, registered, embedded));
 
         List<SpriteContents> augmented = new ArrayList<>(contents);
         for (var entry : registered.entrySet()) {
@@ -59,7 +63,6 @@ public class SpriteLoaderMixin {
             }
         }
 
-        Map<Location, byte[]> embedded = NexoAtlas.getEmbedded(atlasKey);
         for (var entry : embedded.entrySet()) {
             Location location = entry.getKey().withoutExtension();
             ResourceLocation id = NexoMinecraft.rl(location);

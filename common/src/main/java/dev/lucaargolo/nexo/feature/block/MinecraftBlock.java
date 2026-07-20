@@ -87,8 +87,8 @@ public class MinecraftBlock extends BlockBase {
     @Override
     public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
         BlockState state = ((MinecraftBlockUnit) block).get();
-        Level level = ((MinecraftWorldUnit) world).get();
-        Player player = (Player) ((MinecraftEntityUnit<PlayerRole, ?>) entity).get();
+        Level level = ((MinecraftWorldUnit<?>) world).get();
+        Player player = (Player) ((MinecraftEntityUnit<?, PlayerRole, ?>) entity).get();
         Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
         BlockHitResult hitResult = new BlockHitResult(position, Direction.UP, BlockPos.containing(position), true);
         InteractionResult result = state.useWithoutItem(level, player, hitResult);

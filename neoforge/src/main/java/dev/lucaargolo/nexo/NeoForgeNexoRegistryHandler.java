@@ -17,7 +17,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -37,9 +36,8 @@ import java.util.function.Supplier;
 
 public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
 
-    private static final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
-
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
+    private final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
 
     public NeoForgeNexoRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -132,7 +130,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @SuppressWarnings("unchecked")
-    public static <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         return (AttachmentType<D>) ((Holder<AttachmentType<?>>) dataAttachmentMap.get(data)).value();
     }
 

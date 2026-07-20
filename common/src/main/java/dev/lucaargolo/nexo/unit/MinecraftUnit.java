@@ -1,12 +1,7 @@
 package dev.lucaargolo.nexo.unit;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
-import org.jetbrains.annotations.NotNull;
+import java.util.function.Supplier;
 
-public interface MinecraftUnit<T> {
-
-    @NotNull NexoMinecraft nexo();
-
-    @NotNull T get();
+public interface MinecraftUnit<T> extends Supplier<T> {
 
 }

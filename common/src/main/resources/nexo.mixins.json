@@ -4,13 +4,10 @@
   "package": "dev.lucaargolo.nexo.mixin",
   "refmap": "${mod_id}.refmap.json",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [
-    "WorldDimensionsMixin"
-  ],
+  "mixins": [],
   "client": [
     "BlockElementRotationMixin",
-    "FaceBakeryMixin",
-    "SpriteLoaderMixin"
+    "FaceBakeryMixin"
   ],
   "server": [],
   "injectors": {

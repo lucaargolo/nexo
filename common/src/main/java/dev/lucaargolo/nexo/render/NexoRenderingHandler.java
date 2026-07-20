@@ -48,6 +48,7 @@ import java.util.function.Supplier;
 public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
 
     private final N nexo;
+    protected final NexoAtlas nexoAtlas = new NexoAtlas();
 
     public NexoRenderingHandler(N nexo) {
         this.nexo = nexo;
@@ -65,8 +66,8 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                     StaticRenderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
                     if (renderer == null) return true;
                     ResourceLocation modelId = modelId(event.location(), feature);
-                    registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
-                    registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
+                    this.registerTextures(nexo, renderer.textures().values(), NexoAtlas.BLOCK_ATLAS);
+                    this.registerEmbeddedTextures(renderer, NexoAtlas.BLOCK_ATLAS);
                     collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                         nexo,
                         BlockState.class,
@@ -164,21 +165,21 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         return NexoMinecraft.rl(location).withPrefix(prefix);
     }
 
-    private static void registerTextures(Nexo nexo, Collection<Location> textures, Location atlas) {
+    private void registerTextures(Nexo nexo, Collection<Location> textures, Location atlas) {
         for (Location texture : textures) {
             registerTexture(nexo, texture, atlas);
         }
     }
 
-    private static void registerEmbeddedTextures(Renderer<?, ?> renderer, Location atlas) {
+    private void registerEmbeddedTextures(Renderer<?, ?> renderer, Location atlas) {
         if (renderer instanceof ModelRenderer<?> modelRenderer) {
             modelRenderer.model().embeddedTextures().forEach(
-                    (texture, data) -> NexoAtlas.register(atlas, texture, data)
+                    (texture, data) -> this.nexoAtlas.register(atlas, texture, data)
             );
         }
     }
 
-    private static void registerTexture(Nexo nexo, Location texture, Location atlas) {
+    private void registerTexture(Nexo nexo, Location texture, Location atlas) {
         Nexo.Mod mod = nexo.getMod(texture.namespace());
         if (mod == null) return;
         Path filePath = mod.path().resolve(texture.path());
@@ -192,7 +193,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             }
         }
         if (Files.isRegularFile(filePath)) {
-            NexoAtlas.register(atlas, texture, filePath);
+            this.nexoAtlas.register(atlas, texture, filePath);
             return;
         }
         try {
@@ -205,7 +206,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             }
             Path jarPath = jarFs.getPath("/", texture.path());
             if (Files.isRegularFile(jarPath)) {
-                NexoAtlas.register(atlas, texture, jarPath);
+                this.nexoAtlas.register(atlas, texture, jarPath);
                 return;
             }
         } catch (IOException e) {

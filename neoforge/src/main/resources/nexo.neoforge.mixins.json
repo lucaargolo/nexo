@@ -9,7 +9,8 @@
   ],
   "client": [
     "BlockStateModelLoaderMixin",
-    "ModelBakeryMixin"
+    "ModelBakeryMixin",
+    "SpriteLoaderMixin"
   ],
   "server": [],
   "injectors": {

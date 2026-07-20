@@ -21,6 +21,7 @@ public class FaceBakeryMixin {
     @Unique
     private static final float RESCALE_45 = 1.0F / (float) Math.cos(Math.PI / 4.0) - 1.0F;
 
+    @Unique
     private static final ThreadLocal<Vector3f> SAVED_VERTEX = new ThreadLocal<>();
 
     @Inject(method = "applyElementRotation", at = @At("HEAD"))
@@ -84,24 +85,25 @@ public class FaceBakeryMixin {
         final float absZ = Math.abs(euler.z());
 
         if (absX > 0.001F) {
-            float fac = rescaleFactor(absX);
+            float fac = nexo$rescaleFactor(absX);
             ry = 1.0F + fac;
             rz = 1.0F + fac;
         }
         if (absY > 0.001F) {
-            float fac = rescaleFactor(absY);
+            float fac = nexo$rescaleFactor(absY);
             rx *= (1.0F + fac);
             rz *= (1.0F + fac);
         }
         if (absZ > 0.001F) {
-            float fac = rescaleFactor(absZ);
+            float fac = nexo$rescaleFactor(absZ);
             rx *= (1.0F + fac);
             ry *= (1.0F + fac);
         }
         return new Vector3f(rx, ry, rz);
     }
 
-    private static float rescaleFactor(float absDegrees) {
+    @Unique
+    private static float nexo$rescaleFactor(float absDegrees) {
         if (Math.abs(absDegrees - 22.5F) < 0.01F) return RESCALE_22_5;
         if (Math.abs(absDegrees - 45.0F) < 0.01F) return RESCALE_45;
         return 1.0F / (float) Math.cos(absDegrees * Math.PI / 180.0) - 1.0F;

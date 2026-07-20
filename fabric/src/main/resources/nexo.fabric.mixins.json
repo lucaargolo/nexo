@@ -7,7 +7,9 @@
   "mixins": [
     "WorldDimensionsMixin"
   ],
-  "client": [],
+  "client": [
+    "SpriteLoaderMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1

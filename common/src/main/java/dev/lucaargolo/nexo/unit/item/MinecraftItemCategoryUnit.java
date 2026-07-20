@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -15,30 +15,23 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
 
-    @NotNull
-    private final NexoMinecraft nexo;
-    @NotNull
-    private final CreativeModeTab tab;
+    protected final @NotNull R helper;
+    protected final @NotNull CreativeModeTab tab;
 
     protected final Set<ItemUnit<?>> addedItems = ConcurrentHashMap.newKeySet();
     protected final Set<ItemUnit<?>> removedItems = ConcurrentHashMap.newKeySet();
 
     public MinecraftItemCategoryUnit(
-            @NotNull NexoMinecraft nexo,
+            @NotNull R helper,
             @NotNull ItemCategoryBase feature,
             @Nullable Role role,
             @NotNull CreativeModeTab tab
     ) {
         super(feature, role);
-        this.nexo = nexo;
+        this.helper = helper;
         this.tab = tab;
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return nexo;
     }
 
     @Override
@@ -57,7 +50,7 @@ public abstract class MinecraftItemCategoryUnit extends ItemCategoryUnit<Role> i
 
     @Override
     public @NotNull Stream<ItemUnit<?>> stream() {
-        return tab.getDisplayItems().stream().map(nexo::stackToUnit);
+        return tab.getDisplayItems().stream().map(helper.nexo()::stackToUnit);
     }
 
     @Override

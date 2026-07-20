@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
@@ -34,6 +35,11 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     @Override
     public void init() {
         super.init();
+
+        SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
+            registered.putAll(nexoAtlas.getRegistered(atlas));
+            embedded.putAll(nexoAtlas.getEmbedded(atlas));
+        });
 
         ModelLoadingPlugin.register(pluginContext -> {
             pluginContext.addModels(itemModelIds);

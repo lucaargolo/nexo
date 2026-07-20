@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -14,23 +13,15 @@ import org.jetbrains.annotations.Nullable;
 
 public final class MinecraftItemUnit extends ItemUnit<Role> implements MinecraftUnit<ItemStack> {
 
-    private final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemStack stack;
 
     public MinecraftItemUnit(
-            @NotNull NexoMinecraft nexo,
             @NotNull ItemBase feature,
             @Nullable Role role,
             @NotNull ItemStack stack
     ) {
         super(feature, role);
-        this.nexo = nexo;
         this.stack = stack;
-    }
-
-    @Override
-    public @NotNull NexoMinecraft nexo() {
-        return nexo;
     }
 
     @Override

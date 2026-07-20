@@ -11,26 +11,26 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class NexoAtlas {
 
-    private static final Map<Location, Map<Location, Path>> REGISTRY = new ConcurrentHashMap<>();
-    private static final Map<Location, Map<Location, byte[]>> EMBEDDED_REGISTRY = new ConcurrentHashMap<>();
-
     public static final Location BLOCK_ATLAS = Location.of("minecraft", "textures/atlas/blocks.png");
 
-    public static void register(@NotNull Location atlas, @NotNull Location texture, @NotNull Path path) {
-        REGISTRY.computeIfAbsent(atlas, k -> new ConcurrentHashMap<>()).put(texture, path);
+    private final Map<Location, Map<Location, Path>> registry = new ConcurrentHashMap<>();
+    private final Map<Location, Map<Location, byte[]>> embeddedRegistry = new ConcurrentHashMap<>();
+
+    public void register(@NotNull Location atlas, @NotNull Location texture, @NotNull Path path) {
+        registry.computeIfAbsent(atlas, k -> new ConcurrentHashMap<>()).put(texture, path);
     }
 
-    public static void register(@NotNull Location atlas, @NotNull Location texture, byte @NotNull [] data) {
-        EMBEDDED_REGISTRY.computeIfAbsent(atlas, k -> new ConcurrentHashMap<>()).put(texture, data.clone());
+    public void register(@NotNull Location atlas, @NotNull Location texture, byte @NotNull [] data) {
+        embeddedRegistry.computeIfAbsent(atlas, k -> new ConcurrentHashMap<>()).put(texture, data.clone());
     }
 
-    public static @NotNull Map<Location, Path> getRegistered(@NotNull Location atlas) {
-        Map<Location, Path> sprites = REGISTRY.get(atlas);
+    public @NotNull Map<Location, Path> getRegistered(@NotNull Location atlas) {
+        Map<Location, Path> sprites = registry.get(atlas);
         return sprites != null ? Collections.unmodifiableMap(sprites) : Collections.emptyMap();
     }
 
-    public static @NotNull Map<Location, byte[]> getEmbedded(@NotNull Location atlas) {
-        Map<Location, byte[]> sprites = EMBEDDED_REGISTRY.get(atlas);
+    public @NotNull Map<Location, byte[]> getEmbedded(@NotNull Location atlas) {
+        Map<Location, byte[]> sprites = embeddedRegistry.get(atlas);
         if (sprites == null) return Collections.emptyMap();
         Map<Location, byte[]> result = new LinkedHashMap<>();
         sprites.forEach((location, data) -> result.put(location, data.clone()));

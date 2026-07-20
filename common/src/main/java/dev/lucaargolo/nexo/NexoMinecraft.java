@@ -169,17 +169,17 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
-        return new MinecraftBlockUnit(this, block, block.role(), state);
+        return new MinecraftBlockUnit(block, block.role(), state);
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
         ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
-        return new MinecraftItemUnit(this, item, item.role(), stack);
+        return new MinecraftItemUnit(item, item.role(), stack);
     }
 
     public @NotNull ItemCategoryUnit<?> tabToUnit(@NotNull CreativeModeTab tab) {
         ItemCategoryBase itemCategory = MinecraftFeatureType.ITEM_CATEGORY.convert(this.registryHandler, tab);
-        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, itemCategory, itemCategory.role(), tab);
+        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this.registryHandler, itemCategory, itemCategory.role(), tab);
     }
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
@@ -187,13 +187,13 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = NexoMinecraft.id(key.location());
         WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
         assert world != null;
-        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
+        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
     }
 
     @SuppressWarnings("unchecked")
-    public @NotNull <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
+    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
-        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
     }
 
     @Override

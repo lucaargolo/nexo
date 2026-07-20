@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("UnstableApiUsage")
 public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
 
-    private static final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
+    private final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
 
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
@@ -112,7 +112,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     }
 
     @SuppressWarnings("unchecked")
-    public static <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         return (AttachmentType<D>) dataAttachmentMap.get(data);
     }
 

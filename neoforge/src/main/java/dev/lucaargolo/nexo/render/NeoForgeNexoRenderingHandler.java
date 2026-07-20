@@ -7,6 +7,8 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
+import dev.lucaargolo.nexo.event.SpriteAtlasStitchEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
@@ -26,7 +28,6 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +37,8 @@ import java.util.function.Supplier;
 
 public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeNexoMinecraft> {
 
-    private static final Map<ResourceLocation, Supplier<UnbakedModel>> CUSTOM_MODELS = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, Supplier<UnbakedModel>> BLOCK_MODELS = new ConcurrentHashMap<>();
+    private final Map<ResourceLocation, Supplier<UnbakedModel>> customModels = new ConcurrentHashMap<>();
+    private final Map<ResourceLocation, Supplier<UnbakedModel>> blockModels = new ConcurrentHashMap<>();
 
     private final List<ResourceLocation> itemModels = new ArrayList<>();
     private final List<ItemBase> itemsToRegister = new ArrayList<>();
@@ -68,14 +69,31 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
                 registerEntityRenderer(this.nexo(), type, base, event::registerEntityRenderer);
             }
         });
+        this.nexo().modBus().addListener(ModelLoadingQueryEvent.class, event -> {
+            UnbakedModel model;
+            Supplier<UnbakedModel> supplier = customModels.get(event.id());
+            if (supplier != null) {
+                model = supplier.get();
+                if (model != null) { event.setResult(model); return; }
+            }
+            supplier = blockModels.get(event.id());
+            if (supplier != null) {
+                model = supplier.get();
+                if (model != null) { event.setResult(model); return; }
+            }
+        });
+        this.nexo().modBus().addListener(SpriteAtlasStitchEvent.class, event -> {
+            event.registered().putAll(nexoAtlas.getRegistered(event.atlas()));
+            event.embedded().putAll(nexoAtlas.getEmbedded(event.atlas()));
+        });
     }
 
     @Override
     protected void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel) {
-        CUSTOM_MODELS.put(modelId, mcModel);
+        customModels.put(modelId, mcModel);
         if (feature instanceof BlockBase) {
-            ResourceLocation blockKey = NexoMinecraft.rl(feature.location());;
-            BLOCK_MODELS.put(blockKey, mcModel);
+            ResourceLocation blockKey = NexoMinecraft.rl(feature.location());
+            blockModels.put(blockKey, mcModel);
         } else if (feature instanceof ItemBase) {
             itemModels.add(modelId);
         }
@@ -107,14 +125,6 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
                 };
             }
         };
-    }
-
-    public static @Nullable UnbakedModel getCustomModel(ResourceLocation id) {
-        return CUSTOM_MODELS.getOrDefault(id, () -> null).get();
-    }
-
-    public static @Nullable UnbakedModel getBlockModel(ResourceLocation blockKey) {
-        return BLOCK_MODELS.getOrDefault(blockKey, () -> null).get();
     }
 
 }
