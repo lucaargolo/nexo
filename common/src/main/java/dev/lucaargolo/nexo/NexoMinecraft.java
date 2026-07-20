@@ -81,6 +81,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
+        this.registryHandler.init();
         this.modelHandler.init();
         this.discoveryHandler.init();
     }

@@ -1,12 +1,11 @@
 package dev.lucaargolo.nexo.mixin;
 
-import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import net.minecraft.core.Holder;
+import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.minecraft.world.level.levelgen.WorldDimensions;
+import net.neoforged.neoforge.common.NeoForge;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -24,13 +23,10 @@ public class WorldDimensionsMixin {
     private Map<ResourceKey<LevelStem>, LevelStem> dimensions;
 
     @Inject(at = @At("RETURN"), method = "bake")
-    private void nexo$indexBakedRegistry(Registry<LevelStem> pStemRegistry, CallbackInfoReturnable<WorldDimensions.Complete> cir) {
+    private void nexo$bakeWorldDimensions(Registry<LevelStem> pStemRegistry, CallbackInfoReturnable<WorldDimensions.Complete> cir) {
         WorldDimensions.Complete complete = cir.getReturnValue();
         Registry<LevelStem> registry = complete.dimensions();
-        this.dimensions.forEach((key, stem) -> {
-            Holder<LevelStem> holder = registry.getHolderOrThrow(key);
-            MinecraftFeatureType.WORLD.index(NexoRegistryHandler.get(), holder);
-        });
+        NeoForge.EVENT_BUS.post(new WorldDimensionsBakeEvent(registry, dimensions));
     }
 
 }

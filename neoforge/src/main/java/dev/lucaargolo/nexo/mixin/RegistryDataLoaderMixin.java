@@ -4,10 +4,13 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
+import dev.lucaargolo.nexo.util.DynamicRegistryViewImpl;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
+import net.neoforged.neoforge.common.NeoForge;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,6 +18,7 @@ import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -63,17 +67,14 @@ public class RegistryDataLoaderMixin {
     ) {
         if (!IS_SERVER.get()) return;
 
-        Map<ResourceKey<?>, Consumer<Registry<?>>> features = NexoRegistryHandler.get().getDynamicRegistrars();
-        if (features.isEmpty()) return;
 
-        for (RegistryDataLoader.Loader<?> loader : loaders) {
-            ResourceKey<? extends Registry<?>> registryKey = loader.data().key();
-            features.forEach((key, registrar) -> {
-                if (key.registryKey().equals(registryKey)) {
-                    registrar.accept(loader.registry());
-                }
-            });
+        Map<ResourceKey<? extends Registry<?>>, Registry<?>> registries = new IdentityHashMap<>(loaders.size());
+
+        for (RegistryDataLoader.Loader<?> entry : loaders) {
+            registries.put(entry.registry().key(), entry.registry());
         }
+
+        NeoForge.EVENT_BUS.post(new DynamicRegistrySetupEvent(new DynamicRegistryViewImpl(registries)));
     }
 
 }

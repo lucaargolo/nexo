@@ -19,8 +19,6 @@ import java.util.function.Supplier;
 
 public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
-    private static NexoRegistryHandler<?> instance;
-
     protected final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
     protected final Map<ResourceKey<?>, Holder<?>> dynamicHolders = new LinkedHashMap<>();
 
@@ -28,12 +26,13 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public NexoRegistryHandler(N nexo) {
         this.nexo = nexo;
-        instance = this;
     }
 
     public N nexo() {
         return nexo;
     }
+
+    public abstract void init();
 
     public abstract <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
@@ -70,11 +69,4 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
         return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }
 
-    public Map<ResourceKey<?>, Consumer<Registry<?>>> getDynamicRegistrars() {
-        return dynamicRegistrars;
-    }
-
-    public static NexoRegistryHandler<?> get() {
-        return instance;
-    }
 }

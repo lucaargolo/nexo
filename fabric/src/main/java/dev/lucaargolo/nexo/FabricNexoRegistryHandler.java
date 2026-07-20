@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.event.WorldDimensionsBakeCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -23,6 +24,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
@@ -37,13 +39,23 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
 
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
+    }
+
+    @Override
+    public void init() {
+        MinecraftFeatureType.all().forEach(this::addBuiltinRegistryListener);
         DynamicRegistrySetupCallback.EVENT.register(view -> {
             MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(view, type));
             dynamicRegistrars.forEach((key, registrar) -> {
                 view.getOptional(key.registryKey()).ifPresent(registrar);
             });
         });
-        MinecraftFeatureType.all().forEach(this::addBuiltinRegistryListener);
+        WorldDimensionsBakeCallback.EVENT.register((registry, dimensions) -> {
+            dimensions.forEach((key, stem) -> {
+                Holder<LevelStem> holder = registry.getHolderOrThrow(key);
+                MinecraftFeatureType.WORLD.index(this, holder);
+            });
+        });
     }
 
     @Override
