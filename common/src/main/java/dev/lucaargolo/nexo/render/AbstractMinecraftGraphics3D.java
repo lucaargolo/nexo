@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -368,6 +369,7 @@ public abstract class AbstractMinecraftGraphics3D implements Graphics3D {
         protected DepthMode depthMode = DepthMode.ENABLED;
         protected boolean depthMask = true;
         protected CullMode cullMode = CullMode.BACK;
+        protected @Nullable Shader shader;
         protected boolean customLight;
         protected float lightU;
         protected float lightV;
@@ -391,6 +393,7 @@ public abstract class AbstractMinecraftGraphics3D implements Graphics3D {
             depthMode = other.depthMode;
             depthMask = other.depthMask;
             cullMode = other.cullMode;
+            shader = other.shader;
             customLight = other.customLight;
             lightU = other.lightU;
             lightV = other.lightV;

@@ -14,6 +14,11 @@ public interface Graphics3D extends Graphics2D {
     void rotate(@NotNull Vector3f axis, float angle);
     void scale(float x, float y, float z);
 
+    /**
+     * Returns the camera position in the current local coordinate system.
+     */
+    @NotNull Vector3f cameraPosition();
+
     void depthMode(@NotNull DepthMode mode);
     @NotNull DepthMode depthMode();
     void depthMask(boolean write);

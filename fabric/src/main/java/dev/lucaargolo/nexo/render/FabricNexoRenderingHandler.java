@@ -7,9 +7,11 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -36,6 +38,9 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     public void init() {
         super.init();
 
+        WorldRenderEvents.START.register(context -> shaderRenderer.beginFrame());
+        WorldRenderEvents.LAST.register(context -> shaderRenderer.endFrame());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderRenderer.close());
         SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
             registered.putAll(nexoAtlas.getRegistered(atlas));
             embedded.putAll(nexoAtlas.getEmbedded(atlas));

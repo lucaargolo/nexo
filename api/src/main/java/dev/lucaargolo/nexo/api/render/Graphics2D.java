@@ -1,5 +1,7 @@
 package dev.lucaargolo.nexo.api.render;
 
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.TextureFilter;
 import dev.lucaargolo.nexo.api.render.util.TextureWrap;
@@ -27,6 +29,19 @@ public interface Graphics2D {
 
     void blendMode(@NotNull BlendMode mode);
     @NotNull BlendMode blendMode();
+
+    @NotNull Shader createShader(@NotNull ShaderSource source);
+
+    void bindShader(@Nullable Shader shader);
+
+    @Nullable Shader shader();
+
+    /**
+     * Returns the backend-managed location of the completed scene behind custom
+     * shader effects. The mapped texture is refreshed immediately before
+     * deferred shader draws execute.
+     */
+    @NotNull Location sceneTexture();
 
     void lineWidth(float width);
     float lineWidth();

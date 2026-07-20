@@ -24,9 +24,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -51,6 +54,11 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     @Override
     public void init() {
         super.init();
+        NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, event -> {
+            if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) shaderRenderer.beginFrame();
+            else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) shaderRenderer.endFrame();
+        });
+        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> shaderRenderer.close());
         this.nexo().modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
             for (ResourceLocation modelId : itemModels) {
                 event.register(new ModelResourceLocation(modelId, ModelResourceLocation.STANDALONE_VARIANT));
@@ -109,7 +117,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
         entitiesToRegister.add(entity);
     }
 
-    private static IClientItemExtensions createItemExtensions(NexoMinecraft nexo, ItemBase base) {
+    private IClientItemExtensions createItemExtensions(NexoMinecraft nexo, ItemBase base) {
         ItemRenderer renderer = createItemRenderer(nexo, base);
         Minecraft minecraft = Minecraft.getInstance();
         BlockEntityRenderDispatcher dispatcher = minecraft.getBlockEntityRenderDispatcher();

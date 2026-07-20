@@ -50,6 +50,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
 
     private final N nexo;
     protected final NexoAtlas nexoAtlas = new NexoAtlas();
+    protected final MinecraftShaderRenderer shaderRenderer = new MinecraftShaderRenderer();
 
     public NexoRenderingHandler(N nexo) {
         this.nexo = nexo;
@@ -114,13 +115,13 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
 
     protected abstract void registerItemRenderer(ItemBase item);
 
-    protected static ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
+    protected ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
         Renderer<Graphics3D, ItemUnit<?>> renderer = base.renderer();
         if(renderer == null) {
             return ItemRenderer.EMPTY;
         }else{
             return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(matrices, vertexConsumers, light, overlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(matrices, vertexConsumers, shaderRenderer, light, overlay);
                 try {
                     renderer.render(graphics, nexo.stackToUnit(stack));
                 } finally {
@@ -132,7 +133,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
 
     protected abstract void registerEntityRenderer(EntityBase entity);
 
-    protected static <T extends Entity> void registerEntityRenderer(NexoMinecraft nexo, EntityType<T> type, EntityBase base, BiConsumer<EntityType<T>, EntityRendererProvider<T>> registrar) {
+    protected <T extends Entity> void registerEntityRenderer(NexoMinecraft nexo, EntityType<T> type, EntityBase base, BiConsumer<EntityType<T>, EntityRendererProvider<T>> registrar) {
         Renderer<Graphics3D, EntityUnit<?>> renderer = base.renderer();
         if(renderer == null) {
             registrar.accept(type, NoopRenderer::new);
@@ -141,7 +142,9 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                 @Override
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
-                    MinecraftGraphics3D graphics = new MinecraftGraphics3D(pPoseStack, pBufferSource, pPackedLight, OverlayTexture.NO_OVERLAY);
+                    MinecraftGraphics3D graphics = new MinecraftGraphics3D(
+                            pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
+                    );
                     try {
                         renderer.render(graphics, nexo.entityToUnit(pEntity));
                     } finally {

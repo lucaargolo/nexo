@@ -3,6 +3,8 @@ package dev.lucaargolo.nexo.render;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -112,6 +114,31 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     @Override
     protected @NotNull Matrix4f matrixGet() {
         return new Matrix4f(matrix);
+    }
+
+    @Override
+    public @NotNull Vector3f cameraPosition() {
+        throw unsupported("camera coordinates while baking a model");
+    }
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        throw unsupported("shaders while baking a model");
+    }
+
+    @Override
+    public void bindShader(@Nullable Shader shader) {
+        if (shader != null) throw unsupported("shaders while baking a model");
+    }
+
+    @Override
+    public @Nullable Shader shader() {
+        return null;
+    }
+
+    @Override
+    public @NotNull Location sceneTexture() {
+        throw unsupported("scene textures while baking a model");
     }
 
 

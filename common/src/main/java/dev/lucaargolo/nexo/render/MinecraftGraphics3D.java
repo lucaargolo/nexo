@@ -2,10 +2,14 @@ package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.Minecraft;
@@ -13,6 +17,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
@@ -27,6 +32,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalDouble;
@@ -39,10 +45,15 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
 
     private final @NotNull PoseStack poses;
     private final @NotNull MultiBufferSource buffers;
+    private final @NotNull MinecraftShaderRenderer shaderRenderer;
+    private final @NotNull Map<RenderKey, RenderType> customRenderTypes = new HashMap<>();
     private final int packedLight;
     private final int packedOverlay;
 
     private @Nullable VertexConsumer consumer;
+    private @Nullable BufferBuilder deferredBuilder;
+    private @Nullable ByteBufferBuilder deferredAllocation;
+    private @Nullable RenderType activeRenderType;
     private float @Nullable [] firstVertex;
     private int vertexCount;
     private int matrixDepth;
@@ -51,11 +62,13 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
     public MinecraftGraphics3D(
             @NotNull PoseStack poses,
             @NotNull MultiBufferSource buffers,
+            @NotNull MinecraftShaderRenderer shaderRenderer,
             int packedLight,
             int packedOverlay
     ) {
         this.poses = poses;
         this.buffers = buffers;
+        this.shaderRenderer = shaderRenderer;
         this.packedLight = packedLight;
         this.packedOverlay = packedOverlay;
         poses.pushPose();
@@ -114,6 +127,40 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
     @Override
     protected @NotNull Matrix4f matrixGet() {
         return new Matrix4f(poses.last().pose());
+    }
+
+    @Override
+    public @NotNull Vector3f cameraPosition() {
+        return new Matrix4f(poses.last().pose()).invert().transformPosition(new Vector3f());
+    }
+
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        requireOutsidePrimitive("create a shader");
+        return new MinecraftShader(source, shaderRenderer);
+    }
+
+    @Override
+    public void bindShader(@Nullable Shader shader) {
+        requireOutsidePrimitive("bind a shader");
+        if (shader != null && !(shader instanceof MinecraftShader)) {
+            throw new IllegalArgumentException("Shader was created by another rendering backend");
+        }
+        if (shader instanceof MinecraftShader minecraftShader && minecraftShader.closed()) {
+            throw new IllegalStateException("Cannot bind a closed shader");
+        }
+        state.shader = shader;
+    }
+
+    @Override
+    public @Nullable Shader shader() {
+        return state.shader;
+    }
+
+    @Override
+    public @NotNull Location sceneTexture() {
+        return MinecraftShaderRenderer.SCENE_TEXTURE;
     }
 
 
@@ -265,7 +312,14 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
         if (type == PrimitiveType.POINTS) throw unsupported("point primitives");
         primitive = type;
         this.format = format;
-        consumer = buffers.getBuffer(renderType(type));
+        activeRenderType = renderType(type);
+        if (state.shader != null && shaderRenderer.deferred()) {
+            deferredAllocation = new ByteBufferBuilder(262144);
+            deferredBuilder = new BufferBuilder(deferredAllocation, mode(type), customVertexFormat(format));
+            consumer = deferredBuilder;
+        } else {
+            consumer = buffers.getBuffer(activeRenderType);
+        }
         firstVertex = null;
         vertexCount = 0;
     }
@@ -321,13 +375,20 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
         VertexConsumer actualConsumer = consumer;
         actualConsumer.addVertex(poses.last(), data[0], data[1], data[2])
                 .setColor(r, g, b, a);
-        if (state.texture != null) {
-            TextureAtlasSprite sprite = (TextureAtlasSprite) state.sprite;
-            float u = textureOffset >= 0 ? data[textureOffset] : 0.0F;
-            float v = textureOffset >= 0 ? data[textureOffset + 1] : 0.0F;
-            actualConsumer.setUv(sprite.getU(u), sprite.getV(v))
-                    .setOverlay(packedOverlay)
-                    .setLight(light());
+        if (textureOffset >= 0) {
+            float u = data[textureOffset];
+            float v = data[textureOffset + 1];
+            if (state.texture != null) {
+                TextureAtlasSprite sprite = (TextureAtlasSprite) state.sprite;
+                u = sprite.getU(u);
+                v = sprite.getV(v);
+            }
+            actualConsumer.setUv(u, v);
+        }
+        if (state.shader == null && state.texture != null) {
+            actualConsumer.setOverlay(packedOverlay).setLight(light());
+        }
+        if (normalOffset >= 0 || state.shader == null && state.texture != null) {
             Vector3f normal = normalOffset >= 0
                     ? new Vector3f(data[normalOffset], data[normalOffset + 1], data[normalOffset + 2])
                     : state.normal;
@@ -342,9 +403,22 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
             emit(firstVertex);
         }
         validateVertexCount(primitive, vertexCount);
+        if (deferredBuilder != null && deferredAllocation != null && activeRenderType != null) {
+            shaderRenderer.enqueue(
+                    activeRenderType,
+                    deferredBuilder.buildOrThrow(),
+                    deferredAllocation,
+                    new Matrix4f(RenderSystem.getModelViewMatrix()),
+                    new Matrix4f(RenderSystem.getProjectionMatrix()),
+                    RenderSystem.getVertexSorting()
+            );
+        }
         primitive = null;
         format = null;
         consumer = null;
+        deferredBuilder = null;
+        deferredAllocation = null;
+        activeRenderType = null;
         firstVertex = null;
         vertexCount = 0;
     }
@@ -373,6 +447,8 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
         boolean textured = state.texture != null;
+        MinecraftShader shader = (MinecraftShader) state.shader;
+        Map<String, MinecraftShader.UniformValue> uniforms = shader == null ? null : shader.uniforms();
         RenderKey key = new RenderKey(
                 mode(type),
                 textured,
@@ -382,9 +458,13 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
                 state.cullMode,
                 state.lineWidth,
                 state.minFilter,
-                state.magFilter
+                state.magFilter,
+                shader == null ? null : format,
+                shader,
+                uniforms
         );
-        return RENDER_TYPES.computeIfAbsent(key, MinecraftGraphics3D::createRenderType);
+        Map<RenderKey, RenderType> cache = shader == null ? RENDER_TYPES : customRenderTypes;
+        return cache.computeIfAbsent(key, MinecraftGraphics3D::createRenderType);
     }
 
     private static @NotNull RenderType createRenderType(@NotNull RenderKey key) {
@@ -414,6 +494,14 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
         };
     }
 
+    private static com.mojang.blaze3d.vertex.@NotNull VertexFormat customVertexFormat(@NotNull VertexFormat format) {
+        return switch (format) {
+            case POSITION, POSITION_COLOR -> DefaultVertexFormat.POSITION_COLOR;
+            case POSITION_TEX, POSITION_COLOR_TEX -> DefaultVertexFormat.POSITION_TEX_COLOR;
+            case POSITION_TEX_NORMAL, POSITION_COLOR_TEX_NORMAL -> DefaultVertexFormat.POSITION_TEX_COLOR_NORMAL;
+        };
+    }
+
     private int light() {
         return state.customLight ? ((int) state.lightU) | (((int) state.lightV) << 16) : packedLight;
     }
@@ -437,7 +525,10 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
             @NotNull CullMode cullMode,
             float lineWidth,
             @NotNull TextureFilter minFilter,
-            @NotNull TextureFilter magFilter
+            @NotNull TextureFilter magFilter,
+            @Nullable VertexFormat vertexFormat,
+            @Nullable MinecraftShader shader,
+            @Nullable Map<String, MinecraftShader.UniformValue> uniforms
     ) {
     }
 
@@ -446,7 +537,7 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
         private NexoRenderState(@NotNull RenderKey key, @NotNull List<RenderStateShard> states) {
             super(
                     "nexo_dynamic_" + Integer.toUnsignedString(key.hashCode(), 36),
-                    key.textured ? DefaultVertexFormat.NEW_ENTITY : DefaultVertexFormat.POSITION_COLOR,
+                    minecraftFormat(key),
                     key.mode,
                     SMALL_BUFFER_SIZE,
                     false,
@@ -458,7 +549,15 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
 
         private static @NotNull RenderType create(@NotNull RenderKey key) {
             List<RenderStateShard> states = new ArrayList<>();
-            states.add(key.textured ? RENDERTYPE_ENTITY_TRANSLUCENT_SHADER : POSITION_COLOR_SHADER);
+            if (key.shader == null) {
+                states.add(key.textured ? RENDERTYPE_ENTITY_TRANSLUCENT_SHADER : POSITION_COLOR_SHADER);
+            } else {
+                states.add(new ShaderStateShard(() -> {
+                    ShaderInstance instance = key.shader.instance(minecraftFormat(key));
+                    key.shader.apply(instance, key.uniforms);
+                    return instance;
+                }));
+            }
             states.add(transparency(key.blendMode));
             states.add(depthTest(key.depthMode));
             states.add(cullState(key.cullMode));
@@ -474,6 +573,14 @@ public final class MinecraftGraphics3D extends AbstractMinecraftGraphics3D imple
                 states.add(OVERLAY);
             }
             return new NexoRenderState(key, List.copyOf(states));
+        }
+
+        private static com.mojang.blaze3d.vertex.@NotNull VertexFormat minecraftFormat(@NotNull RenderKey key) {
+            if (key.shader == null) {
+                return key.textured ? DefaultVertexFormat.NEW_ENTITY : DefaultVertexFormat.POSITION_COLOR;
+            }
+            if (key.vertexFormat == null) throw new IllegalStateException("Custom shader render type has no vertex format");
+            return customVertexFormat(key.vertexFormat);
         }
 
         private static @NotNull TransparencyStateShard transparency(@NotNull BlendMode mode) {
