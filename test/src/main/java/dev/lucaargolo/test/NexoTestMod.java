@@ -132,7 +132,7 @@ public class NexoTestMod {
                 graphics.scale(4.95F, 4.95F, 4.95F);
                 graphics.bindShader(shader);
                 graphics.blendMode(BlendMode.ALPHA);
-                graphics.depthMode(DepthMode.READ_ONLY);
+                graphics.depthMode(DepthMode.ENABLED);
                 graphics.cullMode(CullMode.DISABLED);
                 drawBlackHoleQuad(graphics);
                 graphics.popMatrix();

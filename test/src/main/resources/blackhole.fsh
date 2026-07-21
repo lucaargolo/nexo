@@ -257,8 +257,7 @@ void main() {
     vec2 screenUv = gl_FragCoord.xy / iResolution.xy;
     vec3 originalScene = texture(iChannel0, screenUv).rgb;
     if (bounds >= 0.98) {
-        fragColor = vec4(originalScene * vColor.rgb, vColor.a);
-        return;
+        discard;
     }
 
     float effectEnvelope = 1.0 - smoothstep(0.41, 0.49, bounds);
@@ -288,5 +287,10 @@ void main() {
     vec3 colorB = mix(originalScene, lensedSceneB, distortionBlend)
     * transmissionB + diskRadianceB;
     vec3 color = 0.5 * (colorA + colorB);
+
+    float colorDelta = length(color - originalScene);
+    if (colorDelta < 0.001) {
+        discard;
+    }
     fragColor = vec4(clamp(color, 0.0, 1.0) * vColor.rgb, vColor.a);
 }
