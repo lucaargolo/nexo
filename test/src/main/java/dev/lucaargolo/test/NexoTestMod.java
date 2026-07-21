@@ -62,7 +62,7 @@ public class NexoTestMod {
 
         BlockBase testBlock4 = nexo.registerFeature(new SimpleBlock(
                 id("test_block_4"),
-                nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/red_wool.json")).model()
+                nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/red_wool.json"))
         ));
         nexo.registerFeature(new BlockItem(
                 testBlock4,

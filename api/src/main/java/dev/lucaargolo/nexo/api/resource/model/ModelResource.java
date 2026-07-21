@@ -4,15 +4,19 @@ import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.function.Supplier;
 
 public class ModelResource extends Resource<ModelResource> {
 
-    @NotNull
-    private final Model model;
+    private final @NotNull Supplier<Model> supplier;
+    private @Nullable Model model;
 
-    public ModelResource(@NotNull Location location, @NotNull Model model) {
+    public ModelResource(@NotNull Location location, @NotNull Supplier<Model> supplier) {
         super(location);
-        this.model = model;
+        this.supplier = supplier;
     }
 
     @Override
@@ -21,6 +25,9 @@ public class ModelResource extends Resource<ModelResource> {
     }
 
     public @NotNull Model model() {
+        if (model == null) {
+            model = Objects.requireNonNull(supplier.get());
+        }
         return model;
     }
 

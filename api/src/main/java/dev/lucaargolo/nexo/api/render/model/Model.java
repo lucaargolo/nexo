@@ -9,6 +9,7 @@ import dev.lucaargolo.nexo.api.render.model.loader.ObjModelLoader;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,10 +21,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class Model {
 
     private static final @NotNull List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
-    public static final @NotNull Location WHITE_TEXTURE = Location.of("nexo", "generated/model/white.png");
-    private static final byte @NotNull [] WHITE_TEXTURE_DATA = Base64.getDecoder().decode(
-            "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAHElEQVR4XmP4TyFgQBcgFYwaMGoACIwaMBgMAABdePwuz1LPZQAAAABJRU5ErkJggg=="
+
+    public static final @NotNull Location MISSING_TEXTURE = Location.of("nexo", "generated/missing");
+    public static final byte @NotNull [] MISSING_TEXTURE_DATA = Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAALElEQVR4nGNkYGD4z4AH/McvzcCEV5YIMGrAYDCAhVA8MzIw0tYFowYMBgMAMegFH+h6qFsAAAAASUVORK5CYII="
     );
+    public static final @NotNull ModelResource MISSING_MODEL = Model.full(MISSING_TEXTURE);
 
     private final @NotNull List<Mesh> meshes;
     private final @NotNull Map<String, ModelMaterial> materials;
@@ -49,7 +52,7 @@ public final class Model {
         Map<Location, byte[]> textureData = new LinkedHashMap<>();
         embeddedTextures.forEach((location, data) -> textureData.put(location, data.clone()));
         if (materials.values().stream().anyMatch(material -> material.texture() == null)) {
-            textureData.putIfAbsent(WHITE_TEXTURE, WHITE_TEXTURE_DATA.clone());
+            textureData.putIfAbsent(MISSING_TEXTURE, MISSING_TEXTURE_DATA.clone());
         }
         this.embeddedTextures = Collections.unmodifiableMap(textureData);
         this.shade = shade;
@@ -80,7 +83,7 @@ public final class Model {
         return shade;
     }
 
-    public @Nullable Transform getTransform(@NotNull Location location) {
+    public @Nullable Transform transform(@NotNull Location location) {
         return transforms.get(location);
     }
 
@@ -90,9 +93,9 @@ public final class Model {
         return Collections.unmodifiableMap(copy);
     }
 
-    public static @NotNull Model full(@NotNull Location texture) {
+    public static @NotNull ModelResource full(@NotNull Location texture) {
         float[] vertices = MinecraftModelLoader.boxVertices(0, 0, 0, 16, 16, 16);
-        return new Model(List.of(new Mesh(PrimitiveType.QUADS, "all", vertices)), Map.of(
+        return new ModelResource(texture, () -> new Model(List.of(new Mesh(PrimitiveType.QUADS, "all", vertices)), Map.of(
                 "all", new ModelMaterial(texture, new float[]{1, 1, 1, 1}, CullMode.BACK, BlendMode.DISABLED)
         ), Map.of(
                 Location.of("minecraft", "gui"),                   new Transform(new Vector3f(30, 225, 0), new Vector3f(0, 0, 0),   new Vector3f(0.625f, 0.625f, 0.625f)),
@@ -101,12 +104,13 @@ public final class Model {
                 Location.of("minecraft", "thirdperson_righthand"), new Transform(new Vector3f(75, 45, 0), new Vector3f(0, 2.5f, 0), new Vector3f(0.375f, 0.375f, 0.375f)),
                 Location.of("minecraft", "firstperson_righthand"), new Transform(new Vector3f(0, 45, 0),  new Vector3f(0, 0, 0),   new Vector3f(0.4f, 0.4f, 0.4f)),
                 Location.of("minecraft", "firstperson_lefthand"),  new Transform(new Vector3f(0, 225, 0), new Vector3f(0, 0, 0),   new Vector3f(0.4f, 0.4f, 0.4f))
-        ), true);
+        ), true));
     }
 
-    public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path) {
+    public static @Nullable ModelResource load(@NotNull Nexo nexo, @NotNull Location path) {
         byte[] data = nexo.loadResource(path);
-        return data == null ? null : load(nexo, path, data);
+        Model model = data == null ? null : load(nexo, path, data);
+        return model == null ? null : new ModelResource(path, () -> model);
     }
 
     public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {

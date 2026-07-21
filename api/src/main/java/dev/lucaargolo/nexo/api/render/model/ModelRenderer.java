@@ -6,8 +6,10 @@ import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.*;
@@ -17,61 +19,61 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
     public static final @NotNull Location MISSING_TEXTURE = Location.of("nexo", "null");
     private static final float POINT_RADIUS = 1.0F / 128.0F;
 
-    private final @NotNull Model model;
-    private final @NotNull List<DrawCall<Graphics3D>> calls;
-    private final @NotNull Map<String, Location> textures;
+    private final @NotNull ModelResource resource;
+    private @Nullable CompiledModel compiled;
 
-    public ModelRenderer(@NotNull Model model) {
-        this.model = model;
-        CompiledModel compiled = compile(model);
-        this.calls = compiled.calls();
-        this.textures = compiled.textures();
+    public ModelRenderer(@NotNull ModelResource resource) {
+        this.resource = resource;
     }
 
     public @NotNull Model model() {
-        return model;
+        return resource.model();
     }
 
     @Override
     public @NotNull List<@NotNull DrawCall<Graphics3D>> calls(@NotNull U unit) {
-        return calls;
+        return compiled().calls();
     }
 
     @Override
     public @NotNull Map<String, Location> textures() {
-        return textures;
+        return compiled().textures();
     }
 
     @Override
     public @NotNull Transform transform(@NotNull Location location) {
-        Transform transform = model.getTransform(location);
+        Transform transform = model().transform(location);
         if (transform != null) return transform;
         return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F));
     }
 
     @Override
     public boolean shaded() {
-        return model.shade();
+        return model().shade();
     }
 
-    private static @NotNull CompiledModel compile(@NotNull Model model) {
-        List<DrawCall<Graphics3D>> calls = new ArrayList<>(model.meshes().size());
-        Map<String, Location> textures = new LinkedHashMap<>();
-        model.materials().forEach((name, material) -> textures.put(
-                name,
-                material.texture() == null ? Model.WHITE_TEXTURE : material.texture()
-        ));
-        for (Mesh mesh : model.meshes()) {
-            ModelMaterial material = model.materials().get(mesh.material());
-            if (material == null) {
-                throw new IllegalArgumentException("Mesh references unknown material '" + mesh.material() + "'");
+    private @NotNull CompiledModel compiled() {
+        if(compiled == null) {
+            Model model = this.model();
+            List<DrawCall<Graphics3D>> calls = new ArrayList<>(model.meshes().size());
+            Map<String, Location> textures = new LinkedHashMap<>();
+            model.materials().forEach((name, material) -> textures.put(
+                    name,
+                    material.texture() == null ? Model.MISSING_TEXTURE : material.texture()
+            ));
+            for (Mesh mesh : model.meshes()) {
+                ModelMaterial material = model.materials().get(mesh.material());
+                if (material == null) {
+                    throw new IllegalArgumentException("Mesh references unknown material '" + mesh.material() + "'");
+                }
+                Location texture = material.texture();
+                if (texture == null) texture = Model.MISSING_TEXTURE;
+                Location finalTexture = texture;
+                calls.add(graphics -> renderMesh(graphics, mesh, material, finalTexture));
             }
-            Location texture = material.texture();
-            if (texture == null) texture = Model.WHITE_TEXTURE;
-            Location finalTexture = texture;
-            calls.add(graphics -> renderMesh(graphics, mesh, material, finalTexture));
+            compiled = new CompiledModel(List.copyOf(calls), Collections.unmodifiableMap(textures));
         }
-        return new CompiledModel(List.copyOf(calls), Collections.unmodifiableMap(textures));
+        return compiled;
     }
 
     private static void renderMesh(

@@ -69,7 +69,7 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
                 textureGetter,
                 matrix,
                 renderer.shaded(),
-                getItemTransforms(renderer),
+                getItemTransforms(renderer::transform),
                 getParticleSprite(renderer, textureGetter)
         );
     }
@@ -99,20 +99,20 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
 
             @Override
             public BakedModel bake(@NotNull ModelBaker pBaker, @NotNull Function<Material, TextureAtlasSprite> pSpriteGetter, @NotNull ModelState pState) {
-                return new BuiltInModel(getItemTransforms(renderer), ItemOverrides.EMPTY, getParticleSprite(renderer, pSpriteGetter), true);
+                return new BuiltInModel(getItemTransforms(renderer::transform), ItemOverrides.EMPTY, getParticleSprite(renderer, pSpriteGetter), true);
             }
         };
     }
 
-    private static @NotNull ItemTransforms getItemTransforms(@NotNull Renderer<?, ?> renderer) {
-        ItemTransform thirdPersonRight = transform(renderer, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
-        ItemTransform thirdPersonLeft = transform(renderer, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
-        ItemTransform firstPersonRight = transform(renderer, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);
-        ItemTransform firstPersonLeft = transform(renderer, ItemDisplayContext.FIRST_PERSON_LEFT_HAND);
-        ItemTransform head = transform(renderer, ItemDisplayContext.HEAD);
-        ItemTransform gui = transform(renderer, ItemDisplayContext.GUI);
-        ItemTransform ground = transform(renderer, ItemDisplayContext.GROUND);
-        ItemTransform fixed = transform(renderer, ItemDisplayContext.FIXED);
+    public static @NotNull ItemTransforms getItemTransforms(@NotNull Function<Location, Transform> function) {
+        ItemTransform thirdPersonRight = transform(function, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND);
+        ItemTransform thirdPersonLeft = transform(function, ItemDisplayContext.THIRD_PERSON_LEFT_HAND);
+        ItemTransform firstPersonRight = transform(function, ItemDisplayContext.FIRST_PERSON_RIGHT_HAND);
+        ItemTransform firstPersonLeft = transform(function, ItemDisplayContext.FIRST_PERSON_LEFT_HAND);
+        ItemTransform head = transform(function, ItemDisplayContext.HEAD);
+        ItemTransform gui = transform(function, ItemDisplayContext.GUI);
+        ItemTransform ground = transform(function, ItemDisplayContext.GROUND);
+        ItemTransform fixed = transform(function, ItemDisplayContext.FIXED);
 
         if (ItemTransform.NO_TRANSFORM.equals(thirdPersonLeft)) thirdPersonLeft = thirdPersonRight;
         if (ItemTransform.NO_TRANSFORM.equals(firstPersonLeft)) firstPersonLeft = firstPersonRight;
@@ -130,11 +130,11 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
     }
 
     private static @NotNull ItemTransform transform(
-            @NotNull Renderer<?, ?> renderer,
+            @NotNull Function<Location, Transform> function,
             @NotNull ItemDisplayContext context
     ) {
         Location location = Location.of("minecraft", context.getSerializedName());
-        Transform transform = renderer.transform(location);
+        Transform transform = function.apply(location);
         return new ItemTransform(
                 new Vector3f(transform.rotation()),
                 new Vector3f(transform.translation()).mul(0.0625F),
