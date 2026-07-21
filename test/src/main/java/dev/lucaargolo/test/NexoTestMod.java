@@ -16,6 +16,7 @@ import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderBuiltins;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
+import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,15 @@ public class NexoTestMod {
         ));
         nexo.registerFeature(new BlockItem(
                 testBlock3,
+                category
+        ));
+
+        BlockBase testBlock4 = nexo.registerFeature(new SimpleBlock(
+                id("test_block_4"),
+                nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/red_wool.json")).model()
+        ));
+        nexo.registerFeature(new BlockItem(
+                testBlock4,
                 category
         ));
 

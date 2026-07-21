@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,13 +66,18 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     }
 
     @Override
-    protected void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel) {
-        unbakedModels.put(modelId, mcModel.get());
+    protected void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        registerResourceModel(modelId, model);
         if (feature instanceof BlockBase block) {
             blockToModel.put(MinecraftFeatureType.BLOCK.convert(block), modelId);
         } else if (feature instanceof ItemBase) {
             itemModelIds.add(modelId);
         }
+    }
+
+    @Override
+    public void registerResourceModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        unbakedModels.put(modelId, model.get());
     }
 
     @Override

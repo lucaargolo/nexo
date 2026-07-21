@@ -111,7 +111,9 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         });
     }
 
-    protected abstract void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel);
+    protected abstract void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
+
+    public abstract void registerResourceModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
     protected abstract void registerItemRenderer(ItemBase item);
 

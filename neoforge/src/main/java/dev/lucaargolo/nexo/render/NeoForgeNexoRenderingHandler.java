@@ -23,8 +23,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
@@ -97,14 +97,20 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     }
 
     @Override
-    protected void collectModel(Feature<?> feature, ResourceLocation modelId, Supplier<UnbakedModel> mcModel) {
-        customModels.put(modelId, mcModel);
+    protected void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        registerResourceModel(modelId, model);
         if (feature instanceof BlockBase) {
             ResourceLocation blockKey = NexoMinecraft.rl(feature.location());
-            blockModels.put(blockKey, mcModel);
+            blockModels.put(blockKey, model);
         } else if (feature instanceof ItemBase) {
             itemModels.add(modelId);
         }
+    }
+
+
+    @Override
+    public void registerResourceModel( @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        customModels.put(modelId, model);
     }
 
     @Override

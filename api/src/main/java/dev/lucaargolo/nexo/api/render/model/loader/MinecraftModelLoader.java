@@ -7,6 +7,8 @@ import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.model.ModelMaterial;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +39,8 @@ public final class MinecraftModelLoader implements ModelLoader {
             Location parentPath = parseResourceLocation(root.get("parent").getAsString());
             String fileName = parentPath.path().substring(parentPath.path().lastIndexOf('/') + 1);
             if (!fileName.contains(".")) parentPath = parentPath.withPathSuffix(".json");
-            parent = nexo.getModel(parentPath);
+            ModelResource resource = nexo.getResource(Resource.Type.MINECRAFT_MODEL, parentPath);
+            parent = resource != null ? resource.model() : null;
         }
 
         Map<String, ModelMaterial> materials = new LinkedHashMap<>();

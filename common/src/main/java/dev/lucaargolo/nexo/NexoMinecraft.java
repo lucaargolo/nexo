@@ -11,7 +11,7 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
-import dev.lucaargolo.nexo.api.render.model.Model;
+import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -20,6 +20,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.render.NexoRenderingHandler;
+import dev.lucaargolo.nexo.resource.MinecraftResourceType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
@@ -66,23 +67,22 @@ public abstract class NexoMinecraft implements Nexo {
 
     private static final Map<Location, ResourceLocation> RL_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
-    private static final Map<Location, Model> MODEL_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscoveryHandler<?> discoveryHandler;
     protected final NexoRegistryHandler<?> registryHandler;
-    protected final NexoRenderingHandler<?> modelHandler;
+    protected final NexoRenderingHandler<?> renderingHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         this.discoveryHandler = NexoUtils.loadPlatformClass(this, NexoModDiscoveryHandler.class, this);
         this.registryHandler = NexoUtils.loadPlatformClass(this, NexoRegistryHandler.class, this);
-        this.modelHandler = NexoUtils.loadPlatformClass(this, NexoRenderingHandler.class, this);
+        this.renderingHandler = NexoUtils.loadPlatformClass(this, NexoRenderingHandler.class, this);
     }
 
     protected final void init() {
         this.registryHandler.init();
-        this.modelHandler.init();
+        this.renderingHandler.init();
         this.discoveryHandler.init();
     }
 
@@ -167,33 +167,14 @@ public abstract class NexoMinecraft implements Nexo {
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
     }
 
-    public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
-        BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
-        return new MinecraftBlockUnit(block, block.role(), state);
+    @Override
+    public @Nullable <T extends Resource<T>> T getResource(@NotNull Resource.Type<T> type, @NotNull Location location) {
+        return MinecraftResourceType.of(type).lookup(this, location);
     }
 
-    public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
-        ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
-        return new MinecraftItemUnit(item, item.role(), stack);
-    }
-
-    public @NotNull ItemCategoryUnit<?> tabToUnit(@NotNull CreativeModeTab tab) {
-        ItemCategoryBase itemCategory = MinecraftFeatureType.ITEM_CATEGORY.convert(this.registryHandler, tab);
-        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this.registryHandler, itemCategory, itemCategory.role(), tab);
-    }
-
-    public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
-        ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
-        Location location = NexoMinecraft.id(key.location());
-        WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
-        assert world != null;
-        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
-    }
-
-    @SuppressWarnings("unchecked")
-    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
-        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
-        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
+    @Override
+    public @NotNull <T extends Resource<T>> T registerResource(@NotNull T resource) {
+        return MinecraftResourceType.of(resource.type()).register(this, resource);
     }
 
     @Override
@@ -240,23 +221,37 @@ public abstract class NexoMinecraft implements Nexo {
         }
     }
 
-    @Override
-    public @Nullable Model getModel(@NotNull Location location) {
-        return MODEL_CACHE.computeIfAbsent(location, (l) -> {
-            Model model = Model.load(this, location);
-            if (model != null) return model;
+    public NexoRenderingHandler<?> getRenderingHandler() {
+        return renderingHandler;
+    }
 
-            if (getMod(location.namespace()) != null) {
-                return null;
-            }
+    public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
+        BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
+        return new MinecraftBlockUnit(block, block.role(), state);
+    }
 
-            Location mcLocation = Location.of(location.namespace(), "models/" + location.path());
-            byte[] data = loadResource(mcLocation);
-            if (data != null) {
-                return Model.load(this, mcLocation, data);
-            }
-            return null;
-        });
+    public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
+        ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
+        return new MinecraftItemUnit(item, item.role(), stack);
+    }
+
+    public @NotNull ItemCategoryUnit<?> tabToUnit(@NotNull CreativeModeTab tab) {
+        ItemCategoryBase itemCategory = MinecraftFeatureType.ITEM_CATEGORY.convert(this.registryHandler, tab);
+        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this.registryHandler, itemCategory, itemCategory.role(), tab);
+    }
+
+    public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
+        ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
+        Location location = NexoMinecraft.id(key.location());
+        WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
+        assert world != null;
+        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
+    }
+
+    @SuppressWarnings("unchecked")
+    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
+        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
+        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
     }
 
     public static ResourceLocation rl(Location location) {
