@@ -1,9 +1,6 @@
 package dev.lucaargolo.nexo.api.render.model;
 
-import dev.lucaargolo.nexo.api.render.DrawCall;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.StaticRenderer;
-import dev.lucaargolo.nexo.api.render.Transform;
+import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -12,22 +9,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
-    public static final @NotNull Location MISSING_TEXTURE = Location.of("nexo", "null");
     private static final float POINT_RADIUS = 1.0F / 128.0F;
 
-    private final @NotNull ModelResource resource;
+    private final @NotNull ModelResource<?> resource;
     private @Nullable CompiledModel compiled;
 
-    public ModelRenderer(@NotNull ModelResource resource) {
+    public ModelRenderer(@NotNull ModelResource<?> resource) {
         this.resource = resource;
-    }
-
-    public @NotNull Model model() {
-        return resource.model();
     }
 
     @Override
@@ -36,59 +30,45 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
     }
 
     @Override
-    public @NotNull Map<String, Location> textures() {
-        return compiled().textures();
+    public @NotNull Map<String, Material<?>> materials() {
+        return compiled().materials();
     }
 
     @Override
     public @NotNull Transform transform(@NotNull Location location) {
-        Transform transform = model().transform(location);
+        Transform transform = compiled().transform(location);
         if (transform != null) return transform;
         return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F));
     }
 
     @Override
     public boolean shaded() {
-        return model().shade();
+        return compiled().shade();
     }
 
     private @NotNull CompiledModel compiled() {
         if(compiled == null) {
-            Model model = this.model();
+            Model model = this.resource.model();
             List<DrawCall<Graphics3D>> calls = new ArrayList<>(model.meshes().size());
-            Map<String, Location> textures = new LinkedHashMap<>();
-            model.materials().forEach((name, material) -> textures.put(
-                    name,
-                    material.texture() == null ? Model.MISSING_TEXTURE : material.texture()
-            ));
             for (Mesh mesh : model.meshes()) {
-                ModelMaterial material = model.materials().get(mesh.material());
+                Material<?> material = model.materials().get(mesh.material());
                 if (material == null) {
                     throw new IllegalArgumentException("Mesh references unknown material '" + mesh.material() + "'");
                 }
-                Location texture = material.texture();
-                if (texture == null) texture = Model.MISSING_TEXTURE;
-                Location finalTexture = texture;
-                calls.add(graphics -> renderMesh(graphics, mesh, material, finalTexture));
+                calls.add(graphics -> renderMesh(graphics, mesh, material));
             }
-            compiled = new CompiledModel(List.copyOf(calls), Collections.unmodifiableMap(textures));
+            compiled = new CompiledModel(calls, model.materials(), model.transforms(), model.shade());
         }
         return compiled;
     }
 
-    private static void renderMesh(
-            @NotNull Graphics3D graphics,
-            @NotNull Mesh mesh,
-            @NotNull ModelMaterial material,
-            @NotNull Location texture
-    ) {
+    private static void renderMesh(@NotNull Graphics3D graphics, @NotNull Mesh mesh, @NotNull Material<?> material) {
         graphics.pushState();
-        graphics.bindTexture(texture);
-        graphics.color(material.colorData());
+        graphics.bindTexture(material.texture().left());
+        graphics.color(material.color());
         graphics.cullMode(material.cullMode());
         graphics.blendMode(material.blendMode());
-        PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS
-                ? PrimitiveType.LINES : mesh.primitiveType();
+        PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS ? PrimitiveType.LINES : mesh.primitiveType();
         graphics.begin(primitive, VertexFormat.POSITION_COLOR_TEX_NORMAL);
         float[] data = mesh.vertexData();
         for (int offset = 0; offset < data.length; offset += Mesh.VERTEX_STRIDE) {
@@ -107,14 +87,7 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
         graphics.popState();
     }
 
-    private static void vertex(
-            @NotNull Graphics3D graphics,
-            float @NotNull [] data,
-            int offset,
-            float x,
-            float y,
-            float z
-    ) {
+    private static void vertex(@NotNull Graphics3D graphics, float @NotNull [] data, int offset, float x, float y, float z) {
         graphics.vertex(
                     data[offset] + x, data[offset + 1] + y, data[offset + 2] + z,
                     data[offset + 3], data[offset + 4], data[offset + 5], data[offset + 6],
@@ -125,7 +98,13 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
 
     private record CompiledModel(
             @NotNull List<DrawCall<Graphics3D>> calls,
-            @NotNull Map<String, Location> textures
+            @NotNull Map<String, Material<?>> materials,
+            @NotNull Map<Location, Transform> transforms,
+            boolean shade
     ) {
+
+        public @Nullable Transform transform(Location string) {
+            return transforms.get(string);
+        }
     }
 }

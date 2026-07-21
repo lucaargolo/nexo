@@ -2,10 +2,10 @@ package dev.lucaargolo.nexo.api.render.model.loader;
 
 import com.google.gson.*;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
-import dev.lucaargolo.nexo.api.render.model.ModelMaterial;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -39,11 +39,11 @@ public final class MinecraftModelLoader implements ModelLoader {
             Location parentPath = parseResourceLocation(root.get("parent").getAsString());
             String fileName = parentPath.path().substring(parentPath.path().lastIndexOf('/') + 1);
             if (!fileName.contains(".")) parentPath = parentPath.withPathSuffix(".json");
-            ModelResource resource = nexo.getResource(Resource.Type.MINECRAFT_MODEL, parentPath);
+            ModelResource.Minecraft resource = nexo.getResource(Resource.Type.MINECRAFT_MODEL, parentPath);
             parent = resource != null ? resource.model() : null;
         }
 
-        Map<String, ModelMaterial> materials = new LinkedHashMap<>();
+        Map<String, Material<?>> materials = new LinkedHashMap<>();
         if (parent != null) materials.putAll(parent.materials());
         parseMaterials(root, materials);
 
@@ -63,13 +63,12 @@ public final class MinecraftModelLoader implements ModelLoader {
         boolean shade = root.has("ambientocclusion")
                 ? root.get("ambientocclusion").getAsBoolean()
                 : parent == null || parent.shade();
-        Map<Location, byte[]> embeddedTextures = parent == null ? Map.of() : parent.embeddedTextures();
-        return new Model(meshes, materials, transforms, shade, embeddedTextures);
+        return new Model(meshes, materials, transforms, shade);
     }
 
     private static void parseMaterials(
             @NotNull JsonObject root,
-            @NotNull Map<String, ModelMaterial> materials
+            @NotNull Map<String, Material<?>> materials
     ) {
         if (!root.has("textures")) return;
         JsonObject textures = root.getAsJsonObject("textures");
@@ -84,14 +83,14 @@ public final class MinecraftModelLoader implements ModelLoader {
         }
         for (String key : values.keySet()) {
             Location texture = resolveTexture(key, values, materials, new ArrayList<>());
-            if (texture != null) materials.put(key, new ModelMaterial(texture));
+            if (texture != null) materials.put(key, new Material<>(texture, texture));
         }
     }
 
     private static @Nullable Location resolveTexture(
             @NotNull String key,
             @NotNull Map<String, String> values,
-            @NotNull Map<String, ModelMaterial> inherited,
+            @NotNull Map<String, Material<?>> inherited,
             @NotNull List<String> chain
     ) {
         if (chain.contains(key)) {
@@ -99,13 +98,13 @@ public final class MinecraftModelLoader implements ModelLoader {
         }
         String value = values.get(key);
         if (value == null) {
-            ModelMaterial material = inherited.get(key);
-            return material == null ? null : material.texture();
+            Material<?> material = inherited.get(key);
+            return material == null ? null : material.texture().left();
         }
         if (!value.startsWith("#")) return parseResourceLocation(value);
         chain.add(key);
         Location resolved = resolveTexture(value.substring(1), values, inherited, chain);
-        chain.remove(chain.size() - 1);
+        chain.removeLast();
         return resolved;
     }
 
@@ -130,7 +129,7 @@ public final class MinecraftModelLoader implements ModelLoader {
 
     private static @NotNull List<Mesh> parseElements(
             @NotNull JsonArray elements,
-            @NotNull Map<String, ModelMaterial> materials
+            @NotNull Map<String, Material<?>> materials
     ) {
         Map<String, FloatBuilder> geometry = new LinkedHashMap<>();
         int directTextureIndex = 0;
@@ -159,10 +158,10 @@ public final class MinecraftModelLoader implements ModelLoader {
                 if (reference.startsWith("#")) {
                     material = reference.substring(1);
                 } else {
+                    Location texture = parseResourceLocation(reference);
                     material = "direct_" + directTextureIndex++;
-                    materials.put(material, new ModelMaterial(parseResourceLocation(reference)));
+                    materials.put(material, new Material<>(texture, texture));
                 }
-                materials.putIfAbsent(material, new ModelMaterial(null));
                 appendFace(geometry.computeIfAbsent(material, ignored -> new FloatBuilder()), from, to, orientation, face, transform);
             }
         }

@@ -1,14 +1,12 @@
 package dev.lucaargolo.nexo.mixin;
 
-import com.mojang.blaze3d.platform.NativeImage;
-import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.NexoAtlas;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchEvent;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.renderer.texture.SpriteLoader;
-import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceMetadata;
 import net.neoforged.fml.ModLoader;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,13 +14,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -36,50 +29,9 @@ public class SpriteLoaderMixin {
     private List<SpriteContents> injectNexoSprites(List<SpriteContents> contents) {
         // Match this SpriteLoader's atlas against registered atlas keys
         Location atlasKey = Location.of(location.getNamespace(), location.getPath());
-        Map<Location, Path> registered = new LinkedHashMap<>();
+        List<Location> registered = new LinkedList<>();
         Map<Location, byte[]> embedded = new LinkedHashMap<>();
-        ModLoader.postEvent(new SpriteAtlasStitchEvent(atlasKey, registered, embedded));
-
-        List<SpriteContents> augmented = new ArrayList<>(contents);
-        for (var entry : registered.entrySet()) {
-            Location location = entry.getKey().withoutExtension();
-            ResourceLocation id = NexoMinecraft.rl(location);
-
-            // Don't override if already present in the atlas
-            boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
-            if (alreadyPresent) {
-                NexoMinecraft.LOGGER.warn("Tried to override already existing texture {}", id);
-                continue;
-            }
-
-            Path path = entry.getValue();
-            try (InputStream in = Files.newInputStream(path)) {
-                NativeImage image = NativeImage.read(in);
-                FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
-                SpriteContents spriteContents = new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY);
-                augmented.add(spriteContents);
-            } catch (IOException e) {
-                NexoMinecraft.LOGGER.error("Failed to load Nexo atlas sprite '{}' from {}", id, path, e);
-            }
-        }
-
-        for (var entry : embedded.entrySet()) {
-            Location location = entry.getKey().withoutExtension();
-            ResourceLocation id = NexoMinecraft.rl(location);
-            boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
-            if (alreadyPresent) {
-                NexoMinecraft.LOGGER.warn("Tried to override already existing texture {}", id);
-                continue;
-            }
-            try (InputStream in = new ByteArrayInputStream(entry.getValue())) {
-                NativeImage image = NativeImage.read(in);
-                FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
-                augmented.add(new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY));
-            } catch (IOException e) {
-                NexoMinecraft.LOGGER.error("Failed to load embedded Nexo atlas sprite '{}'", id, e);
-            }
-        }
-
-        return augmented;
+        Nexo nexo = ModLoader.postEventWithReturn(new SpriteAtlasStitchEvent(atlasKey, registered, embedded)).getNexo();
+        return NexoAtlas.collectSpriteContents(nexo, contents, registered, embedded);
     }
 }

@@ -7,7 +7,6 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Locale;
 import java.util.StringTokenizer;
 
 final class ModelResources {
@@ -52,15 +51,4 @@ final class ModelResources {
         return String.join("/", segments);
     }
 
-    static @NotNull String extension(@NotNull String mimeType, @NotNull String uri) {
-        return switch (mimeType) {
-            case "image/jpeg" -> ".jpg";
-            case "image/webp" -> ".webp";
-            case "image/ktx2" -> ".ktx2";
-            default -> {
-                int dot = uri.lastIndexOf('.');
-                yield dot >= 0 ? uri.substring(dot).toLowerCase(Locale.ROOT) : ".png";
-            }
-        };
-    }
 }

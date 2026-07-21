@@ -9,14 +9,16 @@ import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Transform;
-import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderBuiltins;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
+import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -33,54 +35,60 @@ public class NexoTestMod {
                 NexoTestMod.id("test")
         ));
 
+        ModelResource.Minecraft testModel = ModelResource.Minecraft.full(NexoTestMod.id("test_block"));
         BlockBase testBlock = nexo.registerFeature(new SimpleBlock(
             NexoTestMod.id("test_block"),
-            Model.full(NexoTestMod.id("test_block.png"))
+            testModel
         ));
         nexo.registerFeature(new BlockItem(
             testBlock,
             category
         ));
 
+        ModelResource.Minecraft testModel2 = ModelResource.Minecraft.full(Location.of("minecraft", "block/yellow_wool"));
         BlockBase testBlock2 = nexo.registerFeature(new SimpleBlock(
                 id("test_block_2"),
-                Model.full(Location.of("minecraft", "block/yellow_wool.png"))
+                testModel2
         ));
         nexo.registerFeature(new BlockItem(
                 testBlock2,
                 category
         ));
 
+        ModelResource.Minecraft testModel3 = nexo.getResource(Resource.Type.MINECRAFT_MODEL, NexoTestMod.id("test_block"));
         BlockBase testBlock3 = nexo.registerFeature(new SimpleBlock(
             id("test_block_3"),
-            Model.load(nexo, NexoTestMod.id("test_block.json"))
+            testModel3
         ));
         nexo.registerFeature(new BlockItem(
                 testBlock3,
                 category
         ));
 
+        ModelResource.Minecraft testModel4 = nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/red_wool"));
         BlockBase testBlock4 = nexo.registerFeature(new SimpleBlock(
                 id("test_block_4"),
-                nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/red_wool.json"))
+                testModel4
         ));
         nexo.registerFeature(new BlockItem(
                 testBlock4,
                 category
         ));
 
+        ModelResource.GLTF testModel5 = nexo.getResource(Resource.Type.GLTF_MODEL, NexoTestMod.id("test_model"));
         BlockBase testGltf = nexo.registerFeature(new SimpleBlock(
                 id("test_gltf"),
-                Model.load(nexo, id("test_model.gltf"))
+                testModel5
         ));
         nexo.registerFeature(new BlockItem(
                 testGltf,
                 category
         ));
 
+        ModelResource.OBJ testModel6 = nexo.getResource(Resource.Type.OBJ_MODEL, NexoTestMod.id("test_model"));
         BlockBase testObj = nexo.registerFeature(new SimpleBlock(
                 id("test_obj"),
-                Model.load(nexo, id("test_model.obj"))
+                testModel6
         ));
         nexo.registerFeature(new BlockItem(
                 testObj,
@@ -91,10 +99,9 @@ public class NexoTestMod {
                 id("test")
         ));
 
-        byte[] vertexShader = nexo.loadResource(id("blackhole.vsh"));
-        byte[] fragmentShader = nexo.loadResource(id("blackhole.fsh"));
-        assert vertexShader != null && fragmentShader != null;
-        ShaderSource blackHoleSource = new ShaderSource(new String(vertexShader), new String(fragmentShader));
+        ShaderResource.VSH vertexShader = nexo.getResource(Resource.Type.VSH_SHADER, NexoTestMod.id("blackhole"));
+        ShaderResource.FSH fragmentShader = nexo.getResource(Resource.Type.FSH_SHADER, NexoTestMod.id("blackhole"));
+        ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
                 id("test_entity"),
                 blackHoleRenderer(blackHoleSource)
@@ -159,7 +166,7 @@ public class NexoTestMod {
             }
 
             @Override
-            public @NotNull Map<String, Location> textures() {
+            public @NotNull Map<String, Material<?>> materials() {
                 return Map.of();
             }
 

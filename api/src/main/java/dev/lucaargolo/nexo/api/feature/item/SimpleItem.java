@@ -2,15 +2,12 @@ package dev.lucaargolo.nexo.api.feature.item;
 
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
-import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Supplier;
 
 public class SimpleItem extends ItemBase {
 
@@ -19,7 +16,7 @@ public class SimpleItem extends ItemBase {
 
     public SimpleItem(
             @NotNull Location location,
-            @Nullable ModelResource resource,
+            @Nullable ModelResource<?> resource,
             @Nullable ItemCategoryBase category
     ) {
         super(location);
@@ -27,7 +24,7 @@ public class SimpleItem extends ItemBase {
         this.renderer = resource != null ? new ModelRenderer<>(resource) : null;
     }
 
-    public SimpleItem(@NotNull Location location, @Nullable ModelResource resource) {
+    public SimpleItem(@NotNull Location location, @Nullable ModelResource<?> resource) {
         this(location, resource, null);
     }
 

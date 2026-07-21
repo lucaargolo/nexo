@@ -43,8 +43,9 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
         WorldRenderEvents.LAST.register(context -> shaderRenderer.endFrame());
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderRenderer.close());
         SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
-            registered.putAll(nexoAtlas.getRegistered(atlas));
+            registered.addAll(nexoAtlas.getRegistered(atlas));
             embedded.putAll(nexoAtlas.getEmbedded(atlas));
+            return this.nexo();
         });
 
         ModelLoadingPlugin.register(pluginContext -> {

@@ -1,6 +1,8 @@
 package dev.lucaargolo.nexo.api.resource;
 
+import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
+import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +28,12 @@ public abstract class Resource<T extends Resource<T>> {
 
         private static final List<Type<?>> ALL = new ArrayList<>();
 
-        public static final Type<ModelResource> MINECRAFT_MODEL = new Type<>(ModelResource.class);
+        public static final @NotNull Type<ModelResource.Minecraft> MINECRAFT_MODEL = new Type<>(ModelResource.Minecraft.class);
+        public static final @NotNull Type<ModelResource.GLTF> GLTF_MODEL = new Type<>(ModelResource.GLTF.class);
+        public static final @NotNull Type<ModelResource.OBJ> OBJ_MODEL = new Type<>(ModelResource.OBJ.class);
+        public static final @NotNull Type<ImageResource.PNG> PNG_IMAGE = new Type<>(ImageResource.PNG.class);
+        public static final @NotNull Type<ShaderResource.VSH> VSH_SHADER = new Type<>(ShaderResource.VSH.class);
+        public static final @NotNull Type<ShaderResource.FSH> FSH_SHADER = new Type<>(ShaderResource.FSH.class);
 
         private final Class<T> type;
 

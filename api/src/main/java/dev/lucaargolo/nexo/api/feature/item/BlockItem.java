@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.feature.item;
 
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -49,8 +50,8 @@ public class BlockItem extends ItemBase {
             }
 
             @Override
-            public @NotNull Map<String, Location> textures() {
-                return renderer.textures();
+            public @NotNull Map<String, Material<?>> materials() {
+                return renderer.materials();
             }
 
             @Override

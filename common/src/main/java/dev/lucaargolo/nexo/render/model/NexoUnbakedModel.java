@@ -78,10 +78,10 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
             @NotNull Renderer<?, ?> renderer,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter
     ) {
-        Location location = renderer.texture("particle");
+        dev.lucaargolo.nexo.api.render.Material<?> material = renderer.material("particle");
         return textureGetter.apply(new Material(
                 InventoryMenu.BLOCK_ATLAS,
-                location == null ? MissingTextureAtlasSprite.getLocation() : NexoMinecraft.rl(location)
+                material == null ? MissingTextureAtlasSprite.getLocation() : NexoMinecraft.rl(material.location())
         ));
     }
 

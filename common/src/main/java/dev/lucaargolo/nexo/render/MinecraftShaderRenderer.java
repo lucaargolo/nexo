@@ -20,7 +20,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-final class MinecraftShaderRenderer {
+public final class MinecraftShaderRenderer {
 
     static final @NotNull Location SCENE_TEXTURE = Location.of(NexoMinecraft.MOD_ID, "scene_texture");
 

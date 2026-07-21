@@ -128,7 +128,7 @@ public abstract class NexoMinecraft implements Nexo {
                     }
                 }
             } catch (IOException e) {
-                LOGGER.error("Failed to read resource {} from mod {}", location, mod.value(), e);
+                LOGGER.debug("Failed to read resource {} from mod {}", location, mod.value());
             }
         }
 
@@ -143,7 +143,7 @@ public abstract class NexoMinecraft implements Nexo {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("Failed to read resource {} from Minecraft resource manager", location, e);
+            LOGGER.debug("Failed to read resource {} from Minecraft resource manager", location);
         }
 
         return null;

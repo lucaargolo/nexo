@@ -91,8 +91,9 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
             }
         });
         this.nexo().modBus().addListener(SpriteAtlasStitchEvent.class, event -> {
-            event.registered().putAll(nexoAtlas.getRegistered(event.atlas()));
+            event.registered().addAll(nexoAtlas.getRegistered(event.atlas()));
             event.embedded().putAll(nexoAtlas.getEmbedded(event.atlas()));
+            event.setNexo(this.nexo());
         });
     }
 

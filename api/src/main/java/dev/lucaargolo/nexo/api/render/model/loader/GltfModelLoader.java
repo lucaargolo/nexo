@@ -7,13 +7,14 @@ import de.javagl.jgltf.model.io.GltfReference;
 import de.javagl.jgltf.model.io.v2.GltfAssetV2;
 import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
-import dev.lucaargolo.nexo.api.render.model.ModelMaterial;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.api.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
@@ -46,22 +47,17 @@ public final class GltfModelLoader implements ModelLoader {
         GltfModel gltf = GltfModels.create(asset);
 
         IdentityHashMap<MaterialModel, String> materialKeys = new IdentityHashMap<>();
-        IdentityHashMap<ImageModel, Location> imageLocations = new IdentityHashMap<>();
-        Map<Location, byte[]> embeddedTextures = new LinkedHashMap<>();
-        Map<String, ModelMaterial> materials = createMaterials(
-                path, gltf, materialKeys, imageLocations, embeddedTextures
+        IdentityHashMap<ImageModel, Pair<Location, ?>> imageLocations = new IdentityHashMap<>();
+        Map<String, Material<?>> materials = createMaterials(
+                path, gltf, materialKeys, imageLocations
         );
-        boolean usesDefaultMaterial = gltf.getMeshModels().stream()
-                .flatMap(mesh -> mesh.getMeshPrimitiveModels().stream())
-                .anyMatch(primitive -> primitive.getMaterialModel() == null);
-        if (usesDefaultMaterial) materials.put(DEFAULT_MATERIAL, new ModelMaterial(null));
 
         List<Mesh> meshes = new ArrayList<>();
         for (NodeModel node : sceneNodes(asset, gltf)) {
             appendNodeMeshes(node, materialKeys, meshes);
         }
         if (meshes.isEmpty()) throw new IllegalArgumentException("glTF contains no renderable mesh primitives");
-        return new Model(meshes, materials, Map.of(), true, embeddedTextures);
+        return new Model(meshes, materials, Map.of(), true);
     }
 
     private static void resolveReferences(
@@ -104,14 +100,13 @@ public final class GltfModelLoader implements ModelLoader {
         for (NodeModel child : node.getChildren()) appendNode(child, result);
     }
 
-    private static @NotNull Map<String, ModelMaterial> createMaterials(
+    private static @NotNull Map<String, Material<?>> createMaterials(
             @NotNull Location modelPath,
             @NotNull GltfModel gltf,
             @NotNull Map<MaterialModel, String> materialKeys,
-            @NotNull Map<ImageModel, Location> imageLocations,
-            @NotNull Map<Location, byte[]> embeddedTextures
+            @NotNull Map<ImageModel, Pair<Location, ?>> imageLocations
     ) {
-        Map<String, ModelMaterial> result = new LinkedHashMap<>();
+        Map<String, Material<?>> result = new LinkedHashMap<>();
         List<MaterialModel> source = gltf.getMaterialModels();
         for (int i = 0; i < source.size(); i++) {
             MaterialModel material = source.get(i);
@@ -120,16 +115,13 @@ public final class GltfModelLoader implements ModelLoader {
                     : uniqueName(result, material.getName());
             materialKeys.put(material, name);
             if (material instanceof MaterialModelV2 pbr) {
-                Location texture = textureLocation(
-                        modelPath, pbr.getBaseColorTexture(), gltf, imageLocations, embeddedTextures
-                );
-                float[] factor = pbr.getBaseColorFactor().clone();
-                CullMode cull = pbr.isDoubleSided() ? CullMode.DISABLED : CullMode.BACK;
-                BlendMode blend = pbr.getAlphaMode() == MaterialModelV2.AlphaMode.BLEND
-                        ? BlendMode.ALPHA : BlendMode.DISABLED;
-                result.put(name, new ModelMaterial(texture, factor, cull, blend));
-            } else {
-                result.put(name, new ModelMaterial(null));
+                Pair<Location, ?> texture = textureLocation(modelPath, pbr.getBaseColorTexture(), gltf, imageLocations);
+                if (texture != null) {
+                    float[] factor = pbr.getBaseColorFactor().clone();
+                    CullMode cull = pbr.isDoubleSided() ? CullMode.DISABLED : CullMode.BACK;
+                    BlendMode blend = pbr.getAlphaMode() == MaterialModelV2.AlphaMode.BLEND ? BlendMode.ALPHA : BlendMode.DISABLED;
+                    result.put(name, new Material<>(texture, factor, cull, blend));
+                }
             }
         }
         return result;
@@ -142,30 +134,25 @@ public final class GltfModelLoader implements ModelLoader {
         return requested + "_" + suffix;
     }
 
-    private static @Nullable Location textureLocation(
+    private static @Nullable Pair<Location, ?> textureLocation(
             @NotNull Location modelPath,
             @Nullable TextureModel texture,
             @NotNull GltfModel gltf,
-            @NotNull Map<ImageModel, Location> locations,
-            @NotNull Map<Location, byte[]> embeddedTextures
+            @NotNull Map<ImageModel, Pair<Location, ?>> locations
     ) {
         if (texture == null) return null;
         ImageModel image = texture.getImageModel();
-        Location existing = locations.get(image);
+        Pair<Location, ?> existing = locations.get(image);
         if (existing != null) return existing;
         ByteBuffer imageData = image.getImageData();
         if (imageData == null) throw new IllegalArgumentException("glTF texture has no image data");
         byte[] bytes = new byte[imageData.remaining()];
         imageData.get(bytes);
         int imageIndex = gltf.getImageModels().indexOf(image);
-        String mimeType = image.getMimeType() == null ? "image/png" : image.getMimeType();
-        String uri = image.getUri() == null ? "" : image.getUri();
-        Location location = modelPath.withoutExtension().withPathSuffix(
-                ".textures/image_" + imageIndex + ModelResources.extension(mimeType, uri)
-        );
-        locations.put(image, location);
-        embeddedTextures.put(location, bytes);
-        return location;
+        Location location = modelPath.withoutExtension().withPathSuffix("/textures/image_" + imageIndex);
+        Pair<Location, byte[]> pair = new Pair<>(location, bytes);
+        locations.put(image, pair);
+        return pair;
     }
 
     private static void appendNodeMeshes(

@@ -10,11 +10,10 @@ public abstract class Renderer<G extends Graphics2D, U> {
 
     public abstract void render(@NotNull G g, @NotNull U u);
 
-    public abstract @NotNull Map<String, Location> textures();
+    public abstract @NotNull Map<String, Material<?>> materials();
 
-    public @Nullable Location texture(@NotNull String name) {
-        Map<String, Location> textures = textures();
-        return textures.get(name);
+    public @Nullable Material<?> material(@NotNull String name) {
+        return materials().get(name);
     }
 
     public abstract @NotNull Transform transform(@NotNull Location location);

@@ -1,19 +1,22 @@
 package dev.lucaargolo.nexo.event;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.neoforged.bus.api.Event;
 import net.neoforged.fml.event.IModBusEvent;
 
-import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 public class SpriteAtlasStitchEvent extends Event implements IModBusEvent {
 
     private final Location atlas;
-    private final Map<Location, Path> registered;
+    private final List<Location> registered;
     private final Map<Location, byte[]> embedded;
 
-    public SpriteAtlasStitchEvent(Location atlas, Map<Location, Path> registered, Map<Location, byte[]> embedded) {
+    private Nexo nexo;
+
+    public SpriteAtlasStitchEvent(Location atlas, List<Location> registered, Map<Location, byte[]> embedded) {
         this.atlas = atlas;
         this.registered = registered;
         this.embedded = embedded;
@@ -23,7 +26,7 @@ public class SpriteAtlasStitchEvent extends Event implements IModBusEvent {
         return atlas;
     }
 
-    public Map<Location, Path> registered() {
+    public List<Location> registered() {
         return registered;
     }
 
@@ -31,4 +34,11 @@ public class SpriteAtlasStitchEvent extends Event implements IModBusEvent {
         return embedded;
     }
 
+    public Nexo getNexo() {
+        return nexo;
+    }
+
+    public void setNexo(Nexo nexo) {
+        this.nexo = nexo;
+    }
 }
