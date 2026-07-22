@@ -7,8 +7,6 @@ import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.resource.Resource;
-import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Orientation;
 import org.jetbrains.annotations.NotNull;
@@ -30,56 +28,84 @@ public final class MinecraftModelLoader implements ModelLoader {
     @Override
     public @NotNull Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         JsonObject root = JsonParser.parseString(new String(data, StandardCharsets.UTF_8)).getAsJsonObject();
-
-        Model parent = null;
-        if (root.has("parent")) {
-            Location parentPath = parseResourceLocation(root.get("parent").getAsString());
-            String fileName = parentPath.path().substring(parentPath.path().lastIndexOf('/') + 1);
-            if (!fileName.contains(".")) parentPath = parentPath.withPathSuffix(".json");
-            ModelResource.Minecraft resource = nexo.getResource(Resource.Type.MINECRAFT_MODEL, parentPath);
-            parent = resource != null ? resource.model() : null;
-        }
+        List<JsonObject> chain = loadParentChain(nexo, path, root);
 
         Map<String, Material<?>> materials = new LinkedHashMap<>();
-        if (parent != null) materials.putAll(parent.materials());
-        parseMaterials(root, materials);
+        parseMaterials(chain, materials);
 
-        List<Mesh> meshes;
-        if (root.has("elements")) {
-            meshes = parseElements(root.getAsJsonArray("elements"), materials);
-        } else if (parent != null) {
-            meshes = parent.meshes();
-        } else {
-            meshes = List.of();
+        List<Mesh> meshes = List.of();
+        for (JsonObject model : chain) {
+            if (model.has("elements")) {
+                meshes = parseElements(model.getAsJsonArray("elements"), materials);
+                break;
+            }
         }
 
         Map<Location, Transform> transforms = new LinkedHashMap<>();
-        if (parent != null) transforms.putAll(parent.transforms());
-        transforms.putAll(parseDisplay(root));
+        for (int i = chain.size() - 1; i >= 0; i--) {
+            transforms.putAll(parseDisplay(chain.get(i)));
+        }
 
-        boolean shade = root.has("ambientocclusion")
-                ? root.get("ambientocclusion").getAsBoolean()
-                : parent == null || parent.shade();
+        boolean shade = true;
+        for (JsonObject model : chain) {
+            if (model.has("ambientocclusion")) {
+                shade = model.get("ambientocclusion").getAsBoolean();
+                break;
+            }
+        }
         return new Model(meshes, materials, transforms, shade);
     }
 
+    private static @NotNull List<JsonObject> loadParentChain(
+            @NotNull Nexo nexo,
+            @NotNull Location path,
+            @NotNull JsonObject root
+    ) {
+        List<JsonObject> chain = new ArrayList<>();
+        Set<Location> visited = new LinkedHashSet<>();
+        visited.add(normalizeModelPath(path));
+        chain.add(root);
+
+        JsonObject current = root;
+        while (current.has("parent")) {
+            Location parentPath = normalizeModelPath(parseResourceLocation(current.get("parent").getAsString()));
+            if (!visited.add(parentPath)) {
+                throw new JsonParseException("Cyclic model parent chain: " + String.join(" -> ", visited.stream().map(Location::toString).toList()) + " -> " + parentPath);
+            }
+            byte[] parentData = nexo.loadResource(parentPath);
+            if (parentData == null) break;
+            current = JsonParser.parseString(new String(parentData, StandardCharsets.UTF_8)).getAsJsonObject();
+            chain.add(current);
+        }
+        return chain;
+    }
+
+    private static @NotNull Location normalizeModelPath(@NotNull Location path) {
+        String value = path.path();
+        if (!value.startsWith("models/")) value = "models/" + value;
+        if (!value.endsWith(".json")) value += ".json";
+        return Location.of(path.namespace(), value);
+    }
+
     private static void parseMaterials(
-            @NotNull JsonObject root,
+            @NotNull List<JsonObject> chain,
             @NotNull Map<String, Material<?>> materials
     ) {
-        if (!root.has("textures")) return;
-        JsonObject textures = root.getAsJsonObject("textures");
         Map<String, String> values = new LinkedHashMap<>();
-        for (var entry : textures.entrySet()) {
-            JsonElement value = entry.getValue();
-            if (value.isJsonPrimitive()) {
-                values.put(entry.getKey(), value.getAsString());
-            } else if (value.isJsonObject() && value.getAsJsonObject().has("sprite")) {
-                values.put(entry.getKey(), value.getAsJsonObject().get("sprite").getAsString());
+        for (int i = chain.size() - 1; i >= 0; i--) {
+            JsonObject root = chain.get(i);
+            if (!root.has("textures")) continue;
+            for (var entry : root.getAsJsonObject("textures").entrySet()) {
+                JsonElement value = entry.getValue();
+                if (value.isJsonPrimitive()) {
+                    values.put(entry.getKey(), value.getAsString());
+                } else if (value.isJsonObject() && value.getAsJsonObject().has("sprite")) {
+                    values.put(entry.getKey(), value.getAsJsonObject().get("sprite").getAsString());
+                }
             }
         }
         for (String key : values.keySet()) {
-            Location texture = resolveTexture(key, values, materials, new ArrayList<>());
+            Location texture = resolveTexture(key, values, new ArrayList<>());
             if (texture != null) materials.put(key, new Material<>(texture, texture));
         }
     }
@@ -87,20 +113,16 @@ public final class MinecraftModelLoader implements ModelLoader {
     private static @Nullable Location resolveTexture(
             @NotNull String key,
             @NotNull Map<String, String> values,
-            @NotNull Map<String, Material<?>> inherited,
             @NotNull List<String> chain
     ) {
         if (chain.contains(key)) {
             throw new JsonParseException("Cyclic texture reference: " + String.join(" -> ", chain) + " -> " + key);
         }
         String value = values.get(key);
-        if (value == null) {
-            Material<?> material = inherited.get(key);
-            return material == null ? null : material.texture().left();
-        }
+        if (value == null) return null;
         if (!value.startsWith("#")) return parseResourceLocation(value);
         chain.add(key);
-        Location resolved = resolveTexture(value.substring(1), values, inherited, chain);
+        Location resolved = resolveTexture(value.substring(1), values, chain);
         chain.removeLast();
         return resolved;
     }
