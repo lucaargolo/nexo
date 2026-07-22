@@ -118,8 +118,7 @@ public class NexoTestMod {
 
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
-                block.setData(TEST, !block.getData(TEST));
-                world.setBlock(pos, block);
+                world.setBlock(pos, block.withData(TEST, d -> !d));
                 return Interaction.SUCCESS;
             }
         });

@@ -6,6 +6,8 @@ import dev.lucaargolo.nexo.api.role.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+
 public abstract class Unit<C extends Role> {
 
     @NotNull
@@ -31,9 +33,19 @@ public abstract class Unit<C extends Role> {
     public abstract <D> void setData(@NotNull DataBase<D> data, @Nullable D d);
 
     @SuppressWarnings("unchecked")
-    public @NotNull <R extends Role> Unit<R> with(@NotNull Class<R> type) {
+    public @NotNull <D, U extends Unit<?>> U withData(@NotNull DataBase<D> data, @NotNull Function<D, D> function) {
+        D d = this.getData(data);
+        if (d == null) {
+            d = data.initial();
+        }
+        this.setData(data, function.apply(d));
+        return (U) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public @NotNull <R extends Role, U extends Unit<R>> U withRole(@NotNull Class<R> type) {
         this.feature.get(type);
-        return (Unit<R>) this;
+        return (U) this;
     }
 
 }

@@ -12,9 +12,4 @@ public abstract class EntityUnit<C extends Role> extends Unit<C> {
         super(feature, role);
     }
 
-    @Override
-    public @NotNull <R extends Role> EntityUnit<R> with(@NotNull Class<R> type) {
-        return (EntityUnit<R>) super.with(type);
-    }
-
 }

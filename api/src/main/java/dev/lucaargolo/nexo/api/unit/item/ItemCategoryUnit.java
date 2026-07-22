@@ -14,11 +14,6 @@ public abstract class ItemCategoryUnit<C extends Role> extends Unit<C> {
         super(feature, role);
     }
 
-    @Override
-    public @NotNull <R extends Role> ItemCategoryUnit<R> with(@NotNull Class<R> type) {
-        return (ItemCategoryUnit<R>) super.with(type);
-    }
-
     public abstract @NotNull Stream<ItemUnit<?>> stream();
 
     public abstract void add(@NotNull ItemUnit<?> item);

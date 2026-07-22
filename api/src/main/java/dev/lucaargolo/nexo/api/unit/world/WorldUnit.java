@@ -15,11 +15,6 @@ public abstract class WorldUnit<C extends Role> extends Unit<C> implements SideP
         super(feature, role);
     }
 
-    @Override
-    public @NotNull <R extends Role> WorldUnit<R> with(@NotNull Class<R> type) {
-        return (WorldUnit<R>) super.with(type);
-    }
-
     public abstract @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos);
 
     public abstract void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block);

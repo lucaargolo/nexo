@@ -148,7 +148,7 @@ public class MinecraftBlock extends BlockBase {
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull net.minecraft.world.entity.player.Player pPlayer, @NotNull BlockHitResult pHitResult) {
                 BlockUnit<?> state = helper.nexo().stateToUnit(pState);
                 WorldUnit<?> level = helper.nexo().levelToUnit(pLevel);
-                Interaction interaction = block.onInteract(state, level, helper.nexo().entityToUnit(pPlayer).with(PlayerRole.class), new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
+                Interaction interaction = block.onInteract(state, level, helper.nexo().entityToUnit(pPlayer).withRole(PlayerRole.class), new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;
                     case FAIL -> InteractionResult.FAIL;
