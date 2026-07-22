@@ -14,14 +14,21 @@ public class PNGImageResource extends ImageResource.PNG {
 
     private static final Map<Location, PNG> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private PNGImageResource(Location location, Supplier<byte[]> supplier) {
+    private final boolean resolved;
+
+    private PNGImageResource(Location location, boolean resolved, Supplier<byte[]> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return image != null || resolved;
     }
 
     public static PNG lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new PNG(location, () -> {
-            return lookupImage(nexo, location);
-        }));
+        byte[] data = lookupImage(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new PNGImageResource(location, data != null, data != null ? () -> data : () -> lookupImage(nexo, location)));
     }
 
     private static byte @Nullable [] lookupImage(NexoMinecraft nexo, Location location) {
@@ -53,5 +60,4 @@ public class PNGImageResource extends ImageResource.PNG {
         RESOURCE_MAP.put(location, resource);
         return resource;
     }
-
 }

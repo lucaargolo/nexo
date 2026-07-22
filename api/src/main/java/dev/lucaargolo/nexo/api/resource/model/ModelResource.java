@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 public abstract class ModelResource<T extends ModelResource<T>> extends Resource<T> {
 
     private final @NotNull Supplier<Model> supplier;
-    private @Nullable Model model;
+    protected @Nullable Model model;
 
     public ModelResource(@NotNull Location location, @NotNull Supplier<Model> supplier) {
         super(location);
@@ -34,7 +34,7 @@ public abstract class ModelResource<T extends ModelResource<T>> extends Resource
         return model;
     }
 
-    public static class Minecraft extends ModelResource<Minecraft> {
+    public static abstract class Minecraft extends ModelResource<Minecraft> {
 
         public Minecraft(@NotNull Location location, @NotNull Supplier<Model> supplier) {
             super(location, supplier);
@@ -58,12 +58,17 @@ public abstract class ModelResource<T extends ModelResource<T>> extends Resource
                     Location.of("minecraft", "thirdperson_righthand"), new Transform(new Vector3f(75, 45, 0), new Vector3f(0, 2.5f, 0), new Vector3f(0.375f, 0.375f, 0.375f)),
                     Location.of("minecraft", "firstperson_righthand"), new Transform(new Vector3f(0, 45, 0), new Vector3f(0, 0, 0), new Vector3f(0.4f, 0.4f, 0.4f)),
                     Location.of("minecraft", "firstperson_lefthand"), new Transform(new Vector3f(0, 225, 0), new Vector3f(0, 0, 0), new Vector3f(0.4f, 0.4f, 0.4f))
-            ), true));
+            ), true)) {
+                @Override
+                public boolean resolved() {
+                    return true;
+                }
+            };
         }
 
     }
 
-    public static class GLTF extends ModelResource<GLTF> {
+    public static abstract class GLTF extends ModelResource<GLTF> {
 
         public GLTF(@NotNull Location location, @NotNull Supplier<Model> supplier) {
             super(location, supplier);
@@ -76,7 +81,7 @@ public abstract class ModelResource<T extends ModelResource<T>> extends Resource
 
     }
 
-    public static class OBJ extends ModelResource<OBJ> {
+    public static abstract class OBJ extends ModelResource<OBJ> {
 
         public OBJ(@NotNull Location location, @NotNull Supplier<Model> supplier) {
             super(location, supplier);

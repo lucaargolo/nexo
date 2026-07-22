@@ -18,6 +18,10 @@ public abstract class Renderer<G extends Graphics2D, U> {
 
     public abstract @NotNull Transform transform(@NotNull Location location);
 
+    public boolean resolved() {
+        return true;
+    }
+
     public boolean shaded() {
         return true;
     }

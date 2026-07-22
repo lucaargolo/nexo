@@ -30,9 +30,6 @@ public final class MinecraftModelLoader implements ModelLoader {
     @Override
     public @NotNull Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         JsonObject root = JsonParser.parseString(new String(data, StandardCharsets.UTF_8)).getAsJsonObject();
-        if (!root.has("parent") && !root.has("elements") && !root.has("textures")) {
-            throw new JsonParseException("JSON is not a Minecraft model");
-        }
 
         Model parent = null;
         if (root.has("parent")) {

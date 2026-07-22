@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public abstract class ImageResource<T extends ImageResource<T>> extends Resource<T> {
 
     private final @NotNull Supplier<byte[]> supplier;
-    private byte @Nullable [] image;
+    protected byte @Nullable [] image;
 
     public ImageResource(@NotNull Location location, @NotNull Supplier<byte[]> supplier) {
         super(location);
@@ -25,7 +25,7 @@ public abstract class ImageResource<T extends ImageResource<T>> extends Resource
         return image;
     }
 
-    public static class PNG extends ImageResource<PNG> {
+    public static abstract class PNG extends ImageResource<PNG> {
 
         public PNG(@NotNull Location location, @NotNull Supplier<byte[]> supplier) {
             super(location, supplier);

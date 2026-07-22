@@ -21,21 +21,23 @@ public class MinecraftModelResource extends ModelResource.Minecraft {
 
     private static final Map<Location, Minecraft> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private MinecraftModelResource(Location location, Supplier<Model> supplier) {
+    private final boolean resolved;
+
+    private MinecraftModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return model != null || resolved;
     }
 
     public static Minecraft lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new ModelResource.Minecraft(location, () -> {
-            Model model = lookupModel(nexo, location);
-            if (model != null) {
-                return model;
-            }else{
-                NexoMinecraft.LOGGER.error("Could not find model for location {}", location);
-                return Model.MISSING_MODEL.model();
-            }
-        }));
+        Model model = lookupModel(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
     }
+
 
     @Nullable
     private static Model lookupModel(NexoMinecraft nexo, Location location) {

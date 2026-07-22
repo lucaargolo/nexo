@@ -20,6 +20,8 @@ public abstract class Resource<T extends Resource<T>> {
 
     public abstract @NotNull Type<T> type();
 
+    public abstract boolean resolved();
+
     public final @NotNull Location location() {
         return location;
     }

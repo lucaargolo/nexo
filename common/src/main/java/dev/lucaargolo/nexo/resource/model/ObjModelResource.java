@@ -20,20 +20,21 @@ public class ObjModelResource extends ModelResource.OBJ {
 
     private static final Map<Location, OBJ> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private ObjModelResource(Location location, Supplier<Model> supplier) {
+    private final boolean resolved;
+
+    private ObjModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return model != null || resolved;
     }
 
     public static OBJ lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new ModelResource.OBJ(location, () -> {
-            Model model = lookupModel(nexo, location);
-            if (model != null) {
-                return model;
-            } else {
-                NexoMinecraft.LOGGER.error("Could not find OBJ model for location {}", location);
-                return Model.MISSING_MODEL.model();
-            }
-        }));
+        Model model = lookupModel(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new ObjModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
     }
 
     @Nullable

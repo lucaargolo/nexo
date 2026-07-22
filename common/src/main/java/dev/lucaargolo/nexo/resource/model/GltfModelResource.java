@@ -20,20 +20,21 @@ public class GltfModelResource extends ModelResource.GLTF {
 
     private static final Map<Location, GLTF> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private GltfModelResource(Location location, Supplier<Model> supplier) {
+    private final boolean resolved;
+
+    private GltfModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return model != null || resolved;
     }
 
     public static GLTF lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new ModelResource.GLTF(location, () -> {
-            Model model = lookupModel(nexo, location);
-            if (model != null) {
-                return model;
-            } else {
-                NexoMinecraft.LOGGER.error("Could not find GLTF model for location {}", location);
-                return Model.MISSING_MODEL.model();
-            }
-        }));
+        Model model = lookupModel(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new GltfModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
     }
 
     @Nullable

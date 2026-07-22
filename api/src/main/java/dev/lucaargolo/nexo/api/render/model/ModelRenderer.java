@@ -42,6 +42,11 @@ public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
     }
 
     @Override
+    public boolean resolved() {
+        return this.resource.resolved();
+    }
+
+    @Override
     public boolean shaded() {
         return compiled().shade();
     }

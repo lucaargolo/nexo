@@ -15,20 +15,21 @@ public class VshShaderResource extends ShaderResource.VSH {
 
     private static final Map<Location, VSH> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private VshShaderResource(Location location, Supplier<String> supplier) {
+    private final boolean resolved;
+
+    private VshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return source != null || resolved;
     }
 
     public static VSH lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new VSH(location, () -> {
-            String source = lookupShader(nexo, location);
-            if (source != null) {
-                return source;
-            } else {
-                NexoMinecraft.LOGGER.error("Could not find vertex shader for location {}", location);
-                return "";
-            }
-        }));
+        String shader = lookupShader(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new VshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
     }
 
     @Nullable

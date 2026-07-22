@@ -7,12 +7,14 @@ import dev.lucaargolo.nexo.api.render.model.loader.GltfModelLoader;
 import dev.lucaargolo.nexo.api.render.model.loader.MinecraftModelLoader;
 import dev.lucaargolo.nexo.api.render.model.loader.ModelLoader;
 import dev.lucaargolo.nexo.api.render.model.loader.ObjModelLoader;
-import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public record Model(
@@ -23,14 +25,6 @@ public record Model(
 ) {
 
     private static final @NotNull List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
-
-    public static final @NotNull Location MISSING_TEXTURE = Location.of("nexo", "generated/missing");
-    public static final byte @NotNull [] MISSING_TEXTURE_DATA = Base64.getDecoder().decode(
-        "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAAXNSR0IArs4c6QAAAAxQTFRFAAAA//8A/wD/AP//3gqC+QAAABlJREFUGJVjYIYCJihgGCABRihggIGBEQAAEx8BgY6nXqAAAAAASUVORK5CYII="
-    );
-
-    public static final @NotNull Material<byte[]> MISSING_MATERIAL = new Material<>(MISSING_TEXTURE, MISSING_TEXTURE_DATA);
-    public static final @NotNull ModelResource<?> MISSING_MODEL = ModelResource.Minecraft.full(MISSING_TEXTURE, MISSING_MATERIAL);
 
     public Model(
             @NotNull List<Mesh> meshes,

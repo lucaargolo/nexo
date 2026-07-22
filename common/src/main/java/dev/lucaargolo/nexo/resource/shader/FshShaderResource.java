@@ -15,20 +15,21 @@ public class FshShaderResource extends ShaderResource.FSH {
 
     private static final Map<Location, FSH> RESOURCE_MAP = new ConcurrentHashMap<>();
 
-    private FshShaderResource(Location location, Supplier<String> supplier) {
+    private final boolean resolved;
+
+    private FshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
         super(location, supplier);
+        this.resolved = resolved;
+    }
+
+    @Override
+    public boolean resolved() {
+        return source != null || resolved;
     }
 
     public static FSH lookup(NexoMinecraft nexo, Location location) {
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new FSH(location, () -> {
-            String source = lookupShader(nexo, location);
-            if (source != null) {
-                return source;
-            } else {
-                NexoMinecraft.LOGGER.error("Could not find fragment shader for location {}", location);
-                return "";
-            }
-        }));
+        String shader = lookupShader(nexo, location);
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new FshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
     }
 
     @Nullable

@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 public abstract class ShaderResource<T extends ShaderResource<T>> extends Resource<T> {
 
     private final @NotNull Supplier<String> supplier;
-    private @Nullable String source;
+    protected @Nullable String source;
 
     public ShaderResource(@NotNull Location location, @NotNull Supplier<String> supplier) {
         super(location);
@@ -25,7 +25,7 @@ public abstract class ShaderResource<T extends ShaderResource<T>> extends Resour
         return source;
     }
 
-    public static class VSH extends ShaderResource<VSH> {
+    public static abstract class VSH extends ShaderResource<VSH> {
 
         public VSH(@NotNull Location location, @NotNull Supplier<String> supplier) {
             super(location, supplier);
@@ -38,7 +38,7 @@ public abstract class ShaderResource<T extends ShaderResource<T>> extends Resour
 
     }
 
-    public static class FSH extends ShaderResource<FSH> {
+    public static abstract class FSH extends ShaderResource<FSH> {
 
         public FSH(@NotNull Location location, @NotNull Supplier<String> supplier) {
             super(location, supplier);
