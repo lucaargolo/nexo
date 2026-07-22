@@ -3,6 +3,8 @@ package dev.lucaargolo.test;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
+import dev.lucaargolo.nexo.api.feature.data.BooleanData;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -19,11 +21,18 @@ import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
+import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
+import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 
+import java.util.List;
 import java.util.Map;
 
 public class NexoTestMod {
@@ -92,6 +101,30 @@ public class NexoTestMod {
         ));
         nexo.registerFeature(new BlockItem(
                 testObj,
+                category
+        ));
+
+        ModelResource.Minecraft testModel7 = nexo.getResource(Resource.Type.MINECRAFT_MODEL, Location.of("minecraft", "block/redstone_lamp"));
+        BlockBase testState = nexo.registerFeature(new SimpleBlock(
+                id("test_state"),
+                testModel7
+        ) {
+            private static final BooleanData TEST = new BooleanData(id("test_state"), false);
+
+            @Override
+            public @NotNull List<@NotNull DataBase<?>> data() {
+                return List.of(TEST);
+            }
+
+            @Override
+            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+                block.setData(TEST, !block.getData(TEST));
+                world.setBlock(pos, block);
+                return Interaction.SUCCESS;
+            }
+        });
+        nexo.registerFeature(new BlockItem(
+                testState,
                 category
         ));
 

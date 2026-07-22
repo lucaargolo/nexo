@@ -57,6 +57,10 @@ public abstract class Feature<T extends Feature<T>> {
         throw new IllegalArgumentException("Feature " + location() + " does not have role type " + type.getName() + ", found " + role.getClass().getName());
     }
 
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        return List.of();
+    }
+
     public @NotNull List<@NotNull Tag> tags() {
         return List.of();
     }

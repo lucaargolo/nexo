@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.feature.block;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
@@ -30,12 +31,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -122,6 +125,25 @@ public class MinecraftBlock extends BlockBase {
 
     public static Block craft(NexoRegistryHandler<?> helper, BlockBase block) {
         return new Block(BlockBehaviour.Properties.of()) {
+
+            @Nullable
+            private List<DataProperty<?>> properties;
+
+            {
+                BlockState state = this.stateDefinition.any();
+                for (DataProperty<?> property : dataProperties()) {
+                    state = property.setDefault(state);
+                }
+                this.registerDefaultState(state);
+            }
+
+            @Override
+            protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> pBuilder) {
+                for (DataProperty<?> property : dataProperties()) {
+                    pBuilder.add(property);
+                }
+            }
+
             @Override
             protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull net.minecraft.world.entity.player.Player pPlayer, @NotNull BlockHitResult pHitResult) {
                 BlockUnit<?> state = helper.nexo().stateToUnit(pState);
@@ -133,6 +155,20 @@ public class MinecraftBlock extends BlockBase {
                     case SUCCESS -> InteractionResult.SUCCESS;
                 };
             }
+
+            @NotNull
+            private List<DataProperty<?>> dataProperties() {
+                if(properties == null) {
+                    properties = new ArrayList<>();
+                    for (DataBase<?> data : block.data()) {
+                        if(data instanceof DataBase.Constrained<?> constrained) {
+                            properties.add(new DataProperty<>(constrained));
+                        }
+                    }
+                }
+                return properties;
+            }
+
         };
     }
 
