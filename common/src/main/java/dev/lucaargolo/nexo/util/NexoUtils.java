@@ -7,15 +7,11 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-@SuppressWarnings("unchecked")
 public final class NexoUtils {
 
     private NexoUtils() {}
 
-    public static <T> Class<T> type(Class<?> type) {
-        return (Class<T>) type;
-    }
-
+    @SuppressWarnings("unchecked")
     public static <T> T getField(@NotNull Class<?> clazz, @NotNull String name, @NotNull Object instance) {
         try {
             Field field = clazz.getDeclaredField(name);

@@ -17,7 +17,7 @@ public abstract class MinecraftEntityUnit<R extends NexoRegistryHandler<?>, C ex
     protected final E entity;
 
     public MinecraftEntityUnit(@NotNull R helper, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
-        super(feature, role);
+        super(helper.nexo(), feature, role);
         this.helper = helper;
         this.entity = entity;
     }

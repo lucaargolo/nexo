@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.serialization.Codec;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -35,7 +36,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("UnstableApiUsage")
 public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
 
-    private final Map<DataBase<?>, Object> dataAttachmentMap = new LinkedHashMap<>();
+    private final Map<DataBase<?>, AttachmentType<?>> dataAttachmentMap = new LinkedHashMap<>();
 
     public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
@@ -95,7 +96,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         return null;
     }
 
-    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
+    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             RegistryEntryAddedCallback.allEntries(registry, holder -> {
                 this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
@@ -103,7 +104,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         });
     }
 
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, M> type) {
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
         view.registerEntryAdded(type.registry(), (raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
             this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
@@ -111,9 +112,10 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         });
     }
 
-    @SuppressWarnings("unchecked")
+
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
-        return (AttachmentType<D>) dataAttachmentMap.get(data);
+        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
+        return clazz.cast(dataAttachmentMap.get(data));
     }
 
 }

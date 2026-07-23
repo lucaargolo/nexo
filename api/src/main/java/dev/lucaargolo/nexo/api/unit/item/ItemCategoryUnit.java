@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.api.unit.item;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -10,8 +11,8 @@ import java.util.stream.Stream;
 
 public abstract class ItemCategoryUnit<C extends Role> extends Unit<C> {
 
-    protected ItemCategoryUnit(@NotNull ItemCategoryBase feature, @Nullable C role) {
-        super(feature, role);
+    protected ItemCategoryUnit(@NotNull Nexo nexo, @NotNull ItemCategoryBase feature, @Nullable C role) {
+        super(nexo, feature, role);
     }
 
     public abstract @NotNull Stream<ItemUnit<?>> stream();

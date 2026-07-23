@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.resource;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -83,13 +84,13 @@ public class MinecraftResourceType<T extends Resource<T>> {
         return registrar.apply(nexo, resource);
     }
 
-    @SuppressWarnings("unchecked")
     public static <T extends Resource<T>> MinecraftResourceType<T> of(Resource.Type<T> type) {
         MinecraftResourceType<?> t = TYPES.get(type);
         if (t == null) {
             throw new UnsupportedOperationException("Unsupported resource type: " + type);
         }
-        return (MinecraftResourceType<T>) t;
+        Class<MinecraftResourceType<T>> clazz = Nexo.type(MinecraftResourceType.class);
+        return clazz.cast(t);
     }
 
     public static Collection<MinecraftResourceType<?>> all() {

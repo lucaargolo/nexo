@@ -6,12 +6,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
@@ -103,8 +103,8 @@ public class MinecraftData<D> extends DataBase<D> {
     }
 
     private @NotNull DataComponentType<D> componentType() {
-        Class<DataComponentType<D>> type = NexoUtils.type(DataComponentType.class);
-        return type.cast(this.holder.value());
+        Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
+        return clazz.cast(this.holder.value());
     }
 
     public static DataBase<?> lookup(Location location) {

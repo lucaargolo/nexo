@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
 
     protected final @NotNull R helper;
     protected final @NotNull CreativeModeTab tab;
@@ -26,10 +26,10 @@ public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>
     public MinecraftItemCategoryUnit(
             @NotNull R helper,
             @NotNull ItemCategoryBase feature,
-            @Nullable Role role,
+            @Nullable C role,
             @NotNull CreativeModeTab tab
     ) {
-        super(feature, role);
+        super(helper.nexo(), feature, role);
         this.helper = helper;
         this.tab = tab;
     }

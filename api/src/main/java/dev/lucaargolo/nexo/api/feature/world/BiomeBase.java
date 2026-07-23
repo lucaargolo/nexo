@@ -2,12 +2,13 @@ package dev.lucaargolo.nexo.api.feature.world;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class BiomeBase extends Feature<BiomeBase> {
+public abstract class BiomeBase extends Feature<BiomeBase, Unit<?>> {
 
     public BiomeBase(@NotNull Location location) {
         super(location);
@@ -18,7 +19,7 @@ public abstract class BiomeBase extends Feature<BiomeBase> {
     }
 
     @Override
-    public final @NotNull Type<BiomeBase> type() {
+    public final @NotNull Type<BiomeBase, Unit<?>> type() {
         return Type.BIOME;
     }
 }

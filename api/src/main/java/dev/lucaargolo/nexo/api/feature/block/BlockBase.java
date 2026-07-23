@@ -15,7 +15,7 @@ import org.joml.Vector3i;
 
 import java.util.function.Supplier;
 
-public abstract class BlockBase extends Feature<BlockBase> implements StaticRendererProvider<BlockUnit<?>>, ItemProvider {
+public abstract class BlockBase extends Feature<BlockBase, BlockUnit<?>> implements StaticRendererProvider<BlockUnit<?>>, ItemProvider {
 
     public BlockBase(@NotNull Location location) {
         super(location);
@@ -26,7 +26,7 @@ public abstract class BlockBase extends Feature<BlockBase> implements StaticRend
     }
 
     @Override
-    public final @NotNull Type<BlockBase> type() {
+    public final @NotNull Type<BlockBase, BlockUnit<?>> type() {
         return Type.BLOCK;
     }
 

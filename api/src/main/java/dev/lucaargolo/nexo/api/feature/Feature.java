@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.api.feature;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
@@ -8,15 +9,22 @@ import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class Feature<T extends Feature<T>> {
+public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
 
     @NotNull
     private final Location location;
@@ -32,7 +40,7 @@ public abstract class Feature<T extends Feature<T>> {
         this.role = role;
     }
 
-    public abstract @NotNull Type<T> type();
+    public abstract @NotNull Type<T, U> type();
 
     public final @NotNull Location location() {
         return location;
@@ -71,56 +79,66 @@ public abstract class Feature<T extends Feature<T>> {
 
     public record Tag(Location location) {}
 
-    public static final class Type<T extends Feature<T>> {
+    public static final class Type<T extends Feature<T, U>, U extends Unit<?>> {
 
-        private static final List<Type<?>> ALL = new ArrayList<>();
+        private static final @NotNull List<Type<?, ?>> ALL = new ArrayList<>();
 
-        public static final Type<?> DATA = new Type<>(DataBase.class);
-        public static final Type<BlockBase> BLOCK = new Type<>(BlockBase.class);
-        public static final Type<ItemBase> ITEM = new Type<>(ItemBase.class);
-        public static final Type<ItemCategoryBase> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class);
-        public static final Type<EntityBase> ENTITY = new Type<>(EntityBase.class);
-        public static final Type<WorldBase> WORLD = new Type<>(WorldBase.class);
-        public static final Type<BiomeBase> BIOME = new Type<>(BiomeBase.class);
+        public static final @NotNull Type<?, ?> DATA = new Type<>(DataBase.class);
+        public static final @NotNull Type<BlockBase, BlockUnit<?>> BLOCK = new Type<>(BlockBase.class, Nexo.type(BlockUnit.class));
+        public static final @NotNull Type<ItemBase, ItemUnit<?>> ITEM = new Type<>(ItemBase.class, Nexo.type(ItemUnit.class));
+        public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
+        public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>(EntityBase.class, Nexo.type(EntityUnit.class));
+        public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>(WorldBase.class, Nexo.type(WorldUnit.class));
+        public static final @NotNull Type<BiomeBase, Unit<?>> BIOME = new Type<>(BiomeBase.class);
 
-        private final Class<T> type;
+        private final @NotNull Class<T> featureType;
+        private final @Nullable Class<U> unitType;
 
-        private Type(Class<T> type) {
-            this.type = type;
+        private Type(@NotNull Class<T> featureType, @Nullable Class<U> unitType) {
+            this.featureType = featureType;
+            this.unitType = unitType;
             ALL.add(this);
         }
 
-        public Class<T> type() {
-            return type;
+        private Type(@NotNull Class<T> featureType) {
+            this(featureType, null);
         }
 
-        public boolean isInstance(Feature<?> feature) {
-            return type.isInstance(feature);
+        public boolean isInstance(Feature<?, ?> feature) {
+            return featureType.isInstance(feature);
         }
 
-        public T cast(Feature<?> feature) {
-            return type.cast(feature);
+        public boolean isInstance(Unit<?> unit) {
+            return unitType != null && unitType.isInstance(unit);
+        }
+
+        public @NotNull T cast(Feature<?, ?> feature) {
+            return featureType.cast(feature);
+        }
+
+        public @NotNull U cast(Unit<?> feature) {
+            return Objects.requireNonNull(unitType).cast(feature);
         }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type<?> that)) return false;
-            return type.equals(that.type);
+            if (!(o instanceof Type<?, ?> that)) return false;
+            return featureType.equals(that.featureType);
         }
 
         @Override
         public int hashCode() {
-            return type.hashCode();
+            return featureType.hashCode();
         }
 
-        public static Iterable<Type<?>> values() {
+        public static @NotNull Iterable<Type<?, ?>> values() {
             return ALL;
         }
 
-        @SuppressWarnings("unchecked")
-        public static @NotNull Feature.Type<DataBase<?>> data() {
-            return (Type<DataBase<?>>) DATA;
+        public static @NotNull Feature.Type<DataBase<?>, Unit<?>> data() {
+            Class<Type<DataBase<?>, Unit<?>>> clazz = Nexo.type(Type.class);
+            return clazz.cast(DATA);
         }
 
     }

@@ -23,7 +23,7 @@ public abstract class MinecraftWorldUnit<R extends NexoRegistryHandler<?>> exten
     protected final Level level;
 
     public MinecraftWorldUnit(@NotNull R helper, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
-        super(feature, role);
+        super(helper.nexo(), feature, role);
         this.helper = helper;
         this.level = level;
     }

@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -11,16 +12,17 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MinecraftItemUnit extends ItemUnit<Role> implements MinecraftUnit<ItemStack> {
+public final class MinecraftItemUnit<C extends Role> extends ItemUnit<C> implements MinecraftUnit<ItemStack> {
 
     private final @NotNull ItemStack stack;
 
     public MinecraftItemUnit(
+            @NotNull Nexo nexo,
             @NotNull ItemBase feature,
-            @Nullable Role role,
+            @Nullable C role,
             @NotNull ItemStack stack
     ) {
-        super(feature, role);
+        super(nexo, feature, role);
         this.stack = stack;
     }
 
@@ -44,8 +46,8 @@ public final class MinecraftItemUnit extends ItemUnit<Role> implements Minecraft
         }
     }
 
-    @SuppressWarnings("unchecked")
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {
-        return (DataComponentType<D>) MinecraftFeatureType.DATA.convert(data);
+        Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
+        return clazz.cast(MinecraftFeatureType.DATA.convert(data));
     }
 }

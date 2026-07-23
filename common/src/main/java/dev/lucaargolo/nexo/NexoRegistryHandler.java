@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import net.minecraft.core.Holder;
@@ -36,17 +37,18 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public abstract <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
-    @SuppressWarnings("unchecked")
     public <T> void registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
-        dynamicRegistrars.put(key, registry -> {
-            dynamicHolders.put(key, Registry.registerForHolder((Registry<T>) registry, key.location(), feature.get()));
+        dynamicRegistrars.put(key, r -> {
+            Class<Registry<T>> clazz = Nexo.type(Registry.class);
+            dynamicHolders.put(key, Registry.registerForHolder(clazz.cast(r), key.location(), feature.get()));
         });
     }
 
-    @SuppressWarnings("unchecked")
     public <T> Holder<T> getDynamicFeature(ResourceKey<T> key) {
-        return (Holder<T>) Objects.requireNonNull(dynamicHolders.get(key));
+        Holder<?> holder = Objects.requireNonNull(dynamicHolders.get(key));
+        Class<Holder<T>> clazz = Nexo.type(Holder.class);
+        return clazz.cast(holder);
     }
 
     public abstract <D> void registerDataAttachment(DataBase<D> data);

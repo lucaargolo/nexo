@@ -55,7 +55,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
 
     public void init() {
         nexo.on(FeatureRegisteredEvent.class, Event.Priority.NORMAL, event -> {
-            Feature<?> feature = event.value();
+            Feature<?, ?> feature = event.value();
             switch (feature) {
                 case BlockBase block -> {
                     StaticRenderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
@@ -103,7 +103,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         });
     }
 
-    protected abstract void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
+    protected abstract void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
     public abstract void registerResourceModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
@@ -154,7 +154,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         }
     }
 
-    private static ResourceLocation modelId(Location location, Feature<?> feature) {
+    private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {
             case BlockBase ignored -> "block/";
             case ItemBase ignored -> "item/";

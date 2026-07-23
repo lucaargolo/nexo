@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -14,13 +15,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public final class MinecraftBlockUnit extends BlockUnit<Role> implements MinecraftUnit<BlockState> {
+public final class MinecraftBlockUnit<C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
 
     @NotNull
     private BlockState state;
 
-    public MinecraftBlockUnit(@NotNull BlockBase feature, @Nullable Role role, @NotNull BlockState state) {
-        super(feature, role);
+    public MinecraftBlockUnit(@NotNull Nexo nexo, @NotNull BlockBase feature, @Nullable C role, @NotNull BlockState state) {
+        super(nexo, feature, role);
         this.state = state;
     }
 
@@ -55,14 +56,14 @@ public final class MinecraftBlockUnit extends BlockUnit<Role> implements Minecra
         return this.state.setValue(property, data.cast(value));
     }
 
-    @SuppressWarnings("unchecked")
     private @NotNull <T extends Comparable<T>> Property<T> find(@NotNull DataBase.Constrained<T> data) {
         for (Property<?> property : this.state.getProperties()) {
             if (!property.getName().equals(data.name())) continue;
             if (!property.getValueClass().equals(data.valueClass())) continue;
             if (different(property.getPossibleValues(), data.values())) continue;
             if (different(serializedValues(property), serializedValues(data))) continue;
-            return (Property<T>) property;
+            Class<Property<T>> clazz = Nexo.type(Property.class);
+            return clazz.cast(property);
         }
         throw new IllegalArgumentException("Couldn't find constrained data " + data + " in MinecraftBlockUnit");
     }

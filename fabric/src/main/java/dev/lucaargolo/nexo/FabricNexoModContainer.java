@@ -32,7 +32,7 @@ public class FabricNexoModContainer implements ModContainer {
 
     @Override
     public List<Path> getRootPaths() {
-        return mod.path() != null ? List.of(mod.path()) : List.of();
+        return List.of(mod.path());
     }
 
     @Override
@@ -52,7 +52,7 @@ public class FabricNexoModContainer implements ModContainer {
 
     @Override
     public Path getRootPath() {
-        return mod.path() != null ? mod.path() : Path.of(".");
+        return mod.path();
     }
 
     @Override
@@ -110,24 +110,17 @@ public class FabricNexoModContainer implements ModContainer {
 
         @Override
         public Collection<Person> getAuthors() {
-            String[] authors = mod.authors();
-            if (authors.length == 0) return List.of();
-            Person[] result = new Person[authors.length];
-            for (int i = 0; i < authors.length; i++) {
-                String a = authors[i];
-                result[i] = new Person() {
-                    @Override
-                    public String getName() {
-                        return a;
-                    }
+            return mod.authors().stream().map(author -> (Person) new Person() {
+                @Override
+                public String getName() {
+                    return author;
+                }
 
-                    @Override
-                    public ContactInformation getContact() {
-                        return ContactInformation.EMPTY;
-                    }
-                };
-            }
-            return List.of(result);
+                @Override
+                public ContactInformation getContact() {
+                    return ContactInformation.EMPTY;
+                }
+            }).toList();
         }
 
         @Override
@@ -185,7 +178,7 @@ public class FabricNexoModContainer implements ModContainer {
 
         @Override
         public List<Path> getPaths() {
-            return mod.path() != null ? List.of(mod.path()) : List.of();
+            return List.of(mod.path());
         }
 
         @Override

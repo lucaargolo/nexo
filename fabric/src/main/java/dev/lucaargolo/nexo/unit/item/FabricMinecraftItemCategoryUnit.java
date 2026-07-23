@@ -13,12 +13,12 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FabricMinecraftItemCategoryUnit extends MinecraftItemCategoryUnit<FabricNexoRegistryHandler> {
+public class FabricMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<FabricNexoRegistryHandler, C> {
 
     public FabricMinecraftItemCategoryUnit(
             @NotNull FabricNexoRegistryHandler helper,
             @NotNull ItemCategoryBase feature,
-            @Nullable Role role,
+            @Nullable C role,
             @NotNull CreativeModeTab tab
     ) {
         super(helper, feature, role, tab);
@@ -28,13 +28,13 @@ public class FabricMinecraftItemCategoryUnit extends MinecraftItemCategoryUnit<F
 
     private void modifyEntries(FabricItemGroupEntries entries) {
         for (ItemUnit<?> added : addedItems) {
-            if (added instanceof MinecraftItemUnit mu) {
+            if (added instanceof MinecraftItemUnit<?> mu) {
                 entries.prepend(mu.get());
             }
         }
         entries.getDisplayStacks().removeIf(stack ->
                 removedItems.stream().anyMatch(r -> {
-                    if (r instanceof MinecraftItemUnit mu) {
+                    if (r instanceof MinecraftItemUnit<?> mu) {
                         return ItemStack.isSameItemSameComponents(mu.get(), stack);
                     }
                     return false;

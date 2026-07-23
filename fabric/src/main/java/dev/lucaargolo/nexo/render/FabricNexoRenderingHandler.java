@@ -67,7 +67,7 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     }
 
     @Override
-    protected void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+    protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         registerResourceModel(modelId, model);
         if (feature instanceof BlockBase block) {
             blockToModel.put(MinecraftFeatureType.BLOCK.convert(block), modelId);

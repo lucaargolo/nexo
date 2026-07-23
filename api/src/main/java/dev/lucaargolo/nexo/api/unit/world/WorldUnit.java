@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.api.unit.world;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.SideProvider;
@@ -11,8 +12,8 @@ import org.joml.Vector3i;
 
 public abstract class WorldUnit<C extends Role> extends Unit<C> implements SideProvider {
 
-    protected WorldUnit(@NotNull WorldBase feature, @Nullable C role) {
-        super(feature, role);
+    protected WorldUnit(@NotNull Nexo nexo, @NotNull WorldBase feature, @Nullable C role) {
+        super(nexo, feature, role);
     }
 
     public abstract @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos);

@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.role;
 
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
@@ -9,7 +10,6 @@ import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.role.entity.MinecraftPlayerRole;
 import dev.lucaargolo.nexo.role.item.MinecraftBlockItemRole;
-import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -21,19 +21,19 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extends M> {
+public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, N extends M> {
 
-    private static final Map<Feature.Type<?>, List<MinecraftRoleType<?, ?, ?, ?>>> TYPES = new HashMap<>();
+    private static final Map<Feature.Type<?, ?>, List<MinecraftRoleType<?, ?, ?, ?>>> TYPES = new HashMap<>();
 
     public static final MinecraftRoleType<BlockItemRole, ItemBase, Item, BlockItem> BLOCK_ITEM = new MinecraftRoleType<>(Feature.Type.ITEM, Item.class, MinecraftBlockItemRole::craft, MinecraftBlockItemRole::uncraft);
-    public static final MinecraftRoleType<PlayerRole, EntityBase, EntityType<?>, EntityType<Player>> PLAYER = new MinecraftRoleType<>(Feature.Type.ENTITY, NexoUtils.type(EntityType.class), MinecraftPlayerRole::craft, MinecraftPlayerRole::uncraft);
+    public static final MinecraftRoleType<PlayerRole, EntityBase, EntityType<?>, EntityType<Player>> PLAYER = new MinecraftRoleType<>(Feature.Type.ENTITY, Nexo.type(EntityType.class), MinecraftPlayerRole::craft, MinecraftPlayerRole::uncraft);
 
-    private final Feature.Type<F> type;
+    private final Feature.Type<F, ?> type;
     private final Class<M> clazz;
     private final Function<F, Optional<N>> craft;
     private final BiFunction<NexoRegistryHandler<?>, M, Optional<R>> uncraft;
 
-    public MinecraftRoleType(Feature.Type<F> type, Class<M> clazz, Function<F, Optional<N>> craft, BiFunction<NexoRegistryHandler<?>, M, Optional<R>> uncraft) {
+    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, Function<F, Optional<N>> craft, BiFunction<NexoRegistryHandler<?>, M, Optional<R>> uncraft) {
         this.type = type;
         this.clazz = clazz;
         this.craft = craft;
@@ -41,7 +41,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
         TYPES.computeIfAbsent(type, t -> new ArrayList<>()).add(this);
     }
 
-    private Optional<N> craft(Feature<?> feature) {
+    private Optional<N> craft(Feature<?, ?> feature) {
         if(this.type.isInstance(feature)) {
             return this.craft.apply(this.type.cast(feature));
         }
@@ -55,7 +55,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
         return Optional.empty();
     }
 
-    public static <F extends Feature<F>, M> M craft(Class<M> type, F feature, Supplier<M> craftar) {
+    public static <F extends Feature<F, ?>, M> M craft(Class<M> type, F feature, Supplier<M> craftar) {
         List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
         for(MinecraftRoleType<?, ?, ?, ?> role : list) {
             Optional<M> optional = role.craft(feature).map(type::cast);
@@ -66,7 +66,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F>, M, N extend
         return craftar.get();
     }
 
-    public static <F extends Feature<F>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F> type, Holder<M> holder) {
+    public static <F extends Feature<F, ?>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F, ?> type, Holder<M> holder) {
         return () -> {
             M crafted = holder.value();
             List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(type, List.of());

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class EntityBase extends Feature<EntityBase> implements RendererProvider<EntityUnit<?>> {
+public abstract class EntityBase extends Feature<EntityBase, EntityUnit<?>> implements RendererProvider<EntityUnit<?>> {
 
     public EntityBase(@NotNull Location location) {
         super(location);
@@ -20,7 +20,7 @@ public abstract class EntityBase extends Feature<EntityBase> implements Renderer
     }
 
     @Override
-    public final @NotNull Type<EntityBase> type() {
+    public final @NotNull Type<EntityBase, EntityUnit<?>> type() {
         return Type.ENTITY;
     }
 }

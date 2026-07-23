@@ -9,11 +9,10 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
-import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -23,7 +22,6 @@ import dev.lucaargolo.nexo.render.NexoRenderingHandler;
 import dev.lucaargolo.nexo.resource.MinecraftResourceType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
-import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.NexoUtils;
@@ -36,7 +34,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -150,21 +147,25 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @Nullable <T extends Feature<T>> T getFeature(@NotNull Feature.Type<T> type, @NotNull Location location) {
-        Feature<?> feature = MinecraftFeatureType.of(type).lookup(location);
-        return type.cast(feature);
+    public @Nullable <T extends Feature<T, U>, U extends Unit<?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
+        return MinecraftFeatureType.of(type).lookup(location);
     }
 
     @Override
-    public @NotNull <T extends Feature<T>> T registerFeature(@NotNull T feature) {
-        for (Feature.Type<?> type : Feature.Type.values()) {
-            MinecraftFeatureType<?, ?> t = MinecraftFeatureType.of(type);
+    public @NotNull <T extends Feature<T, U>, U extends Unit<?>> T registerFeature(@NotNull T feature) {
+        for (Feature.Type<?, ?> type : Feature.Type.values()) {
+            MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
                 t.register(this.registryHandler, feature);
                 return feature;
             }
         }
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> U unit(@NotNull Feature<?, U> feature) {
+        return MinecraftFeatureType.of(feature.type()).unit(this, this.registryHandler, feature);
     }
 
     @Override
@@ -203,10 +204,9 @@ public abstract class NexoMinecraft implements Nexo {
                 List<Predicate<?>> predicates = priorityMap.get(priority);
                 if (predicates != null) {
                     for (Predicate<?> predicate : predicates) {
-                        @SuppressWarnings("unchecked")
-                        Predicate<E> typedPredicate = (Predicate<E>) predicate;
+                        Class<Predicate<E>> clazz = Nexo.type(Predicate.class);
                         try {
-                            cancel = cancel || !typedPredicate.test(event);
+                            cancel = cancel || !clazz.cast(predicate).test(event);
                         } catch (Exception e) {
                             LOGGER.error("Failed to emit event {} to listener {}", event.getClass().getSimpleName(), predicate, e);
                         }
@@ -227,17 +227,12 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
-        return new MinecraftBlockUnit(block, block.role(), state);
+        return new MinecraftBlockUnit<>(this, block, block.role(), state);
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
         ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
-        return new MinecraftItemUnit(item, item.role(), stack);
-    }
-
-    public @NotNull ItemCategoryUnit<?> tabToUnit(@NotNull CreativeModeTab tab) {
-        ItemCategoryBase itemCategory = MinecraftFeatureType.ITEM_CATEGORY.convert(this.registryHandler, tab);
-        return NexoUtils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this.registryHandler, itemCategory, itemCategory.role(), tab);
+        return new MinecraftItemUnit<>(this, item, item.role(), stack);
     }
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
@@ -248,10 +243,11 @@ public abstract class NexoMinecraft implements Nexo {
         return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
     }
 
-    @SuppressWarnings("unchecked")
     public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
-        return NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
+        MinecraftEntityUnit<?, ?, ?> unit = NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
+        Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
+        return clazz.cast(unit);
     }
 
     public static ResourceLocation rl(Location location) {

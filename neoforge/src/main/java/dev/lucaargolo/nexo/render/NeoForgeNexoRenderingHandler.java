@@ -98,7 +98,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     }
 
     @Override
-    protected void collectModel(@NotNull Feature<?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+    protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         registerResourceModel(modelId, model);
         if (feature instanceof BlockBase) {
             ResourceLocation blockKey = NexoMinecraft.rl(feature.location());

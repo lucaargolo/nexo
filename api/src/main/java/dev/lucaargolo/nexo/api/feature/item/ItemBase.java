@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public abstract class ItemBase extends Feature<ItemBase> implements RendererProvider<ItemUnit<?>>, ItemProvider {
+public abstract class ItemBase extends Feature<ItemBase, ItemUnit<?>> implements RendererProvider<ItemUnit<?>>, ItemProvider {
 
     public ItemBase(@NotNull Location location) {
         super(location);
@@ -22,7 +22,7 @@ public abstract class ItemBase extends Feature<ItemBase> implements RendererProv
     }
 
     @Override
-    public final @NotNull Type<ItemBase> type() {
+    public final @NotNull Type<ItemBase, ItemUnit<?>> type() {
         return Type.ITEM;
     }
 

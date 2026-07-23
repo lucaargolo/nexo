@@ -16,10 +16,7 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -132,7 +129,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
                 authors = new String[0];
             }
 
-            return new ModDescriptor(id, name, description, version, authors, entrypoint, sourcePath);
+            return new ModDescriptor(id, name, description, version, Arrays.asList(authors), entrypoint, sourcePath);
         } catch (Exception e) {
             throw new NexoException("Failed to parse Nexo mod descriptor", e);
         }
@@ -175,7 +172,7 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
             String name,
             String description,
             String version,
-            String[] authors,
+            List<String> authors,
             String entrypoint,
             Path sourcePath
     ) {}

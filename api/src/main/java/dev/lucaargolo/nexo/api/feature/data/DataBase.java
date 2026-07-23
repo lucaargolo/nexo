@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api.feature.data;
 import com.google.gson.JsonElement;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +12,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public abstract class DataBase<T> extends Feature<DataBase<?>> {
+public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<?>> {
 
     public DataBase(@NotNull Location location) {
         super(location);
@@ -22,7 +23,7 @@ public abstract class DataBase<T> extends Feature<DataBase<?>> {
     }
 
     @Override
-    public final @NotNull Type<DataBase<?>> type() {
+    public final @NotNull Type<DataBase<?>, Unit<?>> type() {
         return Type.data();
     }
 

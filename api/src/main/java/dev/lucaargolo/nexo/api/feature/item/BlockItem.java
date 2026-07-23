@@ -44,8 +44,11 @@ public class BlockItem extends ItemBase {
             @Override
             public void render(@NotNull Graphics3D graphics, @NotNull ItemUnit<?> unit) {
                 Role role = unit.role();
-                if(role instanceof BlockItemRole(BlockBase base)) {
-                    renderer.render(graphics, BlockUnit.of(base));
+                if(role instanceof BlockItemRole(BlockBase block)) {
+                    BlockUnit<?> blockUnit = unit.nexo().unit(block);
+                    if(blockUnit != null) {
+                        renderer.render(graphics, blockUnit);
+                    }
                 }
             }
 

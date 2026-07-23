@@ -16,6 +16,7 @@
 
 package dev.lucaargolo.nexo.util;
 
+import dev.lucaargolo.nexo.api.Nexo;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
@@ -36,14 +37,14 @@ public final class DynamicRegistryViewImpl implements DynamicRegistryView {
 	@Override
 	public RegistryAccess asDynamicRegistryManager() {
 		return new RegistryAccess.Frozen() {
-			@SuppressWarnings("unchecked")
 			public <T> @NotNull Optional<Registry<T>> registry(@NotNull ResourceKey<? extends Registry<? extends T>> key) {
-				return Optional.ofNullable((Registry<T>) DynamicRegistryViewImpl.this.registries.get(key));
+				Registry<?> registry = DynamicRegistryViewImpl.this.registries.get(key);
+				Class<Registry<T>> clazz = Nexo.type(Registry.class);
+				return Optional.ofNullable(registry != null ? clazz.cast(registry) : null);
 			}
 
 			public @NotNull Stream<RegistryEntry<?>> registries() {
-				return DynamicRegistryViewImpl.this.stream()
-						.map(this::entry);
+				return DynamicRegistryViewImpl.this.stream().map(this::entry);
 			}
 
 			private <T> RegistryEntry<T> entry(Registry<T> registry) {
@@ -62,18 +63,18 @@ public final class DynamicRegistryViewImpl implements DynamicRegistryView {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> Optional<Registry<T>> getOptional(ResourceKey<? extends Registry<? extends T>> registryRef) {
-		return Optional.ofNullable((Registry<T>) this.registries.get(registryRef));
+		Registry<?> registry = this.registries.get(registryRef);
+		Class<Registry<T>> clazz = Nexo.type(Registry.class);
+		return Optional.ofNullable(registry != null ? clazz.cast(registry) : null);
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> void registerEntryAdded(ResourceKey<? extends Registry<? extends T>> registryRef, AddCallback<T> callback) {
-		Registry<T> registry = (Registry<T>) this.registries.get(registryRef);
-
+		Registry<?> registry = this.registries.get(registryRef);
+		Class<Registry<T>> clazz = Nexo.type(Registry.class);
 		if (registry != null) {
-			registry.addCallback(callback);
+			clazz.cast(registry).addCallback(callback);
 		}
 	}
 }
