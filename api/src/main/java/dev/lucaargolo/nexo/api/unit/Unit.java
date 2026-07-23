@@ -41,6 +41,10 @@ public abstract class Unit<C extends Role> {
 
     public abstract <D> void setData(@NotNull DataBase<D> data, @Nullable D d);
 
+    public <D> void setInitialData(@NotNull DataBase<D> data) {
+        this.setData(data, data.initial());
+    }
+
     public @NotNull <D, U extends Unit<?>> U withData(@NotNull DataBase<D> data, @NotNull Function<D, D> function) {
         D d = this.getData(data);
         if (d == null) {

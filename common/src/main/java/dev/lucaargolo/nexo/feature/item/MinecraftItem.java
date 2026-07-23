@@ -2,6 +2,8 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
@@ -12,6 +14,7 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -106,7 +109,18 @@ public class MinecraftItem extends ItemBase {
     }
 
     public static Item craft(NexoRegistryHandler<?> helper, ItemBase item) {
-        return new Item(new Item.Properties());
+        Item.Properties properties = new Item.Properties();
+        for(DataBase<?> data : item.data()) {
+            properties = setInitialComponent(properties, data);
+        }
+        return new Item(properties);
+    }
+
+    private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {
+        Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
+        DataComponentType<D> component = clazz.cast(MinecraftFeatureType.DATA.convert(data));
+        properties = properties.component(component, data.initial());
+        return properties;
     }
 
 }
