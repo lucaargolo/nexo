@@ -68,6 +68,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     public <D> void registerDataAttachment(DataBase<D> data) {
         ResourceLocation id = NexoMinecraft.rl(data.location());
         AttachmentType<D> type = AttachmentRegistry.create(id, builder -> {
+            builder.initializer(data::initial);
             if (data.persistent()) {
                 Codec<D> codec = NexoMinecraft.createCodec(data);
                 builder.persistent(codec);

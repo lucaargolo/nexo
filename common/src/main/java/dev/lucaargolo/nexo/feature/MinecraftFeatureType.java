@@ -54,11 +54,11 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<?>, M> {
+public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>, M> {
 
     private static final Map<Feature.Type<?, ?>, MinecraftFeatureType<?, ?, ?>> TYPES = new HashMap<>();
 
-    public static final MinecraftFeatureType<DataBase<?>, Unit<?>, DataComponentType<?>> DATA = new MinecraftFeatureType<>(
+    public static final MinecraftFeatureType<DataBase<?>, Unit<DataBase<?>, ?>, DataComponentType<?>> DATA = new MinecraftFeatureType<>(
             Nexo.type(DataComponentType.class),
             Feature.Type.data(),
             Registries.DATA_COMPONENT_TYPE,
@@ -127,7 +127,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<?>, M>
             Map.of(DimensionType.class, MinecraftWorld::craftType, LevelStem.class, MinecraftWorld::craftStem)
     );
 
-    public static final MinecraftFeatureType<BiomeBase, Unit<?>, Biome> BIOME = new MinecraftFeatureType<>(
+    public static final MinecraftFeatureType<BiomeBase, Unit<BiomeBase, ?>, Biome> BIOME = new MinecraftFeatureType<>(
             Biome.class,
             Feature.Type.BIOME,
             Registries.BIOME,
@@ -183,7 +183,6 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<?>, M>
         this.unitFactory = unitFactory;
         TYPES.put(type, this);
     }
-
 
     public boolean isInstance(Feature<?, ?> feature) {
         return this.type.isInstance(feature);
@@ -241,7 +240,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<?>, M>
         return registry.getHolderOrThrow(key);
     }
 
-    public static <T extends Feature<T, U>, U extends Unit<?>> @NotNull MinecraftFeatureType<T, U, ?> of(Feature.Type<T, U> type) {
+    public static <T extends Feature<T, U>, U extends Unit<T, ?>> @NotNull MinecraftFeatureType<T, U, ?> of(Feature.Type<T, U> type) {
         Class<MinecraftFeatureType<T, U, ?>> clazz = Nexo.type(MinecraftFeatureType.class);
         MinecraftFeatureType<?, ?, ?> featureType = TYPES.get(type);
         if (featureType == null) {
@@ -255,7 +254,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<?>, M>
     }
 
     @FunctionalInterface
-    private interface UnitFactory<T extends Feature<T, U>, U extends Unit<?>, M> {
+    private interface UnitFactory<T extends Feature<T, U>, U extends Unit<T, ?>, M> {
         @NotNull U create(
                 @NotNull NexoMinecraft nexo,
                 @NotNull NexoRegistryHandler<?> helper,

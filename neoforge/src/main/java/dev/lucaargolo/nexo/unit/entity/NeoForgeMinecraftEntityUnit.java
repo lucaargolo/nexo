@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.util.Side;
 import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
@@ -16,9 +17,14 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
     }
 
     @Override
+    public @NotNull Side side() {
+        return entity.level().isClientSide() ? Side.CLIENT : Side.SERVER;
+    }
+
+    @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
         AttachmentType<D> type = helper.getDataAttachment(data);
-        return this.entity.getExistingDataOrNull(type);
+        return this.feature.data().contains(data) ? this.entity.getData(type) : this.entity.getExistingDataOrNull(type);
     }
 
     @Override
@@ -30,4 +36,6 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
             this.entity.setData(type, d);
         }
     }
+
+
 }

@@ -147,12 +147,12 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @Nullable <T extends Feature<T, U>, U extends Unit<?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
+    public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
         return MinecraftFeatureType.of(type).lookup(location);
     }
 
     @Override
-    public @NotNull <T extends Feature<T, U>, U extends Unit<?>> T registerFeature(@NotNull T feature) {
+    public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature) {
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
@@ -164,7 +164,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @Nullable <U extends Unit<?>> U unit(@NotNull Feature<?, U> feature) {
+    public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature) {
         return MinecraftFeatureType.of(feature.type()).unit(this, this.registryHandler, feature);
     }
 

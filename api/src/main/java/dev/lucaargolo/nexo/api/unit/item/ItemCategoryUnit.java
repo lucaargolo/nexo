@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
-public abstract class ItemCategoryUnit<C extends Role> extends Unit<C> {
+public abstract class ItemCategoryUnit<C extends Role> extends Unit<ItemCategoryBase, C> {
 
     protected ItemCategoryUnit(@NotNull Nexo nexo, @NotNull ItemCategoryBase feature, @Nullable C role) {
         super(nexo, feature, role);

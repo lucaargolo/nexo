@@ -49,7 +49,7 @@ public abstract class MinecraftWorldUnit<R extends NexoRegistryHandler<?>> exten
     @Override
     public void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
-        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit) block).get());
+        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?>) block).get());
     }
 
 }

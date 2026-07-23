@@ -21,11 +21,11 @@ public interface Nexo {
 
     byte @Nullable [] loadResource(@NotNull Location location);
 
-    @Nullable <T extends Feature<T, U>, U extends Unit<?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location);
+    @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location);
 
-    @NotNull <T extends Feature<T, U>, U extends Unit<?>> T registerFeature(@NotNull T feature);
+    @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature);
 
-    @Nullable <U extends Unit<?>> U unit(@NotNull Feature<?, U> feature);
+    @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature);
 
     @Nullable <T extends Resource<T>> T getResource(@NotNull Resource.Type<T> type, @NotNull Location location);
 

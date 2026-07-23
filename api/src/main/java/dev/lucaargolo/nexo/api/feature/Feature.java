@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
+public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
     @NotNull
     private final Location location;
@@ -65,10 +65,6 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
         throw new IllegalArgumentException("Feature " + location() + " does not have role type " + type.getName() + ", found " + role.getClass().getName());
     }
 
-    public @NotNull List<@NotNull DataBase<?>> data() {
-        return List.of();
-    }
-
     public @NotNull List<@NotNull Tag> tags() {
         return List.of();
     }
@@ -79,7 +75,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
 
     public record Tag(Location location) {}
 
-    public static final class Type<T extends Feature<T, U>, U extends Unit<?>> {
+    public static final class Type<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
         private static final @NotNull List<Type<?, ?>> ALL = new ArrayList<>();
 
@@ -89,7 +85,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
         public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
         public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>(EntityBase.class, Nexo.type(EntityUnit.class));
         public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>(WorldBase.class, Nexo.type(WorldUnit.class));
-        public static final @NotNull Type<BiomeBase, Unit<?>> BIOME = new Type<>(BiomeBase.class);
+        public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>(BiomeBase.class);
 
         private final @NotNull Class<T> featureType;
         private final @Nullable Class<U> unitType;
@@ -108,7 +104,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
             return featureType.isInstance(feature);
         }
 
-        public boolean isInstance(Unit<?> unit) {
+        public boolean isInstance(Unit<?, ?> unit) {
             return unitType != null && unitType.isInstance(unit);
         }
 
@@ -116,7 +112,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
             return featureType.cast(feature);
         }
 
-        public @NotNull U cast(Unit<?> feature) {
+        public @NotNull U cast(Unit<?, ?> feature) {
             return Objects.requireNonNull(unitType).cast(feature);
         }
 
@@ -136,8 +132,8 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<?>> {
             return ALL;
         }
 
-        public static @NotNull Feature.Type<DataBase<?>, Unit<?>> data() {
-            Class<Type<DataBase<?>, Unit<?>>> clazz = Nexo.type(Type.class);
+        public static @NotNull Feature.Type<DataBase<?>, Unit<DataBase<?>, ?>> data() {
+            Class<Type<DataBase<?>, Unit<DataBase<?>, ?>>> clazz = Nexo.type(Type.class);
             return clazz.cast(DATA);
         }
 

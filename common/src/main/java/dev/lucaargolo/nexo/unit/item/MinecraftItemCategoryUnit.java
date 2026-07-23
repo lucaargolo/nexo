@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
@@ -37,15 +36,6 @@ public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>
     @Override
     public @NotNull CreativeModeTab get() {
         return tab;
-    }
-
-    @Override
-    public <D> @Nullable D getData(@NotNull DataBase<D> data) {
-        return null;
-    }
-
-    @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
     }
 
     @Override

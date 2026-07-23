@@ -2,7 +2,6 @@ package dev.lucaargolo.nexo.feature.entity;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
@@ -84,13 +83,6 @@ public final class MinecraftEntity extends EntityBase {
 
     public static EntityType<?> craft(NexoRegistryHandler<?> helper, EntityBase entity) {
         EntityType.EntityFactory<?> factory = (type, level) -> new Entity(type, level) {
-            {
-                EntityUnit<?> unit = helper.nexo().entityToUnit(this);
-                for (DataBase<?> data : entity.data()) {
-                    unit.setInitialData(data);
-                }
-            }
-
             @Override
             protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
 

@@ -18,7 +18,7 @@ public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoR
     @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
         AttachmentType<D> type = helper.getDataAttachment(data);
-        return this.level.getExistingDataOrNull(type);
+        return this.feature.data().contains(data) ? this.level.getData(type) : this.level.getExistingDataOrNull(type);
     }
 
     @Override

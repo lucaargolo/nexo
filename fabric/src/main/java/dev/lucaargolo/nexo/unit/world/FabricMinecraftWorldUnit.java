@@ -19,7 +19,7 @@ public class FabricMinecraftWorldUnit extends MinecraftWorldUnit<FabricNexoRegis
     @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
         AttachmentType<D> type = helper.getDataAttachment(data);
-        return this.level.getAttached(type);
+        return this.feature.data().contains(data) ? this.level.getAttachedOrCreate(type) : this.level.getAttached(type);
     }
 
     @Override

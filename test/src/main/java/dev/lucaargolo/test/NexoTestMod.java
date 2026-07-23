@@ -151,7 +151,7 @@ public class NexoTestMod {
     }
 
 
-    private static <U extends Unit<?>> @NotNull Renderer<Graphics3D, U> blackHoleRenderer(ShaderSource source) {
+    private static <U extends Unit<?, ?>> @NotNull Renderer<Graphics3D, U> blackHoleRenderer(ShaderSource source) {
         return new Renderer<>() {
 
             private Shader shader;

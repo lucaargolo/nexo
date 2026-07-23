@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.api.feature.entity;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.InitialDataProvider;
 import dev.lucaargolo.nexo.api.feature.RendererProvider;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
@@ -9,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class EntityBase extends Feature<EntityBase, EntityUnit<?>> implements RendererProvider<EntityUnit<?>> {
+public abstract class EntityBase extends Feature<EntityBase, EntityUnit<?>> implements RendererProvider<EntityUnit<?>>, InitialDataProvider {
 
     public EntityBase(@NotNull Location location) {
         super(location);
