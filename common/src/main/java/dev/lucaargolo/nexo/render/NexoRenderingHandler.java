@@ -62,21 +62,23 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             switch (feature) {
                 case BlockBase block -> {
                     Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
-                    if (renderer != null && renderer.resolved()) {
+                    if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer) {
+                        ResourceLocation modelId = modelId(event.location(), feature);
+                        if (renderer.resolved()) {
+                            this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
+                        }
+                        this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
+                                nexo,
+                                BlockState.class,
+                                MinecraftFeatureType.BLOCK.convert(block).defaultBlockState(),
+                                nexo::stateToUnit,
+                                staticRenderer
+                        ));
+                    } else if (renderer != null && renderer.resolved()) {
                         ResourceLocation modelId = modelId(event.location(), feature);
                         this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
-                        if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer) {
-                            this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
-                                    nexo,
-                                    BlockState.class,
-                                    MinecraftFeatureType.BLOCK.convert(block).defaultBlockState(),
-                                    nexo::stateToUnit,
-                                    staticRenderer
-                            ));
-                        } else {
-                            this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
-                            this.registerBlockRenderer(block);
-                        }
+                        this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
+                        this.registerBlockRenderer(block);
                     }
                 }
                 case ItemBase item -> {
