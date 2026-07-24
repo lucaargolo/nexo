@@ -62,9 +62,9 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
     }
 
     @Override
-    public <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
-        deferredRegistry.register(id.getPath(), feature);
+        return deferredRegistry.register(id.getPath(), feature);
     }
 
     @Override

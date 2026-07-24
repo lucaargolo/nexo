@@ -7,16 +7,19 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -88,9 +91,15 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     }
 
     @Override
+    protected void registerBlockRenderer(BlockBase block) {
+        BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(block).value();
+        this.registerBlockRenderer(type, block, BlockEntityRenderers::register);
+    }
+
+    @Override
     protected void registerEntityRenderer(EntityBase entity) {
-        EntityType<? extends Entity> entityType = MinecraftFeatureType.ENTITY.convert(entity);
-        registerEntityRenderer(this.nexo(), entityType, entity, EntityRendererRegistry::register);
+        EntityType<? extends Entity> type = MinecraftFeatureType.ENTITY.convert(entity);
+        registerEntityRenderer(type, entity, EntityRendererRegistry::register);
     }
 
 }

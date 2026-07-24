@@ -17,6 +17,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -113,7 +114,15 @@ public class MinecraftItem extends ItemBase {
         for(DataBase<?> data : item.data()) {
             properties = setInitialComponent(properties, data);
         }
-        return new Item(properties);
+        return new Item(properties) {
+            @Override
+            public void inventoryTick(@NotNull ItemStack stack, @NotNull net.minecraft.world.level.Level level, @NotNull Entity entity, int slotId, boolean selected) {
+                super.inventoryTick(stack, level, entity, slotId, selected);
+                if (item.ticker() != null) {
+                    item.ticker().tick(helper.nexo().stackToUnit(stack));
+                }
+            }
+        };
     }
 
     private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {

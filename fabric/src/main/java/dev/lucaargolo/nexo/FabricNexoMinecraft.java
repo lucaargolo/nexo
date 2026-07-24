@@ -3,7 +3,9 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +21,10 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
         this.init();
         ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
+        ServerTickEvents.END_WORLD_TICK.register(this::tickWorld);
+        if (this.getSide() == Side.CLIENT) {
+            ClientTickEvents.END_WORLD_TICK.register(this::tickWorld);
+        }
     }
 
     @Override

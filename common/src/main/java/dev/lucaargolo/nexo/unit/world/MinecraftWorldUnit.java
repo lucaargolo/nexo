@@ -43,13 +43,13 @@ public abstract class MinecraftWorldUnit<R extends NexoRegistryHandler<?>> exten
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);
         if (state.isAir()) return null;
-        return this.helper.nexo().stateToUnit(state);
+        return this.helper.nexo().blockToUnit(level, mcPos, state);
     }
 
     @Override
     public void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
-        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?>) block).get());
+        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?, ?>) block).get());
     }
 
 }

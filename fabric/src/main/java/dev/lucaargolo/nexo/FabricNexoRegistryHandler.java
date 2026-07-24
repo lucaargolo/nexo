@@ -60,8 +60,8 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
     }
 
     @Override
-    public <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        Registry.register(registry, id, feature.get());
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        return Registry.registerForHolder(registry, id, feature.get());
     }
 
     @Override

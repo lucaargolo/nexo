@@ -35,7 +35,7 @@ public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
 
     public abstract void init();
 
-    public abstract <T> void registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+    public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     public <T> void registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);

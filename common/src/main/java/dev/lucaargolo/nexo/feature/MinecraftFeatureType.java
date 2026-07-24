@@ -78,7 +78,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftBlock::lookup,
             MinecraftBlock.CONVERT,
             Map.of(Block.class, MinecraftBlock::craft),
-            (nexo, helper, feature, block) -> new MinecraftBlockUnit<>(nexo, feature, feature.role(), block.defaultBlockState())
+            (nexo, helper, feature, block) -> NexoUtils.loadPlatformClass(nexo, MinecraftBlockUnit.class, helper, feature, feature.role(), null, null, block.defaultBlockState(), null)
     );
 
     public static final MinecraftFeatureType<ItemBase, ItemUnit<?>, Item> ITEM = new MinecraftFeatureType<>(

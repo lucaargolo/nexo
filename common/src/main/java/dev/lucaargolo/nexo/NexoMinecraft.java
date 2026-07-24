@@ -26,6 +26,7 @@ import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -36,6 +37,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
@@ -226,8 +228,16 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
+        return blockToUnit(null, null, state, null);
+    }
+
+    public @NotNull BlockUnit<?> blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
+        return blockToUnit(level, pos, state, level.getBlockEntity(pos));
+    }
+
+    public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
-        return new MinecraftBlockUnit<>(this, block, block.role(), state);
+        return NexoUtils.loadPlatformClass(this, MinecraftBlockUnit.class, this.registryHandler, block, block.role(), level, pos, state, blockEntity);
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
@@ -241,6 +251,14 @@ public abstract class NexoMinecraft implements Nexo {
         WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
         assert world != null;
         return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
+    }
+
+    public void tickWorld(@NotNull Level level) {
+        WorldUnit<?> unit = this.levelToUnit(level);
+        WorldBase world = unit.feature();
+        if (world.ticker() != null) {
+            world.ticker().tick(unit);
+        }
     }
 
     public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {

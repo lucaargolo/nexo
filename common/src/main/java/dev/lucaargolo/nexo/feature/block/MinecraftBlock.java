@@ -2,10 +2,12 @@ package dev.lucaargolo.nexo.feature.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -29,6 +31,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -47,6 +53,9 @@ public class MinecraftBlock extends BlockBase {
     private static final ConcurrentHashMap<Location, BlockBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Location, Holder<Block>> HOLDER_MAP = new ConcurrentHashMap<>();
 
+    private static final ConcurrentHashMap<Location, BlockEntityType.BlockEntitySupplier<?>> ENTITY_MAP = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Location, Holder<BlockEntityType<?>>> ENTITY_HOLDER_MAP = new ConcurrentHashMap<>();
+
     public static Bijection<BlockBase, Holder<Block>> CONVERT = new Bijection<>() {
         @Override
         public Holder<Block> forward(BlockBase feature) {
@@ -55,6 +64,18 @@ public class MinecraftBlock extends BlockBase {
 
         @Override
         public BlockBase backward(Holder<Block> holder) {
+            return FEATURE_MAP.get(NexoMinecraft.id(holder));
+        }
+    };
+
+    public static Bijection<BlockBase, Holder<BlockEntityType<?>>> CONVERT_ENTITY = new Bijection<>() {
+        @Override
+        public Holder<BlockEntityType<?>> forward(BlockBase feature) {
+            return ENTITY_HOLDER_MAP.get(feature.location());
+        }
+
+        @Override
+        public BlockBase backward(Holder<BlockEntityType<?>> holder) {
             return FEATURE_MAP.get(NexoMinecraft.id(holder));
         }
     };
@@ -76,7 +97,7 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @Nullable StaticRenderer<Graphics3D, BlockUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, BlockUnit<?>> renderer() {
         //TODO: This
         return null;
     }
@@ -89,7 +110,7 @@ public class MinecraftBlock extends BlockBase {
 
     @Override
     public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
-        BlockState state = ((MinecraftBlockUnit<?>) block).get();
+        BlockState state = ((MinecraftBlockUnit<?, ?>) block).get();
         Level level = ((MinecraftWorldUnit<?>) world).get();
         Player player = (Player) ((MinecraftEntityUnit<?, PlayerRole, ?>) entity).get();
         Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
@@ -114,6 +135,13 @@ public class MinecraftBlock extends BlockBase {
         ResourceLocation id = NexoMinecraft.rl(block.location());
         FEATURE_MAP.put(block.location(), block);
         helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
+        if(isDynamicBlock(block)) {
+            Holder<BlockEntityType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
+                BlockEntityType.BlockEntitySupplier<?> supplier = ENTITY_MAP.get(block.location());
+                return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
+            });
+            ENTITY_HOLDER_MAP.put(block.location(), holder);
+        }
         return block;
     }
 
@@ -124,31 +152,32 @@ public class MinecraftBlock extends BlockBase {
     }
 
     public static Block craft(NexoRegistryHandler<?> helper, BlockBase block) {
-        return new Block(BlockBehaviour.Properties.of()) {
+        boolean blockEntity = isDynamicBlock(block);
+        class CraftedBlock extends Block {
 
-            @Nullable
-            private List<DataProperty<?>> properties;
+            private @Nullable List<DataProperty<?>> properties;
 
-            {
+            private CraftedBlock() {
+                super(BlockBehaviour.Properties.of());
                 BlockState state = this.stateDefinition.any();
-                for (DataProperty<?> property : dataProperties()) {
+                for (DataProperty<?> property : this.dataProperties()) {
                     state = property.setDefault(state);
                 }
                 this.registerDefaultState(state);
             }
 
             @Override
-            protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> pBuilder) {
-                for (DataProperty<?> property : dataProperties()) {
-                    pBuilder.add(property);
+            protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {
+                for (DataProperty<?> property : this.dataProperties()) {
+                    builder.add(property);
                 }
             }
 
             @Override
-            protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState pState, @NotNull Level pLevel, @NotNull BlockPos pPos, @NotNull net.minecraft.world.entity.player.Player pPlayer, @NotNull BlockHitResult pHitResult) {
-                BlockUnit<?> state = helper.nexo().stateToUnit(pState);
-                WorldUnit<?> level = helper.nexo().levelToUnit(pLevel);
-                Interaction interaction = block.onInteract(state, level, helper.nexo().entityToUnit(pPlayer).withRole(PlayerRole.class), new Vector3i(pPos.getX(), pPos.getY(), pPos.getZ()));
+            protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult) {
+                BlockUnit<?> unit = helper.nexo().blockToUnit(level, pos, state);
+                WorldUnit<?> world = helper.nexo().levelToUnit(level);
+                Interaction interaction = block.onInteract(unit, world, helper.nexo().entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
                 return switch (interaction) {
                     case PASS -> InteractionResult.PASS;
                     case FAIL -> InteractionResult.FAIL;
@@ -156,21 +185,67 @@ public class MinecraftBlock extends BlockBase {
                 };
             }
 
-            @NotNull
-            private List<DataProperty<?>> dataProperties() {
-                if(properties == null) {
-                    properties = new ArrayList<>();
+            private @NotNull List<DataProperty<?>> dataProperties() {
+                if (this.properties == null) {
+                    this.properties = new ArrayList<>();
                     for (DataBase<?> data : block.data()) {
-                        if(data instanceof DataBase.Constrained<?> constrained) {
-                            properties.add(new DataProperty<>(constrained));
+                        if (data instanceof DataBase.Constrained<?> constrained) {
+                            this.properties.add(new DataProperty<>(constrained));
                         }
                     }
                 }
-                return properties;
+                return this.properties;
+            }
+        }
+
+        class DynamicCraftedBlock extends CraftedBlock implements EntityBlock {
+
+            private DynamicCraftedBlock() {
+                super();
+                ENTITY_MAP.put(block.location(), this::newBlockEntity);
             }
 
-        };
+            @Nullable
+            private BlockEntityType<?> blockEntityType;
+
+            @Override
+            public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+                return new Entity(pos, state);
+            }
+
+            @Override
+            public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
+                Ticker<BlockUnit<?>> ticker = block.ticker();
+                if (ticker == null || type != blockEntityType()) {
+                    return null;
+                }
+                return (tickerLevel, pos, tickerState, entity) -> ticker.tick(helper.nexo().blockToUnit(level, pos, state, entity));
+            }
+
+            private @NotNull BlockEntityType<?> blockEntityType() {
+                if (this.blockEntityType == null) {
+                    this.blockEntityType = ENTITY_HOLDER_MAP.get(block.location()).value();
+                }
+                return this.blockEntityType;
+            }
+
+            class Entity extends BlockEntity {
+                public Entity(BlockPos pPos, BlockState pBlockState) {
+                    super(blockEntityType(), pPos, pBlockState);
+                }
+            }
+
+        }
+
+        return blockEntity ? new DynamicCraftedBlock() : new CraftedBlock();
     }
 
+
+    public static boolean isDynamicBlock(@NotNull BlockBase block) {
+        Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
+        return block.ticker() != null
+                || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))
+                || block.data().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>));
+    }
 
 }

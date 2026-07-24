@@ -6,6 +6,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +20,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
         this.init();
+        NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> this.tickWorld(event.getLevel()));
     }
 
     public IEventBus modBus() {

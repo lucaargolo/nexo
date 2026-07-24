@@ -84,6 +84,14 @@ public final class MinecraftEntity extends EntityBase {
     public static EntityType<?> craft(NexoRegistryHandler<?> helper, EntityBase entity) {
         EntityType.EntityFactory<?> factory = (type, level) -> new Entity(type, level) {
             @Override
+            public void tick() {
+                super.tick();
+                if (entity.ticker() != null) {
+                    entity.ticker().tick(helper.nexo().entityToUnit(this));
+                }
+            }
+
+            @Override
             protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
 
             }

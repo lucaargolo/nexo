@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
@@ -45,6 +47,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
 
     private final List<ResourceLocation> itemModels = new ArrayList<>();
     private final List<ItemBase> itemsToRegister = new ArrayList<>();
+    private final List<BlockBase> blocksToRegister = new ArrayList<>();
     private final List<EntityBase> entitiesToRegister = new ArrayList<>();
 
     public NeoForgeNexoRenderingHandler(NeoForgeNexoMinecraft nexo) {
@@ -72,9 +75,13 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
             }
         });
         this.nexo().modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
+            for (BlockBase base : blocksToRegister) {
+                BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(base).value();
+                this.registerBlockRenderer(type, base, event::registerBlockEntityRenderer);
+            }
             for (EntityBase base : entitiesToRegister) {
                 EntityType<? extends Entity> type = MinecraftFeatureType.ENTITY.convert(base);
-                registerEntityRenderer(this.nexo(), type, base, event::registerEntityRenderer);
+                this.registerEntityRenderer(type, base, event::registerEntityRenderer);
             }
         });
         this.nexo().modBus().addListener(ModelLoadingQueryEvent.class, event -> {
@@ -108,7 +115,6 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
         }
     }
 
-
     @Override
     public void registerResourceModel( @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         customModels.put(modelId, model);
@@ -117,6 +123,11 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     @Override
     protected void registerItemRenderer(ItemBase item) {
         itemsToRegister.add(item);
+    }
+
+    @Override
+    protected void registerBlockRenderer(BlockBase block) {
+        blocksToRegister.add(block);
     }
 
     @Override

@@ -1,10 +1,12 @@
 package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.data.BooleanData;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.data.StringData;
 import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -25,6 +27,7 @@ import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -127,9 +130,52 @@ public class NexoTestMod {
                 category
         ));
 
+        StringData dynamicData = new StringData(id("dynamic_block_data"), "initial");
+        nexo.registerFeature(dynamicData);
+        BlockBase dynamicBlock = nexo.registerFeature(new BlockBase(id("dynamic_block")) {
+            private final Renderer<Graphics3D, BlockUnit<?>> renderer = dynamicRenderer();
+
+            @Override
+            public Renderer<Graphics3D, BlockUnit<?>> renderer() {
+                return this.renderer;
+            }
+
+            @Override
+            public BlockItem item() {
+                return null;
+            }
+
+            @Override
+            public @NotNull List<@NotNull DataBase<?>> data() {
+                return List.of(dynamicData);
+            }
+
+            @Override
+            public Ticker<BlockUnit<?>> ticker() {
+                return unit -> { };
+            }
+
+            @Override
+            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+                block.withData(dynamicData, value -> value + "!");
+                return Interaction.SUCCESS;
+            }
+        });
+        nexo.registerFeature(new BlockItem(dynamicBlock, category) {
+            @Override
+            public Ticker<ItemUnit<?>> ticker() {
+                return unit -> { };
+            }
+        });
+
         nexo.registerFeature(new SimpleWorld(
                 id("test")
-        ));
+        ) {
+            @Override
+            public Ticker<WorldUnit<?>> ticker() {
+                return unit -> { };
+            }
+        });
 
         ShaderResource.VSH vertexShader = nexo.getResource(Resource.Type.VSH_SHADER, NexoTestMod.id("blackhole"));
         ShaderResource.FSH fragmentShader = nexo.getResource(Resource.Type.FSH_SHADER, NexoTestMod.id("blackhole"));
@@ -137,7 +183,12 @@ public class NexoTestMod {
         nexo.registerFeature(new SimpleEntity(
                 id("test_entity"),
                 blackHoleRenderer(blackHoleSource)
-        ));
+        ) {
+            @Override
+            public Ticker<EntityUnit<?>> ticker() {
+                return unit -> { };
+            }
+        });
 
 //        nexo.registerFeature(new SimpleEntity(
 //                id("test_player"),
@@ -209,6 +260,24 @@ public class NexoTestMod {
                         new Vector3f(),
                         new Vector3f(1.0F, 1.0F, 1.0F)
                 );
+            }
+        };
+    }
+
+    private static <U extends Unit<?, ?>> @NotNull Renderer<Graphics3D, U> dynamicRenderer() {
+        return new Renderer<>() {
+            @Override
+            public void render(@NotNull Graphics3D graphics, @NotNull U unit) {
+            }
+
+            @Override
+            public @NotNull Map<String, Material<?>> materials() {
+                return Map.of();
+            }
+
+            @Override
+            public @NotNull Transform transform(@NotNull Location location) {
+                return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F));
             }
         };
     }
