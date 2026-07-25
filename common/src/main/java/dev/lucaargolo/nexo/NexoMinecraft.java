@@ -89,6 +89,8 @@ public abstract class NexoMinecraft implements Nexo {
 
     public abstract String getPlatform();
 
+    public abstract String getMapping(@NotNull Class<?> ownerType, @NotNull String memberName, @NotNull Class<?> returnType, Class<?>... parameterTypes);
+
     public abstract boolean isModLoaded(String modId);
 
     public abstract MinecraftServer getServer();

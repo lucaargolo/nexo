@@ -33,6 +33,11 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
+    public String getMapping(@NotNull Class<?> ownerType, @NotNull String memberName, @NotNull Class<?> returnType, Class<?>... parameterTypes) {
+        return memberName;
+    }
+
+    @Override
     public boolean isModLoaded(String modId) {
         return ModList.get().isLoaded(modId);
     }

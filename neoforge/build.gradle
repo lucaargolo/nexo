@@ -38,21 +38,27 @@ neoForge {
 
 
 dependencies {
+    implementation "net.bytebuddy:byte-buddy:1.18.11"
+
+    jarJar "net.bytebuddy:byte-buddy:1.18.11"
     jarJar "de.javagl:obj:0.4.0"
     jarJar "de.javagl:jgltf-model:2.0.4"
     jarJar "de.javagl:jgltf-impl-v1:2.0.4"
     jarJar "de.javagl:jgltf-impl-v2:2.0.4"
 
+    clientAdditionalRuntimeClasspath "net.bytebuddy:byte-buddy:1.18.11"
     clientAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
     clientAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
     clientAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"
     clientAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v2:2.0.4"
 
+    dataAdditionalRuntimeClasspath "net.bytebuddy:byte-buddy:1.18.11"
     dataAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
     dataAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
     dataAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"
     dataAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v2:2.0.4"
 
+    serverAdditionalRuntimeClasspath "net.bytebuddy:byte-buddy:1.18.11"
     serverAdditionalRuntimeClasspath "de.javagl:obj:0.4.0"
     serverAdditionalRuntimeClasspath "de.javagl:jgltf-model:2.0.4"
     serverAdditionalRuntimeClasspath "de.javagl:jgltf-impl-v1:2.0.4"

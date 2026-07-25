@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,6 +34,20 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     }
 
     @Override
+    public String getMapping(@NotNull Class<?> ownerType, @NotNull String memberName, @NotNull Class<?> returnType, Class<?>... parameterTypes) {
+        MappingResolver resolver = FabricLoader.getInstance().getMappingResolver();
+        String namedOwner = resolver.unmapClassName("named", ownerType.getName());
+        StringBuilder descriptorBuilder = new StringBuilder("(");
+        for (Class<?> parameterType : parameterTypes) {
+            String parameterDescriptor = this.getDescriptor(resolver, parameterType);
+            descriptorBuilder.append(parameterDescriptor);
+        }
+        String returnDescriptor = this.getDescriptor(resolver, returnType);
+        String fullDescriptor = descriptorBuilder.append(')').append(returnDescriptor).toString();
+        return resolver.mapMethodName("named", namedOwner, memberName, fullDescriptor);
+    }
+
+    @Override
     public boolean isModLoaded(String modId) {
         return FabricLoader.getInstance().isModLoaded(modId);
     }
@@ -50,6 +65,24 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public MinecraftServer getServer() {
         return this.currentServer;
+    }
+
+    private String getDescriptor(MappingResolver resolver, Class<?> type) {
+        if (type.isArray())
+            return '[' + getDescriptor(resolver, type.getComponentType());
+        if (!type.isPrimitive()) {
+            return 'L' + resolver.unmapClassName("named", type.getName()).replace('.', '/') + ';';
+        }
+        if (type == void.class) return "V";
+        if (type == boolean.class) return "Z";
+        if (type == byte.class) return "B";
+        if (type == char.class) return "C";
+        if (type == short.class) return "S";
+        if (type == int.class) return "I";
+        if (type == long.class) return "J";
+        if (type == float.class) return "F";
+        if (type == double.class) return "D";
+        throw new IllegalArgumentException("Unsupported method type: " + type.getName());
     }
 
 }
