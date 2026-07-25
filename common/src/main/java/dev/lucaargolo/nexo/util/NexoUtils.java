@@ -28,8 +28,8 @@ public final class NexoUtils {
 
     private NexoUtils() {}
 
-    public static <T> ClassExtender<T> extendClass(@NotNull NexoMinecraft nexo, @NotNull Class<T> type) {
-        return new ClassExtender<>(nexo, type);
+    public static <T> Extender<T> extend(@NotNull NexoMinecraft nexo, @NotNull Class<T> type) {
+        return new Extender<>(nexo, type);
     }
     
     @SuppressWarnings("unchecked")
@@ -214,7 +214,7 @@ public final class NexoUtils {
         throw new IllegalArgumentException("Unsupported primitive type: " + type.getName());
     }
 
-    public static final class ClassExtender<T> {
+    public static final class Extender<T> {
 
         private final NexoMinecraft nexo;
         private final Class<T> type;
@@ -222,7 +222,7 @@ public final class NexoUtils {
         private DynamicType.Builder<? extends T> builder;
         private Class<? extends T> generatedClass;
 
-        private ClassExtender(NexoMinecraft nexo, Class<T> type) {
+        private Extender(NexoMinecraft nexo, Class<T> type) {
             this.nexo = nexo;
             this.type = type;
             if (type.isPrimitive() || type.isArray() || type.isInterface()) {
@@ -237,15 +237,58 @@ public final class NexoUtils {
             this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
         }
 
-        public MethodOverrider<T> overrideMethod(@NotNull String memberName, @NotNull Class<?> returnType, Class<?>... parameterTypes) {
+        public <R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Function0<? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[0], implementation, Function0.class);
+        }
+
+        public <P1, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super P1, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1}, implementation, Function1.class);
+        }
+
+        public <P1, P2, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super P1, ? super P2, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2}, implementation, Function2.class);
+        }
+
+        public <P1, P2, P3, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Function3<? super P1, ? super P2, ? super P3, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3}, implementation, Function3.class);
+        }
+
+        public <P1, P2, P3, P4, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Function4<? super P1, ? super P2, ? super P3, ? super P4, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4}, implementation, Function4.class);
+        }
+
+        public <P1, P2, P3, P4, P5, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Function5<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5}, implementation, Function5.class);
+        }
+
+        public <P1, P2, P3, P4, P5, P6, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Function6<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6}, implementation, Function6.class);
+        }
+
+        public <P1, P2, P3, P4, P5, P6, P7, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Function7<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7}, implementation, Function7.class);
+        }
+
+        public <P1, P2, P3, P4, P5, P6, P7, P8, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Function8<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8}, implementation, Function8.class);
+        }
+
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Function9<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9}, implementation, Function9.class);
+        }
+
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Function10<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> implementation) {
+            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}, implementation, Function10.class);
+        }
+
+        private <F> Extender<T> override(At position, String memberName, Class<?> returnType, Class<?>[] parameterTypes, F implementation, Class<? super F> functionType) {
             ensureNotBuilt();
 
-            Class<?>[] copiedParameterTypes = parameterTypes.clone();
-            for (Class<?> parameterType : copiedParameterTypes) {
+            for (Class<?> parameterType : parameterTypes) {
                 Objects.requireNonNull(parameterType, "parameterType");
             }
 
-            Method method = findMethod(type, memberName, returnType, copiedParameterTypes);
+            Method method = findMethod(type, memberName, returnType, parameterTypes);
             int modifiers = method.getModifiers();
             if (Modifier.isPrivate(modifiers)) {
                 throw new IllegalArgumentException("Cannot override private method " + method);
@@ -259,7 +302,21 @@ public final class NexoUtils {
             if (!Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers) && !type.getPackageName().equals(method.getDeclaringClass().getPackageName())) {
                 throw new IllegalArgumentException("Cannot override package-private method " + method + " from " + type.getName());
             }
-            return new MethodOverrider<>(this, method);
+            if (position != At.REPLACE && Modifier.isAbstract(modifiers)) {
+                throw new IllegalStateException("No superclass implementation is callable for " + method);
+            }
+
+            Method functionalMethod = functionType.getDeclaredMethods()[0];
+            Implementation.Composable implementationCall = MethodCall.invoke(functionalMethod)
+                    .on(implementation, functionType)
+                    .withAllArguments()
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
+            if (position == At.AFTER_SUPER) {
+                implementationCall = SuperMethodCall.INSTANCE.andThen(implementationCall);
+            } else if (position == At.BEFORE_SUPER) {
+                implementationCall = implementationCall.andThen(SuperMethodCall.INSTANCE);
+            }
+            return register(method, implementationCall);
         }
 
         public synchronized Class<? extends T> build() {
@@ -305,7 +362,7 @@ public final class NexoUtils {
             }
         }
 
-        private synchronized ClassExtender<T> register(Method method, Implementation implementation) {
+        private synchronized Extender<T> register(Method method, Implementation implementation) {
             ensureNotBuilt();
             Objects.requireNonNull(implementation, "implementation");
             if (!overrides.add(method)) {
@@ -340,6 +397,16 @@ public final class NexoUtils {
             return this.getFoundMethod(type, memberName, returnType, parameterTypes);
         }
 
+        private Method findDeclaredMethod(Class<?> owner, String memberName, Class<?> returnType, Class<?>[] parameterTypes) {
+            String runtimeName = nexo.getMapping(owner, memberName, returnType, parameterTypes);
+            for (Method method : owner.getDeclaredMethods()) {
+                if (method.getName().equals(runtimeName) && method.getReturnType().equals(returnType) && Arrays.equals(method.getParameterTypes(), parameterTypes)) {
+                    return method;
+                }
+            }
+            return null;
+        }
+
         @Nullable
         private Method getFoundMethod(Class<?> type, String memberName, Class<?> returnType, Class<?>[] parameterTypes) {
             Method method = findDeclaredMethod(type, memberName, returnType, parameterTypes);
@@ -354,142 +421,12 @@ public final class NexoUtils {
             }
             return null;
         }
-
-        private Method findDeclaredMethod(Class<?> owner, String memberName, Class<?> returnType, Class<?>[] parameterTypes) {
-            String runtimeName = nexo.getMapping(owner, memberName, returnType, parameterTypes);
-            for (Method method : owner.getDeclaredMethods()) {
-                if (method.getName().equals(runtimeName)
-                        && method.getReturnType().equals(returnType)
-                        && Arrays.equals(method.getParameterTypes(), parameterTypes)) {
-                    return method;
-                }
-            }
-            return null;
-        }
     }
 
-    public static final class MethodOverrider<T> {
-
-        private final ClassExtender<T> owner;
-        private final Method method;
-        private boolean callSuperBefore;
-        private boolean callSuperAfter;
-        private boolean implemented;
-
-        private MethodOverrider(ClassExtender<T> owner, Method method) {
-            this.owner = owner;
-            this.method = method;
-        }
-
-        public MethodOverrider<T> replace() {
-            ensureNotImplemented();
-            callSuperBefore = false;
-            callSuperAfter = false;
-            return this;
-        }
-
-        public MethodOverrider<T> beforeSuper() {
-            ensureNotImplemented();
-            if (Modifier.isAbstract(method.getModifiers())) {
-                throw new IllegalStateException("No superclass implementation is callable for " + method);
-            }
-            callSuperBefore = false;
-            callSuperAfter = true;
-            return this;
-        }
-
-        public MethodOverrider<T> afterSuper() {
-            ensureNotImplemented();
-            if (Modifier.isAbstract(method.getModifiers())) {
-                throw new IllegalStateException("No superclass implementation is callable for " + method);
-            }
-            callSuperBefore = true;
-            callSuperAfter = false;
-            return this;
-        }
-
-        public <R> ClassExtender<T> implement(@NotNull Function0<? extends R> implementation) {
-            return implement(new Class<?>[0], implementation, Function0.class);
-        }
-
-        public <P1, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Function1<? super P1, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1}, implementation, Function1.class);
-        }
-
-        public <P1, P2, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super P1, ? super P2, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2}, implementation, Function2.class);
-        }
-
-        public <P1, P2, P3, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Function3<? super P1, ? super P2, ? super P3, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3}, implementation, Function3.class);
-        }
-
-        public <P1, P2, P3, P4, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Function4<? super P1, ? super P2, ? super P3, ? super P4, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4}, implementation, Function4.class);
-        }
-
-        public <P1, P2, P3, P4, P5, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Function5<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5}, implementation, Function5.class);
-        }
-
-        public <P1, P2, P3, P4, P5, P6, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Function6<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5, p6}, implementation, Function6.class);
-        }
-
-        public <P1, P2, P3, P4, P5, P6, P7, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Function7<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5, p6, p7}, implementation, Function7.class);
-        }
-
-        public <P1, P2, P3, P4, P5, P6, P7, P8, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Function8<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8}, implementation, Function8.class);
-        }
-
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Function9<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9}, implementation, Function9.class);
-        }
-
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> ClassExtender<T> implement(@NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Function10<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> implementation) {
-            return implement(new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}, implementation, Function10.class);
-        }
-
-        private <F> ClassExtender<T> implement(Class<?>[] argumentTypes, F implementation, Class<? super F> functionType) {
-            ensureNotImplemented();
-            Objects.requireNonNull(implementation, "implementation");
-            Class<?>[] methodParameterTypes = method.getParameterTypes();
-            if (argumentTypes.length != methodParameterTypes.length) {
-                throw new IllegalArgumentException("Expected " + methodParameterTypes.length + " argument classes but received " + argumentTypes.length);
-            }
-            for (int index = 0; index < argumentTypes.length; index++) {
-                Class<?> argumentType = Objects.requireNonNull(argumentTypes[index], "argumentType");
-                Class<?> methodParameterType = methodParameterTypes[index];
-                int score = getParameterScore(argumentType, methodParameterType);
-                Class<?> argumentPrimitive = getPrimitiveType(argumentType);
-                Class<?> methodPrimitive = getPrimitiveType(methodParameterType);
-                if (score < 0 || argumentPrimitive != null && methodPrimitive != null && argumentPrimitive != methodPrimitive) {
-                    throw new IllegalArgumentException(methodParameterType.getTypeName() + " argument " + index + " cannot be passed as " + argumentType.getTypeName());
-                }
-            }
-
-            Method functionalMethod = functionType.getDeclaredMethods()[0];
-            Implementation.Composable implementationCall = MethodCall.invoke(functionalMethod)
-                    .on(implementation, functionType)
-                    .withAllArguments()
-                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
-            if (callSuperBefore) {
-                implementationCall = SuperMethodCall.INSTANCE.andThen(implementationCall);
-            } else if (callSuperAfter) {
-                implementationCall = implementationCall.andThen(SuperMethodCall.INSTANCE);
-            }
-
-            implemented = true;
-            return owner.register(method, implementationCall);
-        }
-
-        private void ensureNotImplemented() {
-            if (implemented) {
-                throw new IllegalStateException("This method override already has an implementation");
-            }
-        }
+    public enum At {
+        REPLACE,
+        AFTER_SUPER,
+        BEFORE_SUPER
     }
 
     @FunctionalInterface public interface Function0<R> { R apply() throws Throwable; }
