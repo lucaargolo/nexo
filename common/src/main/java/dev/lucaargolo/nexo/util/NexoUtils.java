@@ -3,12 +3,11 @@ package dev.lucaargolo.nexo.util;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.NexoException;
 import net.bytebuddy.ByteBuddy;
+import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.implementation.SuperMethodCall;
+import net.bytebuddy.implementation.*;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.jetbrains.annotations.NotNull;
@@ -218,8 +217,11 @@ public final class NexoUtils {
 
         private final NexoMinecraft nexo;
         private final Class<T> type;
+        private final Set<Class<?>> interfaces = new LinkedHashSet<>();
         private final Set<Method> overrides = new LinkedHashSet<>();
+
         private DynamicType.Builder<? extends T> builder;
+        private Implementation.Composable constructor = SuperMethodCall.INSTANCE;
         private Class<? extends T> generatedClass;
 
         private Extender(NexoMinecraft nexo, Class<T> type) {
@@ -235,6 +237,46 @@ public final class NexoUtils {
                 throw new IllegalArgumentException(type.getName() + " is sealed");
             }
             this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
+        }
+
+        public synchronized <I> Extender<T> implement(@NotNull Class<I> interfaceType, @NotNull Function0<? super T, ? extends I> implementation) {
+            ensureNotBuilt();
+            Objects.requireNonNull(interfaceType, "interfaceType");
+            Objects.requireNonNull(implementation, "implementation");
+            if (!interfaceType.isInterface()) {
+                throw new IllegalArgumentException(interfaceType.getName() + " is not an interface");
+            }
+            if (interfaceType.isSealed()) {
+                throw new IllegalArgumentException(interfaceType.getName() + " is sealed");
+            }
+            if (!Modifier.isPublic(interfaceType.getModifiers()) && !type.getPackageName().equals(interfaceType.getPackageName())) {
+                throw new IllegalArgumentException("Cannot implement package-private interface " + interfaceType.getName() + " from " + type.getName());
+            }
+            if (!interfaces.add(interfaceType)) {
+                throw new IllegalStateException(interfaceType.getName() + " is already implemented");
+            }
+
+            String suffix = Integer.toString(interfaces.size());
+            String fieldName = "$nexo$interface$" + suffix;
+            String setterName = "$nexo$setInterface$" + suffix;
+            MethodCall factoryCall = (MethodCall) MethodCall.invoke(ElementMatchers.named("apply")
+                            .and(ElementMatchers.takesArguments(Object.class)))
+                    .on(implementation, Function0.class)
+                    .withThis()
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
+            Implementation.Composable initializerCall = MethodCall.invoke(ElementMatchers.named(setterName)
+                            .and(ElementMatchers.takesArguments(interfaceType)))
+                    .withMethodCall(factoryCall)
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
+
+            builder = builder.defineField(fieldName, interfaceType, Visibility.PRIVATE)
+                    .defineMethod(setterName, void.class, Visibility.PRIVATE)
+                    .withParameters(interfaceType)
+                    .intercept(FieldAccessor.ofField(fieldName))
+                    .implement(interfaceType)
+                    .intercept(MethodDelegation.toField(fieldName));
+            constructor = constructor.andThen(initializerCall);
+            return this;
         }
 
         public <R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Function0<? super T, ? extends R> implementation) {
@@ -326,6 +368,9 @@ public final class NexoUtils {
             }
 
             try {
+                if (!interfaces.isEmpty()) {
+                    builder = builder.constructor(ElementMatchers.any()).intercept(constructor);
+                }
                 Class<? extends T> loaded = builder.make()
                         .load(type.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
                         .getLoaded();
