@@ -97,7 +97,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         return null;
     }
 
-    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
+    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M, ?> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             RegistryEntryAddedCallback.allEntries(registry, holder -> {
                 this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
@@ -105,7 +105,7 @@ public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMin
         });
     }
 
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M, ?> type) {
         view.registerEntryAdded(type.registry(), (raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
             this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));

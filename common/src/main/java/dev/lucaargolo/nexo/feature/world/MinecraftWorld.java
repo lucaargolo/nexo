@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class MinecraftWorld extends WorldBase {
 
@@ -68,7 +70,7 @@ public class MinecraftWorld extends WorldBase {
         }
         ResourceLocation id = NexoMinecraft.rl(world.location());
         FEATURE_MAP.put(world.location(), world);
-        helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(DimensionType.class, helper, world));
+        helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(helper, DimensionType.class, Void.class, world));
         helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world));
         return world;
     }
@@ -79,7 +81,7 @@ public class MinecraftWorld extends WorldBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftWorld(helper, holder));
     }
 
-    public static DimensionType craftType(NexoRegistryHandler<?> helper, WorldBase world) {
+    public static <M extends DimensionType> DimensionType craftType(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Void, M> factory, WorldBase world) {
         return new DimensionType(
                 OptionalLong.empty(),
                 true,
@@ -99,7 +101,7 @@ public class MinecraftWorld extends WorldBase {
         );
     }
 
-    public static LevelStem craftStem(NexoRegistryHandler<?> helper, WorldBase world) {
+    public static <M extends LevelStem> LevelStem craftStem(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Void, M> factory, WorldBase world) {
         ResourceLocation id = NexoMinecraft.rl(world.location());
         ResourceKey<DimensionType> key = ResourceKey.create(Registries.DIMENSION_TYPE, id);
         Holder<DimensionType> type = helper.getDynamicFeature(key);

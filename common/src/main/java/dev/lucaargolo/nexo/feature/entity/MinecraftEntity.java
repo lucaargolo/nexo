@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public final class MinecraftEntity extends EntityBase {
 
@@ -81,8 +83,8 @@ public final class MinecraftEntity extends EntityBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(helper, holder));
     }
 
-    public static EntityType<?> craft(NexoRegistryHandler<?> helper, EntityBase entity) {
-        EntityType.EntityFactory<?> factory = (type, level) -> new Entity(type, level) {
+    public static <M extends EntityType<?>> EntityType<?> craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Void, M> factory, EntityBase entity) {
+        EntityType.EntityFactory<?> entityFactory = (type, level) -> new Entity(type, level) {
             @Override
             public void tick() {
                 super.tick();
@@ -107,7 +109,7 @@ public final class MinecraftEntity extends EntityBase {
             }
         };
         return EntityType.Builder
-                .of(factory, MobCategory.MISC)
+                .of(entityFactory, MobCategory.MISC)
                 .sized(0.6F, 1.8F)
                 .build(entity.location().toString());
     }

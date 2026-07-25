@@ -21,6 +21,7 @@ import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.Bijection;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -47,6 +48,7 @@ import org.joml.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class MinecraftBlock extends BlockBase {
 
@@ -151,95 +153,77 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(helper, holder));
     }
 
-    public static Block craft(NexoRegistryHandler<?> helper, BlockBase block) {
-        boolean blockEntity = isDynamicBlock(block);
-        class CraftedBlock extends Block {
+    public static <M extends Block> Block craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
+        @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
+        for (DataBase<?> data : block.data()) {
+            if (data instanceof DataBase.Constrained<?> constrained) {
+                dataProperties.add(new DataProperty<>(constrained));
+            }
+        };
+        extender.override(NexoUtils.At.AFTER_SUPER, "init", Block.class, BlockBehaviour.Properties.class, (feature, properties) -> {
+            BlockState state = feature.getStateDefinition().any();
+            for (DataProperty<?> property : dataProperties) {
+                state = property.setDefault(state);
+            }
+            feature.registerDefaultState(state);
+            return feature;
+        });
+        extender.override(NexoUtils.At.AFTER_SUPER, "createBlockStateDefinition", Void.class, StateDefinition.Builder.class, (feature, builder) -> {
+            for (DataProperty<?> property : dataProperties) {
+                builder.add(property);
+            }
+            return null;
+        });
+        extender.override(NexoUtils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
+            BlockUnit<?> unit = helper.nexo().blockToUnit(level, pos, state);
+            WorldUnit<?> world = helper.nexo().levelToUnit(level);
+            Interaction interaction = block.onInteract(unit, world, helper.nexo().entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
+            return switch (interaction) {
+                case PASS -> InteractionResult.PASS;
+                case FAIL -> InteractionResult.FAIL;
+                case SUCCESS -> InteractionResult.SUCCESS;
+            };
+        });
+        if(isDynamicBlock(block)) {
+            extender.implement(EntityBlock.class, feature -> new EntityBlock() {
+                @Nullable
+                private BlockEntityType<?> blockEntityType;
 
-            private @Nullable List<DataProperty<?>> properties;
-
-            private CraftedBlock() {
-                super(BlockBehaviour.Properties.of());
-                BlockState state = this.stateDefinition.any();
-                for (DataProperty<?> property : this.dataProperties()) {
-                    state = property.setDefault(state);
+                {
+                    ENTITY_MAP.put(block.location(), this::newBlockEntity);
                 }
-                this.registerDefaultState(state);
-            }
 
-            @Override
-            protected void createBlockStateDefinition(StateDefinition.@NotNull Builder<Block, BlockState> builder) {
-                for (DataProperty<?> property : this.dataProperties()) {
-                    builder.add(property);
+                @Override
+                public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
+                    return new Entity(pos, state);
                 }
-            }
 
-            @Override
-            protected @NotNull InteractionResult useWithoutItem(@NotNull BlockState state, @NotNull Level level, @NotNull BlockPos pos, @NotNull Player player, @NotNull BlockHitResult hitResult) {
-                BlockUnit<?> unit = helper.nexo().blockToUnit(level, pos, state);
-                WorldUnit<?> world = helper.nexo().levelToUnit(level);
-                Interaction interaction = block.onInteract(unit, world, helper.nexo().entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
-                return switch (interaction) {
-                    case PASS -> InteractionResult.PASS;
-                    case FAIL -> InteractionResult.FAIL;
-                    case SUCCESS -> InteractionResult.SUCCESS;
-                };
-            }
+                @Override
+                public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
+                    Ticker<BlockUnit<?>> ticker = block.ticker();
+                    if (ticker == null || type != blockEntityType()) {
+                        return null;
+                    }
+                    return (tickerLevel, pos, tickerState, entity) -> ticker.tick(helper.nexo().blockToUnit(level, pos, state, entity));
+                }
 
-            private @NotNull List<DataProperty<?>> dataProperties() {
-                if (this.properties == null) {
-                    this.properties = new ArrayList<>();
-                    for (DataBase<?> data : block.data()) {
-                        if (data instanceof DataBase.Constrained<?> constrained) {
-                            this.properties.add(new DataProperty<>(constrained));
-                        }
+                private @NotNull BlockEntityType<?> blockEntityType() {
+                    if (this.blockEntityType == null) {
+                        this.blockEntityType = ENTITY_HOLDER_MAP.get(block.location()).value();
+                    }
+                    return this.blockEntityType;
+                }
+
+                class Entity extends BlockEntity {
+                    public Entity(BlockPos pPos, BlockState pBlockState) {
+                        super(blockEntityType(), pPos, pBlockState);
                     }
                 }
-                return this.properties;
-            }
+            });
         }
-
-        class DynamicCraftedBlock extends CraftedBlock implements EntityBlock {
-
-            private DynamicCraftedBlock() {
-                super();
-                ENTITY_MAP.put(block.location(), this::newBlockEntity);
-            }
-
-            @Nullable
-            private BlockEntityType<?> blockEntityType;
-
-            @Override
-            public @NotNull BlockEntity newBlockEntity(@NotNull BlockPos pos, @NotNull BlockState state) {
-                return new Entity(pos, state);
-            }
-
-            @Override
-            public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-                Ticker<BlockUnit<?>> ticker = block.ticker();
-                if (ticker == null || type != blockEntityType()) {
-                    return null;
-                }
-                return (tickerLevel, pos, tickerState, entity) -> ticker.tick(helper.nexo().blockToUnit(level, pos, state, entity));
-            }
-
-            private @NotNull BlockEntityType<?> blockEntityType() {
-                if (this.blockEntityType == null) {
-                    this.blockEntityType = ENTITY_HOLDER_MAP.get(block.location()).value();
-                }
-                return this.blockEntityType;
-            }
-
-            class Entity extends BlockEntity {
-                public Entity(BlockPos pPos, BlockState pBlockState) {
-                    super(blockEntityType(), pPos, pBlockState);
-                }
-            }
-
-        }
-
-        return blockEntity ? new DynamicCraftedBlock() : new CraftedBlock();
+        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of();
+        return factory.apply(properties);
     }
-
 
     public static boolean isDynamicBlock(@NotNull BlockBase block) {
         Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();

@@ -100,7 +100,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         return null;
     }
 
-    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
+    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M, ?> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             Consumer<Holder<M>> consumer = (holder) -> {
                 this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
@@ -112,7 +112,7 @@ public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNex
         });
     }
 
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M, ?> type) {
         view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
             this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));

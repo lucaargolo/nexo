@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.feature.item;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -13,6 +14,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -21,12 +23,14 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class MinecraftItem extends ItemBase {
 
@@ -109,20 +113,20 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(helper, holder));
     }
 
-    public static Item craft(NexoRegistryHandler<?> helper, ItemBase item) {
+    public static <M extends Item> Item craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Item.Properties, M> factory, ItemBase item) {
+        extender.override(NexoUtils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
+            Ticker<ItemUnit<?>> ticker = item.ticker();
+            if (ticker != null) {
+                ticker.tick(helper.nexo().stackToUnit(stack));
+            }
+            return null;
+        });
+
         Item.Properties properties = new Item.Properties();
         for(DataBase<?> data : item.data()) {
             properties = setInitialComponent(properties, data);
         }
-        return new Item(properties) {
-            @Override
-            public void inventoryTick(@NotNull ItemStack stack, @NotNull net.minecraft.world.level.Level level, @NotNull Entity entity, int slotId, boolean selected) {
-                super.inventoryTick(stack, level, entity, slotId, selected);
-                if (item.ticker() != null) {
-                    item.ticker().tick(helper.nexo().stackToUnit(stack));
-                }
-            }
-        };
+        return factory.apply(properties);
     }
 
     private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {

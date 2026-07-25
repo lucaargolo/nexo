@@ -1,30 +1,35 @@
 package dev.lucaargolo.nexo.role.item;
 
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.role.MinecraftRoleType;
+import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
-import java.util.Optional;
+import java.util.function.Function;
 
 public class MinecraftBlockItemRole {
 
-    public static Optional<BlockItem> craft(ItemBase base) {
+    public static MinecraftRoleType.Info<Item, Item.Properties> craft(NexoMinecraft nexo, ItemBase base) {
         if(base.role() instanceof BlockItemRole(BlockBase block)) {
-            BlockItem item = new BlockItem(MinecraftFeatureType.BLOCK.convert(block), new Item.Properties());
-            return Optional.of(item);
+            NexoUtils.Extender<Item> extender = NexoUtils.extend(nexo, Nexo.type(BlockItem.class));
+            Function<Item.Properties, Item> function = properties -> extender.instantiate(block, properties);
+            return new MinecraftRoleType.Info<>(extender, function);
         }
-        return Optional.empty();
+        return null;
     }
 
-    public static Optional<BlockItemRole> uncraft(NexoRegistryHandler<?> helper, Item item) {
+    public static BlockItemRole uncraft(NexoRegistryHandler<?> helper, Item item) {
         if(item instanceof BlockItem blockItem) {
-            return Optional.of(new BlockItemRole(MinecraftFeatureType.BLOCK.convert(helper, blockItem.getBlock())));
+            return new BlockItemRole(MinecraftFeatureType.BLOCK.convert(helper, blockItem.getBlock()));
         }
-        return Optional.empty();
+        return null;
     }
 
 }

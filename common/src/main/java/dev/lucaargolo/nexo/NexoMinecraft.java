@@ -68,19 +68,19 @@ public abstract class NexoMinecraft implements Nexo {
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
 
     protected final NexoModDiscoveryHandler<?> discoveryHandler;
-    protected final NexoRegistryHandler<?> registryHandler;
+    protected final NexoRegistryHandler<?> helper;
     protected final NexoRenderingHandler<?> renderingHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         this.discoveryHandler = NexoUtils.loadPlatformClass(this, NexoModDiscoveryHandler.class, this);
-        this.registryHandler = NexoUtils.loadPlatformClass(this, NexoRegistryHandler.class, this);
+        this.helper = NexoUtils.loadPlatformClass(this, NexoRegistryHandler.class, this);
         this.renderingHandler = NexoUtils.loadPlatformClass(this, NexoRenderingHandler.class, this);
     }
 
     protected final void init() {
-        this.registryHandler.init();
+        this.helper.init();
         this.renderingHandler.init();
         this.discoveryHandler.init();
     }
@@ -158,9 +158,9 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature) {
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
-            MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
+            MinecraftFeatureType<?, ?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
-                t.register(this.registryHandler, feature);
+                t.register(this.helper, feature);
                 return feature;
             }
         }
@@ -169,7 +169,7 @@ public abstract class NexoMinecraft implements Nexo {
 
     @Override
     public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature) {
-        return MinecraftFeatureType.of(feature.type()).unit(this, this.registryHandler, feature);
+        return MinecraftFeatureType.of(feature.type()).unit(this.helper, feature);
     }
 
     @Override
@@ -238,12 +238,12 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
-        BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
-        return NexoUtils.loadPlatformClass(this, MinecraftBlockUnit.class, this.registryHandler, block, block.role(), level, pos, state, blockEntity);
+        BlockBase block = MinecraftFeatureType.BLOCK.convert(this.helper, state.getBlock());
+        return NexoUtils.loadPlatformClass(this, MinecraftBlockUnit.class, this.helper, block, block.role(), level, pos, state, blockEntity);
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
-        ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
+        ItemBase item = MinecraftFeatureType.ITEM.convert(this.helper, stack.getItem());
         return new MinecraftItemUnit<>(this, item, item.role(), stack);
     }
 
@@ -252,7 +252,7 @@ public abstract class NexoMinecraft implements Nexo {
         Location location = NexoMinecraft.id(key.location());
         WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
         assert world != null;
-        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
+        return NexoUtils.loadPlatformClass(this, MinecraftWorldUnit.class, this.helper, world, world.role(), level);
     }
 
     public void tickWorld(@NotNull Level level) {
@@ -264,8 +264,8 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
-        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
-        MinecraftEntityUnit<?, ?, ?> unit = NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
+        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.helper, entity.getType());
+        MinecraftEntityUnit<?, ?, ?> unit = NexoUtils.loadPlatformClass(this, MinecraftEntityUnit.class, this.helper, feature, feature.role(), entity);
         Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
         return clazz.cast(unit);
     }
