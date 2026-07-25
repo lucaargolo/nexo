@@ -237,47 +237,47 @@ public final class NexoUtils {
             this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
         }
 
-        public <R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Function0<? extends R> implementation) {
+        public <R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Function0<? super T, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[0], implementation, Function0.class);
         }
 
-        public <P1, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super P1, ? extends R> implementation) {
+        public <P1, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super T, ? super P1, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1}, implementation, Function1.class);
         }
 
-        public <P1, P2, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super P1, ? super P2, ? extends R> implementation) {
+        public <P1, P2, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2}, implementation, Function2.class);
         }
 
-        public <P1, P2, P3, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Function3<? super P1, ? super P2, ? super P3, ? extends R> implementation) {
+        public <P1, P2, P3, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Function3<? super T, ? super P1, ? super P2, ? super P3, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3}, implementation, Function3.class);
         }
 
-        public <P1, P2, P3, P4, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Function4<? super P1, ? super P2, ? super P3, ? super P4, ? extends R> implementation) {
+        public <P1, P2, P3, P4, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Function4<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4}, implementation, Function4.class);
         }
 
-        public <P1, P2, P3, P4, P5, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Function5<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Function5<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5}, implementation, Function5.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Function6<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, P6, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Function6<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6}, implementation, Function6.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Function7<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, P6, P7, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Function7<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7}, implementation, Function7.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Function8<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, P6, P7, P8, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Function8<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8}, implementation, Function8.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Function9<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Function9<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9}, implementation, Function9.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Function10<? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> implementation) {
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Function10<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}, implementation, Function10.class);
         }
 
@@ -309,6 +309,7 @@ public final class NexoUtils {
             Method functionalMethod = functionType.getDeclaredMethods()[0];
             Implementation.Composable implementationCall = MethodCall.invoke(functionalMethod)
                     .on(implementation, functionType)
+                    .withThis()
                     .withAllArguments()
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
             if (position == At.AFTER_SUPER) {
@@ -429,16 +430,16 @@ public final class NexoUtils {
         BEFORE_SUPER
     }
 
-    @FunctionalInterface public interface Function0<R> { R apply() throws Throwable; }
-    @FunctionalInterface public interface Function1<P1, R> { R apply(P1 p1) throws Throwable; }
-    @FunctionalInterface public interface Function2<P1, P2, R> { R apply(P1 p1, P2 p2) throws Throwable; }
-    @FunctionalInterface public interface Function3<P1, P2, P3, R> { R apply(P1 p1, P2 p2, P3 p3) throws Throwable; }
-    @FunctionalInterface public interface Function4<P1, P2, P3, P4, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4) throws Throwable; }
-    @FunctionalInterface public interface Function5<P1, P2, P3, P4, P5, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) throws Throwable; }
-    @FunctionalInterface public interface Function6<P1, P2, P3, P4, P5, P6, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) throws Throwable; }
-    @FunctionalInterface public interface Function7<P1, P2, P3, P4, P5, P6, P7, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) throws Throwable; }
-    @FunctionalInterface public interface Function8<P1, P2, P3, P4, P5, P6, P7, P8, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) throws Throwable; }
-    @FunctionalInterface public interface Function9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9) throws Throwable; }
-    @FunctionalInterface public interface Function10<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> { R apply(P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10) throws Throwable; }
+    @FunctionalInterface public interface Function0<T, R> { R apply(T instance) throws Throwable; }
+    @FunctionalInterface public interface Function1<T, P1, R> { R apply(T instance, P1 p1) throws Throwable; }
+    @FunctionalInterface public interface Function2<T, P1, P2, R> { R apply(T instance, P1 p1, P2 p2) throws Throwable; }
+    @FunctionalInterface public interface Function3<T, P1, P2, P3, R> { R apply(T instance, P1 p1, P2 p2, P3 p3) throws Throwable; }
+    @FunctionalInterface public interface Function4<T, P1, P2, P3, P4, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4) throws Throwable; }
+    @FunctionalInterface public interface Function5<T, P1, P2, P3, P4, P5, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) throws Throwable; }
+    @FunctionalInterface public interface Function6<T, P1, P2, P3, P4, P5, P6, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) throws Throwable; }
+    @FunctionalInterface public interface Function7<T, P1, P2, P3, P4, P5, P6, P7, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) throws Throwable; }
+    @FunctionalInterface public interface Function8<T, P1, P2, P3, P4, P5, P6, P7, P8, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) throws Throwable; }
+    @FunctionalInterface public interface Function9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9) throws Throwable; }
+    @FunctionalInterface public interface Function10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10) throws Throwable; }
 
 }
