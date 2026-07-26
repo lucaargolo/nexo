@@ -1,16 +1,23 @@
 package dev.lucaargolo.nexo;
 
+import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 @Mod(NexoMinecraft.MOD_ID)
 public class NeoForgeNexoMinecraft extends NexoMinecraft {
@@ -55,6 +62,11 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     @Override
     public MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
+    }
+
+    @Override
+    public Player createFakePlayer(Level level, UUID uuid, String name) {
+        return FakePlayerFactory.get((ServerLevel) level, new GameProfile(uuid, name));
     }
 
 }

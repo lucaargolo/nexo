@@ -1,16 +1,24 @@
 package dev.lucaargolo.nexo;
 
+import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.util.Side;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
 
@@ -65,6 +73,11 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public MinecraftServer getServer() {
         return this.currentServer;
+    }
+
+    @Override
+    public Player createFakePlayer(Level level, UUID uuid, String name) {
+        return FakePlayer.get((ServerLevel) level, new GameProfile(uuid, name));
     }
 
     private String getDescriptor(MappingResolver resolver, Class<?> type) {

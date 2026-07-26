@@ -12,7 +12,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
@@ -27,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class MinecraftData<D> extends DataBase<D> {
 
@@ -131,7 +129,7 @@ public class MinecraftData<D> extends DataBase<D> {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftData<>(helper, holder));
     }
 
-    public static <M extends DataComponentType<T>, T> DataComponentType<T> craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<DataComponentType.Builder<T>, M> factory, DataBase<T> data) {
+    public static <T> DataComponentType<T> craft(NexoRegistryHandler<?> helper, DataBase<T> data) {
         DataComponentType.Builder<T> builder = DataComponentType.builder();
         if (data.persistent()) {
             Codec<T> codec = NexoMinecraft.createCodec(data);
@@ -141,7 +139,7 @@ public class MinecraftData<D> extends DataBase<D> {
             StreamCodec<RegistryFriendlyByteBuf, T> codec = NexoMinecraft.createPacketCodec(data);
             builder.networkSynchronized(codec);
         }
-        return factory.apply(builder);
+        return builder.build();
     }
 
 }

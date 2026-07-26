@@ -91,7 +91,7 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     }
 
     @Override
-    protected void registerBlockRenderer(BlockBase block) {
+    public void registerBlockRenderer(BlockBase block) {
         BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(block).value();
         this.registerBlockRenderer(type, block, BlockEntityRenderers::register);
     }

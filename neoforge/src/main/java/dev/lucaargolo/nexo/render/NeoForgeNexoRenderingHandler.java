@@ -126,7 +126,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     }
 
     @Override
-    protected void registerBlockRenderer(BlockBase block) {
+    public void registerBlockRenderer(BlockBase block) {
         blocksToRegister.add(block);
     }
 

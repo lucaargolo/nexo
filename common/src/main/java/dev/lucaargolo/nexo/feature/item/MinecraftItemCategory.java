@@ -8,7 +8,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 public class MinecraftItemCategory extends ItemCategoryBase {
 
@@ -73,7 +71,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItemCategory(helper, holder));
     }
 
-    public static <M extends CreativeModeTab> CreativeModeTab craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Void, M> factory, ItemCategoryBase category) {
+    public static CreativeModeTab craft(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
         return helper.craftCreativeTab(category);
     }
 

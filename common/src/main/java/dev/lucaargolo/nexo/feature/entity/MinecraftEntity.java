@@ -19,6 +19,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,35 +84,26 @@ public final class MinecraftEntity extends EntityBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(helper, holder));
     }
 
-    public static <M extends EntityType<?>> EntityType<?> craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Void, M> factory, EntityBase entity) {
-        EntityType.EntityFactory<?> entityFactory = (type, level) -> new Entity(type, level) {
-            @Override
-            public void tick() {
-                super.tick();
-                if (entity.ticker() != null) {
-                    entity.ticker().tick(helper.nexo().entityToUnit(this));
-                }
+    public static <M extends Entity> EntityType<?> craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
+        extender.override(NexoUtils.At.AFTER_SUPER, "tick", void.class, feature -> {
+            if (entity.ticker() != null) {
+                entity.ticker().tick(helper.nexo().entityToUnit(feature));
             }
+            return null;
+        });
+        extender.overrideAbstract("defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
+        extender.overrideAbstract("readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
+        extender.overrideAbstract("addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
 
-            @Override
-            protected void defineSynchedData(SynchedEntityData.@NotNull Builder builder) {
-
-            }
-
-            @Override
-            protected void readAdditionalSaveData(@NotNull CompoundTag compoundTag) {
-
-            }
-
-            @Override
-            protected void addAdditionalSaveData(@NotNull CompoundTag compoundTag) {
-
-            }
-        };
+        Function<Parameters, M> entityFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.type(), parameters.level());
         return EntityType.Builder
-                .of(entityFactory, MobCategory.MISC)
+                .of((type, level) -> entityFactory.apply(new Parameters(type, level)), MobCategory.MISC)
+                .noSave()
                 .sized(0.6F, 1.8F)
                 .build(entity.location().toString());
+    }
+
+    public record Parameters(@NotNull EntityType<?> type, @NotNull Level level) {
     }
 
 }

@@ -27,7 +27,7 @@ public final class NexoUtils {
 
     private NexoUtils() {}
 
-    public static <T> Extender<T> extend(@NotNull NexoMinecraft nexo, @NotNull Class<T> type) {
+    public static <T> Extender<T> extend(@NotNull NexoMinecraft nexo, @NotNull Class<? extends T> type) {
         return new Extender<>(nexo, type);
     }
     
@@ -77,6 +77,15 @@ public final class NexoUtils {
         } catch (Exception exception) {
             throw new NexoException("Failed to load platform class for " + clazz.getName(), exception);
         }
+    }
+
+    public static boolean isExtendable(@NotNull Class<?> type) {
+        int modifiers = type.getModifiers();
+        return !type.isPrimitive()
+                && !type.isArray()
+                && !type.isInterface()
+                && !Modifier.isFinal(modifiers)
+                && !type.isSealed();
     }
 
     private static <T> T instantiate(Class<? extends T> type, Object[] parameters) throws ReflectiveOperationException {
@@ -216,25 +225,20 @@ public final class NexoUtils {
     public static final class Extender<T> {
 
         private final NexoMinecraft nexo;
-        private final Class<T> type;
+        private final Class<? extends T> type;
         private final Set<Class<?>> interfaces = new LinkedHashSet<>();
         private final Set<Method> overrides = new LinkedHashSet<>();
 
         private DynamicType.Builder<? extends T> builder;
         private Implementation.Composable constructor = SuperMethodCall.INSTANCE;
+        private boolean constructorCustomized;
         private Class<? extends T> generatedClass;
 
-        private Extender(NexoMinecraft nexo, Class<T> type) {
+        private Extender(NexoMinecraft nexo, Class<? extends T> type) {
             this.nexo = nexo;
             this.type = type;
-            if (type.isPrimitive() || type.isArray() || type.isInterface()) {
+            if (!isExtendable(type)) {
                 throw new IllegalArgumentException(type.getName() + " is not a subclassable class");
-            }
-            if (Modifier.isFinal(type.getModifiers())) {
-                throw new IllegalArgumentException(type.getName() + " is final");
-            }
-            if (type.isSealed()) {
-                throw new IllegalArgumentException(type.getName() + " is sealed");
             }
             this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
         }
@@ -276,6 +280,20 @@ public final class NexoUtils {
                     .implement(interfaceType)
                     .intercept(MethodDelegation.toField(fieldName));
             constructor = constructor.andThen(initializerCall);
+            constructorCustomized = true;
+            return this;
+        }
+
+        public synchronized Extender<T> initialize(@NotNull Function0<? super T, ?> initializer) {
+            ensureNotBuilt();
+            Objects.requireNonNull(initializer, "initializer");
+            MethodCall initializerCall = (MethodCall) MethodCall.invoke(ElementMatchers.named("apply")
+                            .and(ElementMatchers.takesArguments(Object.class)))
+                    .on(initializer, Function0.class)
+                    .withThis()
+                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
+            constructor = constructor.andThen(initializerCall);
+            constructorCustomized = true;
             return this;
         }
 
@@ -285,6 +303,15 @@ public final class NexoUtils {
 
         public <P1, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super T, ? super P1, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1}, implementation, Function1.class);
+        }
+
+        public <P1, R> Extender<T> overrideAbstract(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super T, ? super P1, ? extends R> implementation) {
+            ensureNotBuilt();
+            Method method = findMethod(type, memberName, returnType, new Class<?>[]{p1});
+            if (!Modifier.isAbstract(method.getModifiers())) {
+                return this;
+            }
+            return override(NexoUtils.At.REPLACE, memberName, returnType, p1, implementation);
         }
 
         public <P1, P2, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> implementation) {
@@ -368,7 +395,7 @@ public final class NexoUtils {
             }
 
             try {
-                if (!interfaces.isEmpty()) {
+                if (constructorCustomized) {
                     builder = builder.constructor(ElementMatchers.any()).intercept(constructor);
                 }
                 Class<? extends T> loaded = builder.make()

@@ -78,7 +78,6 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                         ResourceLocation modelId = modelId(event.location(), feature);
                         this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
                         this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
-                        this.registerBlockRenderer(block);
                     }
                 }
                 case ItemBase item -> {
@@ -135,7 +134,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         }
     }
 
-    protected abstract void registerBlockRenderer(BlockBase block);
+    public abstract void registerBlockRenderer(BlockBase block);
 
     protected <T extends BlockEntity> void registerBlockRenderer(BlockEntityType<T> type, BlockBase base, BiConsumer<BlockEntityType<T>, BlockEntityRendererProvider<T>> registrar) {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();

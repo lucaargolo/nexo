@@ -34,7 +34,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -55,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
@@ -94,6 +97,8 @@ public abstract class NexoMinecraft implements Nexo {
     public abstract boolean isModLoaded(String modId);
 
     public abstract MinecraftServer getServer();
+
+    public abstract Player createFakePlayer(Level level, UUID uuid, String name);
 
     @Override
     public @NotNull Logger getLogger() {
@@ -158,7 +163,7 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature) {
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
-            MinecraftFeatureType<?, ?, ?, ?> t = MinecraftFeatureType.of(type);
+            MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
                 t.register(this.helper, feature);
                 return feature;

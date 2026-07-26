@@ -113,7 +113,7 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(helper, holder));
     }
 
-    public static <M extends Item> Item craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<Item.Properties, M> factory, ItemBase item) {
+    public static <M extends Item> Item craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
         extender.override(NexoUtils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
             Ticker<ItemUnit<?>> ticker = item.ticker();
             if (ticker != null) {
@@ -126,7 +126,10 @@ public class MinecraftItem extends ItemBase {
         for(DataBase<?> data : item.data()) {
             properties = setInitialComponent(properties, data);
         }
-        return factory.apply(properties);
+        if (factory != null) {
+            return factory.apply(properties);
+        }
+        return extender.instantiate(properties);
     }
 
     private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {

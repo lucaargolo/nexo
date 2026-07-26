@@ -18,8 +18,8 @@ public class MinecraftBlockItemRole {
 
     public static MinecraftRoleType.Info<Item, Item.Properties> craft(NexoMinecraft nexo, ItemBase base) {
         if(base.role() instanceof BlockItemRole(BlockBase block)) {
-            NexoUtils.Extender<Item> extender = NexoUtils.extend(nexo, Nexo.type(BlockItem.class));
-            Function<Item.Properties, Item> function = properties -> extender.instantiate(block, properties);
+            NexoUtils.Extender<Item> extender = NexoUtils.extend(nexo, BlockItem.class);
+            Function<Item.Properties, Item> function = properties -> extender.instantiate(MinecraftFeatureType.BLOCK.convert(block), properties);
             return new MinecraftRoleType.Info<>(extender, function);
         }
         return null;

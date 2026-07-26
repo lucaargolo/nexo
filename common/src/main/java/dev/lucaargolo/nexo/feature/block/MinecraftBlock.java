@@ -143,6 +143,7 @@ public class MinecraftBlock extends BlockBase {
                 return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
             });
             ENTITY_HOLDER_MAP.put(block.location(), holder);
+            helper.nexo().getRenderingHandler().registerBlockRenderer(block);
         }
         return block;
     }
@@ -153,22 +154,22 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(helper, holder));
     }
 
-    public static <M extends Block> Block craft(NexoRegistryHandler<?> helper, NexoUtils.Extender<M> extender, Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
+    public static <M extends Block> Block craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
         @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
         for (DataBase<?> data : block.data()) {
             if (data instanceof DataBase.Constrained<?> constrained) {
                 dataProperties.add(new DataProperty<>(constrained));
             }
         };
-        extender.override(NexoUtils.At.AFTER_SUPER, "init", Block.class, BlockBehaviour.Properties.class, (feature, properties) -> {
+        extender.initialize(feature -> {
             BlockState state = feature.getStateDefinition().any();
             for (DataProperty<?> property : dataProperties) {
                 state = property.setDefault(state);
             }
             feature.registerDefaultState(state);
-            return feature;
+            return null;
         });
-        extender.override(NexoUtils.At.AFTER_SUPER, "createBlockStateDefinition", Void.class, StateDefinition.Builder.class, (feature, builder) -> {
+        extender.override(NexoUtils.At.AFTER_SUPER, "createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, builder) -> {
             for (DataProperty<?> property : dataProperties) {
                 builder.add(property);
             }
@@ -222,7 +223,10 @@ public class MinecraftBlock extends BlockBase {
             });
         }
         BlockBehaviour.Properties properties = BlockBehaviour.Properties.of();
-        return factory.apply(properties);
+        if (factory != null) {
+            return factory.apply(properties);
+        }
+        return extender.instantiate(properties);
     }
 
     public static boolean isDynamicBlock(@NotNull BlockBase block) {
