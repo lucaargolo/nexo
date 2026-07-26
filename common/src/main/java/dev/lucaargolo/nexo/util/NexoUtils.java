@@ -305,15 +305,6 @@ public final class NexoUtils {
             return override(position, memberName, returnType, new Class<?>[]{p1}, implementation, Function1.class);
         }
 
-        public <P1, R> Extender<T> overrideAbstract(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super T, ? super P1, ? extends R> implementation) {
-            ensureNotBuilt();
-            Method method = findMethod(type, memberName, returnType, new Class<?>[]{p1});
-            if (!Modifier.isAbstract(method.getModifiers())) {
-                return this;
-            }
-            return override(NexoUtils.At.REPLACE, memberName, returnType, p1, implementation);
-        }
-
         public <P1, P2, R> Extender<T> override(@NotNull NexoUtils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> implementation) {
             return override(position, memberName, returnType, new Class<?>[]{p1, p2}, implementation, Function2.class);
         }
@@ -371,20 +362,18 @@ public final class NexoUtils {
             if (!Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers) && !type.getPackageName().equals(method.getDeclaringClass().getPackageName())) {
                 throw new IllegalArgumentException("Cannot override package-private method " + method + " from " + type.getName());
             }
-            if (position != At.REPLACE && Modifier.isAbstract(modifiers)) {
-                throw new IllegalStateException("No superclass implementation is callable for " + method);
-            }
-
             Method functionalMethod = functionType.getDeclaredMethods()[0];
             Implementation.Composable implementationCall = MethodCall.invoke(functionalMethod)
                     .on(implementation, functionType)
                     .withThis()
                     .withAllArguments()
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
-            if (position == At.AFTER_SUPER) {
-                implementationCall = SuperMethodCall.INSTANCE.andThen(implementationCall);
-            } else if (position == At.BEFORE_SUPER) {
-                implementationCall = implementationCall.andThen(SuperMethodCall.INSTANCE);
+            if (!Modifier.isAbstract(modifiers)) {
+                if (position == At.AFTER_SUPER) {
+                    implementationCall = SuperMethodCall.INSTANCE.andThen(implementationCall);
+                } else if (position == At.BEFORE_SUPER) {
+                    implementationCall = implementationCall.andThen(SuperMethodCall.INSTANCE);
+                }
             }
             return register(method, implementationCall);
         }

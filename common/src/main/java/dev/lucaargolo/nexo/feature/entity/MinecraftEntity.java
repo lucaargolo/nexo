@@ -91,9 +91,9 @@ public final class MinecraftEntity extends EntityBase {
             }
             return null;
         });
-        extender.overrideAbstract("defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
-        extender.overrideAbstract("readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
-        extender.overrideAbstract("addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
+        extender.override(NexoUtils.At.AFTER_SUPER, "defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
+        extender.override(NexoUtils.At.AFTER_SUPER, "readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
+        extender.override(NexoUtils.At.AFTER_SUPER, "addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
 
         Function<Parameters, M> entityFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.type(), parameters.level());
         return EntityType.Builder
