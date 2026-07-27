@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.world;
 
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class MinecraftWorldUnit<R extends NexoRegistryHandler<?>> extends WorldUnit<Role> implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit<R extends MinecraftRegistryHandler<?>> extends WorldUnit<Role> implements MinecraftUnit<Level> {
 
     @NotNull
     protected final R helper;

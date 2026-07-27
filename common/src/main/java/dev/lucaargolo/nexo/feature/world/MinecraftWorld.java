@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
@@ -47,7 +47,7 @@ public class MinecraftWorld extends WorldBase {
     @NotNull
     private final Holder<LevelStem> holder;
 
-    private MinecraftWorld(NexoRegistryHandler<?> helper, @NotNull Holder<LevelStem> holder) {
+    private MinecraftWorld(MinecraftRegistryHandler<?> helper, @NotNull Holder<LevelStem> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.WORLD, holder));
         this.holder = holder;
     }
@@ -61,7 +61,7 @@ public class MinecraftWorld extends WorldBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static WorldBase register(NexoRegistryHandler<?> helper, WorldBase world) {
+    public static WorldBase register(MinecraftRegistryHandler<?> helper, WorldBase world) {
         WorldBase registered = FEATURE_MAP.get(world.location());
         if (registered != null) {
             return registered;
@@ -73,13 +73,13 @@ public class MinecraftWorld extends WorldBase {
         return world;
     }
 
-    public static WorldBase index(NexoRegistryHandler<?> helper, Holder<LevelStem> holder) {
+    public static WorldBase index(MinecraftRegistryHandler<?> helper, Holder<LevelStem> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftWorld(helper, holder));
     }
 
-    public static DimensionType craftType(NexoRegistryHandler<?> helper, WorldBase world) {
+    public static DimensionType craftType(MinecraftRegistryHandler<?> helper, WorldBase world) {
         return new DimensionType(
                 OptionalLong.empty(),
                 true,
@@ -99,7 +99,7 @@ public class MinecraftWorld extends WorldBase {
         );
     }
 
-    public static LevelStem craftStem(NexoRegistryHandler<?> helper, WorldBase world) {
+    public static LevelStem craftStem(MinecraftRegistryHandler<?> helper, WorldBase world) {
         ResourceLocation id = NexoMinecraft.rl(world.location());
         ResourceKey<DimensionType> key = ResourceKey.create(Registries.DIMENSION_TYPE, id);
         Holder<DimensionType> type = helper.getDynamicFeature(key);

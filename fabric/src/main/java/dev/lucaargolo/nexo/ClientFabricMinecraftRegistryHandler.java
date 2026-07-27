@@ -5,9 +5,9 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 
-public class ClientFabricNexoRegistryHandler extends FabricNexoRegistryHandler {
+public class ClientFabricMinecraftRegistryHandler extends FabricMinecraftRegistryHandler {
 
-    public ClientFabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
+    public ClientFabricMinecraftRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 

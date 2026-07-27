@@ -16,13 +16,13 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class GltfModelResource extends ModelResource.GLTF {
+public class MinecraftGltfModelResource extends ModelResource.GLTF {
 
     private static final Map<Location, GLTF> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private GltfModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
+    private MinecraftGltfModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -34,7 +34,7 @@ public class GltfModelResource extends ModelResource.GLTF {
 
     public static GLTF lookup(NexoMinecraft nexo, Location location) {
         Model model = lookupModel(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new GltfModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftGltfModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
     }
 
     @Nullable
@@ -61,6 +61,7 @@ public class GltfModelResource extends ModelResource.GLTF {
     }
 
     @NotNull
+    //TODO: Actually provide the GLTF back to Minecraft
     public static GLTF register(@NotNull NexoMinecraft nexo, @NotNull GLTF resource) {
         Location location = resource.location().withPath(l -> {
             String path = l.path().replace("models/", "");
@@ -80,7 +81,7 @@ public class GltfModelResource extends ModelResource.GLTF {
                 transforms,
                 List.of()
         );
-        nexo.getRenderingHandler().registerResourceModel(NexoMinecraft.rl(resource.location()), () -> blockModel);
+        nexo.getRenderingHandler().registerModel(NexoMinecraft.rl(resource.location()), () -> blockModel);
         return resource;
     }
 

@@ -5,9 +5,9 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.Level;
 
-public class ClientNeoForgeNexoRegistryHandler extends NeoForgeNexoRegistryHandler {
+public class ClientNeoForgeMinecraftRegistryHandler extends NeoForgeMinecraftRegistryHandler {
 
-    public ClientNeoForgeNexoRegistryHandler(NeoForgeNexoMinecraft nexo) {
+    public ClientNeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 

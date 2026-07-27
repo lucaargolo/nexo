@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.entity;
 
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
@@ -10,7 +10,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -47,7 +47,7 @@ public final class MinecraftEntity extends EntityBase {
     @NotNull
     private final Holder<EntityType<?>> holder;
 
-    private MinecraftEntity(NexoRegistryHandler<?> helper, @NotNull Holder<EntityType<?>> holder) {
+    private MinecraftEntity(MinecraftRegistryHandler<?> helper, @NotNull Holder<EntityType<?>> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ENTITY, holder));
         this.holder = holder;
     }
@@ -67,7 +67,7 @@ public final class MinecraftEntity extends EntityBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static EntityBase register(NexoRegistryHandler<?> helper, EntityBase entity) {
+    public static EntityBase register(MinecraftRegistryHandler<?> helper, EntityBase entity) {
         EntityBase registered = FEATURE_MAP.get(entity.location());
         if (registered != null) {
             return registered;
@@ -78,22 +78,22 @@ public final class MinecraftEntity extends EntityBase {
         return entity;
     }
 
-    public static EntityBase index(NexoRegistryHandler<?> helper, Holder<EntityType<?>> holder) {
+    public static EntityBase index(MinecraftRegistryHandler<?> helper, Holder<EntityType<?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(helper, holder));
     }
 
-    public static <M extends Entity> EntityType<?> craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
-        extender.override(NexoUtils.At.AFTER_SUPER, "tick", void.class, feature -> {
+    public static <M extends Entity> EntityType<?> craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
+        extender.override(Utils.At.AFTER_SUPER, "tick", void.class, feature -> {
             if (entity.ticker() != null) {
                 entity.ticker().tick(helper.nexo().entityToUnit(feature));
             }
             return null;
         });
-        extender.override(NexoUtils.At.AFTER_SUPER, "defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
-        extender.override(NexoUtils.At.AFTER_SUPER, "readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
-        extender.override(NexoUtils.At.AFTER_SUPER, "addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
+        extender.override(Utils.At.AFTER_SUPER, "defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
+        extender.override(Utils.At.AFTER_SUPER, "readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
+        extender.override(Utils.At.AFTER_SUPER, "addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
 
         Function<Parameters, M> entityFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.type(), parameters.level());
         return EntityType.Builder

@@ -10,13 +10,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class PNGImageResource extends ImageResource.PNG {
+public class MinecraftPNGImageResource extends ImageResource.PNG {
 
     private static final Map<Location, PNG> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private PNGImageResource(Location location, boolean resolved, Supplier<byte[]> supplier) {
+    private MinecraftPNGImageResource(Location location, boolean resolved, Supplier<byte[]> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -28,7 +28,7 @@ public class PNGImageResource extends ImageResource.PNG {
 
     public static PNG lookup(NexoMinecraft nexo, Location location) {
         byte[] data = lookupImage(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new PNGImageResource(location, data != null, data != null ? () -> data : () -> lookupImage(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftPNGImageResource(location, data != null, data != null ? () -> data : () -> lookupImage(nexo, location)));
     }
 
     private static byte @Nullable [] lookupImage(NexoMinecraft nexo, Location location) {
@@ -53,6 +53,7 @@ public class PNGImageResource extends ImageResource.PNG {
     }
 
     @NotNull
+    //TODO: Actually provide the PNG back to Minecraft
     public static PNG register(@NotNull NexoMinecraft nexo, @NotNull PNG resource) {
         Location location = resource.location().withPath(l -> {
             return l.path().replace("textures/", "").replace(".png", "");

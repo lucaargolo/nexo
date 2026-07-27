@@ -28,13 +28,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoMinecraft> {
+public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<FabricNexoMinecraft> {
 
     private final Map<Block, ResourceLocation> blockToModel = new HashMap<>();
     private final Map<ResourceLocation, UnbakedModel> unbakedModels = new HashMap<>();
     private final Set<ResourceLocation> itemModelIds = new HashSet<>();
 
-    public FabricNexoRenderingHandler(FabricNexoMinecraft nexo) {
+    public FabricMinecraftRenderingHandler(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -46,8 +46,8 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
         WorldRenderEvents.LAST.register(context -> shaderRenderer.endFrame());
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderRenderer.close());
         SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
-            registered.addAll(nexoAtlas.getRegistered(atlas));
-            embedded.putAll(nexoAtlas.getEmbedded(atlas));
+            registered.addAll(minecraftAtlas.getRegistered(atlas));
+            embedded.putAll(minecraftAtlas.getEmbedded(atlas));
             return this.nexo();
         });
 
@@ -71,7 +71,7 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
 
     @Override
     protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
-        registerResourceModel(modelId, model);
+        registerModel(modelId, model);
         if (feature instanceof BlockBase block) {
             blockToModel.put(MinecraftFeatureType.BLOCK.convert(block), modelId);
         } else if (feature instanceof ItemBase) {
@@ -80,7 +80,7 @@ public class FabricNexoRenderingHandler extends NexoRenderingHandler<FabricNexoM
     }
 
     @Override
-    public void registerResourceModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         unbakedModels.put(modelId, model.get());
     }
 

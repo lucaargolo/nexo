@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.world;
 
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
@@ -39,7 +39,7 @@ public class MinecraftBiome extends BiomeBase {
     @NotNull
     private final Holder<Biome> holder;
 
-    private MinecraftBiome(NexoRegistryHandler<?> helper, @NotNull Holder<Biome> holder) {
+    private MinecraftBiome(MinecraftRegistryHandler<?> helper, @NotNull Holder<Biome> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.BIOME, holder));
         this.holder = holder;
     }
@@ -53,7 +53,7 @@ public class MinecraftBiome extends BiomeBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static BiomeBase register(NexoRegistryHandler<?> helper, BiomeBase biome) {
+    public static BiomeBase register(MinecraftRegistryHandler<?> helper, BiomeBase biome) {
         BiomeBase registered = FEATURE_MAP.get(biome.location());
         if (registered != null) {
             return registered;
@@ -64,13 +64,13 @@ public class MinecraftBiome extends BiomeBase {
         return biome;
     }
 
-    public static BiomeBase index(NexoRegistryHandler<?> helper, Holder<Biome> holder) {
+    public static BiomeBase index(MinecraftRegistryHandler<?> helper, Holder<Biome> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBiome(helper, holder));
     }
 
-    public static Biome craft(NexoRegistryHandler<?> helper, BiomeBase biome) {
+    public static Biome craft(MinecraftRegistryHandler<?> helper, BiomeBase biome) {
         return new Biome.BiomeBuilder()
                 .temperature(0.0f)
                 .downfall(0.0f)

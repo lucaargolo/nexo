@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.world;
 
-import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
+import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -9,9 +9,9 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoRegistryHandler> {
+public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeMinecraftRegistryHandler> {
 
-    public NeoForgeMinecraftWorldUnit(@NotNull NeoForgeNexoRegistryHandler helper, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+    public NeoForgeMinecraftWorldUnit(@NotNull NeoForgeMinecraftRegistryHandler helper, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
         super(helper, feature, role, level);
     }
 

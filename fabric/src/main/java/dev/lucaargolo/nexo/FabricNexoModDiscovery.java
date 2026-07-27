@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.impl.FabricLoaderImpl;
 
@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<FabricNexoMinecraft> {
+public class FabricNexoModDiscovery extends NexoModDiscovery<FabricNexoMinecraft> {
 
-    public FabricNexoModDiscoveryHandler(FabricNexoMinecraft nexo) {
+    public FabricNexoModDiscovery(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -27,7 +27,7 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
 
         for (var container : FabricLoader.getInstance().getAllMods()) {
             for (Path path : container.getRootPaths()) {
-                NexoModDiscoveryHandler.addPath(path, jars, dirs);
+                NexoModDiscovery.addPath(path, jars, dirs);
             }
         }
 
@@ -35,7 +35,7 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         if (fabricCp != null) {
             try {
                 for (String entry : Files.readString(Path.of(fabricCp)).split(File.pathSeparator)) {
-                    NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
+                    NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
                 }
             } catch (IOException ignored) {
             }
@@ -44,7 +44,7 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         String sysCp = System.getProperty("java.class.path");
         if (sysCp != null) {
             for (String entry : sysCp.split(File.pathSeparator)) {
-                NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
+                NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
             }
         }
 
@@ -52,7 +52,7 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         if (Files.isDirectory(modsDir)) {
             try (var stream = Files.list(modsDir)) {
                 stream.filter(p -> p.getFileName().toString().endsWith(".jar"))
-                      .forEach(p -> NexoModDiscoveryHandler.addPath(p, jars, dirs));
+                      .forEach(p -> NexoModDiscovery.addPath(p, jars, dirs));
             } catch (IOException ignored) {
             }
         }
@@ -65,8 +65,8 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
         try {
             FabricLoaderImpl impl = (FabricLoaderImpl) FabricLoader.getInstance();
 
-            List<Object> mods = NexoUtils.getField(FabricLoaderImpl.class, "mods", impl);
-            Map<String, Object> modMap = NexoUtils.getField(FabricLoaderImpl.class, "modMap", impl);
+            List<Object> mods = Utils.getField(FabricLoaderImpl.class, "mods", impl);
+            Map<String, Object> modMap = Utils.getField(FabricLoaderImpl.class, "modMap", impl);
 
             for (Nexo.Mod mod : this.mods.values()) {
                 FabricNexoModContainer container = new FabricNexoModContainer(mod);

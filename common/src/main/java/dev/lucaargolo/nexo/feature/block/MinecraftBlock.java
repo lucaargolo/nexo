@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.block;
 
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -21,7 +21,7 @@ import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -83,11 +83,11 @@ public class MinecraftBlock extends BlockBase {
     };
 
     @NotNull
-    private final NexoRegistryHandler<?> helper;
+    private final MinecraftRegistryHandler<?> helper;
     @NotNull
     private final Holder<Block> holder;
 
-    private MinecraftBlock(@NotNull NexoRegistryHandler<?> helper, @NotNull Holder<Block> holder) {
+    private MinecraftBlock(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<Block> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.BLOCK, holder));
         this.helper = helper;
         this.holder = holder;
@@ -129,7 +129,7 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static BlockBase register(NexoRegistryHandler<?> helper, BlockBase block) {
+    public static BlockBase register(MinecraftRegistryHandler<?> helper, BlockBase block) {
         BlockBase registered = FEATURE_MAP.get(block.location());
         if (registered != null) {
             return registered;
@@ -143,18 +143,17 @@ public class MinecraftBlock extends BlockBase {
                 return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
             });
             ENTITY_HOLDER_MAP.put(block.location(), holder);
-            helper.nexo().getRenderingHandler().registerBlockRenderer(block);
         }
         return block;
     }
 
-    public static BlockBase index(NexoRegistryHandler<?> helper, Holder<Block> holder) {
+    public static BlockBase index(MinecraftRegistryHandler<?> helper, Holder<Block> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(helper, holder));
     }
 
-    public static <M extends Block> Block craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
+    public static <M extends Block> Block craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
         @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
         for (DataBase<?> data : block.data()) {
             if (data instanceof DataBase.Constrained<?> constrained) {
@@ -169,13 +168,13 @@ public class MinecraftBlock extends BlockBase {
             feature.registerDefaultState(state);
             return null;
         });
-        extender.override(NexoUtils.At.AFTER_SUPER, "createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, builder) -> {
+        extender.override(Utils.At.AFTER_SUPER, "createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, builder) -> {
             for (DataProperty<?> property : dataProperties) {
                 builder.add(property);
             }
             return null;
         });
-        extender.override(NexoUtils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
+        extender.override(Utils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
             BlockUnit<?> unit = helper.nexo().blockToUnit(level, pos, state);
             WorldUnit<?> world = helper.nexo().levelToUnit(level);
             Interaction interaction = block.onInteract(unit, world, helper.nexo().entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));

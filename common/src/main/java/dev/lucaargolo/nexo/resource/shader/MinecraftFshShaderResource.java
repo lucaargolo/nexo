@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class FshShaderResource extends ShaderResource.FSH {
+public class MinecraftFshShaderResource extends ShaderResource.FSH {
 
     private static final Map<Location, FSH> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private FshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
+    private MinecraftFshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -29,7 +29,7 @@ public class FshShaderResource extends ShaderResource.FSH {
 
     public static FSH lookup(NexoMinecraft nexo, Location location) {
         String shader = lookupShader(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new FshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftFshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
     }
 
     @Nullable
@@ -52,6 +52,7 @@ public class FshShaderResource extends ShaderResource.FSH {
     }
 
     @NotNull
+    //TODO: Actually provide the FSH back to Minecraft
     public static FSH register(@NotNull NexoMinecraft nexo, @NotNull FSH resource) {
         Location location = resource.location().withPath(l -> {
             return l.path().replace("shaders/", "").replace(".fsh", "");

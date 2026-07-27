@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
 import dev.lucaargolo.nexo.util.DynamicRegistryViewImpl;
 import net.minecraft.core.Registry;
@@ -21,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 @Mixin(RegistryDataLoader.class)
 public class RegistryDataLoaderMixin {

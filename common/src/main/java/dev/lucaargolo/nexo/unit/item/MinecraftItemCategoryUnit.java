@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<R extends NexoRegistryHandler<?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<R extends MinecraftRegistryHandler<?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
 
     protected final @NotNull R helper;
     protected final @NotNull CreativeModeTab tab;

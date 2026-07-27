@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.item;
 
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -14,7 +14,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -49,13 +49,13 @@ public class MinecraftItem extends ItemBase {
         }
     };
 
-    private final @NotNull NexoRegistryHandler<?> helper;
+    private final @NotNull MinecraftRegistryHandler<?> helper;
     private final @NotNull Holder<Item> holder;
 
     private boolean computedCategory = false;
     private @Nullable ItemCategoryBase category;
 
-    private MinecraftItem(@NotNull NexoRegistryHandler<?> helper, @NotNull Holder<Item> holder) {
+    private MinecraftItem(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<Item> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
         this.helper = helper;
         this.holder = holder;
@@ -93,7 +93,7 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemBase register(NexoRegistryHandler<?> helper, ItemBase item) {
+    public static ItemBase register(MinecraftRegistryHandler<?> helper, ItemBase item) {
         ItemBase registered = FEATURE_MAP.get(item.location());
         if (registered != null) {
             return registered;
@@ -107,14 +107,14 @@ public class MinecraftItem extends ItemBase {
         return item;
     }
 
-    public static ItemBase index(NexoRegistryHandler<?> helper, Holder<Item> holder) {
+    public static ItemBase index(MinecraftRegistryHandler<?> helper, Holder<Item> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(helper, holder));
     }
 
-    public static <M extends Item> Item craft(NexoRegistryHandler<?> helper, @NotNull NexoUtils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
-        extender.override(NexoUtils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
+    public static <M extends Item> Item craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
+        extender.override(Utils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
             Ticker<ItemUnit<?>> ticker = item.ticker();
             if (ticker != null) {
                 ticker.tick(helper.nexo().stackToUnit(stack));

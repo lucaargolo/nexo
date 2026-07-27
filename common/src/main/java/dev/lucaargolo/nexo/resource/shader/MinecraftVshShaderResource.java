@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class VshShaderResource extends ShaderResource.VSH {
+public class MinecraftVshShaderResource extends ShaderResource.VSH {
 
     private static final Map<Location, VSH> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private VshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
+    private MinecraftVshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -29,7 +29,7 @@ public class VshShaderResource extends ShaderResource.VSH {
 
     public static VSH lookup(NexoMinecraft nexo, Location location) {
         String shader = lookupShader(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new VshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftVshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
     }
 
     @Nullable
@@ -52,6 +52,7 @@ public class VshShaderResource extends ShaderResource.VSH {
     }
 
     @NotNull
+    //TODO: Actually provide the VSH back to Minecraft
     public static VSH register(@NotNull NexoMinecraft nexo, @NotNull VSH resource) {
         Location location = resource.location().withPath(l -> {
             return l.path().replace("shaders/", "").replace(".vsh", "");

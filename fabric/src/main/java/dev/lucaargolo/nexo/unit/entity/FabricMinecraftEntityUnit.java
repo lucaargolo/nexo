@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.FabricNexoRegistryHandler;
+import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<FabricNexoRegistryHandler, C, E> {
+public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<FabricMinecraftRegistryHandler, C, E> {
 
-    public FabricMinecraftEntityUnit(@NotNull FabricNexoRegistryHandler helper, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+    public FabricMinecraftEntityUnit(@NotNull FabricMinecraftRegistryHandler helper, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
         super(helper, feature, role, entity);
     }
 

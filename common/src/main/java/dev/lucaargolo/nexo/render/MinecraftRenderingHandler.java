@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.lucaargolo.nexo.NexoAtlas;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.Event;
@@ -42,13 +41,13 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
+public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
 
     private final N nexo;
-    protected final NexoAtlas nexoAtlas = new NexoAtlas();
+    protected final MinecraftAtlas minecraftAtlas = new MinecraftAtlas();
     protected final MinecraftShaderRenderer shaderRenderer = new MinecraftShaderRenderer();
 
-    public NexoRenderingHandler(N nexo) {
+    public MinecraftRenderingHandler(N nexo) {
         this.nexo = nexo;
     }
 
@@ -62,11 +61,11 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             switch (feature) {
                 case BlockBase block -> {
                     Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
+                    ResourceLocation modelId = modelId(event.location(), feature);
+                    if (renderer != null && renderer.resolved()) {
+                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                    }
                     if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer) {
-                        ResourceLocation modelId = modelId(event.location(), feature);
-                        if (renderer.resolved()) {
-                            this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
-                        }
                         this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
                                 BlockState.class,
@@ -74,35 +73,34 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
                                 nexo::stateToUnit,
                                 staticRenderer
                         ));
-                    } else if (renderer != null && renderer.resolved()) {
-                        ResourceLocation modelId = modelId(event.location(), feature);
-                        this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
+                    } else {
                         this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
+                        this.registerBlockRenderer(block);
                     }
                 }
                 case ItemBase item -> {
                     Renderer<Graphics3D, ItemUnit<?>> renderer = item.renderer();
+                    ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer != null && renderer.resolved()) {
-                        ResourceLocation modelId = modelId(event.location(), feature);
-                        if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
-                            this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
-                            this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
-                                    nexo,
-                                    ItemStack.class,
-                                    MinecraftFeatureType.ITEM.convert(item).getDefaultInstance(),
-                                    nexo::stackToUnit,
-                                    staticRenderer
-                            ));
-                        } else {
-                            this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
-                            this.registerItemRenderer(item);
-                        }
+                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                    }
+                    if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
+                        this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
+                                nexo,
+                                ItemStack.class,
+                                MinecraftFeatureType.ITEM.convert(item).getDefaultInstance(),
+                                nexo::stackToUnit,
+                                staticRenderer
+                        ));
+                    } else {
+                        this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
+                        this.registerItemRenderer(item);
                     }
                 }
                 case EntityBase entity -> {
                     Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
                     if (renderer != null && renderer.resolved()) {
-                        this.registerTextures(nexo, renderer.materials().values(), NexoAtlas.BLOCK_ATLAS);
+                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
                     }
                     this.registerEntityRenderer(entity);
                 }
@@ -112,9 +110,9 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         });
     }
 
-    protected abstract void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
+    public abstract void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
-    public abstract void registerResourceModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
+    protected abstract void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
     protected abstract void registerItemRenderer(ItemBase item);
 
@@ -134,7 +132,7 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
         }
     }
 
-    public abstract void registerBlockRenderer(BlockBase block);
+    protected abstract void registerBlockRenderer(BlockBase block);
 
     protected <T extends BlockEntity> void registerBlockRenderer(BlockEntityType<T> type, BlockBase base, BiConsumer<BlockEntityType<T>, BlockEntityRendererProvider<T>> registrar) {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
@@ -193,9 +191,9 @@ public abstract class NexoRenderingHandler<N extends NexoMinecraft> {
             Location location = material.location();
             Object data = material.data();
             if(data instanceof Location) {
-                this.nexoAtlas.register(atlas, location);
+                this.minecraftAtlas.register(atlas, location);
             }else if(data instanceof byte[] array) {
-                this.nexoAtlas.register(atlas, location, array);
+                this.minecraftAtlas.register(atlas, location, array);
             }
         }
     }

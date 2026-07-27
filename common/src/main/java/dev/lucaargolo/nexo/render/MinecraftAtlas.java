@@ -1,6 +1,7 @@
-package dev.lucaargolo.nexo;
+package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
@@ -21,7 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public final class NexoAtlas {
+public final class MinecraftAtlas {
 
     public static final Location BLOCK_ATLAS = Location.of("minecraft", "textures/atlas/blocks.png");
 

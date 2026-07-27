@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler<NeoForgeNexoMinecraft> {
 
     private final Map<ResourceLocation, Supplier<UnbakedModel>> customModels = new ConcurrentHashMap<>();
     private final Map<ResourceLocation, Supplier<UnbakedModel>> blockModels = new ConcurrentHashMap<>();
@@ -50,7 +50,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     private final List<BlockBase> blocksToRegister = new ArrayList<>();
     private final List<EntityBase> entitiesToRegister = new ArrayList<>();
 
-    public NeoForgeNexoRenderingHandler(NeoForgeNexoMinecraft nexo) {
+    public NeoForgeMinecraftRenderingHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -98,15 +98,15 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
             }
         });
         this.nexo().modBus().addListener(SpriteAtlasStitchEvent.class, event -> {
-            event.registered().addAll(nexoAtlas.getRegistered(event.atlas()));
-            event.embedded().putAll(nexoAtlas.getEmbedded(event.atlas()));
+            event.registered().addAll(minecraftAtlas.getRegistered(event.atlas()));
+            event.embedded().putAll(minecraftAtlas.getEmbedded(event.atlas()));
             event.setNexo(this.nexo());
         });
     }
 
     @Override
     protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
-        registerResourceModel(modelId, model);
+        registerModel(modelId, model);
         if (feature instanceof BlockBase) {
             ResourceLocation blockKey = NexoMinecraft.rl(feature.location());
             blockModels.put(blockKey, model);
@@ -116,7 +116,7 @@ public class NeoForgeNexoRenderingHandler extends NexoRenderingHandler<NeoForgeN
     }
 
     @Override
-    public void registerResourceModel( @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         customModels.put(modelId, model);
     }
 

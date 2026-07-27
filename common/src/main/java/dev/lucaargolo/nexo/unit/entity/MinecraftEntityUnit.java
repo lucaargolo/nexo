@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MinecraftEntityUnit<R extends NexoRegistryHandler<?>, C extends Role, E extends Entity> extends EntityUnit<C> implements MinecraftUnit<E> {
+public abstract class MinecraftEntityUnit<R extends MinecraftRegistryHandler<?>, C extends Role, E extends Entity> extends EntityUnit<C> implements MinecraftUnit<E> {
 
     @NotNull
     protected final R helper;

@@ -7,12 +7,12 @@ import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.resource.image.PNGImageResource;
-import dev.lucaargolo.nexo.resource.model.GltfModelResource;
-import dev.lucaargolo.nexo.resource.model.MinecraftModelResource;
-import dev.lucaargolo.nexo.resource.model.ObjModelResource;
-import dev.lucaargolo.nexo.resource.shader.FshShaderResource;
-import dev.lucaargolo.nexo.resource.shader.VshShaderResource;
+import dev.lucaargolo.nexo.resource.image.MinecraftPNGImageResource;
+import dev.lucaargolo.nexo.resource.model.MinecraftGltfModelResource;
+import dev.lucaargolo.nexo.resource.model.MinecraftMetaModelResource;
+import dev.lucaargolo.nexo.resource.model.MinecraftObjModelResource;
+import dev.lucaargolo.nexo.resource.shader.MinecraftFshShaderResource;
+import dev.lucaargolo.nexo.resource.shader.MinecraftVshShaderResource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,38 +27,38 @@ public class MinecraftResourceType<T extends Resource<T>> {
 
     public static final MinecraftResourceType<ModelResource.Minecraft> MINECRAFT_MODEL = new MinecraftResourceType<>(
             Resource.Type.MINECRAFT_MODEL,
-            MinecraftModelResource::lookup,
-            MinecraftModelResource::register
+            MinecraftMetaModelResource::lookup,
+            MinecraftMetaModelResource::register
     );
 
     public static final MinecraftResourceType<ModelResource.GLTF> GLTF_MODEL = new MinecraftResourceType<>(
             Resource.Type.GLTF_MODEL,
-            GltfModelResource::lookup,
-            GltfModelResource::register
+            MinecraftGltfModelResource::lookup,
+            MinecraftGltfModelResource::register
     );
 
     public static final MinecraftResourceType<ModelResource.OBJ> OBJ_MODEL = new MinecraftResourceType<>(
             Resource.Type.OBJ_MODEL,
-            ObjModelResource::lookup,
-            ObjModelResource::register
+            MinecraftObjModelResource::lookup,
+            MinecraftObjModelResource::register
     );
 
     public static final MinecraftResourceType<ImageResource.PNG> IMAGE_PNG = new MinecraftResourceType<>(
             Resource.Type.PNG_IMAGE,
-            PNGImageResource::lookup,
-            PNGImageResource::register
+            MinecraftPNGImageResource::lookup,
+            MinecraftPNGImageResource::register
     );
 
     public static final MinecraftResourceType<ShaderResource.VSH> VERTEX_SHADER = new MinecraftResourceType<>(
             Resource.Type.VSH_SHADER,
-            VshShaderResource::lookup,
-            VshShaderResource::register
+            MinecraftVshShaderResource::lookup,
+            MinecraftVshShaderResource::register
     );
 
     public static final MinecraftResourceType<ShaderResource.FSH> FRAGMENT_SHADER = new MinecraftResourceType<>(
             Resource.Type.FSH_SHADER,
-            FshShaderResource::lookup,
-            FshShaderResource::register
+            MinecraftFshShaderResource::lookup,
+            MinecraftFshShaderResource::register
     );
 
     private final BiFunction<NexoMinecraft, Location, T> lookup;

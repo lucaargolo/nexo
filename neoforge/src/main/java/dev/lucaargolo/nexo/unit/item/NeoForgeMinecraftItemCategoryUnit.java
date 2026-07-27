@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.NeoForgeNexoRegistryHandler;
+import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -9,10 +9,10 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<NeoForgeNexoRegistryHandler, C> {
+public class NeoForgeMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<NeoForgeMinecraftRegistryHandler, C> {
 
     public NeoForgeMinecraftItemCategoryUnit(
-            @NotNull NeoForgeNexoRegistryHandler helper,
+            @NotNull NeoForgeMinecraftRegistryHandler helper,
             @NotNull ItemCategoryBase feature,
             @Nullable C role,
             @NotNull CreativeModeTab tab

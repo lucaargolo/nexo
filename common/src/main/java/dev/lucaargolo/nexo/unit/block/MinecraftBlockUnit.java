@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public abstract class MinecraftBlockUnit<R extends NexoRegistryHandler<?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
+public abstract class MinecraftBlockUnit<R extends MinecraftRegistryHandler<?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
 
     protected final @NotNull R helper;
 

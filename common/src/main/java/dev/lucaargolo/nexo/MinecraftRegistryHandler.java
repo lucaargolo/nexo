@@ -18,14 +18,14 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public abstract class NexoRegistryHandler<N extends NexoMinecraft> {
+public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
 
     protected final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
     protected final Map<ResourceKey<?>, Holder<?>> dynamicHolders = new LinkedHashMap<>();
 
     private final N nexo;
 
-    public NexoRegistryHandler(N nexo) {
+    public MinecraftRegistryHandler(N nexo) {
         this.nexo = nexo;
     }
 

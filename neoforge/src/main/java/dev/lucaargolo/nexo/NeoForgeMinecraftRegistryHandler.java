@@ -35,12 +35,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class NeoForgeNexoRegistryHandler extends NexoRegistryHandler<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<NeoForgeNexoMinecraft> {
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
     private final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
 
-    public NeoForgeNexoRegistryHandler(NeoForgeNexoMinecraft nexo) {
+    public NeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 

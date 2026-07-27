@@ -7,7 +7,7 @@ import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -64,7 +64,7 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
     ) {
         Transformation transformation = modelState.getRotation();
         Matrix4f matrix = transformation.getMatrix();
-        return NexoUtils.loadPlatformClass(this.nexo, NexoBakedModel.class,
+        return Utils.loadPlatformClass(this.nexo, NexoBakedModel.class,
                 this,
                 textureGetter,
                 matrix,

@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.item;
 
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -40,7 +40,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     @NotNull
     private final Holder<CreativeModeTab> holder;
 
-    private MinecraftItemCategory(NexoRegistryHandler<?> helper, @NotNull Holder<CreativeModeTab> holder) {
+    private MinecraftItemCategory(MinecraftRegistryHandler<?> helper, @NotNull Holder<CreativeModeTab> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ITEM_CATEGORY, holder));
         this.holder = holder;
     }
@@ -54,7 +54,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemCategoryBase register(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
+    public static ItemCategoryBase register(MinecraftRegistryHandler<?> helper, ItemCategoryBase category) {
         ItemCategoryBase registered = FEATURE_MAP.get(category.location());
         if (registered != null) {
             return registered;
@@ -65,13 +65,13 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return category;
     }
 
-    public static ItemCategoryBase index(NexoRegistryHandler<?> helper, Holder<CreativeModeTab> holder) {
+    public static ItemCategoryBase index(MinecraftRegistryHandler<?> helper, Holder<CreativeModeTab> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItemCategory(helper, holder));
     }
 
-    public static CreativeModeTab craft(NexoRegistryHandler<?> helper, ItemCategoryBase category) {
+    public static CreativeModeTab craft(MinecraftRegistryHandler<?> helper, ItemCategoryBase category) {
         return helper.craftCreativeTab(category);
     }
 

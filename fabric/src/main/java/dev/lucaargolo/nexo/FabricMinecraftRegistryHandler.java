@@ -34,11 +34,11 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricNexoRegistryHandler extends NexoRegistryHandler<FabricNexoMinecraft> {
+public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<FabricNexoMinecraft> {
 
     private final Map<DataBase<?>, AttachmentType<?>> dataAttachmentMap = new LinkedHashMap<>();
 
-    public FabricNexoRegistryHandler(FabricNexoMinecraft nexo) {
+    public FabricMinecraftRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
     }
 

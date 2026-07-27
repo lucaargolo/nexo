@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.FabricNexoRegistryHandler;
+import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<FabricNexoRegistryHandler, C>{
+public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<FabricMinecraftRegistryHandler, C>{
 
-    public FabricMinecraftBlockUnit(@NotNull FabricNexoRegistryHandler helper, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public FabricMinecraftBlockUnit(@NotNull FabricMinecraftRegistryHandler helper, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         super(helper, feature, role, level, position, state, entity);
     }
 

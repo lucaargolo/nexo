@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.role;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.NexoRegistryHandler;
+import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
@@ -12,7 +12,7 @@ import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.role.entity.MinecraftPlayerRole;
 import dev.lucaargolo.nexo.role.item.MinecraftBlockItemRole;
-import dev.lucaargolo.nexo.util.NexoUtils;
+import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,9 +35,9 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, E, P>
     private final Feature.Type<F, ?> type;
     private final Class<M> clazz;
     private final BiFunction<NexoMinecraft, F, Info<E, P>> craft;
-    private final BiFunction<NexoRegistryHandler<?>, M, R> uncraft;
+    private final BiFunction<MinecraftRegistryHandler<?>, M, R> uncraft;
 
-    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft, F, Info<E, P>> craft, BiFunction<NexoRegistryHandler<?>, M, R> uncraft) {
+    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft, F, Info<E, P>> craft, BiFunction<MinecraftRegistryHandler<?>, M, R> uncraft) {
         this.type = type;
         this.clazz = clazz;
         this.craft = craft;
@@ -45,21 +45,21 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, E, P>
         TYPES.computeIfAbsent(type, t -> new ArrayList<>()).add(this);
     }
 
-    private Info<E, P> innerCraft(NexoRegistryHandler<?> helper, Feature<?, ?> feature) {
+    private Info<E, P> innerCraft(MinecraftRegistryHandler<?> helper, Feature<?, ?> feature) {
         if(this.type.isInstance(feature)) {
             return this.craft.apply(helper.nexo(), this.type.cast(feature));
         }
         return null;
     }
 
-    private R innerUncraft(NexoRegistryHandler<?> helper, Object object) {
+    private R innerUncraft(MinecraftRegistryHandler<?> helper, Object object) {
         if(this.clazz.isInstance(object)) {
             return this.uncraft.apply(helper, this.clazz.cast(object));
         }
         return null;
     }
 
-    public static <F extends Feature<F, ?>, E, P> @Nullable Info<E, P> craft(NexoRegistryHandler<?> helper, F feature) {
+    public static <F extends Feature<F, ?>, E, P> @Nullable Info<E, P> craft(MinecraftRegistryHandler<?> helper, F feature) {
         List<MinecraftRoleType<?, ?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
         for(MinecraftRoleType<?, ?, ?, ?, ?> roleType : list) {
             Info<?, ?> optional = roleType.innerCraft(helper, feature);
@@ -72,7 +72,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, E, P>
         return null;
     }
 
-    public static <F extends Feature<F, ?>, M> Supplier<Role> uncraft(NexoRegistryHandler<?> helper, Feature.Type<F, ?> type, Holder<M> holder) {
+    public static <F extends Feature<F, ?>, M> Supplier<Role> uncraft(MinecraftRegistryHandler<?> helper, Feature.Type<F, ?> type, Holder<M> holder) {
         return () -> {
             M crafted = holder.value();
             List<MinecraftRoleType<?, ?, ?, ?, ?>> list = TYPES.getOrDefault(type, List.of());
@@ -86,7 +86,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, E, P>
         };
     }
 
-    public record Info<M, P>(@NotNull NexoUtils.Extender<M> extender, @Nullable Function<P, M> factory) {
+    public record Info<M, P>(@NotNull Utils.Extender<M> extender, @Nullable Function<P, M> factory) {
 
         public Info {
             Objects.requireNonNull(extender, "extender");

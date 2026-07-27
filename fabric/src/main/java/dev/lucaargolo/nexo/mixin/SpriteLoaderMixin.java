@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.mixin;
 
-import dev.lucaargolo.nexo.NexoAtlas;
+import dev.lucaargolo.nexo.render.MinecraftAtlas;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
@@ -30,7 +30,7 @@ public class SpriteLoaderMixin {
         List<Location> registered = new LinkedList<>();
         Map<Location, byte[]> embedded = new LinkedHashMap<>();
         Nexo nexo = SpriteAtlasStitchCallback.EVENT.invoker().onStitch(atlasKey, registered, embedded);
-        return NexoAtlas.collectSpriteContents(nexo, contents, registered, embedded);
+        return MinecraftAtlas.collectSpriteContents(nexo, contents, registered, embedded);
     }
 
 
