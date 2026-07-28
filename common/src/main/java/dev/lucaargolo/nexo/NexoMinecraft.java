@@ -9,6 +9,8 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.packet.Packet;
+import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -18,6 +20,8 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
+import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
 import dev.lucaargolo.nexo.render.MinecraftRenderingHandler;
 import dev.lucaargolo.nexo.resource.MinecraftResourceType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
@@ -161,7 +165,7 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
-    public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature) {
+    public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>, F extends T> F registerFeature(@NotNull F feature) {
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
@@ -175,6 +179,21 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature) {
         return MinecraftFeatureType.of(feature.type()).unit(this.registryHandler, feature);
+    }
+
+    @Override
+    public final void sendPacket(@NotNull PacketReceiver receiver, @NotNull Packet<?, ?> packet) {
+        Packet<?, ?> registered = MinecraftPacket.lookup(packet.location());
+        if (registered == null) {
+            throw new IllegalArgumentException("Cannot send unregistered packet: " + packet.location());
+        }
+        sendMinecraftPacket(receiver, new MinecraftPacketPayload(packet));
+    }
+
+    protected abstract void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload);
+
+    public final void handleMinecraftPacket(@NotNull MinecraftPacketPayload payload, @NotNull PacketReceiver receiver) {
+        payload.packet().dispatch(receiver, ByteBuffer.wrap(payload.data()));
     }
 
     @Override

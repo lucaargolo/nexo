@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistryView;
+import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.core.Holder;
@@ -23,6 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -44,7 +46,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
 
     @Override
     public void init() {
-        MinecraftFeatureType.all().forEach(this::addBuiltinRegistryListener);
+        super.init();
         DynamicRegistrySetupCallback.EVENT.register(view -> {
             MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(view, type));
             dynamicRegistrars.forEach((key, registrar) -> {
@@ -62,6 +64,11 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     @Override
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         return Registry.registerForHolder(registry, id, feature.get());
+    }
+
+    @Override
+    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
+        return FabricRegistryBuilder.createSimple(registryKey).buildAndRegister();
     }
 
     @Override
@@ -97,7 +104,8 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         return null;
     }
 
-    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
+    @Override
+    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             RegistryEntryAddedCallback.allEntries(registry, holder -> {
                 this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));

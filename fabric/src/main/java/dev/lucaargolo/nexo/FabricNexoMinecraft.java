@@ -1,13 +1,19 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.util.Side;
+import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
+import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.server.MinecraftServer;
@@ -28,11 +34,26 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public void onInitialize() {
         this.init();
+        PayloadTypeRegistry.playC2S().register(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(MinecraftPacketPayload.TYPE, (payload, context) -> this.handleMinecraftPacket(payload, this.entityToUnit(context.player())));
         ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         ServerTickEvents.END_WORLD_TICK.register(this::tickWorld);
         if (this.getSide() == Side.CLIENT) {
+            ClientPlayNetworking.registerGlobalReceiver(MinecraftPacketPayload.TYPE, (payload, context) -> this.handleMinecraftPacket(payload, PacketReceiver.client()));
             ClientTickEvents.END_WORLD_TICK.register(this::tickWorld);
+        }
+    }
+
+    @Override
+    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
+        if (receiver == PacketReceiver.server()) {
+            ClientPlayNetworking.send(payload);
+        } else if (receiver instanceof MinecraftEntityUnit<?, ?, ?> unit && unit.get() instanceof ServerPlayer player) {
+            ServerPlayNetworking.send(player, payload);
+        } else {
+            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
         }
     }
 

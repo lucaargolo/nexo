@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -22,6 +23,7 @@ import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
+import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
 import dev.lucaargolo.nexo.feature.world.MinecraftBiome;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
@@ -68,6 +70,18 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftData::lookup,
             MinecraftData.CONVERT,
             Map.of(DataComponentType.class, MinecraftFeatureType.<DataBase<?>, DataComponentType<?>>direct(Nexo.type(DataComponentType.class), MinecraftData::craft))
+    );
+
+    public static final MinecraftFeatureType<Packet<?, ?>, Unit<Packet<?, ?>, ?>, Packet<?, ?>> PACKET = new MinecraftFeatureType<>(
+            Nexo.type(Packet.class),
+            Feature.Type.packet(),
+            MinecraftPacket.REGISTRY,
+            true,
+            MinecraftPacket::register,
+            MinecraftPacket::index,
+            MinecraftPacket::lookup,
+            MinecraftPacket.CONVERT,
+            Map.of(Packet.class, direct(Nexo.type(Packet.class), MinecraftPacket::craft))
     );
 
     public static final MinecraftFeatureType<BlockBase, BlockUnit<?>, Block> BLOCK = new MinecraftFeatureType<>(
@@ -141,7 +155,8 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
 
     private final Class<M> minecraftType;
     private final Feature.Type<T, U> type;
-    private final ResourceKey<? extends Registry<M>> registry;
+    private final ResourceKey<Registry<M>> registry;
+    private final boolean customRegistry;
     private final BiFunction<MinecraftRegistryHandler<?>, T, T> registrar;
     private final BiFunction<MinecraftRegistryHandler<?>, Holder<M>, T> index;
     private final Function<Location, T> lookup;
@@ -152,7 +167,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     private MinecraftFeatureType(
             Class<M> minecraftType,
             Feature.Type<T, U> type,
-            ResourceKey<? extends Registry<M>> registry,
+            ResourceKey<Registry<M>> registry,
             BiFunction<MinecraftRegistryHandler<?>, T, T> registrar,
             BiFunction<MinecraftRegistryHandler<?>, Holder<M>, T> index,
             Function<Location, T> lookup,
@@ -165,7 +180,36 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     private MinecraftFeatureType(
             Class<M> minecraftType,
             Feature.Type<T, U> type,
-            ResourceKey<? extends Registry<M>> registry,
+            ResourceKey<Registry<M>> registry,
+            BiFunction<MinecraftRegistryHandler<?>, T, T> registrar,
+            BiFunction<MinecraftRegistryHandler<?>, Holder<M>, T> index,
+            Function<Location, T> lookup,
+            Bijection<T, Holder<M>> convert,
+            Map<Class<?>, CraftStrategy<T>> crafters,
+            @Nullable MinecraftFeatureType.UnitCrafter<T, U, M> unitCrafter
+    ) {
+        this(minecraftType, type, registry, false, registrar, index, lookup, convert, crafters, unitCrafter);
+    }
+
+    private MinecraftFeatureType(
+            Class<M> minecraftType,
+            Feature.Type<T, U> type,
+            ResourceKey<Registry<M>> registry,
+            boolean customRegistry,
+            BiFunction<MinecraftRegistryHandler<?>, T, T> registrar,
+            BiFunction<MinecraftRegistryHandler<?>, Holder<M>, T> index,
+            Function<Location, T> lookup,
+            Bijection<T, Holder<M>> convert,
+            Map<Class<?>, CraftStrategy<T>> crafters
+    ) {
+        this(minecraftType, type, registry, customRegistry, registrar, index, lookup, convert, crafters, null);
+    }
+
+    private MinecraftFeatureType(
+            Class<M> minecraftType,
+            Feature.Type<T, U> type,
+            ResourceKey<Registry<M>> registry,
+            boolean customRegistry,
             BiFunction<MinecraftRegistryHandler<?>, T, T> registrar,
             BiFunction<MinecraftRegistryHandler<?>, Holder<M>, T> index,
             Function<Location, T> lookup,
@@ -176,6 +220,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         this.minecraftType = minecraftType;
         this.type = type;
         this.registry = registry;
+        this.customRegistry = customRegistry;
         this.registrar = registrar;
         this.index = index;
         this.lookup = lookup;
@@ -189,8 +234,12 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return this.type.isInstance(feature);
     }
 
-    public ResourceKey<? extends Registry<M>> registry() {
+    public ResourceKey<Registry<M>> registry() {
         return registry;
+    }
+
+    public boolean customRegistry() {
+        return customRegistry;
     }
 
     public @NotNull T register(MinecraftRegistryHandler<?> helper, Feature<?, ?> feature) {

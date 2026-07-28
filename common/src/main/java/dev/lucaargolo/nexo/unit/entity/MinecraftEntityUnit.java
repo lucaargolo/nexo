@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
@@ -25,5 +26,10 @@ public abstract class MinecraftEntityUnit<R extends MinecraftRegistryHandler<?>,
     @Override
     public @NotNull E get() {
         return this.entity;
+    }
+
+    @Override
+    public @NotNull WorldUnit<?> world() {
+        return this.helper.nexo().levelToUnit(this.entity.level());
     }
 }

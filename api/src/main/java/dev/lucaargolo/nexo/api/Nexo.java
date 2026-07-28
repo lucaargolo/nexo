@@ -2,6 +2,8 @@ package dev.lucaargolo.nexo.api;
 
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.packet.Packet;
+import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -23,9 +25,11 @@ public interface Nexo {
 
     @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location);
 
-    @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>> T registerFeature(@NotNull T feature);
+    @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>, F extends T> F registerFeature(@NotNull F feature);
 
     @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature);
+
+    void sendPacket(@NotNull PacketReceiver receiver, @NotNull Packet<?, ?> packet);
 
     @Nullable <T extends Resource<T>> T getResource(@NotNull Resource.Type<T> type, @NotNull Location location);
 

@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -20,6 +21,8 @@ import java.util.function.Supplier;
 
 public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
 
+    private final Map<ResourceKey<?>, Registry<?>> customRegistries = new LinkedHashMap<>();
+
     protected final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
     protected final Map<ResourceKey<?>, Holder<?>> dynamicHolders = new LinkedHashMap<>();
 
@@ -33,9 +36,35 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
         return nexo;
     }
 
-    public abstract void init();
+    public void init() {
+        MinecraftFeatureType.all().forEach(type -> {
+            if (type.customRegistry()) {
+                this.getOrCreateRegistry(type.registry());
+            }
+            this.addBuiltinRegistryListener(type);
+        });
+    }
 
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
+
+    public final <T> Holder<T> registerBuiltinFeature(ResourceKey<Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
+        return registerBuiltinFeature(getOrCreateRegistry(registryKey), id, feature);
+    }
+
+    protected final <T> Registry<T> getOrCreateRegistry(ResourceKey<Registry<T>> registryKey) {
+        RegistryAccess registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+        return registries.registry(registryKey).orElseGet(() -> {
+            Registry<?> existing = customRegistries.get(registryKey);
+            if (existing == null) {
+                existing = createRegistry(registryKey);
+                customRegistries.put(registryKey, existing);
+            }
+            Class<Registry<T>> clazz = Nexo.type(Registry.class);
+            return clazz.cast(existing);
+        });
+    }
+
+    protected abstract <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey);
 
     public <T> void registerDynamicFeature(ResourceKey<? extends Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {
         ResourceKey<T> key = ResourceKey.create(registryKey, id);
@@ -56,6 +85,8 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     public abstract CreativeModeTab craftCreativeTab(ItemCategoryBase category);
 
     protected abstract RegistryAccess getLocalRegistry();
+
+    protected abstract <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type);
 
     public final RegistryAccess getRegistry() {
         RegistryAccess localRegistry = getLocalRegistry();

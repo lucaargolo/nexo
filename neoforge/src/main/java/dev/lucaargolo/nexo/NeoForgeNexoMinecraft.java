@@ -1,9 +1,14 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.util.Side;
+import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
+import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
+import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
@@ -13,6 +18,8 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,8 +33,29 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
+        this.modBus.addListener(this::registerPackets);
         this.init();
         NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> this.tickWorld(event.getLevel()));
+    }
+
+    private void registerPackets(RegisterPayloadHandlersEvent event) {
+        event.registrar("1").playBidirectional(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC, (payload, context) -> {
+            PacketReceiver receiver = context.flow() == PacketFlow.SERVERBOUND
+                    ? this.entityToUnit((ServerPlayer) context.player())
+                    : PacketReceiver.client();
+            this.handleMinecraftPacket(payload, receiver);
+        });
+    }
+
+    @Override
+    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
+        if (receiver == PacketReceiver.server()) {
+            PacketDistributor.sendToServer(payload);
+        } else if (receiver instanceof MinecraftEntityUnit<?, ?, ?> unit && unit.get() instanceof ServerPlayer player) {
+            PacketDistributor.sendToPlayer(player, payload);
+        } else {
+            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
+        }
     }
 
     public IEventBus modBus() {

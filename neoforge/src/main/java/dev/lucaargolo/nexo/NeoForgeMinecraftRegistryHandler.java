@@ -18,6 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.dimension.LevelStem;
@@ -46,7 +47,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
 
     @Override
     public void init() {
-        MinecraftFeatureType.all().forEach(this::addBuiltinRegistryListener);
+        super.init();
         NeoForge.EVENT_BUS.addListener(DynamicRegistrySetupEvent.class, event -> {
             MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(event.view(), type));
             dynamicRegistrars.forEach((key, registrar) -> {
@@ -65,6 +66,16 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
         return deferredRegistry.register(id.getPath(), feature);
+    }
+
+    @Override
+    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
+        DeferredRegister<T> deferredRegistry = DeferredRegister.create(registryKey, NexoMinecraft.MOD_ID);
+        Registry<T> registry = deferredRegistry.makeRegistry(builder -> {
+        });
+        deferredRegistry.register(this.nexo().modBus());
+        deferredRegistries.computeIfAbsent(registry, key -> new HashMap<>()).put(NexoMinecraft.MOD_ID, deferredRegistry);
+        return registry;
     }
 
     @Override
@@ -100,7 +111,8 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         return null;
     }
 
-    private <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
+    @Override
+    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             Consumer<Holder<M>> consumer = (holder) -> {
                 this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
