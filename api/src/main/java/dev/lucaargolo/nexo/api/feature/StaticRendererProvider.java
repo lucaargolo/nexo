@@ -1,11 +1,11 @@
 package dev.lucaargolo.nexo.api.feature;
 
-import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import org.jetbrains.annotations.Nullable;
 
-public interface StaticRendererProvider<U> extends RendererProvider<U> {
+public interface StaticRendererProvider<G extends Graphics2D, U> extends RendererProvider<G, U> {
 
     @Override
-    @Nullable StaticRenderer<Graphics3D, U> renderer();
+    @Nullable StaticRenderer<G, U> renderer();
 }

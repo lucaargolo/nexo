@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -15,6 +16,7 @@ import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -88,6 +90,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>(EntityBase.class, Nexo.type(EntityUnit.class));
         public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>(WorldBase.class, Nexo.type(WorldUnit.class));
         public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>(BiomeBase.class);
+        public static final @NotNull Type<ScreenBase, ScreenUnit<?>> SCREEN = new Type<>(ScreenBase.class, Nexo.type(ScreenUnit.class));
 
         private final @NotNull Class<T> featureType;
         private final @Nullable Class<U> unitType;

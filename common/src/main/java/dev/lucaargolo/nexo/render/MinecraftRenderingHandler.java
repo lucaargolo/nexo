@@ -9,13 +9,12 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.Material;
-import dev.lucaargolo.nexo.api.render.Renderer;
-import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
+import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
@@ -53,6 +52,10 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
 
     public N nexo() {
         return nexo;
+    }
+
+    public MinecraftShaderRenderer shaderRenderer() {
+        return shaderRenderer;
     }
 
     public void init() {
@@ -103,6 +106,12 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                         this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
                     }
                     this.registerEntityRenderer(entity);
+                }
+                case ScreenBase screen -> {
+                    Renderer<Graphics2D, ScreenUnit<?>> renderer = screen.renderer();
+                    if (renderer != null && renderer.resolved()) {
+                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                    }
                 }
                 default -> {}
             }

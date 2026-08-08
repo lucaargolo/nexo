@@ -9,6 +9,7 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -16,6 +17,7 @@ import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
@@ -24,12 +26,14 @@ import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreenRegistry;
 import dev.lucaargolo.nexo.feature.world.MinecraftBiome;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
@@ -151,6 +155,19 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftBiome::lookup,
             MinecraftBiome.CONVERT,
             Map.of(Biome.class, direct(Biome.class, MinecraftBiome::craft))
+    );
+
+    public static final MinecraftFeatureType<ScreenBase, ScreenUnit<?>, ScreenBase> SCREEN = new MinecraftFeatureType<>(
+            ScreenBase.class,
+            Feature.Type.SCREEN,
+            MinecraftScreenRegistry.REGISTRY,
+            true,
+            MinecraftScreenRegistry::register,
+            MinecraftScreenRegistry::index,
+            MinecraftScreenRegistry::lookup,
+            MinecraftScreenRegistry.CONVERT,
+            Map.of(ScreenBase.class, direct(ScreenBase.class, MinecraftScreenRegistry::craft)),
+            (helper, feature, screen) -> new MinecraftScreenUnit<>(helper, feature, feature.role())
     );
 
     private final Class<M> minecraftType;

@@ -26,7 +26,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
 
-public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D {
+public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D implements Graphics3D {
 
     private static final Location MISSING_TEXTURE = Location.of("minecraft", "missingno");
 

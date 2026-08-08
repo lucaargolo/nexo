@@ -16,11 +16,12 @@ import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
+import dev.lucaargolo.nexo.api.feature.screen.SimpleScreen;
 import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.Material;
-import dev.lucaargolo.nexo.api.render.Renderer;
-import dev.lucaargolo.nexo.api.render.Transform;
+import dev.lucaargolo.nexo.api.input.Axis;
+import dev.lucaargolo.nexo.api.input.Input;
+import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderBuiltins;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
@@ -33,6 +34,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -72,6 +74,28 @@ public class NexoTestMod {
             }
         });
 
+        ScreenBase testScreen = nexo.registerFeature(new SimpleScreen(
+                id("test_screen"),
+                screenRenderer()
+        ) {
+            @Override
+            public boolean onInputPressed(@NotNull ScreenUnit<?> screen, @NotNull Input input) {
+                nexo.getLogger().info("Screen input pressed: {}", input);
+                return false;
+            }
+
+            @Override
+            public boolean onInputReleased(@NotNull ScreenUnit<?> screen, @NotNull Input input) {
+                nexo.getLogger().info("Screen input released: {}", input);
+                return false;
+            }
+
+            @Override
+            public void onInputMove(@NotNull ScreenUnit<?> screen, @NotNull Axis axis, float delta) {
+                nexo.getLogger().info("Screen input move: {} {}", axis, delta);
+            }
+        });
+
         ModelResource.Minecraft packetTestModel = ModelResource.Minecraft.full(Location.of("minecraft", "block/bedrock"));
         BlockBase packetTestBlock = nexo.registerFeature(new SimpleBlock(
                 id("packet_test_block"),
@@ -80,6 +104,10 @@ public class NexoTestMod {
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
                 if (world.side().isClient()) {
+                    ScreenUnit<?> unit = nexo.unit(testScreen);
+                    if (unit != null) {
+                        unit.open();
+                    }
                     nexo.sendPacket(PacketReceiver.server(), packet);
                 }
                 return Interaction.SUCCESS;
@@ -353,6 +381,44 @@ public class NexoTestMod {
         return new Renderer<>() {
             @Override
             public void render(@NotNull Graphics3D graphics, @NotNull U unit) {
+            }
+
+            @Override
+            public @NotNull Map<String, Material<?>> materials() {
+                return Map.of();
+            }
+
+            @Override
+            public @NotNull Transform transform(@NotNull Location location) {
+                return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F));
+            }
+        };
+    }
+
+    private static @NotNull Renderer<Graphics2D, ScreenUnit<?>> screenRenderer() {
+        return new Renderer<>() {
+            @Override
+            public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> unit) {
+                graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
+                graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
+
+                graphics.pushState();
+                graphics.pushMatrix();
+                graphics.translate(20.0F, 20.0F);
+                graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
+                graphics.drawText("Nexo Screen", 0.0F, 0.0F);
+                graphics.drawText("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y(), 0.0F, 10.0F);
+                graphics.popMatrix();
+                graphics.popState();
+
+                graphics.color(0.5F, 0.1F, 0.1F, 1.0F);
+                graphics.fillRoundedRect(
+                        unit.mouse().x() - 4.0F,
+                        unit.mouse().y() - 4.0F,
+                        8.0F,
+                        8.0F,
+                        2.0F
+                );
             }
 
             @Override
