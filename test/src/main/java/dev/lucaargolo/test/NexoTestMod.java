@@ -74,9 +74,32 @@ public class NexoTestMod {
         });
 
         ScreenBase testScreen = nexo.registerFeature(new SimpleScreen(
-                id("test_screen"),
-                screenRenderer()
+                id("test_screen")
         ) {
+            @Override
+            public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> unit) {
+                graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
+                graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
+
+                graphics.pushState();
+                graphics.pushMatrix();
+                graphics.translate(20.0F, 20.0F);
+                graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
+                graphics.drawText("Nexo Screen", 0.0F, 0.0F);
+                graphics.drawText("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y(), 0.0F, 10.0F);
+                graphics.popMatrix();
+                graphics.popState();
+
+                graphics.color(0.5F, 0.1F, 0.1F, 1.0F);
+                graphics.fillRoundedRect(
+                        unit.mouse().x() - 4.0F,
+                        unit.mouse().y() - 4.0F,
+                        8.0F,
+                        8.0F,
+                        2.0F
+                );
+            }
+
             @Override
             public boolean onInputPressed(@NotNull ScreenUnit<?> screen, @NotNull Input input) {
                 nexo.getLogger().info("Screen input pressed: {}", input);
@@ -380,44 +403,6 @@ public class NexoTestMod {
         return new Renderer<>() {
             @Override
             public void render(@NotNull Graphics3D graphics, @NotNull U unit) {
-            }
-
-            @Override
-            public @NotNull Map<String, Material<?>> materials() {
-                return Map.of();
-            }
-
-            @Override
-            public @NotNull Transform transform(@NotNull Location location) {
-                return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F));
-            }
-        };
-    }
-
-    private static @NotNull Renderer<Graphics2D, ScreenUnit<?>> screenRenderer() {
-        return new Renderer<>() {
-            @Override
-            public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> unit) {
-                graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
-                graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
-
-                graphics.pushState();
-                graphics.pushMatrix();
-                graphics.translate(20.0F, 20.0F);
-                graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
-                graphics.drawText("Nexo Screen", 0.0F, 0.0F);
-                graphics.drawText("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y(), 0.0F, 10.0F);
-                graphics.popMatrix();
-                graphics.popState();
-
-                graphics.color(0.5F, 0.1F, 0.1F, 1.0F);
-                graphics.fillRoundedRect(
-                        unit.mouse().x() - 4.0F,
-                        unit.mouse().y() - 4.0F,
-                        8.0F,
-                        8.0F,
-                        2.0F
-                );
             }
 
             @Override

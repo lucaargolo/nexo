@@ -6,23 +6,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
-public abstract class Renderer<G extends Graphics2D, U> {
+public interface Renderer<G extends Graphics2D, U> {
 
-    public abstract void render(@NotNull G g, @NotNull U u);
+    void render(@NotNull G g, @NotNull U u);
 
-    public abstract @NotNull Map<String, Material<?>> materials();
+    @NotNull Map<String, Material<?>> materials();
 
-    public @Nullable Material<?> material(@NotNull String name) {
+    default @Nullable Material<?> material(@NotNull String name) {
         return materials().get(name);
     }
 
-    public abstract @NotNull Transform transform(@NotNull Location location);
+    @NotNull Transform transform(@NotNull Location location);
 
-    public boolean resolved() {
+    default boolean resolved() {
         return true;
     }
 
-    public boolean shaded() {
+    default boolean shaded() {
         return true;
     }
 

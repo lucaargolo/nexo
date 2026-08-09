@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public final class ModelRenderer<U> extends StaticRenderer<Graphics3D, U> {
+public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
 
     private static final float POINT_RADIUS = 1.0F / 128.0F;
 

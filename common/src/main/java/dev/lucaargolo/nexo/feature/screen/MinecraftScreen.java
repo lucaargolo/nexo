@@ -3,13 +3,11 @@ package dev.lucaargolo.nexo.feature.screen;
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
-import dev.lucaargolo.nexo.api.render.Graphics2D;
-import dev.lucaargolo.nexo.api.render.Renderer;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.input.GlfwKeyMapper;
 import dev.lucaargolo.nexo.render.MinecraftGraphics2D;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
@@ -17,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWGamepadState;
 
-import net.minecraft.client.gui.screens.Screen;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
@@ -56,20 +53,17 @@ public class MinecraftScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         unit.setMouse(mouseX, mouseY);
-        Renderer<Graphics2D, ScreenUnit<?>> renderer = feature.renderer();
-        if (renderer != null) {
-            MinecraftGraphics2D g = new MinecraftGraphics2D(
-                    graphics.pose(),
-                    graphics.bufferSource(),
-                    helper.nexo().getRenderingHandler().shaderRenderer(),
-                    LightTexture.FULL_BRIGHT,
-                    OverlayTexture.NO_OVERLAY
-            );
-            try {
-                renderer.render(g, unit);
-            } finally {
-                g.finish();
-            }
+        MinecraftGraphics2D g = new MinecraftGraphics2D(
+                graphics.pose(),
+                graphics.bufferSource(),
+                helper.nexo().getRenderingHandler().shaderRenderer(),
+                LightTexture.FULL_BRIGHT,
+                OverlayTexture.NO_OVERLAY
+        );
+        try {
+            feature.render(g, unit);
+        } finally {
+            g.finish();
         }
     }
 
