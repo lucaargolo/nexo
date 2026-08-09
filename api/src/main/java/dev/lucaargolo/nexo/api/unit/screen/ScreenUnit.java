@@ -14,29 +14,18 @@ public abstract class ScreenUnit<C extends Role> extends Unit<ScreenBase, C> {
         super(nexo, feature, role);
     }
 
-    /**
-     * The current mouse position on the screen, in client pixels.
-     */
+
     public abstract @NotNull Vector2f mouse();
 
-    /**
-     * The width of the screen, in client pixels.
-     */
+
     public abstract int width();
 
-    /**
-     * The height of the screen, in client pixels.
-     */
+
     public abstract int height();
 
-    /**
-     * Opens this screen, making it the current screen on the client.
-     * Must be called on the render thread.
-     */
+
     public abstract void open();
 
-    /**
-     * Closes this screen if it is currently open.
-     */
+
     public abstract void close();
 }

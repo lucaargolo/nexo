@@ -11,10 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/**
- * The runtime {@link Graphics3D} implementation: a {@link MinecraftGraphics2D} with the 3D
- * surface on top (camera, depth/culling, 3D primitives) and 3D defaults enabled.
- */
+
 public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Graphics3D {
 
     public MinecraftGraphics3D(

@@ -2,11 +2,11 @@ package dev.lucaargolo.nexo.feature.screen;
 
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
-import dev.lucaargolo.nexo.api.input.Axis;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
+import dev.lucaargolo.nexo.input.GlfwKeyMapper;
 import dev.lucaargolo.nexo.render.MinecraftGraphics2D;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,24 +17,20 @@ import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWGamepadState;
 
+import net.minecraft.client.gui.screens.Screen;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-/**
- * The vanilla {@link net.minecraft.client.gui.screens.Screen} backing a
- * {@link ScreenBase} feature on the client. Renders the feature's renderer every frame
- * with a {@link MinecraftGraphics2D}, forwards vanilla input events to the feature, and
- * polls the gamepad via GLFW each tick (vanilla 1.21.1 has no gamepad support of its own).
- */
-public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
-    private static final Axis[] AXIS_BY_INDEX = {
-            Axis.GAMEPAD_LEFT_X,
-            Axis.GAMEPAD_LEFT_Y,
-            Axis.GAMEPAD_RIGHT_X,
-            Axis.GAMEPAD_RIGHT_Y,
-            Axis.GAMEPAD_LEFT_TRIGGER,
-            Axis.GAMEPAD_RIGHT_TRIGGER
+public class MinecraftScreen extends Screen {
+
+    private static final Input.Axis[] AXIS_BY_INDEX = {
+            Input.Axis.GAMEPAD_LEFT_X,
+            Input.Axis.GAMEPAD_LEFT_Y,
+            Input.Axis.GAMEPAD_RIGHT_X,
+            Input.Axis.GAMEPAD_RIGHT_Y,
+            Input.Axis.GAMEPAD_LEFT_TRIGGER,
+            Input.Axis.GAMEPAD_RIGHT_TRIGGER
     };
 
     private final @NotNull MinecraftRegistryHandler<?> helper;
@@ -85,7 +81,7 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (feature.onInputPressed(unit, Input.keyboard(keyCode))) {
+        if (feature.onInputPressed(unit, Input.keyboard(GlfwKeyMapper.key(keyCode)))) {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
@@ -93,7 +89,7 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean keyReleased(int keyCode, int scanCode, int modifiers) {
-        if (feature.onInputReleased(unit, Input.keyboard(keyCode))) {
+        if (feature.onInputReleased(unit, Input.keyboard(GlfwKeyMapper.key(keyCode)))) {
             return true;
         }
         return super.keyReleased(keyCode, scanCode, modifiers);
@@ -101,7 +97,7 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (feature.onInputPressed(unit, Input.mouse(button))) {
+        if (feature.onInputPressed(unit, Input.mouse(GlfwKeyMapper.mouse(button)))) {
             return true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -109,7 +105,7 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (feature.onInputReleased(unit, Input.mouse(button))) {
+        if (feature.onInputReleased(unit, Input.mouse(GlfwKeyMapper.mouse(button)))) {
             return true;
         }
         return super.mouseReleased(mouseX, mouseY, button);
@@ -117,16 +113,16 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        feature.onInputMove(unit, Axis.MOUSE_X, (float) dragX);
-        feature.onInputMove(unit, Axis.MOUSE_Y, (float) dragY);
+        feature.onInputMove(unit, Input.Axis.MOUSE_X, (float) dragX);
+        feature.onInputMove(unit, Input.Axis.MOUSE_Y, (float) dragY);
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
         if (lastMouseX >= 0.0 && lastMouseY >= 0.0) {
-            feature.onInputMove(unit, Axis.MOUSE_X, (float) (mouseX - lastMouseX));
-            feature.onInputMove(unit, Axis.MOUSE_Y, (float) (mouseY - lastMouseY));
+            feature.onInputMove(unit, Input.Axis.MOUSE_X, (float) (mouseX - lastMouseX));
+            feature.onInputMove(unit, Input.Axis.MOUSE_Y, (float) (mouseY - lastMouseY));
         }
         lastMouseX = mouseX;
         lastMouseY = mouseY;
@@ -135,7 +131,7 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        feature.onInputMove(unit, Axis.SCROLL, (float) verticalAmount);
+        feature.onInputMove(unit, Input.Axis.SCROLL, (float) verticalAmount);
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
@@ -160,9 +156,9 @@ public class MinecraftScreen extends net.minecraft.client.gui.screens.Screen {
                 boolean pressed = buttons.get(i) == GLFW.GLFW_PRESS;
                 boolean previous = previousButtons[i] == GLFW.GLFW_PRESS;
                 if (pressed && !previous) {
-                    feature.onInputPressed(unit, Input.gamepad(i));
+                    feature.onInputPressed(unit, Input.gamepad(GlfwKeyMapper.gamepad(i)));
                 } else if (!pressed && previous) {
-                    feature.onInputReleased(unit, Input.gamepad(i));
+                    feature.onInputReleased(unit, Input.gamepad(GlfwKeyMapper.gamepad(i)));
                 }
             }
             int axisCount = Math.min(axes.remaining(), Math.min(previousAxes.length, AXIS_BY_INDEX.length));

@@ -36,11 +36,7 @@ public interface Graphics2D {
 
     @Nullable Shader shader();
 
-    /**
-     * Returns the backend-managed location of the completed scene behind custom
-     * shader effects. The mapped texture is refreshed immediately before
-     * deferred shader draws execute.
-     */
+
     @NotNull Location sceneTexture();
 
     void lineWidth(float width);

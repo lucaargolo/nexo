@@ -12,6 +12,7 @@ import net.neoforged.neoforgespi.locating.IModFile;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
+import net.neoforged.neoforgespi.language.ModFileScanData;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +176,7 @@ public class NeoForgeNexoModContainer extends ModContainer {
             return "1.0";
         }
         @Override
-        public ModContainer loadMod(IModInfo info, net.neoforged.neoforgespi.language.ModFileScanData scanData, java.lang.ModuleLayer layer) {
+        public ModContainer loadMod(IModInfo info, ModFileScanData scanData, ModuleLayer layer) {
             return null;
         }
     }

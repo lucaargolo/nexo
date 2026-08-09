@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.render;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
@@ -25,6 +26,7 @@ import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
@@ -32,12 +34,7 @@ import org.lwjgl.opengl.GL14;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * The runtime {@link Graphics2D} implementation: immediate-mode rendering into a
- * {@link MultiBufferSource} with a {@link PoseStack}, used for both 2D screen rendering
- * ({@link MinecraftGraphics2D} with depth/culling disabled) and world rendering
- * ({@link MinecraftGraphics3D}).
- */
+
 public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements Graphics2D, AutoCloseable {
 
     private static final int CURVE_SEGMENTS = 32;
@@ -113,7 +110,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     protected void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
-        poses.mulPose(new org.joml.Quaternionf().fromAxisAngleDeg(axisX, axisY, axisZ, angle));
+        poses.mulPose(new Quaternionf().fromAxisAngleDeg(axisX, axisY, axisZ, angle));
     }
 
     @Override
@@ -478,14 +475,14 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         return min != TextureFilter.NEAREST && min != TextureFilter.LINEAR;
     }
 
-    private static com.mojang.blaze3d.vertex.VertexFormat.@NotNull Mode mode(@NotNull PrimitiveType type) {
+    private static @NotNull Mode mode(@NotNull PrimitiveType type) {
         return switch (type) {
-            case TRIANGLES -> com.mojang.blaze3d.vertex.VertexFormat.Mode.TRIANGLES;
-            case TRIANGLE_STRIP -> com.mojang.blaze3d.vertex.VertexFormat.Mode.TRIANGLE_STRIP;
-            case TRIANGLE_FAN -> com.mojang.blaze3d.vertex.VertexFormat.Mode.TRIANGLE_FAN;
-            case LINES -> com.mojang.blaze3d.vertex.VertexFormat.Mode.LINES;
-            case LINE_STRIP, LINE_LOOP -> com.mojang.blaze3d.vertex.VertexFormat.Mode.LINE_STRIP;
-            case QUADS -> com.mojang.blaze3d.vertex.VertexFormat.Mode.QUADS;
+            case TRIANGLES -> Mode.TRIANGLES;
+            case TRIANGLE_STRIP -> Mode.TRIANGLE_STRIP;
+            case TRIANGLE_FAN -> Mode.TRIANGLE_FAN;
+            case LINES -> Mode.LINES;
+            case LINE_STRIP, LINE_LOOP -> Mode.LINE_STRIP;
+            case QUADS -> Mode.QUADS;
             case POINTS -> throw unsupported("point primitives");
         };
     }
@@ -513,7 +510,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     }
 
     private record RenderKey(
-            com.mojang.blaze3d.vertex.VertexFormat.@NotNull Mode mode,
+            @NotNull Mode mode,
             boolean textured,
             @NotNull BlendMode blendMode,
             @NotNull DepthMode depthMode,

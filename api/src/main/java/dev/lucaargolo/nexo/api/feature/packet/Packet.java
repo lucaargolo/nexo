@@ -39,10 +39,7 @@ public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet
         return receiverType;
     }
 
-    /**
-     * Returns the value carried by the packet currently being handled. Outside a handler this
-     * is the value supplied by {@link DataBase#initial()} and is the value sent over the wire.
-     */
+
     public final @NotNull D value() {
         Deque<D> values = receivedValues.get();
         return values.isEmpty() ? data.initial() : values.peek();

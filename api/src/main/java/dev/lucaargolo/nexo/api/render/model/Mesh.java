@@ -5,10 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * Immutable render-ready geometry. Vertex data is interleaved as position
- * (3), color (4), texture coordinate (2), and normal (3).
- */
+
 public final class Mesh {
 
     public static final int VERTEX_STRIDE = 12;

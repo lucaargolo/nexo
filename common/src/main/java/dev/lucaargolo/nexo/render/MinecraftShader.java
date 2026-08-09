@@ -24,6 +24,7 @@ import org.joml.Matrix3fc;
 import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
+import java.util.Optional;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -121,7 +122,7 @@ final class MinecraftShader implements Shader {
             if (data == null) return fallback.getResource(location);
             Resource coreShader = fallback.getResource(ResourceLocation.withDefaultNamespace("shaders/core/position.json"))
                     .orElseThrow(() -> new IllegalStateException("Minecraft core shaders are unavailable"));
-            return java.util.Optional.of(new Resource(coreShader.source(), () -> new ByteArrayInputStream(data)));
+            return Optional.of(new Resource(coreShader.source(), () -> new ByteArrayInputStream(data)));
         };
         try {
             return new ShaderInstance(provider, variant, format);

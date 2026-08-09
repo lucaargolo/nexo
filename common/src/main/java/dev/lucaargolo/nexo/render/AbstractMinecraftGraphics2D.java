@@ -224,10 +224,7 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     }
 
 
-    /**
-     * Begins a primitive, feeding vertices through {@link #vertex(float...)} until
-     * {@link #end()} is called. Implemented by the concrete backends.
-     */
+
     public abstract void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format);
 
     public abstract void vertex(float @NotNull ... data);

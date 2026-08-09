@@ -19,7 +19,6 @@ import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.screen.SimpleScreen;
 import dev.lucaargolo.nexo.api.feature.world.SimpleWorld;
-import dev.lucaargolo.nexo.api.input.Axis;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
@@ -91,7 +90,7 @@ public class NexoTestMod {
             }
 
             @Override
-            public void onInputMove(@NotNull ScreenUnit<?> screen, @NotNull Axis axis, float delta) {
+            public void onInputMove(@NotNull ScreenUnit<?> screen, @NotNull Input.Axis axis, float delta) {
                 nexo.getLogger().info("Screen input move: {} {}", axis, delta);
             }
         });
