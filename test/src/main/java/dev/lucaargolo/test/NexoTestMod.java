@@ -41,10 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
-import java.io.File;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -241,59 +238,6 @@ public class NexoTestMod {
             }
         });
 
-        // TEMPORARY DEBUG: auto-open the test screen and capture screenshots while it is open (reflection: test mod has no Minecraft on its classpath)
-        try {
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object client = minecraftClass.getMethod("getInstance").invoke(null);
-            if (client != null) {
-                executeAfterFrames(20, () -> {
-                    ScreenUnit<?> debugUnit = nexo.unit(testScreen);
-                    if (debugUnit != null) {
-                        nexo.getLogger().info("DEBUG opening test screen {}x{}", debugUnit.width(), debugUnit.height());
-                        debugUnit.open();
-                    }
-                });
-                executeAfterFrames(40, () -> {
-                    try {
-                        Object minecraft = minecraftClass.getMethod("getInstance").invoke(null);
-                        Object window = minecraftClass.getMethod("getWindow").invoke(minecraft);
-                        int width = (int) window.getClass().getMethod("getScreenWidth").invoke(window);
-                        int height = (int) window.getClass().getMethod("getScreenHeight").invoke(window);
-                        double scale = (double) window.getClass().getMethod("getGuiScale").invoke(window);
-                        int guiWidth = (int) window.getClass().getMethod("getGuiScaledWidth").invoke(window);
-                        int guiHeight = (int) window.getClass().getMethod("getGuiScaledHeight").invoke(window);
-                        nexo.getLogger().info("DEBUG window {}x{} guiScale {} guiSpace {}x{}", width, height, scale, guiWidth, guiHeight);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-                for (int i = 0; i < 400; i++) {
-                    int index = i;
-                    executeAfterFrames(60 + i * 40, () -> {
-                        try {
-                            Object minecraft = minecraftClass.getMethod("getInstance").invoke(null);
-                            if (minecraft == null) return;
-                            Object current = minecraftClass.getField("screen").get(minecraft);
-                            if (current == null || !current.getClass().getName().equals("dev.lucaargolo.nexo.feature.screen.MinecraftScreen")) return;
-                            File gameDir = (File) minecraftClass.getField("gameDirectory").get(minecraft);
-                            Object renderTarget = minecraftClass.getMethod("getMainRenderTarget").invoke(minecraft);
-                            Class<?> screenshotClass = Class.forName("net.minecraft.client.Screenshot");
-                            Method grab = Arrays.stream(screenshotClass.getMethods())
-                                    .filter(method -> method.getName().equals("grab"))
-                                    .filter(method -> method.getParameterCount() == 4)
-                                    .filter(method -> method.getParameterTypes()[0] == File.class)
-                                    .findFirst()
-                                    .orElseThrow();
-                            grab.invoke(null, gameDir, "nexo_screen_debug_" + index, renderTarget, (Consumer<Object>) ignored -> { });
-                        } catch (ReflectiveOperationException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                }
-            }
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
-        }
 
         ModelResource.Minecraft packetTestModel = ModelResource.Minecraft.full(Location.of("minecraft", "block/bedrock"));
         BlockBase packetTestBlock = nexo.registerFeature(new SimpleBlock(
