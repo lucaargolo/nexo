@@ -163,12 +163,93 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
     @Override
     public void drawLine(float x1, float y1, float x2, float y2) {
-        begin(PrimitiveType.LINES, VertexFormat.POSITION);
-        vertex(x1, y1, 0.0F);
-        vertex(x2, y2, 0.0F);
-        end();
+        if (state.lineWidth > 1.0F) {
+            strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
+        } else {
+            begin(PrimitiveType.LINES, VertexFormat.POSITION);
+            vertex(x1, y1, 0.0F);
+            vertex(x2, y2, 0.0F);
+            end();
+        }
     }
 
+    /**
+     * Strokes a polyline as filled quads honoring {@link #lineWidth(float)}.
+     * Closed loops get mitered joins at every vertex, open strips get butt caps.
+     * Minecraft ignores {@code RenderSystem.lineWidth} on modern renderers, so wide lines
+     * must be expanded into geometry instead of relying on GL line width.
+     */
+    protected void strokePolyline(float @NotNull [] @NotNull [] points, boolean closed) {
+        int count = points.length;
+        if (count < 2) return;
+        float half = state.lineWidth * 0.5F;
+        int segmentCount = closed ? count : count - 1;
+
+        // Unit normals of every segment, perpendicular to its direction
+        float[] nx = new float[segmentCount];
+        float[] ny = new float[segmentCount];
+        for (int i = 0; i < segmentCount; i++) {
+            float[] a = points[i];
+            float[] b = points[(i + 1) % count];
+            float dx = b[0] - a[0];
+            float dy = b[1] - a[1];
+            float length = (float) Math.sqrt(dx * dx + dy * dy);
+            if (length > 1.0E-5F) {
+                nx[i] = -dy / length;
+                ny[i] = dx / length;
+            }
+        }
+
+        // Mitered offset per vertex, capped at four times the half width
+        float[] ox = new float[count];
+        float[] oy = new float[count];
+        for (int j = 0; j < count; j++) {
+            int prev = closed ? (j - 1 + count) % count : j - 1;
+            boolean hasPrev = prev >= 0;
+            boolean hasNext = closed ? true : j < segmentCount;
+            if (!hasPrev && !hasNext) continue;
+            float pxn = hasPrev ? nx[prev] : 0.0F;
+            float pyn = hasPrev ? ny[prev] : 0.0F;
+            float qxn = hasNext ? nx[j] : 0.0F;
+            float qyn = hasNext ? ny[j] : 0.0F;
+            float sx = pxn + qxn;
+            float sy = pyn + qyn;
+            float slen = (float) Math.sqrt(sx * sx + sy * sy);
+            if (slen > 1.0E-5F) {
+                float bx = sx / slen;
+                float by = sy / slen;
+                float dot = Math.max(bx * (hasPrev ? pxn : qxn) + by * (hasPrev ? pyn : qyn), 0.25F);
+                float scale = half / dot;
+                ox[j] = bx * scale;
+                oy[j] = by * scale;
+            } else {
+                // Reversed direction: fall back to a single side
+                float n = hasPrev ? pxn : qxn;
+                float m = hasPrev ? pyn : qyn;
+                ox[j] = n * half;
+                oy[j] = m * half;
+            }
+        }
+
+        begin(PrimitiveType.QUADS, VertexFormat.POSITION);
+        for (int i = 0; i < segmentCount; i++) {
+            float[] a = points[i];
+            float[] b = points[(i + 1) % count];
+            float ax = a[0] + ox[i];
+            float ay = a[1] + oy[i];
+            float bx0 = a[0] - ox[i];
+            float by0 = a[1] - oy[i];
+            float cx = b[0] + ox[(i + 1) % count];
+            float cy = b[1] + oy[(i + 1) % count];
+            float dx0 = b[0] - ox[(i + 1) % count];
+            float dy0 = b[1] - oy[(i + 1) % count];
+            vertex(ax, ay, 0.0F);
+            vertex(bx0, by0, 0.0F);
+            vertex(dx0, dy0, 0.0F);
+            vertex(cx, cy, 0.0F);
+        }
+        end();
+    }
     @Override
     public void drawCircle(float x, float y, float radius) {
         drawEllipse(x, y, radius * 2.0F, radius * 2.0F);

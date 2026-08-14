@@ -231,6 +231,7 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         }
         begin(PrimitiveType.TRIANGLE_FAN, VertexFormat.POSITION_TEX);
         for (int i = 0; i < x.length; i++) vertex(x[i], y[i], 0.0F, 0.0F, 0.0F);
+        vertex(x[0], y[0], 0.0F, 0.0F, 0.0F);
         end();
     }
 

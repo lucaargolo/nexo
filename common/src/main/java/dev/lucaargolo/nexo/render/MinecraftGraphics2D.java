@@ -31,7 +31,10 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -167,12 +170,16 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void drawRect(float x, float y, float width, float height) {
-        begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
-        vertex(x, y, 0.0F);
-        vertex(x + width, y, 0.0F);
-        vertex(x + width, y + height, 0.0F);
-        vertex(x, y + height, 0.0F);
-        end();
+        if (state.lineWidth > 1.0F) {
+            strokePolyline(new float[][]{{x, y}, {x + width, y}, {x + width, y + height}, {x, y + height}}, true);
+        } else {
+            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
+            vertex(x, y, 0.0F);
+            vertex(x + width, y, 0.0F);
+            vertex(x + width, y + height, 0.0F);
+            vertex(x, y + height, 0.0F);
+            end();
+        }
     }
 
     @Override
@@ -187,9 +194,25 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void drawEllipse(float x, float y, float width, float height) {
-        begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
-        ellipseVertices(x, y, width, height);
-        end();
+        if (state.lineWidth > 1.0F) {
+            strokePolyline(ellipsePoints(x, y, width, height), true);
+        } else {
+            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
+            ellipseVertices(x, y, width, height);
+            end();
+        }
+    }
+
+    private float @NotNull [] @NotNull [] ellipsePoints(float x, float y, float width, float height) {
+        float radiusX = width * 0.5F;
+        float radiusY = height * 0.5F;
+        float @NotNull [] @NotNull [] points = new float[CURVE_SEGMENTS][2];
+        for (int i = 0; i < CURVE_SEGMENTS; i++) {
+            double angle = Math.PI * 2.0 * i / CURVE_SEGMENTS;
+            points[i][0] = x + (float) Math.cos(angle) * radiusX;
+            points[i][1] = y + (float) Math.sin(angle) * radiusY;
+        }
+        return points;
     }
 
     @Override
@@ -203,7 +226,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private void ellipseVertices(float x, float y, float width, float height) {
         float radiusX = width * 0.5F;
         float radiusY = height * 0.5F;
-        for (int i = 0; i < CURVE_SEGMENTS; i++) {
+        for (int i = 0; i <= CURVE_SEGMENTS; i++) {
             double angle = Math.PI * 2.0 * i / CURVE_SEGMENTS;
             vertex(x + (float) Math.cos(angle) * radiusX, y + (float) Math.sin(angle) * radiusY, 0.0F);
         }
@@ -211,7 +234,17 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void drawRoundedRect(float x, float y, float width, float height, float radius) {
-        roundedRect(x, y, width, height, radius, PrimitiveType.LINE_LOOP);
+        float actualRadius = clampRadius(radius, width, height);
+        if (state.lineWidth > 1.0F) {
+            strokePolyline(roundedRectPoints(x, y, width, height, actualRadius), true);
+        } else {
+            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
+            arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8);
+            arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8);
+            arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8);
+            arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8);
+            end();
+        }
     }
 
     @Override
@@ -220,19 +253,48 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     }
 
     private void roundedRect(float x, float y, float width, float height, float radius, PrimitiveType type) {
-        float actualRadius = Math.max(0.0F, Math.min(radius, Math.min(Math.abs(width), Math.abs(height)) * 0.5F));
+        float actualRadius = clampRadius(radius, width, height);
         begin(type, VertexFormat.POSITION);
         if (type == PrimitiveType.TRIANGLE_FAN) vertex(x + width * 0.5F, y + height * 0.5F, 0.0F);
         arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8);
         arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8);
         arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8);
         arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8);
+        // Re-emit the first corner vertex to close triangle fans
+        if (type == PrimitiveType.TRIANGLE_FAN) vertex(x + width - actualRadius, y, 0.0F);
         end();
+    }
+
+    private static float clampRadius(float radius, float width, float height) {
+        return Math.max(0.0F, Math.min(radius, Math.min(Math.abs(width), Math.abs(height)) * 0.5F));
+    }
+
+    private float @NotNull [] @NotNull [] roundedRectPoints(float x, float y, float width, float height, float radius) {
+        int cornerSegments = 8;
+        float @NotNull [] @NotNull [] points = new float[cornerSegments * 4 + 4][2];
+        int index = 0;
+        index = arcPoints(points, index, x + width - radius, y + radius, radius, -90.0F, 0.0F, cornerSegments);
+        index = arcPoints(points, index, x + width - radius, y + height - radius, radius, 0.0F, 90.0F, cornerSegments);
+        index = arcPoints(points, index, x + radius, y + height - radius, radius, 90.0F, 180.0F, cornerSegments);
+        index = arcPoints(points, index, x + radius, y + radius, radius, 180.0F, 270.0F, cornerSegments);
+        return points;
     }
 
     @Override
     public void drawPolygon(float @NotNull [] x, float @NotNull [] y) {
-        polygon(x, y, PrimitiveType.LINE_LOOP);
+        if (state.lineWidth > 1.0F) {
+            if (x.length != y.length || x.length < 3) {
+                throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
+            }
+            float @NotNull [] @NotNull [] points = new float[x.length][2];
+            for (int i = 0; i < x.length; i++) {
+                points[i][0] = x[i];
+                points[i][1] = y[i];
+            }
+            strokePolyline(points, true);
+        } else {
+            polygon(x, y, PrimitiveType.LINE_LOOP);
+        }
     }
 
     @Override
@@ -246,14 +308,45 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         }
         begin(type, VertexFormat.POSITION);
         for (int i = 0; i < x.length; i++) vertex(x[i], y[i], 0.0F);
+        // Re-emit the first vertex to close triangle fans
+        if (type == PrimitiveType.TRIANGLE_FAN) vertex(x[0], y[0], 0.0F);
         end();
     }
 
     @Override
     public void drawArc(float x, float y, float radius, float startAngle, float endAngle) {
-        begin(PrimitiveType.LINE_STRIP, VertexFormat.POSITION);
-        arcVertices(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS);
-        end();
+        if (state.lineWidth > 1.0F) {
+            strokePolyline(arcPoints(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS), false);
+        } else {
+            begin(PrimitiveType.LINE_STRIP, VertexFormat.POSITION);
+            arcVertices(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS);
+            end();
+        }
+    }
+
+    private float @NotNull [] @NotNull [] arcPoints(float x, float y, float radius, float startAngle, float endAngle, int segments) {
+        float @NotNull [] @NotNull [] points = new float[segments + 1][2];
+        arcPoints(points, 0, x, y, radius, startAngle, endAngle, segments);
+        return points;
+    }
+
+    private static int arcPoints(
+            float @NotNull [] @NotNull [] points,
+            int index,
+            float x,
+            float y,
+            float radius,
+            float startAngle,
+            float endAngle,
+            int segments
+    ) {
+        for (int i = 0; i <= segments; i++) {
+            double angle = Math.toRadians(startAngle + (endAngle - startAngle) * i / segments);
+            points[index][0] = x + (float) Math.cos(angle) * radius;
+            points[index][1] = y + (float) Math.sin(angle) * radius;
+            index++;
+        }
+        return index;
     }
 
     @Override
@@ -449,7 +542,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
                 state.depthMode,
                 state.depthMask,
                 state.cullMode,
-                state.lineWidth,
                 state.minFilter,
                 state.magFilter,
                 shader == null ? null : format,
@@ -516,7 +608,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             @NotNull DepthMode depthMode,
             boolean depthMask,
             @NotNull CullMode cullMode,
-            float lineWidth,
             @NotNull TextureFilter minFilter,
             @NotNull TextureFilter magFilter,
             @Nullable VertexFormat vertexFormat,
@@ -555,7 +646,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             states.add(depthTest(key.depthMode));
             states.add(cullState(key.cullMode));
             states.add(writeMask(key.depthMode, key.depthMask));
-            states.add(new LineStateShard(OptionalDouble.of(key.lineWidth)));
             if (key.textured) {
                 states.add(new TextureStateShard(
                         InventoryMenu.BLOCK_ATLAS,

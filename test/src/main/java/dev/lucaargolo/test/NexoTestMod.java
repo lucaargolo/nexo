@@ -41,9 +41,13 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import java.io.File;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class NexoTestMod {
 
@@ -80,17 +84,99 @@ public class NexoTestMod {
             public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> unit) {
                 graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
                 graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
+                graphics.blendMode(BlendMode.ALPHA);
 
                 graphics.pushState();
                 graphics.pushMatrix();
-                graphics.translate(20.0F, 20.0F);
+                graphics.translate(20.0F, 15.0F);
                 graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
-                graphics.drawText("Nexo Screen", 0.0F, 0.0F);
+                graphics.drawText("Nexo Screen - Shape Tests", 0.0F, 0.0F);
                 graphics.drawText("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y(), 0.0F, 10.0F);
                 graphics.popMatrix();
                 graphics.popState();
 
-                graphics.color(0.5F, 0.1F, 0.1F, 1.0F);
+                float margin = 10.0F;
+                float headerHeight = 32.0F;
+                float gap = 8.0F;
+                int columns = 2;
+                int rows = 4;
+                float designWidth = 175.0F;
+                float designHeight = 95.0F;
+
+                // Fit a 2x4 grid of designWidth/designHeight cells into the screen, shrinking if needed
+                float gridWidth = unit.width() - 2.0F * margin;
+                float gridHeight = unit.height() - margin - headerHeight - margin;
+                float cellWidth = (gridWidth - gap * (columns - 1)) / columns;
+                float cellHeight = (gridHeight - gap * (rows - 1)) / rows;
+                float contentScale = Math.min(1.0F, Math.min(cellWidth / designWidth, cellHeight / designHeight));
+                float startX = (unit.width() - (columns * cellWidth + gap * (columns - 1))) * 0.5F;
+                float startY = margin + headerHeight;
+
+                float[] polygonX = {32.0F, 56.0F, 56.0F, 32.0F, 8.0F, 8.0F};
+                float[] polygonY = {4.0F, 18.0F, 46.0F, 60.0F, 46.0F, 18.0F};
+
+                shapeCell(graphics, startX, startY, contentScale, "Line",
+                        g -> g.drawLine(2.0F, 12.0F, 70.0F, 62.0F),
+                        g -> {
+                            g.color(0.5F, 0.8F, 0.4F, 1.0F);
+                            g.lineWidth(3.0F);
+                            g.drawLine(2.0F, 12.0F, 70.0F, 62.0F);
+                            g.lineWidth(1.0F);
+                        }
+                );
+
+                shapeCell(graphics, startX + cellWidth + gap, startY, contentScale, "Rect",
+                        g -> g.drawRect(5.0F, 5.0F, 60.0F, 60.0F),
+                        g -> {
+                            g.color(0.25F, 0.65F, 0.95F, 0.75F);
+                            g.fillRect(5.0F, 5.0F, 60.0F, 60.0F);
+                        }
+                );
+
+                shapeCell(graphics, startX, startY + (cellHeight + gap) * 1, contentScale, "Circle",
+                        g -> g.drawCircle(35.0F, 35.0F, 28.0F),
+                        g -> {
+                            g.color(0.35F, 0.85F, 0.45F, 0.75F);
+                            g.fillCircle(35.0F, 35.0F, 28.0F);
+                        }
+                );
+
+                shapeCell(graphics, startX + cellWidth + gap, startY + (cellHeight + gap) * 1, contentScale, "Ellipse",
+                        g -> g.drawEllipse(5.0F, 15.0F, 60.0F, 45.0F),
+                        g -> {
+                            g.color(0.95F, 0.75F, 0.25F, 0.75F);
+                            g.fillEllipse(5.0F, 15.0F, 60.0F, 45.0F);
+                        }
+                );
+
+                shapeCell(graphics, startX, startY + (cellHeight + gap) * 2, contentScale, "RoundedRect",
+                        g -> g.drawRoundedRect(5.0F, 5.0F, 60.0F, 60.0F, 12.0F),
+                        g -> {
+                            g.color(0.95F, 0.35F, 0.75F, 0.75F);
+                            g.fillRoundedRect(5.0F, 5.0F, 60.0F, 60.0F, 12.0F);
+                        }
+                );
+
+                shapeCell(graphics, startX + cellWidth + gap, startY + (cellHeight + gap) * 2, contentScale, "Polygon",
+                        g -> g.drawPolygon(polygonX, polygonY),
+                        g -> {
+                            g.color(0.65F, 0.45F, 0.95F, 0.75F);
+                            g.fillPolygon(polygonX, polygonY);
+                        }
+                );
+
+                shapeCell(graphics, startX, startY + (cellHeight + gap) * 3, contentScale, "Arc",
+                        g -> g.drawArc(35.0F, 35.0F, 28.0F, 30.0F, 300.0F),
+                        g -> {
+                            g.color(0.30F, 0.55F, 0.95F, 0.5F);
+                            g.fillArc(35.0F, 35.0F, 28.0F, 0.0F, 360.0F);
+                            g.color(0.95F, 0.55F, 0.25F, 0.85F);
+                            g.fillArc(35.0F, 35.0F, 28.0F, 30.0F, 300.0F);
+                        }
+                );
+
+                // Cursor rectangle, drawn before textures so it stays untextured
+                graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
                 graphics.fillRoundedRect(
                         unit.mouse().x() - 4.0F,
                         unit.mouse().y() - 4.0F,
@@ -98,6 +184,43 @@ public class NexoTestMod {
                         8.0F,
                         2.0F
                 );
+
+                // Textures last: binding a texture cannot be undone, so it would tint later shapes
+                shapeCell(graphics, startX + cellWidth + gap, startY + (cellHeight + gap) * 3, contentScale, "Texture",
+                        g -> {
+                            g.bindTexture(Location.of("minecraft", "block/bedrock"));
+                            g.drawTexture(5.0F, 5.0F, 60.0F, 60.0F);
+                        },
+                        g -> {
+                            g.bindTexture(Location.of("minecraft", "block/bedrock"));
+                            g.textureWrap(TextureWrap.CLAMP, TextureWrap.CLAMP);
+                            g.drawTextureRegion(5.0F, 5.0F, 60.0F, 60.0F, 0.25F, 0.25F, 0.75F, 0.75F);
+                        }
+                );
+            }
+
+            private void shapeCell(
+                    @NotNull Graphics2D graphics,
+                    float x,
+                    float y,
+                    float scale,
+                    @NotNull String label,
+                    @NotNull Consumer<@NotNull Graphics2D> outline,
+                    @NotNull Consumer<@NotNull Graphics2D> fill
+            ) {
+                graphics.pushState();
+                graphics.pushMatrix();
+                graphics.translate(x, y);
+                graphics.scale(scale, scale);
+                graphics.color(0.55F, 0.55F, 0.65F, 1.0F);
+                graphics.drawText(label, 0.0F, 0.0F);
+                graphics.translate(0.0F, 18.0F);
+                graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
+                outline.accept(graphics);
+                graphics.translate(90.0F, 0.0F);
+                fill.accept(graphics);
+                graphics.popMatrix();
+                graphics.popState();
             }
 
             @Override
@@ -117,6 +240,60 @@ public class NexoTestMod {
                 nexo.getLogger().info("Screen input move: {} {}", axis, delta);
             }
         });
+
+        // TEMPORARY DEBUG: auto-open the test screen and capture screenshots while it is open (reflection: test mod has no Minecraft on its classpath)
+        try {
+            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
+            Object client = minecraftClass.getMethod("getInstance").invoke(null);
+            if (client != null) {
+                executeAfterFrames(20, () -> {
+                    ScreenUnit<?> debugUnit = nexo.unit(testScreen);
+                    if (debugUnit != null) {
+                        nexo.getLogger().info("DEBUG opening test screen {}x{}", debugUnit.width(), debugUnit.height());
+                        debugUnit.open();
+                    }
+                });
+                executeAfterFrames(40, () -> {
+                    try {
+                        Object minecraft = minecraftClass.getMethod("getInstance").invoke(null);
+                        Object window = minecraftClass.getMethod("getWindow").invoke(minecraft);
+                        int width = (int) window.getClass().getMethod("getScreenWidth").invoke(window);
+                        int height = (int) window.getClass().getMethod("getScreenHeight").invoke(window);
+                        double scale = (double) window.getClass().getMethod("getGuiScale").invoke(window);
+                        int guiWidth = (int) window.getClass().getMethod("getGuiScaledWidth").invoke(window);
+                        int guiHeight = (int) window.getClass().getMethod("getGuiScaledHeight").invoke(window);
+                        nexo.getLogger().info("DEBUG window {}x{} guiScale {} guiSpace {}x{}", width, height, scale, guiWidth, guiHeight);
+                    } catch (ReflectiveOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+                for (int i = 0; i < 400; i++) {
+                    int index = i;
+                    executeAfterFrames(60 + i * 40, () -> {
+                        try {
+                            Object minecraft = minecraftClass.getMethod("getInstance").invoke(null);
+                            if (minecraft == null) return;
+                            Object current = minecraftClass.getField("screen").get(minecraft);
+                            if (current == null || !current.getClass().getName().equals("dev.lucaargolo.nexo.feature.screen.MinecraftScreen")) return;
+                            File gameDir = (File) minecraftClass.getField("gameDirectory").get(minecraft);
+                            Object renderTarget = minecraftClass.getMethod("getMainRenderTarget").invoke(minecraft);
+                            Class<?> screenshotClass = Class.forName("net.minecraft.client.Screenshot");
+                            Method grab = Arrays.stream(screenshotClass.getMethods())
+                                    .filter(method -> method.getName().equals("grab"))
+                                    .filter(method -> method.getParameterCount() == 4)
+                                    .filter(method -> method.getParameterTypes()[0] == File.class)
+                                    .findFirst()
+                                    .orElseThrow();
+                            grab.invoke(null, gameDir, "nexo_screen_debug_" + index, renderTarget, (Consumer<Object>) ignored -> { });
+                        } catch (ReflectiveOperationException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
 
         ModelResource.Minecraft packetTestModel = ModelResource.Minecraft.full(Location.of("minecraft", "block/bedrock"));
         BlockBase packetTestBlock = nexo.registerFeature(new SimpleBlock(
@@ -289,6 +466,23 @@ public class NexoTestMod {
 
     public static Location id(String path) {
         return Location.of(MOD_ID, path);
+    }
+
+    private static void executeAfterFrames(int frames, @NotNull Runnable task) {
+        Runnable scheduled = task;
+        for (int i = 0; i < frames; i++) {
+            Runnable next = scheduled;
+            scheduled = () -> {
+                try {
+                    Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
+                    Object minecraft = minecraftClass.getMethod("getInstance").invoke(null);
+                    minecraftClass.getMethod("execute", Runnable.class).invoke(minecraft, next);
+                } catch (ReflectiveOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+        }
+        scheduled.run();
     }
 
     private static final class BlockPositionData extends DataBase<Vector3i> {
