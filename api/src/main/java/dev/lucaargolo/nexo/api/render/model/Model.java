@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public record Model(
+        byte @NotNull [] data,
         @NotNull List<Mesh> meshes,
         @NotNull Map<String, Material<?>> materials,
         @NotNull Map<Location, Transform> transforms,
@@ -27,11 +28,13 @@ public record Model(
     private static final @NotNull List<ModelLoader> LOADERS = new CopyOnWriteArrayList<>();
 
     public Model(
+            byte @NotNull [] data,
             @NotNull List<Mesh> meshes,
             @NotNull Map<String, Material<?>> materials,
             @NotNull Map<Location, Transform> transforms,
             boolean shade
     ) {
+        this.data = data;
         this.meshes = List.copyOf(meshes);
         this.materials = Collections.unmodifiableMap(new LinkedHashMap<>(materials));
         for (Mesh mesh : this.meshes) {

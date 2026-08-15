@@ -57,7 +57,7 @@ public final class GltfModelLoader implements ModelLoader {
             appendNodeMeshes(node, materialKeys, meshes);
         }
         if (meshes.isEmpty()) throw new IllegalArgumentException("glTF contains no renderable mesh primitives");
-        return new Model(meshes, materials, Map.of(), true);
+        return new Model(data, meshes, materials, Map.of(), true);
     }
 
     private static void resolveReferences(

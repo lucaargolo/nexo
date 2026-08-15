@@ -53,7 +53,7 @@ public final class MinecraftModelLoader implements ModelLoader {
                 break;
             }
         }
-        return new Model(meshes, materials, transforms, shade);
+        return new Model(data, meshes, materials, transforms, shade);
     }
 
     private static @NotNull List<JsonObject> loadParentChain(

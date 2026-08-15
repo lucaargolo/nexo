@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -16,6 +17,11 @@ public abstract class ShaderResource<T extends ShaderResource<T>> extends Resour
     public ShaderResource(@NotNull Location location, @NotNull Supplier<String> supplier) {
         super(location);
         this.supplier = supplier;
+    }
+
+    @Override
+    public byte @Nullable [] data() {
+        return this.source().getBytes(StandardCharsets.UTF_8);
     }
 
     public final @NotNull String source() {

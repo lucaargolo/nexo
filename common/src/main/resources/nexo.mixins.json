@@ -7,7 +7,8 @@
   "mixins": [],
   "client": [
     "BlockElementRotationMixin",
-    "FaceBakeryMixin"
+    "FaceBakeryMixin",
+    "FontManagerMixin"
   ],
   "server": [],
   "injectors": {

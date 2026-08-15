@@ -18,6 +18,7 @@ public abstract class ImageResource<T extends ImageResource<T>> extends Resource
         this.supplier = supplier;
     }
 
+    @Override
     public byte @NotNull [] data() {
         if (image == null) {
             image = Objects.requireNonNull(supplier.get());

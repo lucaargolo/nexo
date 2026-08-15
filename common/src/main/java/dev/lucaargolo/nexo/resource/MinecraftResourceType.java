@@ -94,7 +94,7 @@ public class MinecraftResourceType<T extends Resource<T>> {
         if (resource == null) {
             throw new IllegalStateException("Could not register resource " + location);
         }
-        return resource;
+        return register(nexo, location, resource.data());
     }
 
     @NotNull

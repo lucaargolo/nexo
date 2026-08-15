@@ -6,6 +6,7 @@ import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,8 @@ public abstract class Resource<T extends Resource<T>> {
     }
 
     public abstract @NotNull Type<T> type();
+
+    public abstract byte @Nullable [] data();
 
     public abstract boolean resolved();
 

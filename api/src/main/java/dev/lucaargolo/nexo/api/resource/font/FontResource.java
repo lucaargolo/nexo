@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public abstract class FontResource<T extends FontResource<T>> extends Resource<T> {
@@ -17,9 +18,10 @@ public abstract class FontResource<T extends FontResource<T>> extends Resource<T
         this.supplier = supplier;
     }
 
+    @Override
     public byte @Nullable [] data() {
         if (data == null) {
-            data = supplier.get();
+            data = Objects.requireNonNull(supplier.get());
         }
         return data;
     }

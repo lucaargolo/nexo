@@ -113,7 +113,18 @@ public abstract class NexoMinecraft implements Nexo {
 
     @Override
     public byte @Nullable [] loadResource(@NotNull Location location) {
-        // 1. Try Nexo mod (directory or JAR)
+        // 1. Try resources bundled with the Nexo API
+        if (MOD_ID.equals(location.namespace())) {
+            try (InputStream is = Nexo.class.getResourceAsStream("/" + location.path())) {
+                if (is != null) {
+                    return is.readAllBytes();
+                }
+            } catch (IOException e) {
+                LOGGER.debug("Failed to read bundled Nexo API resource {}", location);
+            }
+        }
+
+        // 2. Try Nexo mod (directory or JAR)
         Mod mod = getMod(location.namespace());
         if (mod != null) {
             String resource = location.path();
@@ -144,7 +155,7 @@ public abstract class NexoMinecraft implements Nexo {
             }
         }
 
-        // 2. Try Minecraft resource manager (any namespace, any resource type)
+        // 3. Try Minecraft resource manager (any namespace, any resource type)
         try {
             ResourceLocation rl = NexoMinecraft.rl(location);
             Minecraft minecraft = Minecraft.getInstance();

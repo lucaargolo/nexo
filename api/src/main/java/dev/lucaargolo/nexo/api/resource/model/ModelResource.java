@@ -27,6 +27,11 @@ public abstract class ModelResource<T extends ModelResource<T>> extends Resource
         this.supplier = supplier;
     }
 
+    @Override
+    public byte @Nullable [] data() {
+        return this.model().data();
+    }
+
     public @NotNull Model model() {
         if (model == null) {
             model = Objects.requireNonNull(supplier.get());
@@ -51,7 +56,7 @@ public abstract class ModelResource<T extends ModelResource<T>> extends Resource
 
         public static @NotNull ModelResource.Minecraft full(@NotNull Location location, @NotNull Material<?> material) {
             float[] vertices = MinecraftModelLoader.boxVertices(0, 0, 0, 16, 16, 16);
-            return new ModelResource.Minecraft(location, () -> new Model(List.of(new Mesh(PrimitiveType.QUADS, "all", vertices)), Map.of("all", material), Map.of(
+            return new ModelResource.Minecraft(location, () -> new Model(new byte[0], List.of(new Mesh(PrimitiveType.QUADS, "all", vertices)), Map.of("all", material), Map.of(
                     Location.of("minecraft", "gui"), new Transform(new Vector3f(30, 225, 0), new Vector3f(0, 0, 0), new Vector3f(0.625f, 0.625f, 0.625f)),
                     Location.of("minecraft", "ground"), new Transform(new Vector3f(0, 0, 0), new Vector3f(0, 3, 0), new Vector3f(0.25f, 0.25f, 0.25f)),
                     Location.of("minecraft", "fixed"), new Transform(new Vector3f(0, 0, 0), new Vector3f(0, 0, 0), new Vector3f(0.5f, 0.5f, 0.5f)),

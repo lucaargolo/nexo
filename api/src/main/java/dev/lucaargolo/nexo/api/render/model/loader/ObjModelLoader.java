@@ -49,7 +49,7 @@ public final class ObjModelLoader implements ModelLoader {
         if (meshes.isEmpty()) {
             throw new IllegalArgumentException("OBJ contains no faces");
         }
-        return new Model(meshes, materials, Map.of(), true);
+        return new Model(data, meshes, materials, Map.of(), true);
     }
 
     private static @NotNull Map<String, Material<?>> loadMaterials(@NotNull Nexo nexo, @NotNull Location objPath, @NotNull List<String> libraries) throws Exception {
