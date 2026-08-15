@@ -33,7 +33,9 @@ public interface Nexo {
 
     @Nullable <T extends Resource<T>> T getResource(@NotNull Resource.Type<T> type, @NotNull Location location);
 
-    @NotNull <T extends Resource<T>> T registerResource(@NotNull T resource);
+    @NotNull <T extends Resource<T>> T registerResource(@NotNull Resource.Type<T> type, @NotNull Location location);
+
+    @NotNull <T extends Resource<T>> T registerResource(@NotNull Resource.Type<T> type, @NotNull Location location, byte @NotNull [] data);
 
     <E extends Event<T>, T> void on(@NotNull Class<E> eventType, @NotNull Event.Priority priority, @NotNull Predicate<E> listener);
 

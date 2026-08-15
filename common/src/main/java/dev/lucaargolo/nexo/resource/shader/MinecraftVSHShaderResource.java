@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class MinecraftVshShaderResource extends ShaderResource.VSH {
+public class MinecraftVSHShaderResource extends ShaderResource.VSH {
 
     private static final Map<Location, VSH> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private MinecraftVshShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
+    private MinecraftVSHShaderResource(Location location, boolean resolved, Supplier<String> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -29,7 +29,7 @@ public class MinecraftVshShaderResource extends ShaderResource.VSH {
 
     public static VSH lookup(NexoMinecraft nexo, Location location) {
         String shader = lookupShader(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftVshShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftVSHShaderResource(location, shader != null, shader != null ? () -> shader : () -> lookupShader(nexo, location)));
     }
 
     @Nullable
@@ -53,12 +53,10 @@ public class MinecraftVshShaderResource extends ShaderResource.VSH {
 
     @NotNull
     //TODO: Actually provide the VSH back to Minecraft
-    public static VSH register(@NotNull NexoMinecraft nexo, @NotNull VSH resource) {
-        Location location = resource.location().withPath(l -> {
-            return l.path().replace("shaders/", "").replace(".vsh", "");
-        });
-        RESOURCE_MAP.put(location, resource);
-        return resource;
+    public static VSH register(@NotNull NexoMinecraft nexo, @NotNull Location location, byte[] data) {
+        VSH vsh = new MinecraftVSHShaderResource(location, true, () -> new String(data, StandardCharsets.UTF_8));
+        RESOURCE_MAP.put(location, vsh);
+        return vsh;
     }
 
 }

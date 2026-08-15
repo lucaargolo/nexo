@@ -1,19 +1,14 @@
 package dev.lucaargolo.nexo.resource.model;
 
-import com.mojang.datafixers.util.Either;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
-import net.minecraft.client.renderer.block.model.BlockElement;
-import net.minecraft.client.renderer.block.model.BlockModel;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.resources.model.Material;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -60,26 +55,10 @@ public class MinecraftMetaModelResource extends ModelResource.Minecraft {
 
     @NotNull
     //TODO: Actually provide the model back to Minecraft
-    public static Minecraft register(@NotNull NexoMinecraft nexo, @NotNull Minecraft resource) {
-        Location location = resource.location().withPath(l -> {
-            return l.path().replace("models/", "").replace(".json", "");
-        });
-        RESOURCE_MAP.put(location, resource);
-        Model model = resource.model();
-        List<BlockElement> elements = new ArrayList<>();
-        Map<String, Either<Material, String>> textureMap = new HashMap<>();
-        ItemTransforms transforms = NexoUnbakedModel.getItemTransforms(model::transform);
-        BlockModel blockModel = new BlockModel(
-            null,
-                elements,
-                textureMap,
-                model.shade(),
-                null,
-                transforms,
-                List.of()
-        );
-        nexo.getRenderingHandler().registerModel(NexoMinecraft.rl(resource.location()), () -> blockModel);
-        return resource;
+    public static ModelResource.Minecraft register(@NotNull NexoMinecraft nexo, @NotNull Location location, byte[] data) {
+        ModelResource.Minecraft model = new MinecraftMetaModelResource(location, true, () -> Model.load(nexo, location, data));
+        RESOURCE_MAP.put(location, model);
+        return model;
     }
 
 }

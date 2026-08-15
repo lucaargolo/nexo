@@ -4,25 +4,21 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
-import net.minecraft.client.renderer.block.model.BlockModel;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
-public class MinecraftObjModelResource extends ModelResource.OBJ {
+public class MinecraftOBJModelResource extends ModelResource.OBJ {
 
     private static final Map<Location, OBJ> RESOURCE_MAP = new ConcurrentHashMap<>();
 
     private final boolean resolved;
 
-    private MinecraftObjModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
+    private MinecraftOBJModelResource(Location location, boolean resolved, Supplier<Model> supplier) {
         super(location, supplier);
         this.resolved = resolved;
     }
@@ -34,7 +30,7 @@ public class MinecraftObjModelResource extends ModelResource.OBJ {
 
     public static OBJ lookup(NexoMinecraft nexo, Location location) {
         Model model = lookupModel(nexo, location);
-        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftObjModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
+        return RESOURCE_MAP.computeIfAbsent(location, l -> new MinecraftOBJModelResource(location, model != null, model != null ? () -> model : () -> lookupModel(nexo, location)));
     }
 
     @Nullable
@@ -57,25 +53,10 @@ public class MinecraftObjModelResource extends ModelResource.OBJ {
     }
 
     @NotNull
-    //TODO: Actually provide the OBJ back to Minecraft
-    public static OBJ register(@NotNull NexoMinecraft nexo, @NotNull OBJ resource) {
-        Location location = resource.location().withPath(l -> {
-            return l.path().replace("models/", "").replace(".obj", "");
-        });
-        RESOURCE_MAP.put(location, resource);
-        Model model = resource.model();
-        ItemTransforms transforms = NexoUnbakedModel.getItemTransforms(model::transform);
-        BlockModel blockModel = new BlockModel(
-                null,
-                List.of(),
-                Map.of(),
-                model.shade(),
-                null,
-                transforms,
-                List.of()
-        );
-        nexo.getRenderingHandler().registerModel(NexoMinecraft.rl(resource.location()), () -> blockModel);
-        return resource;
+    //TODO: Actually provide the model back to Minecraft
+    public static ModelResource.OBJ register(@NotNull NexoMinecraft nexo, @NotNull Location location, byte[] data) {
+        ModelResource.OBJ model = new MinecraftOBJModelResource(location, true, () -> Model.load(nexo, location, data));
+        RESOURCE_MAP.put(location, model);
+        return model;
     }
-
 }

@@ -12,8 +12,8 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
+import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.resource.Resource;
-import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -23,10 +23,8 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
-import dev.lucaargolo.nexo.render.MinecraftGraphics2D;
 import dev.lucaargolo.nexo.render.MinecraftRenderingHandler;
 import dev.lucaargolo.nexo.resource.MinecraftResourceType;
-import dev.lucaargolo.nexo.resource.font.MinecraftTtfFontResource;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
@@ -90,36 +88,10 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        registerDefaultResources();
+        this.registerResource(Resource.Type.FONT_TTF, Graphics2D.DEFAULT_FONT);
         this.registryHandler.init();
         this.renderingHandler.init();
         this.discoveryHandler.init();
-    }
-
-    private void registerDefaultResources() {
-        registerResource(new MinecraftTtfFontResource(
-                MinecraftGraphics2D.DEFAULT_FONT_LOCATION,
-                NexoMinecraft::loadDefaultFont
-        ));
-    }
-
-    private static byte @Nullable [] loadDefaultFont() {
-        String path = "assets/nexo/fonts/inter.ttf";
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        URL url = classLoader != null ? classLoader.getResource(path) : null;
-        if (url == null) {
-            url = NexoMinecraft.class.getClassLoader().getResource(path);
-        }
-        if (url == null) {
-            LOGGER.warn("Could not find the bundled Nexo font at {}", path);
-            return null;
-        }
-        try (InputStream is = url.openStream()) {
-            return is.readAllBytes();
-        } catch (IOException e) {
-            LOGGER.warn("Failed to read the bundled Nexo font at {}", path, e);
-            return null;
-        }
     }
 
     public abstract Side getSide();
@@ -231,9 +203,12 @@ public abstract class NexoMinecraft implements Nexo {
         return MinecraftResourceType.of(type).lookup(this, location);
     }
 
-    @Override
-    public @NotNull <T extends Resource<T>> T registerResource(@NotNull T resource) {
-        return MinecraftResourceType.of(resource.type()).register(this, resource);
+    public @NotNull <T extends Resource<T>> T registerResource(@NotNull Resource.Type<T> type, @NotNull Location location) {
+        return MinecraftResourceType.of(type).register(this, location);
+    }
+
+    public @NotNull <T extends Resource<T>> T registerResource(@NotNull Resource.Type<T> type, @NotNull Location location, byte @NotNull [] data) {
+        return MinecraftResourceType.of(type).register(this, location, data);
     }
 
     @Override

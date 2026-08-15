@@ -54,11 +54,9 @@ public class MinecraftPNGImageResource extends ImageResource.PNG {
 
     @NotNull
     //TODO: Actually provide the PNG back to Minecraft
-    public static PNG register(@NotNull NexoMinecraft nexo, @NotNull PNG resource) {
-        Location location = resource.location().withPath(l -> {
-            return l.path().replace("textures/", "").replace(".png", "");
-        });
-        RESOURCE_MAP.put(location, resource);
-        return resource;
+    public static PNG register(@NotNull NexoMinecraft nexo, @NotNull Location location, byte[] data) {
+        PNG png = new MinecraftPNGImageResource(location, true, () -> data);
+        RESOURCE_MAP.put(location, png);
+        return png;
     }
 }

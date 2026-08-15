@@ -12,6 +12,9 @@ import org.joml.Matrix4f;
 
 public interface Graphics2D {
 
+    @NotNull
+    Location DEFAULT_FONT = Location.of("nexo", "fonts/inter");
+
     void pushMatrix();
     void popMatrix();
     void pushState();

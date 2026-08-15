@@ -10,20 +10,12 @@ import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
-import dev.lucaargolo.nexo.api.resource.Resource;
-import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.render.font.MinecraftFont;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.ResourceLocationException;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -37,7 +29,6 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,10 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements Graphics2D, AutoCloseable {
 
-    public static final Location DEFAULT_FONT_LOCATION = Location.of("nexo", "fonts/inter");
     private static final int CURVE_SEGMENTS = 32;
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
-    private static final Map<Location, MinecraftFont> FONT_CACHE = new ConcurrentHashMap<>();
 
     protected final @NotNull PoseStack poses;
     private final @NotNull NexoMinecraft nexo;
@@ -64,7 +53,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private @Nullable BufferBuilder deferredBuilder;
     private @Nullable ByteBufferBuilder deferredAllocation;
     private @Nullable RenderType activeRenderType;
-    private @Nullable ResourceLocation fontAtlasLocation;
     private float @Nullable [] firstVertex;
     private int vertexCount;
     private int matrixDepth;
@@ -361,111 +349,25 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     @Override
     public void drawText(@NotNull String text, float x, float y) {
         requireOutsidePrimitive("draw text");
-        MinecraftFont font = resolveFont();
-        if (font == null) {
-            drawTextVanilla(text, x, y, isMinecraftFont());
-            return;
-        }
-        font.ensureGlyphs(text);
-        font.upload();
-        float scale = state.fontSize / MinecraftFont.ATLAS_SIZE;
-        float penX = x;
-        float penY = y + font.ascent() * scale;
-        int prevCodepoint = 0;
-        fontAtlasLocation = font.textureLocation();
-        Location prevTexture = state.texture;
-        Object prevSprite = state.sprite;
-        Shader prevShader = state.shader;
-        state.texture = null;
-        state.sprite = null;
-        state.shader = null;
-        try {
-            boolean started = false;
-            for (int i = 0; i < text.length(); ) {
-                int codepoint = text.codePointAt(i);
-                i += Character.charCount(codepoint);
-                if (prevCodepoint != 0) {
-                    penX += font.kern(prevCodepoint, codepoint) * scale;
-                }
-                MinecraftFont.Glyph glyph = font.glyph(codepoint);
-                if (glyph.width() > 0.0F) {
-                    if (!started) {
-                        begin(PrimitiveType.QUADS, VertexFormat.POSITION_TEX);
-                        started = true;
-                    }
-                    float x0 = penX + glyph.xOffset() * scale;
-                    float y0 = penY + glyph.yOffset() * scale;
-                    float width = glyph.width() * scale;
-                    float height = glyph.height() * scale;
-                    vertex(x0, y0 + height, 0.0F, glyph.u0(), glyph.v1());
-                    vertex(x0 + width, y0 + height, 0.0F, glyph.u1(), glyph.v1());
-                    vertex(x0 + width, y0, 0.0F, glyph.u1(), glyph.v0());
-                    vertex(x0, y0, 0.0F, glyph.u0(), glyph.v0());
-                }
-                penX += glyph.advance() * scale;
-                prevCodepoint = codepoint;
-            }
-            if (started) {
-                end();
-            }
-        } finally {
-            fontAtlasLocation = null;
-            state.texture = prevTexture;
-            state.sprite = prevSprite;
-            state.shader = prevShader;
-        }
-    }
-
-    private @Nullable MinecraftFont resolveFont() {
-        return FONT_CACHE.computeIfAbsent(fontLocation(), location -> {
-            FontResource.TTF resource = nexo.getResource(Resource.Type.FONT, location);
-            if (resource == null) return null;
-            byte[] data = resource.data();
-            return data != null ? new MinecraftFont(data, resource.location()) : null;
-        });
-    }
-
-    private boolean isMinecraftFont() {
-        return nexo.getResource(Resource.Type.MINECRAFT_FONT, fontLocation()) != null;
-    }
-
-    private @NotNull Location fontLocation() {
-        return state.font != null ? state.font : DEFAULT_FONT_LOCATION;
-    }
-
-    @Override
-    public float textWidth(@NotNull String text) {
-        MinecraftFont font = resolveFont();
-        if (font == null) {
-            Font minecraftFont = Minecraft.getInstance().font;
-            float scale = state.fontSize / minecraftFont.lineHeight;
-            return minecraftFont.width(text) * scale;
-        }
-        return font.width(text, state.fontSize / MinecraftFont.ATLAS_SIZE);
-    }
-
-    private void drawTextVanilla(@NotNull String text, float x, float y, boolean forceDefaultFont) {
         Font minecraftFont = Minecraft.getInstance().font;
         Matrix4f matrix = matrix();
         float scale = state.fontSize / minecraftFont.lineHeight;
         matrix.scale(scale);
         int color = packColor(state.color);
         int light = light();
-        ResourceLocation font = null;
-        if (!forceDefaultFont && state.font != null) {
-            try {
-                font = NexoMinecraft.rl(state.font);
-            } catch (ResourceLocationException e) {
-                NexoMinecraft.LOGGER.debug("Font location {} is not a valid Minecraft resource location", state.font);
-            }
-        }
-        MutableComponent component = Component.literal(text);
-        if (font != null) {
-            component = component.withStyle(Style.EMPTY.withFont(font));
-        }
+        ResourceLocation font = state.font != null ?  NexoMinecraft.rl(state.font) : NexoMinecraft.rl(DEFAULT_FONT);
+        MutableComponent component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
         minecraftFont.drawInBatch(component, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
     }
 
+    @Override
+    public float textWidth(@NotNull String text) {
+        Font minecraftFont = Minecraft.getInstance().font;
+        float scale = state.fontSize / minecraftFont.lineHeight;
+        ResourceLocation font = state.font != null ?  NexoMinecraft.rl(state.font) : NexoMinecraft.rl(DEFAULT_FONT);
+        MutableComponent component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
+        return minecraftFont.width(component) * scale;
+    }
 
     public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
         begin(PrimitiveType.LINES, VertexFormat.POSITION);
@@ -473,7 +375,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         vertex(x2, y2, z2);
         end();
     }
-
 
     @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format) {
@@ -565,10 +466,10 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             }
             actualConsumer.setUv(u, v);
         }
-        if (state.shader == null && (state.texture != null || fontAtlasLocation != null)) {
+        if (state.shader == null && state.texture != null) {
             actualConsumer.setOverlay(packedOverlay).setLight(light());
         }
-        if (normalOffset >= 0 || state.shader == null && (state.texture != null || fontAtlasLocation != null)) {
+        if (normalOffset >= 0 || state.shader == null && state.texture != null) {
             Vector3f normal = normalOffset >= 0
                     ? new Vector3f(data[normalOffset], data[normalOffset + 1], data[normalOffset + 2])
                     : state.normal;
@@ -626,7 +527,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
-        boolean textured = (state.texture != null && format != VertexFormat.POSITION) || fontAtlasLocation != null;
+        boolean textured = state.texture != null && format != VertexFormat.POSITION;
         MinecraftShader shader = (MinecraftShader) state.shader;
         Map<String, MinecraftShader.UniformValue> uniforms = shader == null ? null : shader.uniforms();
         RenderKey key = new RenderKey(
@@ -640,8 +541,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
                 state.magFilter,
                 shader == null ? null : format,
                 shader,
-                uniforms,
-                fontAtlasLocation
+                uniforms
         );
         Map<RenderKey, RenderType> cache = shader == null ? RENDER_TYPES : customRenderTypes;
         return cache.computeIfAbsent(key, MinecraftGraphics2D::createRenderType);
@@ -707,8 +607,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             @NotNull TextureFilter magFilter,
             @Nullable VertexFormat vertexFormat,
             @Nullable MinecraftShader shader,
-            @Nullable Map<String, MinecraftShader.UniformValue> uniforms,
-            @Nullable ResourceLocation textureLocation
+            @Nullable Map<String, MinecraftShader.UniformValue> uniforms
     ) {
     }
 
@@ -743,15 +642,11 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             states.add(cullState(key.cullMode));
             states.add(writeMask(key.depthMode, key.depthMask));
             if (key.textured) {
-                if (key.textureLocation != null) {
-                    states.add(new TextureStateShard(key.textureLocation, true, false));
-                } else {
-                    states.add(new TextureStateShard(
-                            InventoryMenu.BLOCK_ATLAS,
-                            blurred(key.minFilter, key.magFilter),
-                            mipmapped(key.minFilter)
-                    ));
-                }
+                states.add(new TextureStateShard(
+                        InventoryMenu.BLOCK_ATLAS,
+                        blurred(key.minFilter, key.magFilter),
+                        mipmapped(key.minFilter)
+                ));
                 states.add(LIGHTMAP);
             }
             return new NexoRenderState(key, List.copyOf(states));

@@ -37,8 +37,7 @@ public abstract class Resource<T extends Resource<T>> {
         public static final @NotNull Type<ImageResource.PNG> PNG_IMAGE = new Type<>(ImageResource.PNG.class);
         public static final @NotNull Type<ShaderResource.VSH> VSH_SHADER = new Type<>(ShaderResource.VSH.class);
         public static final @NotNull Type<ShaderResource.FSH> FSH_SHADER = new Type<>(ShaderResource.FSH.class);
-        public static final @NotNull Type<FontResource.TTF> FONT = new Type<>(FontResource.TTF.class);
-        public static final @NotNull Type<FontResource.Minecraft> MINECRAFT_FONT = new Type<>(FontResource.Minecraft.class);
+        public static final @NotNull Type<FontResource.TTF> FONT_TTF = new Type<>(FontResource.TTF.class);
 
         private final Class<T> type;
 

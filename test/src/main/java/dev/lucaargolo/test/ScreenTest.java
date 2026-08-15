@@ -8,7 +8,6 @@ import dev.lucaargolo.nexo.api.feature.screen.widget.Label;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -222,9 +221,13 @@ public class ScreenTest extends SimpleScreen {
 
     private static final List<FontOption> FONTS = List.of(
             new FontOption("Default", null),
-            new FontOption("Fira Mono", NexoTestMod.TEST_FONT),
-            new FontOption("Minecraft", FontResource.Minecraft.DEFAULT_LOCATION)
-    );
+            new FontOption("Fira Mono", NexoTestMod.id("fonts/fira_mono")),
+            new FontOption("Minecraft", Location.of("minecraft", "default")),
+            new FontOption("Uniform", Location.of("minecraft", "uniform")),
+            new FontOption("Alt", Location.of("minecraft", "alt")),
+            new FontOption("Illageralt", Location.of("minecraft", "illageralt")),
+            new FontOption("Unknown", Location.of("unknown", "unknown"))
+        );
 
     private int currentIndex;
     private int textureIndex;

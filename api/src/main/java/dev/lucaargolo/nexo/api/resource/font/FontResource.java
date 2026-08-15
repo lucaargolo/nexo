@@ -37,22 +37,7 @@ public abstract class FontResource<T extends FontResource<T>> extends Resource<T
 
         @Override
         public final @NotNull Type<TTF> type() {
-            return Type.FONT;
-        }
-
-    }
-
-    public static abstract class Minecraft extends FontResource<Minecraft> {
-
-        public static final @NotNull Location DEFAULT_LOCATION = Location.of("nexo", "minecraft");
-
-        public Minecraft(@NotNull Location location) {
-            super(location, () -> null);
-        }
-
-        @Override
-        public final @NotNull Type<Minecraft> type() {
-            return Type.MINECRAFT_FONT;
+            return Type.FONT_TTF;
         }
 
     }

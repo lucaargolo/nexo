@@ -11,10 +11,7 @@ public class NexoTestMod {
 
     public static final String MOD_ID = "nexo_test";
 
-    public static final Location TEST_FONT = NexoTestMod.id("fonts/fira_mono.ttf");
-
     public NexoTestMod(@NotNull Nexo nexo) {
-        nexo.registerResource(new TestTtfFontResource(TEST_FONT, () -> nexo.loadResource(TEST_FONT)));
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
         ScreenBase testScreen = ScreenTest.register(nexo);
         BlockTest.register(nexo, category);
