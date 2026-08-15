@@ -132,7 +132,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
             return ItemRenderer.EMPTY;
         }else{
             return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(matrices, vertexConsumers, shaderRenderer, light, overlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, matrices, vertexConsumers, shaderRenderer, light, overlay);
                 try {
                     renderer.render(graphics, nexo.stackToUnit(stack));
                 } finally {
@@ -148,7 +148,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
         if(renderer != null) {
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(poseStack, bufferSource, shaderRenderer, packedLight, packedOverlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, poseStack, bufferSource, shaderRenderer, packedLight, packedOverlay);
                 try {
                     renderer.render(graphics, nexo.blockToUnit(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity));
                 } finally {
@@ -170,7 +170,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
                     MinecraftGraphics3D graphics = new MinecraftGraphics3D(
-                            pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
+                            nexo, pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
                     );
                     try {
                         renderer.render(graphics, nexo.entityToUnit(pEntity));

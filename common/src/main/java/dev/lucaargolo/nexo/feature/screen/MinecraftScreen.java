@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.feature.screen;
 
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
@@ -53,15 +54,20 @@ public class MinecraftScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         unit.setMouse(mouseX, mouseY);
+        NexoMinecraft nexo = helper.nexo();
         MinecraftGraphics2D g = new MinecraftGraphics2D(
+                nexo,
                 graphics.pose(),
                 graphics.bufferSource(),
-                helper.nexo().getRenderingHandler().shaderRenderer(),
+                nexo.getRenderingHandler().shaderRenderer(),
                 LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY
         );
         try {
             feature.render(g, unit);
+        } catch (Throwable t) {
+            NexoMinecraft.LOGGER.error("Failed to render Nexo screen {}", feature.location(), t);
+            throw t;
         } finally {
             g.finish();
         }

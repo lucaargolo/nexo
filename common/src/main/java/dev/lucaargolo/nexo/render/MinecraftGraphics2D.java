@@ -10,16 +10,22 @@ import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.render.font.MinecraftFont;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.ResourceLocationException;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -31,6 +37,7 @@ import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +47,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements Graphics2D, AutoCloseable {
 
+    public static final Location DEFAULT_FONT_LOCATION = Location.of("nexo", "fonts/inter");
     private static final int CURVE_SEGMENTS = 32;
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
+    private static final Map<Location, MinecraftFont> FONT_CACHE = new ConcurrentHashMap<>();
 
     protected final @NotNull PoseStack poses;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull MultiBufferSource buffers;
     private final @NotNull MinecraftShaderRenderer shaderRenderer;
     private final @NotNull Map<RenderKey, RenderType> customRenderTypes = new HashMap<>();
@@ -54,18 +64,21 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private @Nullable BufferBuilder deferredBuilder;
     private @Nullable ByteBufferBuilder deferredAllocation;
     private @Nullable RenderType activeRenderType;
+    private @Nullable ResourceLocation fontAtlasLocation;
     private float @Nullable [] firstVertex;
     private int vertexCount;
     private int matrixDepth;
     private boolean finished;
 
     public MinecraftGraphics2D(
+            @NotNull NexoMinecraft nexo,
             @NotNull PoseStack poses,
             @NotNull MultiBufferSource buffers,
             @NotNull MinecraftShaderRenderer shaderRenderer,
             int packedLight,
             int packedOverlay
     ) {
+        this.nexo = nexo;
         this.poses = poses;
         this.buffers = buffers;
         this.shaderRenderer = shaderRenderer;
@@ -170,37 +183,22 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void drawRect(float x, float y, float width, float height) {
-        if (state.lineWidth > 1.0F) {
-            strokePolyline(new float[][]{{x, y}, {x + width, y}, {x + width, y + height}, {x, y + height}}, true);
-        } else {
-            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
-            vertex(x, y, 0.0F);
-            vertex(x + width, y, 0.0F);
-            vertex(x + width, y + height, 0.0F);
-            vertex(x, y + height, 0.0F);
-            end();
-        }
+        strokePolyline(new float[][]{{x, y}, {x + width, y}, {x + width, y + height}, {x, y + height}}, true);
     }
 
     @Override
     public void fillRect(float x, float y, float width, float height) {
-        begin(PrimitiveType.QUADS, VertexFormat.POSITION);
-        vertex(x, y + height, 0.0F);
-        vertex(x + width, y + height, 0.0F);
-        vertex(x + width, y, 0.0F);
-        vertex(x, y, 0.0F);
+        beginShape(PrimitiveType.QUADS);
+        shapeVertex(x, y + height, x, y, x + width, y + height);
+        shapeVertex(x + width, y + height, x, y, x + width, y + height);
+        shapeVertex(x + width, y, x, y, x + width, y + height);
+        shapeVertex(x, y, x, y, x + width, y + height);
         end();
     }
 
     @Override
     public void drawEllipse(float x, float y, float width, float height) {
-        if (state.lineWidth > 1.0F) {
-            strokePolyline(ellipsePoints(x, y, width, height), true);
-        } else {
-            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
-            ellipseVertices(x, y, width, height);
-            end();
-        }
+        strokePolyline(ellipsePoints(x, y, width, height), true);
     }
 
     private float @NotNull [] @NotNull [] ellipsePoints(float x, float y, float width, float height) {
@@ -217,8 +215,8 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void fillEllipse(float x, float y, float width, float height) {
-        begin(PrimitiveType.TRIANGLE_FAN, VertexFormat.POSITION);
-        vertex(x, y, 0.0F);
+        beginShape(PrimitiveType.TRIANGLE_FAN);
+        shapeVertex(x, y, x - width * 0.5F, y - height * 0.5F, x + width * 0.5F, y + height * 0.5F);
         ellipseVertices(x, y, width, height);
         end();
     }
@@ -226,25 +224,20 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private void ellipseVertices(float x, float y, float width, float height) {
         float radiusX = width * 0.5F;
         float radiusY = height * 0.5F;
+        float minX = x - radiusX;
+        float minY = y - radiusY;
+        float maxX = x + radiusX;
+        float maxY = y + radiusY;
         for (int i = 0; i <= CURVE_SEGMENTS; i++) {
             double angle = Math.PI * 2.0 * i / CURVE_SEGMENTS;
-            vertex(x + (float) Math.cos(angle) * radiusX, y + (float) Math.sin(angle) * radiusY, 0.0F);
+            shapeVertex(x + (float) Math.cos(angle) * radiusX, y + (float) Math.sin(angle) * radiusY, minX, minY, maxX, maxY);
         }
     }
 
     @Override
     public void drawRoundedRect(float x, float y, float width, float height, float radius) {
         float actualRadius = clampRadius(radius, width, height);
-        if (state.lineWidth > 1.0F) {
-            strokePolyline(roundedRectPoints(x, y, width, height, actualRadius), true);
-        } else {
-            begin(PrimitiveType.LINE_LOOP, VertexFormat.POSITION);
-            arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8);
-            arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8);
-            arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8);
-            arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8);
-            end();
-        }
+        strokePolyline(roundedRectPoints(x, y, width, height, actualRadius), true);
     }
 
     @Override
@@ -254,14 +247,14 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     private void roundedRect(float x, float y, float width, float height, float radius, PrimitiveType type) {
         float actualRadius = clampRadius(radius, width, height);
-        begin(type, VertexFormat.POSITION);
-        if (type == PrimitiveType.TRIANGLE_FAN) vertex(x + width * 0.5F, y + height * 0.5F, 0.0F);
-        arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8);
-        arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8);
-        arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8);
-        arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8);
+        beginShape(type);
+        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x + width * 0.5F, y + height * 0.5F, x, y, x + width, y + height);
+        arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8, x, y, x + width, y + height);
+        arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8, x, y, x + width, y + height);
+        arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8, x, y, x + width, y + height);
+        arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8, x, y, x + width, y + height);
         // Re-emit the first corner vertex to close triangle fans
-        if (type == PrimitiveType.TRIANGLE_FAN) vertex(x + width - actualRadius, y, 0.0F);
+        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x + width - actualRadius, y, x, y, x + width, y + height);
         end();
     }
 
@@ -282,19 +275,15 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void drawPolygon(float @NotNull [] x, float @NotNull [] y) {
-        if (state.lineWidth > 1.0F) {
-            if (x.length != y.length || x.length < 3) {
-                throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
-            }
-            float @NotNull [] @NotNull [] points = new float[x.length][2];
-            for (int i = 0; i < x.length; i++) {
-                points[i][0] = x[i];
-                points[i][1] = y[i];
-            }
-            strokePolyline(points, true);
-        } else {
-            polygon(x, y, PrimitiveType.LINE_LOOP);
+        if (x.length != y.length || x.length < 3) {
+            throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
         }
+        float @NotNull [] @NotNull [] points = new float[x.length][2];
+        for (int i = 0; i < x.length; i++) {
+            points[i][0] = x[i];
+            points[i][1] = y[i];
+        }
+        strokePolyline(points, true);
     }
 
     @Override
@@ -306,22 +295,26 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         if (x.length != y.length || x.length < 3) {
             throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
         }
-        begin(type, VertexFormat.POSITION);
-        for (int i = 0; i < x.length; i++) vertex(x[i], y[i], 0.0F);
+        float minX = Float.MAX_VALUE;
+        float minY = Float.MAX_VALUE;
+        float maxX = -Float.MAX_VALUE;
+        float maxY = -Float.MAX_VALUE;
+        for (int i = 0; i < x.length; i++) {
+            minX = Math.min(minX, x[i]);
+            minY = Math.min(minY, y[i]);
+            maxX = Math.max(maxX, x[i]);
+            maxY = Math.max(maxY, y[i]);
+        }
+        beginShape(type);
+        for (int i = 0; i < x.length; i++) shapeVertex(x[i], y[i], minX, minY, maxX, maxY);
         // Re-emit the first vertex to close triangle fans
-        if (type == PrimitiveType.TRIANGLE_FAN) vertex(x[0], y[0], 0.0F);
+        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x[0], y[0], minX, minY, maxX, maxY);
         end();
     }
 
     @Override
     public void drawArc(float x, float y, float radius, float startAngle, float endAngle) {
-        if (state.lineWidth > 1.0F) {
-            strokePolyline(arcPoints(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS), false);
-        } else {
-            begin(PrimitiveType.LINE_STRIP, VertexFormat.POSITION);
-            arcVertices(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS);
-            end();
-        }
+        strokePolyline(arcPoints(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS), false);
     }
 
     private float @NotNull [] @NotNull [] arcPoints(float x, float y, float radius, float startAngle, float endAngle, int segments) {
@@ -351,16 +344,16 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void fillArc(float x, float y, float radius, float startAngle, float endAngle) {
-        begin(PrimitiveType.TRIANGLE_FAN, VertexFormat.POSITION);
-        vertex(x, y, 0.0F);
-        arcVertices(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS);
+        beginShape(PrimitiveType.TRIANGLE_FAN);
+        shapeVertex(x, y, x - radius, y - radius, x + radius, y + radius);
+        arcVertices(x, y, radius, startAngle, endAngle, CURVE_SEGMENTS, x - radius, y - radius, x + radius, y + radius);
         end();
     }
 
-    private void arcVertices(float x, float y, float radius, float startAngle, float endAngle, int segments) {
+    private void arcVertices(float x, float y, float radius, float startAngle, float endAngle, int segments, float minX, float minY, float maxX, float maxY) {
         for (int i = 0; i <= segments; i++) {
             double angle = Math.toRadians(startAngle + (endAngle - startAngle) * i / segments);
-            vertex(x + (float) Math.cos(angle) * radius, y + (float) Math.sin(angle) * radius, 0.0F);
+            shapeVertex(x + (float) Math.cos(angle) * radius, y + (float) Math.sin(angle) * radius, minX, minY, maxX, maxY);
         }
     }
 
@@ -368,19 +361,109 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     @Override
     public void drawText(@NotNull String text, float x, float y) {
         requireOutsidePrimitive("draw text");
+        MinecraftFont font = resolveFont();
+        if (font == null) {
+            drawTextVanilla(text, x, y, isMinecraftFont());
+            return;
+        }
+        font.ensureGlyphs(text);
+        font.upload();
+        float scale = state.fontSize / MinecraftFont.ATLAS_SIZE;
+        float penX = x;
+        float penY = y + font.ascent() * scale;
+        int prevCodepoint = 0;
+        fontAtlasLocation = font.textureLocation();
+        Location prevTexture = state.texture;
+        Object prevSprite = state.sprite;
+        Shader prevShader = state.shader;
+        state.texture = null;
+        state.sprite = null;
+        state.shader = null;
+        try {
+            boolean started = false;
+            for (int i = 0; i < text.length(); ) {
+                int codepoint = text.codePointAt(i);
+                i += Character.charCount(codepoint);
+                if (prevCodepoint != 0) {
+                    penX += font.kern(prevCodepoint, codepoint) * scale;
+                }
+                MinecraftFont.Glyph glyph = font.glyph(codepoint);
+                if (glyph.width() > 0.0F) {
+                    if (!started) {
+                        begin(PrimitiveType.QUADS, VertexFormat.POSITION_TEX);
+                        started = true;
+                    }
+                    float x0 = penX + glyph.xOffset() * scale;
+                    float y0 = penY + glyph.yOffset() * scale;
+                    float width = glyph.width() * scale;
+                    float height = glyph.height() * scale;
+                    vertex(x0, y0 + height, 0.0F, glyph.u0(), glyph.v1());
+                    vertex(x0 + width, y0 + height, 0.0F, glyph.u1(), glyph.v1());
+                    vertex(x0 + width, y0, 0.0F, glyph.u1(), glyph.v0());
+                    vertex(x0, y0, 0.0F, glyph.u0(), glyph.v0());
+                }
+                penX += glyph.advance() * scale;
+                prevCodepoint = codepoint;
+            }
+            if (started) {
+                end();
+            }
+        } finally {
+            fontAtlasLocation = null;
+            state.texture = prevTexture;
+            state.sprite = prevSprite;
+            state.shader = prevShader;
+        }
+    }
+
+    private @Nullable MinecraftFont resolveFont() {
+        return FONT_CACHE.computeIfAbsent(fontLocation(), location -> {
+            FontResource.TTF resource = nexo.getResource(Resource.Type.FONT, location);
+            if (resource == null) return null;
+            byte[] data = resource.data();
+            return data != null ? new MinecraftFont(data, resource.location()) : null;
+        });
+    }
+
+    private boolean isMinecraftFont() {
+        return nexo.getResource(Resource.Type.MINECRAFT_FONT, fontLocation()) != null;
+    }
+
+    private @NotNull Location fontLocation() {
+        return state.font != null ? state.font : DEFAULT_FONT_LOCATION;
+    }
+
+    @Override
+    public float textWidth(@NotNull String text) {
+        MinecraftFont font = resolveFont();
+        if (font == null) {
+            Font minecraftFont = Minecraft.getInstance().font;
+            float scale = state.fontSize / minecraftFont.lineHeight;
+            return minecraftFont.width(text) * scale;
+        }
+        return font.width(text, state.fontSize / MinecraftFont.ATLAS_SIZE);
+    }
+
+    private void drawTextVanilla(@NotNull String text, float x, float y, boolean forceDefaultFont) {
         Font minecraftFont = Minecraft.getInstance().font;
         Matrix4f matrix = matrix();
         float scale = state.fontSize / minecraftFont.lineHeight;
         matrix.scale(scale);
         int color = packColor(state.color);
         int light = light();
-        if (state.font == null) {
-            minecraftFont.drawInBatch(text, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
-        } else {
-            ResourceLocation font = NexoMinecraft.rl(state.font);
-            Component component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
-            minecraftFont.drawInBatch(component, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+        ResourceLocation font = null;
+        if (!forceDefaultFont && state.font != null) {
+            try {
+                font = NexoMinecraft.rl(state.font);
+            } catch (ResourceLocationException e) {
+                NexoMinecraft.LOGGER.debug("Font location {} is not a valid Minecraft resource location", state.font);
+            }
         }
+        MutableComponent component = Component.literal(text);
+        if (font != null) {
+            component = component.withStyle(Style.EMPTY.withFont(font));
+        }
+        minecraftFont.drawInBatch(component, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
     }
 
 
@@ -447,15 +530,26 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             }
         }
 
-        float r = state.color[0];
-        float g = state.color[1];
-        float b = state.color[2];
-        float a = state.color[3];
-        if (colorOffset >= 0) {
-            r *= data[colorOffset];
-            g *= data[colorOffset + 1];
-            b *= data[colorOffset + 2];
-            a *= data[colorOffset + 3];
+        float r;
+        float g;
+        float b;
+        float a;
+        if (state.texture != null && textureOffset >= 0) {
+            r = 1.0F;
+            g = 1.0F;
+            b = 1.0F;
+            a = 1.0F;
+        } else {
+            r = state.color[0];
+            g = state.color[1];
+            b = state.color[2];
+            a = state.color[3];
+            if (colorOffset >= 0) {
+                r *= data[colorOffset];
+                g *= data[colorOffset + 1];
+                b *= data[colorOffset + 2];
+                a *= data[colorOffset + 3];
+            }
         }
 
         VertexConsumer actualConsumer = consumer;
@@ -471,10 +565,10 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             }
             actualConsumer.setUv(u, v);
         }
-        if (state.shader == null && state.texture != null) {
+        if (state.shader == null && (state.texture != null || fontAtlasLocation != null)) {
             actualConsumer.setOverlay(packedOverlay).setLight(light());
         }
-        if (normalOffset >= 0 || state.shader == null && state.texture != null) {
+        if (normalOffset >= 0 || state.shader == null && (state.texture != null || fontAtlasLocation != null)) {
             Vector3f normal = normalOffset >= 0
                     ? new Vector3f(data[normalOffset], data[normalOffset + 1], data[normalOffset + 2])
                     : state.normal;
@@ -532,7 +626,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
-        boolean textured = state.texture != null;
+        boolean textured = (state.texture != null && format != VertexFormat.POSITION) || fontAtlasLocation != null;
         MinecraftShader shader = (MinecraftShader) state.shader;
         Map<String, MinecraftShader.UniformValue> uniforms = shader == null ? null : shader.uniforms();
         RenderKey key = new RenderKey(
@@ -546,7 +640,8 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
                 state.magFilter,
                 shader == null ? null : format,
                 shader,
-                uniforms
+                uniforms,
+                fontAtlasLocation
         );
         Map<RenderKey, RenderType> cache = shader == null ? RENDER_TYPES : customRenderTypes;
         return cache.computeIfAbsent(key, MinecraftGraphics2D::createRenderType);
@@ -612,7 +707,8 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             @NotNull TextureFilter magFilter,
             @Nullable VertexFormat vertexFormat,
             @Nullable MinecraftShader shader,
-            @Nullable Map<String, MinecraftShader.UniformValue> uniforms
+            @Nullable Map<String, MinecraftShader.UniformValue> uniforms,
+            @Nullable ResourceLocation textureLocation
     ) {
     }
 
@@ -634,7 +730,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         private static @NotNull RenderType create(@NotNull RenderKey key) {
             List<RenderStateShard> states = new ArrayList<>();
             if (key.shader == null) {
-                states.add(key.textured ? RENDERTYPE_ENTITY_TRANSLUCENT_SHADER : POSITION_COLOR_SHADER);
+                states.add(key.textured ? new ShaderStateShard(GameRenderer::getRendertypeTextShader) : POSITION_COLOR_SHADER);
             } else {
                 states.add(new ShaderStateShard(() -> {
                     ShaderInstance instance = key.shader.instance(minecraftFormat(key));
@@ -647,20 +743,24 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             states.add(cullState(key.cullMode));
             states.add(writeMask(key.depthMode, key.depthMask));
             if (key.textured) {
-                states.add(new TextureStateShard(
-                        InventoryMenu.BLOCK_ATLAS,
-                        blurred(key.minFilter, key.magFilter),
-                        mipmapped(key.minFilter)
-                ));
+                if (key.textureLocation != null) {
+                    states.add(new TextureStateShard(key.textureLocation, true, false));
+                } else {
+                    states.add(new TextureStateShard(
+                            InventoryMenu.BLOCK_ATLAS,
+                            blurred(key.minFilter, key.magFilter),
+                            mipmapped(key.minFilter)
+                    ));
+                }
                 states.add(LIGHTMAP);
-                states.add(OVERLAY);
             }
             return new NexoRenderState(key, List.copyOf(states));
         }
 
         private static com.mojang.blaze3d.vertex.@NotNull VertexFormat minecraftFormat(@NotNull RenderKey key) {
             if (key.shader == null) {
-                return key.textured ? DefaultVertexFormat.NEW_ENTITY : DefaultVertexFormat.POSITION_COLOR;
+                if (key.textured) return DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP;
+                return DefaultVertexFormat.POSITION_COLOR;
             }
             if (key.vertexFormat == null) throw new IllegalStateException("Custom shader render type has no vertex format");
             return customVertexFormat(key.vertexFormat);

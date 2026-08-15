@@ -68,7 +68,13 @@ public interface Graphics2D {
     void textureFilter(@NotNull TextureFilter min, @NotNull TextureFilter mag);
     void textureWrap(@NotNull TextureWrap wrapS, @NotNull TextureWrap wrapT);
 
+    void textureBounds(float minX, float minY, float maxX, float maxY);
+
+    void resetTextureBounds();
+
     void drawText(@NotNull String text, float x, float y);
+
+    float textWidth(@NotNull String text);
     void font(@Nullable Location font);
     @Nullable Location font();
     void fontSize(float size);

@@ -251,6 +251,21 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     }
 
     @Override
+    public float textWidth(@NotNull String text) {
+        throw unsupported("text");
+    }
+
+    @Override
+    public void textureBounds(float minX, float minY, float maxX, float maxY) {
+        throw unsupported("texture bounds");
+    }
+
+    @Override
+    public void resetTextureBounds() {
+        throw unsupported("texture bounds");
+    }
+
+    @Override
     public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
         throw unsupported("lines");
     }

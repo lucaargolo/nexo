@@ -163,14 +163,7 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
     @Override
     public void drawLine(float x1, float y1, float x2, float y2) {
-        if (state.lineWidth > 1.0F) {
-            strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
-        } else {
-            begin(PrimitiveType.LINES, VertexFormat.POSITION);
-            vertex(x1, y1, 0.0F);
-            vertex(x2, y2, 0.0F);
-            end();
-        }
+        strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
     }
 
     /**
@@ -249,6 +242,37 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
             vertex(cx, cy, 0.0F);
         }
         end();
+    }
+
+    @Override
+    public void textureBounds(float minX, float minY, float maxX, float maxY) {
+        state.textureBounds = new float[]{minX, minY, maxX, maxY};
+    }
+
+    @Override
+    public void resetTextureBounds() {
+        state.textureBounds = null;
+    }
+
+    protected void beginShape(@NotNull PrimitiveType type) {
+        begin(type, state.texture != null ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
+    }
+
+    protected void shapeVertex(float x, float y, float minX, float minY, float maxX, float maxY) {
+        if (state.texture == null) {
+            vertex(x, y, 0.0F);
+            return;
+        }
+        float[] bounds = state.textureBounds;
+        if (bounds != null) {
+            minX = bounds[0];
+            minY = bounds[1];
+            maxX = bounds[2];
+            maxY = bounds[3];
+        }
+        float u = maxX > minX ? (x - minX) / (maxX - minX) : 0.0F;
+        float v = maxY > minY ? (y - minY) / (maxY - minY) : 0.0F;
+        vertex(x, y, 0.0F, u, v);
     }
     @Override
     public void drawCircle(float x, float y, float radius) {
@@ -332,6 +356,7 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         protected float lineWidth = 1.0F;
         protected @Nullable Location texture;
         protected @Nullable Object sprite;
+        protected float @Nullable [] textureBounds;
         protected TextureFilter minFilter = TextureFilter.NEAREST;
         protected TextureFilter magFilter = TextureFilter.NEAREST;
         protected TextureWrap wrapS = TextureWrap.CLAMP;
@@ -356,6 +381,7 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
             lineWidth = other.lineWidth;
             texture = other.texture;
             sprite = other.sprite;
+            textureBounds = other.textureBounds != null ? other.textureBounds.clone() : null;
             minFilter = other.minFilter;
             magFilter = other.magFilter;
             wrapS = other.wrapS;

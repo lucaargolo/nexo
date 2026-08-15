@@ -3,10 +3,13 @@ package dev.lucaargolo.nexo.resource;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.nexo.resource.font.MinecraftTtfFontResource;
+import dev.lucaargolo.nexo.resource.font.MinecraftVanillaFontResource;
 import dev.lucaargolo.nexo.resource.image.MinecraftPNGImageResource;
 import dev.lucaargolo.nexo.resource.model.MinecraftGltfModelResource;
 import dev.lucaargolo.nexo.resource.model.MinecraftMetaModelResource;
@@ -59,6 +62,18 @@ public class MinecraftResourceType<T extends Resource<T>> {
             Resource.Type.FSH_SHADER,
             MinecraftFshShaderResource::lookup,
             MinecraftFshShaderResource::register
+    );
+
+    public static final MinecraftResourceType<FontResource.TTF> FONT = new MinecraftResourceType<>(
+            Resource.Type.FONT,
+            MinecraftTtfFontResource::lookup,
+            MinecraftTtfFontResource::register
+    );
+
+    public static final MinecraftResourceType<FontResource.Minecraft> MINECRAFT_FONT = new MinecraftResourceType<>(
+            Resource.Type.MINECRAFT_FONT,
+            MinecraftVanillaFontResource::lookup,
+            MinecraftVanillaFontResource::register
     );
 
     private final BiFunction<NexoMinecraft, Location, T> lookup;
