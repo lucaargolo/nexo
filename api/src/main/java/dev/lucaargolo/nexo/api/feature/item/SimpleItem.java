@@ -16,7 +16,7 @@ public class SimpleItem extends ItemBase {
 
     public SimpleItem(
             @NotNull Location location,
-            @Nullable ModelResource<?> resource,
+            @Nullable ModelResource resource,
             @Nullable ItemCategoryBase category
     ) {
         super(location);
@@ -24,7 +24,7 @@ public class SimpleItem extends ItemBase {
         this.renderer = resource != null ? new ModelRenderer<>(resource) : null;
     }
 
-    public SimpleItem(@NotNull Location location, @Nullable ModelResource<?> resource) {
+    public SimpleItem(@NotNull Location location, @Nullable ModelResource resource) {
         this(location, resource, null);
     }
 

@@ -14,6 +14,9 @@ import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
+import dev.lucaargolo.nexo.api.resource.image.ImageResource;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -40,6 +43,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
@@ -58,6 +62,19 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
 
     public MinecraftShaderRenderer shaderRenderer() {
         return shaderRenderer;
+    }
+
+    public void registerImage(@NotNull ImageResource resource) {
+        minecraftAtlas.register(MinecraftAtlas.BLOCK_ATLAS, resource.location());
+    }
+
+    public void registerModel(@NotNull ModelResource resource) {
+        ModelRenderer<ModelResource> renderer = new ModelRenderer<>(resource);
+        registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+        registerModel(
+                NexoMinecraft.rl(resource.location().withoutExtension()),
+                () -> new NexoUnbakedModel<>(nexo, ModelResource.class, resource, Function.identity(), renderer)
+        );
     }
 
     public void init() {

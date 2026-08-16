@@ -50,16 +50,60 @@ public record Model(
         return transforms.get(location);
     }
 
+    public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path) {
+        Model model = loadResource(nexo, path);
+        if (model != null) {
+            return model;
+        }
+
+        if (!path.path().contains("models/")) {
+            model = loadResource(nexo, path.withPathPrefix("models/"));
+            if (model != null) {
+                return model;
+            }
+        }
+
+        nexo.getLogger().debug("Could not find model for location {}", path);
+        return null;
+    }
+
     public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         for (ModelLoader loader : LOADERS) {
             if (!loader.supports(path)) continue;
-            try {
-                return loader.load(nexo, path, data);
-            } catch (Exception e) {
-                nexo.getLogger().error("Failed to parse model {} with {}", path, loader.getClass().getSimpleName(), e);
+            Model model = load(loader, nexo, path, data);
+            if (model != null) {
+                return model;
             }
         }
         return null;
+    }
+
+    private static @Nullable Model loadResource(@NotNull Nexo nexo, @NotNull Location path) {
+        for (ModelLoader loader : LOADERS) {
+            for (Location resolvedPath : loader.resolve(path)) {
+                byte[] data = nexo.loadResource(resolvedPath);
+                if (data == null) continue;
+                Model model = load(loader, nexo, resolvedPath, data);
+                if (model != null) {
+                    return model;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable Model load(
+            @NotNull ModelLoader loader,
+            @NotNull Nexo nexo,
+            @NotNull Location path,
+            byte @NotNull [] data
+    ) {
+        try {
+            return loader.load(nexo, path, data);
+        } catch (Exception e) {
+            nexo.getLogger().error("Failed to parse model {} with {}", path, loader.getClass().getSimpleName(), e);
+            return null;
+        }
     }
 
     static {

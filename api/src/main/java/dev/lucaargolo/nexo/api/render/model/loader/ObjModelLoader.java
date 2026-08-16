@@ -5,8 +5,10 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
+import dev.lucaargolo.nexo.api.render.model.ModelResources;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
+import dev.lucaargolo.nexo.api.render.util.FloatBuilder;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +23,11 @@ public final class ObjModelLoader implements ModelLoader {
     @Override
     public boolean supports(@NotNull Location path) {
         return path.path().toLowerCase(Locale.ROOT).endsWith(".obj");
+    }
+
+    @Override
+    public @NotNull List<@NotNull String> extensions() {
+        return List.of(".obj");
     }
 
     @Override

@@ -48,14 +48,14 @@ public final class MinecraftAtlas {
     public static @NotNull List<SpriteContents> collectSpriteContents(Nexo nexo, List<SpriteContents> contents, List<Location> registered, Map<Location, byte[]> embedded) {
         List<SpriteContents> augmented = new ArrayList<>(contents);
         for (Location location : registered) {
-            ResourceLocation id = NexoMinecraft.rl(location);
+            ResourceLocation id = NexoMinecraft.rl(location.withoutExtension());
             boolean alreadyPresent = augmented.stream().anyMatch(c -> c.name().equals(id));
             if (alreadyPresent) {
                 continue;
             }
 
             try {
-                ImageResource.PNG resource = nexo.getResource(Resource.Type.PNG_IMAGE, location);
+                ImageResource resource = nexo.getResource(Resource.Type.IMAGE, location);
                 if (resource != null) {
                     NativeImage image = NativeImage.read(resource.data());
                     FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());

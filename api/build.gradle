@@ -8,4 +8,5 @@ dependencies {
     api "org.joml:joml:1.10.5"
     api "de.javagl:obj:0.4.0"
     api "de.javagl:jgltf-model:2.0.4"
+    api "com.twelvemonkeys.imageio:imageio-webp:3.13.1"
 }

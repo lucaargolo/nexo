@@ -45,6 +45,12 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
         });
     }
 
+    public void beginFeatureRegistration() {
+    }
+
+    public void endFeatureRegistration() {
+    }
+
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);
 
     public final <T> Holder<T> registerBuiltinFeature(ResourceKey<Registry<T>> registryKey, ResourceLocation id, Supplier<T> feature) {

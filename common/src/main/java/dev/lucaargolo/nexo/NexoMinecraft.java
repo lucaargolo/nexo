@@ -14,6 +14,8 @@ import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.image.ImageResource;
+import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -88,10 +90,15 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     protected final void init() {
-        this.registerResource(Resource.Type.FONT_TTF, Graphics2D.DEFAULT_FONT);
+        this.registerResource(Resource.Type.FONT, Graphics2D.DEFAULT_FONT);
         this.registryHandler.init();
         this.renderingHandler.init();
-        this.discoveryHandler.init();
+        this.registryHandler.beginFeatureRegistration();
+        try {
+            this.discoveryHandler.init();
+        } finally {
+            this.registryHandler.endFeatureRegistration();
+        }
     }
 
     public abstract Side getSide();
@@ -207,6 +214,14 @@ public abstract class NexoMinecraft implements Nexo {
 
     public final void handleMinecraftPacket(@NotNull MinecraftPacketPayload payload, @NotNull PacketReceiver receiver) {
         payload.packet().dispatch(receiver, ByteBuffer.wrap(payload.data()));
+    }
+
+    public final void registerImageResource(@NotNull ImageResource resource) {
+        renderingHandler.registerImage(resource);
+    }
+
+    public final void registerModelResource(@NotNull ModelResource resource) {
+        renderingHandler.registerModel(resource);
     }
 
     @Override

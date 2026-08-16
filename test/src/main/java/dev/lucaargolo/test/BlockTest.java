@@ -10,8 +10,8 @@ import dev.lucaargolo.nexo.api.feature.data.StringData;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Material;
+import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -53,23 +53,23 @@ public final class BlockTest {
     }
 
     public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
-        registerModelBlock(nexo, category, NexoTestMod.id("test_block"), ModelResource.Minecraft.full(NexoTestMod.id("test_block")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_block_2"), ModelResource.Minecraft.full(Location.of("minecraft", "block/yellow_wool")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_block_3"), nexo.getResource(Resource.Type.MINECRAFT_MODEL, NexoTestMod.id("test_block")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), nexo.getResource(Resource.Type.GLTF_MODEL, NexoTestMod.id("test_model")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), nexo.getResource(Resource.Type.OBJ_MODEL, NexoTestMod.id("test_model")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block"), ModelResource.full(NexoTestMod.id("test_block")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_2"), ModelResource.full(Location.of("minecraft", "block/yellow_wool")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_3"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.gltf")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.obj")));
 
         registerStateBlock(nexo, category);
         registerDynamicBlock(nexo, category);
     }
 
-    private static <M extends ModelResource<M>> void registerModelBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull Location location, @NotNull M model) {
+    private static void registerModelBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull Location location, @NotNull ModelResource model) {
         BlockBase block = nexo.registerFeature(new SimpleBlock(location, model));
         nexo.registerFeature(new BlockItem(block, category));
     }
 
     private static void registerStateBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
-        ModelResource.Minecraft model = nexo.getResource(Resource.Type.MINECRAFT_MODEL, NexoTestMod.id("test_block"));
+        ModelResource model = nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json"));
         BlockBase block = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_state"), model) {
             @Override
             public @NotNull List<@NotNull DataBase<?>> data() {

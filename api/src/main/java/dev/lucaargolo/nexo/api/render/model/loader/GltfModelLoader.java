@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
+import dev.lucaargolo.nexo.api.render.model.ModelResources;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
@@ -34,6 +35,11 @@ public final class GltfModelLoader implements ModelLoader {
     public boolean supports(@NotNull Location path) {
         String value = path.path().toLowerCase(Locale.ROOT);
         return value.endsWith(".gltf") || value.endsWith(".glb");
+    }
+
+    @Override
+    public @NotNull List<@NotNull String> extensions() {
+        return List.of(".gltf", ".glb");
     }
 
     @Override

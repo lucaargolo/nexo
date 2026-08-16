@@ -4,17 +4,13 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.entity.SimpleEntity;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Material;
+import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderBuiltins;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
-import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.render.util.CullMode;
-import dev.lucaargolo.nexo.api.render.util.DepthMode;
-import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.shader.ShaderResource;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
@@ -30,8 +26,8 @@ public final class EntityTest {
     }
 
     public static void register(@NotNull Nexo nexo) {
-        ShaderResource.VSH vertexShader = nexo.getResource(Resource.Type.VSH_SHADER, NexoTestMod.id("blackhole"));
-        ShaderResource.FSH fragmentShader = nexo.getResource(Resource.Type.FSH_SHADER, NexoTestMod.id("blackhole"));
+        ShaderResource vertexShader = nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.vsh"));
+        ShaderResource fragmentShader = nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.fsh"));
         ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
                 NexoTestMod.id("test_entity"),

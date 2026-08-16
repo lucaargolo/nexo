@@ -215,6 +215,8 @@ public class ScreenTest extends SimpleScreen {
             options.add(new TextureOption(color + "_wool", Location.of("minecraft", "block/" + color + "_wool")));
         }
         options.add(new TextureOption("bedrock", Location.of("minecraft", "block/bedrock")));
+        options.add(new TextureOption("JPEG loader", NexoTestMod.id("test_block_jpeg")));
+        options.add(new TextureOption("WebP loader", NexoTestMod.id("test_block_webp")));
         options.add(new TextureOption("None", null));
         return options;
     }
@@ -222,6 +224,8 @@ public class ScreenTest extends SimpleScreen {
     private static final List<FontOption> FONTS = List.of(
             new FontOption("Default", null),
             new FontOption("Fira Mono", NexoTestMod.id("fonts/fira_mono")),
+            new FontOption("Source Sans 3", NexoTestMod.id("fonts/source_sans_3_regular")),
+            new FontOption("Source Serif 4", NexoTestMod.id("fonts/source_serif_4_regular")),
             new FontOption("Minecraft", Location.of("minecraft", "default")),
             new FontOption("Uniform", Location.of("minecraft", "uniform")),
             new FontOption("Alt", Location.of("minecraft", "alt")),

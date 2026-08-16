@@ -1,13 +1,13 @@
-package dev.lucaargolo.nexo.api.render.model.loader;
+package dev.lucaargolo.nexo.api.render.font.loader;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.render.model.Model;
+import dev.lucaargolo.nexo.api.render.font.Font;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface ModelLoader {
+public interface FontLoader {
 
     boolean supports(@NotNull Location path);
 
@@ -27,5 +27,6 @@ public interface ModelLoader {
         return extensions().stream().map(path::withPathSuffix).toList();
     }
 
-    @NotNull Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) throws Exception;
+    @NotNull Font load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) throws Exception;
+
 }

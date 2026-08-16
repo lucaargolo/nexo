@@ -30,6 +30,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +40,24 @@ import java.util.function.Supplier;
 public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<FabricNexoMinecraft> {
 
     private final Map<DataBase<?>, AttachmentType<?>> dataAttachmentMap = new LinkedHashMap<>();
+    private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
+    private boolean featureRegistrationActive;
 
     public FabricMinecraftRegistryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
+    }
+
+    @Override
+    public void beginFeatureRegistration() {
+        featureRegistrationActive = true;
+    }
+
+    @Override
+    public void endFeatureRegistration() {
+        featureRegistrationActive = false;
+        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
+        pendingFeatureEvents.clear();
+        events.forEach(this.nexo()::emit);
     }
 
     @Override
@@ -108,7 +124,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             RegistryEntryAddedCallback.allEntries(registry, holder -> {
-                this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
             });
         });
     }
@@ -116,9 +132,17 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
         view.registerEntryAdded(type.registry(), (raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-            this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
+            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
             dynamicHolders.put(holder.key(), holder);
         });
+    }
+
+    private void emitFeatureRegistered(FeatureRegisteredEvent event) {
+        if (featureRegistrationActive) {
+            pendingFeatureEvents.add(event);
+        } else {
+            this.nexo().emit(event);
+        }
     }
 
 

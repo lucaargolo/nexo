@@ -52,7 +52,7 @@ public final class PacketTest {
 
         BlockBase packetTestBlock = nexo.registerFeature(new SimpleBlock(
                 NexoTestMod.id("packet_test_block"),
-                ModelResource.Minecraft.full(Location.of("minecraft", "block/bedrock"))
+                ModelResource.full(Location.of("minecraft", "block/bedrock"))
         ) {
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {

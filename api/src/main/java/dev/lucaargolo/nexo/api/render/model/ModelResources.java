@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.api.render.model.loader;
+package dev.lucaargolo.nexo.api.render.model;
 
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -9,12 +9,12 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.StringTokenizer;
 
-final class ModelResources {
+public final class ModelResources {
 
     private ModelResources() {
     }
 
-    static @NotNull Location resolve(@NotNull Location base, @NotNull String reference) {
+    public static @NotNull Location resolve(@NotNull Location base, @NotNull String reference) {
         String value = reference.replace('\\', '/');
         int suffix = value.indexOf('?');
         if (suffix >= 0) value = value.substring(0, suffix);
@@ -35,7 +35,7 @@ final class ModelResources {
         return Location.of(base.namespace(), normalize(parent + value));
     }
 
-    static @NotNull String normalize(@NotNull String path) {
+    public static @NotNull String normalize(@NotNull String path) {
         Deque<String> segments = new ArrayDeque<>();
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
         while (tokenizer.hasMoreTokens()) {

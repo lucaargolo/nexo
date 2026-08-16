@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class ShaderResource<T extends ShaderResource<T>> extends Resource<T> {
+public abstract class ShaderResource extends Resource<ShaderResource> {
 
     private final @NotNull Supplier<String> supplier;
     protected @Nullable String source;
@@ -17,6 +17,11 @@ public abstract class ShaderResource<T extends ShaderResource<T>> extends Resour
     public ShaderResource(@NotNull Location location, @NotNull Supplier<String> supplier) {
         super(location);
         this.supplier = supplier;
+    }
+
+    @Override
+    public final @NotNull Type<ShaderResource> type() {
+        return Type.SHADER;
     }
 
     @Override
@@ -29,32 +34,6 @@ public abstract class ShaderResource<T extends ShaderResource<T>> extends Resour
             source = Objects.requireNonNull(supplier.get());
         }
         return source;
-    }
-
-    public static abstract class VSH extends ShaderResource<VSH> {
-
-        public VSH(@NotNull Location location, @NotNull Supplier<String> supplier) {
-            super(location, supplier);
-        }
-
-        @Override
-        public final @NotNull Type<VSH> type() {
-            return Type.VSH_SHADER;
-        }
-
-    }
-
-    public static abstract class FSH extends ShaderResource<FSH> {
-
-        public FSH(@NotNull Location location, @NotNull Supplier<String> supplier) {
-            super(location, supplier);
-        }
-
-        @Override
-        public final @NotNull Type<FSH> type() {
-            return Type.FSH_SHADER;
-        }
-
     }
 
 }

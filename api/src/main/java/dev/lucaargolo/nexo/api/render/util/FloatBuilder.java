@@ -1,22 +1,24 @@
-package dev.lucaargolo.nexo.api.render.model.loader;
+package dev.lucaargolo.nexo.api.render.util;
 
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-final class FloatBuilder {
+public final class FloatBuilder {
 
     private float @NotNull [] values = new float[Mesh.VERTEX_STRIDE * 8];
     private int size;
 
-    void add(
+    public void add(
             float x, float y, float z,
             float red, float green, float blue, float alpha,
             float u, float v,
             float normalX, float normalY, float normalZ
     ) {
-        ensureCapacity(Mesh.VERTEX_STRIDE);
+        if (size + Mesh.VERTEX_STRIDE > values.length) {
+            values = Arrays.copyOf(values, Math.max(values.length * 2, size + Mesh.VERTEX_STRIDE));
+        }
         values[size++] = x;
         values[size++] = y;
         values[size++] = z;
@@ -31,13 +33,8 @@ final class FloatBuilder {
         values[size++] = normalZ;
     }
 
-    private void ensureCapacity(int addition) {
-        if (size + addition > values.length) {
-            values = Arrays.copyOf(values, Math.max(values.length * 2, size + addition));
-        }
-    }
-
-    float @NotNull [] toArray() {
+    public float @NotNull [] toArray() {
         return Arrays.copyOf(values, size);
     }
+
 }

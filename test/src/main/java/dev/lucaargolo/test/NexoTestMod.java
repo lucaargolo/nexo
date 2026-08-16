@@ -13,7 +13,11 @@ public class NexoTestMod {
     public static final String MOD_ID = "nexo_test";
 
     public NexoTestMod(@NotNull Nexo nexo) {
-        nexo.registerResource(Resource.Type.FONT_TTF, id("fonts/fira_mono"));
+        nexo.registerResource(Resource.Type.FONT, id("fonts/fira_mono"));
+        nexo.registerResource(Resource.Type.FONT, id("fonts/source_sans_3_regular"));
+        nexo.registerResource(Resource.Type.FONT, id("fonts/source_serif_4_regular"));
+        nexo.registerResource(Resource.Type.IMAGE, id("test_block_jpeg"));
+        nexo.registerResource(Resource.Type.IMAGE, id("test_block_webp"));
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
         ScreenBase testScreen = ScreenTest.register(nexo);
         BlockTest.register(nexo, category);

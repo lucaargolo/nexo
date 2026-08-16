@@ -17,10 +17,10 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
 
     private static final float POINT_RADIUS = 1.0F / 128.0F;
 
-    private final @NotNull ModelResource<?> resource;
+    private final @NotNull ModelResource resource;
     private @Nullable CompiledModel compiled;
 
-    public ModelRenderer(@NotNull ModelResource<?> resource) {
+    public ModelRenderer(@NotNull ModelResource resource) {
         this.resource = resource;
     }
 
