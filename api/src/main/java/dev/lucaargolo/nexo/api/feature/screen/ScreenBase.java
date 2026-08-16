@@ -41,6 +41,10 @@ public abstract class ScreenBase extends Feature<ScreenBase, ScreenUnit<?>> impl
         }
     }
 
+    public @NotNull List<@NotNull Widget> widgets() {
+        return widgets;
+    }
+
     public void addWidget(@NotNull Widget widget) {
         widgets.add(widget);
     }
@@ -49,9 +53,12 @@ public abstract class ScreenBase extends Feature<ScreenBase, ScreenUnit<?>> impl
         widgets.remove(widget);
     }
 
-    public @NotNull List<@NotNull Widget> widgets() {
-        return widgets;
+    public final void build(@NotNull ScreenUnit<?> unit) {
+        widgets.clear();
+        onBuild(unit);
     }
+
+    protected abstract void onBuild(@NotNull ScreenUnit<?> unit);
 
     public boolean onInputPressed(@NotNull ScreenUnit<?> screen, @NotNull Input input) {
         for (int i = widgets.size() - 1; i >= 0; i--) {

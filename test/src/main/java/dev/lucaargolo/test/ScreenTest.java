@@ -221,6 +221,9 @@ public class ScreenTest extends SimpleScreen {
         return options;
     }
 
+    private static final int DESIGN_WIDTH = 175;
+    private static final int DESIGN_HEIGHT = 95;
+
     private static final List<FontOption> FONTS = List.of(
             new FontOption("Default", null),
             new FontOption("Fira Mono", NexoTestMod.id("fonts/fira_mono")),
@@ -237,24 +240,44 @@ public class ScreenTest extends SimpleScreen {
     private int textureIndex;
     private int fontIndex;
 
-    private final @NotNull Label mouseLabel = new Label(10.0F, 19.0F, "");
-    private final @NotNull Label textureLabel = new Label(0.0F, 0.0F, "");
-    private final @NotNull Button previousButton = new Button(0.0F, 0.0F, 80.0F, 20.0F, "Previous", this::previous);
-    private final @NotNull Button nextButton = new Button(0.0F, 0.0F, 80.0F, 20.0F, "Next", this::next);
-    private final @NotNull Button texturePreviousButton = new Button(0.0F, 0.0F, 80.0F, 20.0F, "Previous", this::previousTexture);
-    private final @NotNull Button textureNextButton = new Button(0.0F, 0.0F, 80.0F, 20.0F, "Next", this::nextTexture);
-    private final @NotNull Button fontButton = new Button(0.0F, 0.0F, 130.0F, 20.0F, "Font: Default", this::toggleFont);
+    private @NotNull Label mouseLabel;
+    private @NotNull Label textureLabel;
+    private @NotNull Button fontButton;
+    private int cellX;
+    private int cellY;
+    private int contentScale;
 
     private ScreenTest() {
         super(NexoTestMod.id("test_screen"));
+    }
+
+    @Override
+    public void onBuild(@NotNull ScreenUnit<?> unit) {
+        contentScale = Math.max(0, Math.min(
+                1,
+                Math.min((unit.width() - 40) / DESIGN_WIDTH, (unit.height() - 95) / DESIGN_HEIGHT)
+        ));
+        cellX = (unit.width() - DESIGN_WIDTH * contentScale) / 2;
+        int headerHeight = 40;
+        int blockHeight = 35 + DESIGN_HEIGHT * contentScale + 10 + 20 + 84;
+        cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
+        int cellWidth = DESIGN_WIDTH * contentScale;
+
         addWidget(new Label(10.0F, 10.0F, "Nexo Screen - Shape Tests"));
+        mouseLabel = new Label(10.0F, 19.0F, "");
         addWidget(mouseLabel);
-        addWidget(previousButton);
-        addWidget(nextButton);
+        int buttonY = cellY + 35 + DESIGN_HEIGHT * contentScale + 10;
+        addWidget(new Button(cellX, buttonY, 80.0F, 20.0F, "Previous", this::previous));
+        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, "Next", this::next));
+        int textureButtonY = buttonY + 42;
+        textureLabel = new Label(cellX, textureButtonY - 14.0F, "");
         addWidget(textureLabel);
-        addWidget(texturePreviousButton);
-        addWidget(textureNextButton);
+        addWidget(new Button(cellX, textureButtonY, 80.0F, 20.0F, "Previous", this::previousTexture));
+        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, "Next", this::nextTexture));
+        int fontButtonY = textureButtonY + 42;
+        fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, "Font: " + FONTS.get(fontIndex).name(), this::toggleFont);
         addWidget(fontButton);
+        updateTextureLabel();
     }
 
     public static @NotNull ScreenBase register(@NotNull Nexo nexo) {
@@ -271,10 +294,16 @@ public class ScreenTest extends SimpleScreen {
 
     private void previousTexture() {
         textureIndex = Math.floorMod(textureIndex - 1, TEXTURES.size());
+        updateTextureLabel();
     }
 
     private void nextTexture() {
         textureIndex = Math.floorMod(textureIndex + 1, TEXTURES.size());
+        updateTextureLabel();
+    }
+
+    private void updateTextureLabel() {
+        textureLabel.text("Texture: " + TEXTURES.get(textureIndex).name() + " (" + (textureIndex + 1) + "/" + TEXTURES.size() + ")");
     }
 
     private void toggleFont() {
@@ -299,29 +328,7 @@ public class ScreenTest extends SimpleScreen {
         );
 
         ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
-        int designWidth = 175;
-        int designHeight = 95;
-        int contentScale = Math.max(0, Math.min(
-                1,
-                Math.min((unit.width() - 40) / designWidth, (unit.height() - 95) / designHeight)
-        ));
-        int cellX = (unit.width() - designWidth * contentScale) / 2;
-        int headerHeight = 40;
-        int blockHeight = 35 + designHeight * contentScale + 10 + 20 + 84;
-        int cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
-        int cellWidth = designWidth * contentScale;
-
-        int buttonY = cellY + 35 + designHeight * contentScale + 10;
-        previousButton.setPosition(cellX, buttonY);
-        nextButton.setPosition(cellX + Math.max(85, cellWidth - 80), buttonY);
-        int textureButtonY = buttonY + 42;
-        texturePreviousButton.setPosition(cellX, textureButtonY);
-        textureNextButton.setPosition(cellX + Math.max(85, cellWidth - 80), textureButtonY);
-        int fontButtonY = textureButtonY + 42;
-        fontButton.setPosition(cellX, fontButtonY);
         TextureOption texture = TEXTURES.get(textureIndex);
-        textureLabel.text("Texture: " + texture.name() + " (" + (textureIndex + 1) + "/" + TEXTURES.size() + ")");
-        textureLabel.setPosition(cellX, textureButtonY - 14);
 
         mouseLabel.text("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y());
 
@@ -336,13 +343,13 @@ public class ScreenTest extends SimpleScreen {
         graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
         String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
         float nameWidth = graphics.textWidth(name);
-        graphics.drawText(name, Math.round((designWidth - nameWidth) * 0.5F), 0);
+        graphics.drawText(name, Math.round((DESIGN_WIDTH - nameWidth) * 0.5F), 0);
         graphics.translate(0, 16);
         graphics.scale(contentScale, contentScale);
         float contentCenterX = shapeTest.centerX();
         float contentCenterY = shapeTest.centerY();
-        int halfWidth = designWidth / 2;
-        int halfHeight = (designHeight - 16) / 2;
+        int halfWidth = DESIGN_WIDTH / 2;
+        int halfHeight = (DESIGN_HEIGHT - 16) / 2;
         graphics.pushMatrix();
         graphics.translate(Math.round(halfWidth * 0.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
         shapeTest.outline().accept(graphics);

@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.feature.screen;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.input.GlfwKeyMapper;
@@ -49,6 +49,12 @@ public class MinecraftScreen extends Screen {
         this.helper = helper;
         this.feature = feature;
         this.unit = unit;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        feature.build(unit);
     }
 
     @Override
