@@ -38,7 +38,7 @@ public class Button extends Widget {
         graphics.fillRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
         graphics.color(TEXT_COLOR);
         graphics.drawRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
-        graphics.drawText(text, 8.0F, (height() - graphics.fontSize()) * 0.5F);
+        graphics.drawText(text, 8.0F, Math.round((height() - graphics.fontSize()) * 0.5F));
         graphics.popMatrix();
         graphics.popState();
     }

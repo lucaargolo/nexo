@@ -299,29 +299,29 @@ public class ScreenTest extends SimpleScreen {
         );
 
         ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
-        float designWidth = 175.0F;
-        float designHeight = 95.0F;
-        float contentScale = Math.min(1.0F, Math.min(
-                (unit.width() - 40.0F) / designWidth,
-                (unit.height() - 95.0F) / designHeight
+        int designWidth = 175;
+        int designHeight = 95;
+        int contentScale = Math.max(0, Math.min(
+                1,
+                Math.min((unit.width() - 40) / designWidth, (unit.height() - 95) / designHeight)
         ));
-        float cellX = (unit.width() - designWidth * contentScale) * 0.5F;
-        float headerHeight = 40.0F;
-        float blockHeight = 35.0F + designHeight * contentScale + 10.0F + 20.0F + 84.0F;
-        float cellY = headerHeight + Math.max(0.0F, (unit.height() - headerHeight - blockHeight) * 0.5F);
-        float cellWidth = designWidth * contentScale;
+        int cellX = (unit.width() - designWidth * contentScale) / 2;
+        int headerHeight = 40;
+        int blockHeight = 35 + designHeight * contentScale + 10 + 20 + 84;
+        int cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
+        int cellWidth = designWidth * contentScale;
 
-        float buttonY = cellY + 35.0F + designHeight * contentScale + 10.0F;
+        int buttonY = cellY + 35 + designHeight * contentScale + 10;
         previousButton.setPosition(cellX, buttonY);
-        nextButton.setPosition(cellX + Math.max(85.0F, cellWidth - 80.0F), buttonY);
-        float textureButtonY = buttonY + 42.0F;
+        nextButton.setPosition(cellX + Math.max(85, cellWidth - 80), buttonY);
+        int textureButtonY = buttonY + 42;
         texturePreviousButton.setPosition(cellX, textureButtonY);
-        textureNextButton.setPosition(cellX + Math.max(85.0F, cellWidth - 80.0F), textureButtonY);
-        float fontButtonY = textureButtonY + 42.0F;
+        textureNextButton.setPosition(cellX + Math.max(85, cellWidth - 80), textureButtonY);
+        int fontButtonY = textureButtonY + 42;
         fontButton.setPosition(cellX, fontButtonY);
         TextureOption texture = TEXTURES.get(textureIndex);
         textureLabel.text("Texture: " + texture.name() + " (" + (textureIndex + 1) + "/" + TEXTURES.size() + ")");
-        textureLabel.setPosition(cellX, textureButtonY - 14.0F);
+        textureLabel.setPosition(cellX, textureButtonY - 14);
 
         mouseLabel.text("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y());
 
@@ -336,19 +336,19 @@ public class ScreenTest extends SimpleScreen {
         graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
         String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
         float nameWidth = graphics.textWidth(name);
-        graphics.drawText(name, (designWidth - nameWidth) * 0.5F, 0.0F);
-        graphics.translate(0.0F, 16.0F);
+        graphics.drawText(name, Math.round((designWidth - nameWidth) * 0.5F), 0);
+        graphics.translate(0, 16);
         graphics.scale(contentScale, contentScale);
         float contentCenterX = shapeTest.centerX();
         float contentCenterY = shapeTest.centerY();
-        float halfWidth = designWidth * 0.5F;
-        float halfHeight = (designHeight - 16.0F) * 0.5F;
+        int halfWidth = designWidth / 2;
+        int halfHeight = (designHeight - 16) / 2;
         graphics.pushMatrix();
-        graphics.translate(halfWidth * 0.5F - contentCenterX, halfHeight - contentCenterY);
+        graphics.translate(Math.round(halfWidth * 0.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
         shapeTest.outline().accept(graphics);
         graphics.popMatrix();
         graphics.pushMatrix();
-        graphics.translate(halfWidth * 1.5F - contentCenterX, halfHeight - contentCenterY);
+        graphics.translate(Math.round(halfWidth * 1.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
         shapeTest.fill().accept(graphics);
         graphics.popMatrix();
         graphics.popMatrix();
