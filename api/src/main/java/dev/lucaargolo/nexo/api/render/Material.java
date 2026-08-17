@@ -6,6 +6,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -81,6 +82,11 @@ public final class Material<T> {
 
     public float @NotNull [] color() {
         return color.clone();
+    }
+
+    @ApiStatus.Internal
+    public float @NotNull [] colorData() {
+        return color;
     }
 
     public @NotNull CullMode cullMode() {

@@ -118,7 +118,7 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
             throw unsupported("texture wrapping other than CLAMP");
         }
         state.material = material;
-        state.color = material.color();
+        state.color = material.colorData().clone();
     }
 
     @Override

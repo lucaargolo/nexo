@@ -21,7 +21,9 @@ import org.joml.Vector4f;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D implements Graphics3D {
@@ -33,6 +35,10 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     private final List<Vertex> vertices = new ArrayList<>();
     private final List<Quad> quads = new ArrayList<>();
+
+    private final Map<LayerMode, List<BakedQuad>> quadsByLayer = new HashMap<>();
+    private final Map<LayerMode, Map<Direction, List<BakedQuad>>> quadsByLayerAndDirection = new HashMap<>();
+    private final Map<Direction, List<BakedQuad>> quadsByDirection = new HashMap<>();
 
     private Matrix4f matrix = new Matrix4f();
     private @Nullable TextureAtlasSprite particle;
@@ -61,19 +67,31 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         if (!graphics.states.isEmpty()) {
             throw new IllegalStateException("Renderer ended with " + graphics.states.size() + " unclosed render states");
         }
+        for (Quad quad : graphics.quads) {
+            LayerMode layer = quad.layerMode;
+            Direction direction = quad.direction;
+            graphics.quadsByLayer.computeIfAbsent(layer, ignored -> new ArrayList<>()).add(quad.quad());
+            graphics.quadsByDirection.computeIfAbsent(direction, ignored -> new ArrayList<>()).add(quad.quad());
+            graphics.quadsByLayerAndDirection.computeIfAbsent(layer, ignored -> new HashMap<>())
+                    .computeIfAbsent(direction, ignored -> new ArrayList<>()).add(quad.quad());
+        }
         return graphics;
     }
 
     public @NotNull List<BakedQuad> allQuads(@NotNull LayerMode layerMode) {
-        return quads.stream().filter(quad -> quad.layerMode == layerMode).map(Quad::quad).toList();
+        return quadsByLayer.getOrDefault(layerMode, List.of());
     }
 
     public @NotNull List<BakedQuad> quads(@NotNull LayerMode layerMode, @Nullable Direction direction) {
-        return quads.stream().filter(quad -> quad.layerMode == layerMode && quad.direction == direction).map(Quad::quad).toList();
+        Map<Direction, List<BakedQuad>> byDirection = quadsByLayerAndDirection.get(layerMode);
+        if (byDirection == null) {
+            return List.of();
+        }
+        return byDirection.getOrDefault(direction, List.of());
     }
 
     public @NotNull List<BakedQuad> quads(@Nullable Direction direction) {
-        return quads.stream().filter(quad -> quad.direction == direction).map(Quad::quad).toList();
+        return quadsByDirection.getOrDefault(direction, List.of());
     }
 
     @Override
@@ -441,6 +459,7 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         target[offset + 3] = packColor(vertex.color());
         target[offset + 4] = Float.floatToRawIntBits(sprite.getU(vertex.u()));
         target[offset + 5] = Float.floatToRawIntBits(sprite.getV(vertex.v()));
+        // Lightmap (UV2) is zero here, matching vanilla model quads; the chunk and item pipelines supply per-position light.
         target[offset + 6] = 0;
         Vector3f normal = vertex.normal().lengthSquared() > 0.0F ? vertex.normal() : fallbackNormal;
         target[offset + 7] = packNormal(normal);

@@ -11,6 +11,7 @@ import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.ChunkRenderTypeSet;
@@ -24,10 +25,17 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
+
+    private final Map<BlockState, MinecraftBakedGraphics3D> bakedByState = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<Item, MinecraftBakedGraphics3D> bakedByItem = new ConcurrentHashMap<>();
 
     public NeoForgeNexoBakedModel(@NotNull NexoUnbakedModel<M, U> model, @NotNull Function<Material, TextureAtlasSprite> textureGetter, @NotNull Matrix4f modelTransform, boolean ambientOcclusion, @NotNull ItemTransforms transforms, @NotNull TextureAtlasSprite particle) {
         super(model, textureGetter, modelTransform, ambientOcclusion, transforms, particle);
@@ -66,7 +74,8 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             return List.of();
         }
 
-        MinecraftBakedGraphics3D graphics = bakeBlock(state);
+
+        MinecraftBakedGraphics3D graphics = bakedByState.computeIfAbsent(state, this::bakeBlock);
         if (renderType == null) {
             return graphics.quads(side);
         }
@@ -77,7 +86,8 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
     @Override
     public @NotNull List<BakedModel> getRenderPasses(@NotNull ItemStack stack, boolean fabulous) {
         if(model.type == ItemStack.class) {
-            MinecraftBakedGraphics3D graphics = bake(model.type.cast(stack));
+            // Static baked models are feature-level, so the bake result does not depend on the stack contents.
+            MinecraftBakedGraphics3D graphics = bakedByItem.computeIfAbsent(stack.getItem(), ignored -> bake(model.type.cast(stack)));
             List<BakedModel> passes = new ArrayList<>(LayerMode.values().length);
             for (LayerMode layerMode : LayerMode.values()) {
                 List<BakedQuad> quads = graphics.allQuads(layerMode);
