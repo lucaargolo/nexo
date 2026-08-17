@@ -29,6 +29,8 @@ import org.joml.Vector3i;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 public final class BlockTest {
 
     private static final Renderer<Graphics3D, BlockUnit<?>> EMPTY_RENDERER = new Renderer<>() {
@@ -55,12 +57,12 @@ public final class BlockTest {
     public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
         registerModelBlock(nexo, category, NexoTestMod.id("test_block"), ModelResource.full(NexoTestMod.id("test_block")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_2"), ModelResource.full(Location.of("minecraft", "block/yellow_wool")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_block_3"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_3"), requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")), "Missing test_block.json model"));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_cutout"), ModelResource.full(Location.of("minecraft", "block/oak_leaves")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_translucent"), ModelResource.full(NexoTestMod.id("test_block_translucent")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_translucent_2"), ModelResource.full(Location.of("minecraft", "block/orange_stained_glass")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.gltf")));
-        registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.obj")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.gltf")), "Missing test_model.gltf model"));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.obj")), "Missing test_model.obj model"));
 
         registerStateBlock(nexo, category);
         registerDynamicBlock(nexo, category);
@@ -72,7 +74,7 @@ public final class BlockTest {
     }
 
     private static void registerStateBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
-        ModelResource model = nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json"));
+        ModelResource model = requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")), "Missing test_block.json model");
         BlockBase block = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_state"), model) {
             @Override
             public @NotNull List<@NotNull DataBase<?>> data() {

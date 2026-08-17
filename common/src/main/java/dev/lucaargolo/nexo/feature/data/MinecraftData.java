@@ -20,6 +20,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -140,6 +141,11 @@ public class MinecraftData<D> extends DataBase<D> {
             builder.networkSynchronized(codec);
         }
         return builder.build();
+    }
+
+    public static <D> @Nullable Holder<DataComponentType<D>> holder(@NotNull DataBase<D> data) {
+        Class<Holder<DataComponentType<D>>> clazz = Nexo.type(Holder.class);
+        return clazz.cast(HOLDER_MAP.get(data.location()));
     }
 
 }

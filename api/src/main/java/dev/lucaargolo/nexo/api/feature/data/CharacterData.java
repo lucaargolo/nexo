@@ -42,7 +42,11 @@ public final class CharacterData extends DataBase<Character> {
 
     @Override
     public @NotNull Character deserialize(@NotNull JsonElement element) {
-        return element.getAsString().charAt(0);
+        String value = element.getAsString();
+        if (value.length() != 1) {
+            throw new IllegalArgumentException("Cannot deserialize '" + value + "' into a Character");
+        }
+        return value.charAt(0);
     }
 
 }

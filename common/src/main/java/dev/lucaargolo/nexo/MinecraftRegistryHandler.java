@@ -81,7 +81,10 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     }
 
     public <T> Holder<T> getDynamicFeature(ResourceKey<T> key) {
-        Holder<?> holder = Objects.requireNonNull(dynamicHolders.get(key));
+        Holder<?> holder = dynamicHolders.get(key);
+        if (holder == null) {
+            throw new IllegalStateException("Dynamic feature " + key.location() + " is not registered");
+        }
         Class<Holder<T>> clazz = Nexo.type(Holder.class);
         return clazz.cast(holder);
     }

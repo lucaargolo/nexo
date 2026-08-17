@@ -75,6 +75,8 @@ public abstract class NexoMinecraft implements Nexo {
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
 
+    private static final int MAX_DATA_SIZE = 1 << 20;
+
     private static final Map<Location, ResourceLocation> RL_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
 
@@ -300,38 +302,52 @@ public abstract class NexoMinecraft implements Nexo {
         return blockToUnit(null, null, state, null);
     }
 
-    public @NotNull BlockUnit<?> blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
+    public @Nullable BlockUnit<?> blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
         return blockToUnit(level, pos, state, level.getBlockEntity(pos));
     }
 
-    public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
+    public @Nullable BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this.registryHandler, state.getBlock());
+        if (block == null) {
+            return null;
+        }
         return Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this.registryHandler, block, block.role(), level, pos, state, blockEntity);
     }
 
-    public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
+    public @Nullable ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
         ItemBase item = MinecraftFeatureType.ITEM.convert(this.registryHandler, stack.getItem());
+        if (item == null) {
+            return null;
+        }
         return new MinecraftItemUnit<>(this, item, item.role(), stack);
     }
 
-    public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
+    public @Nullable WorldUnit<?> levelToUnit(@NotNull Level level) {
         ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
         Location location = NexoMinecraft.id(key.location());
         WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
-        assert world != null;
+        if (world == null) {
+            return null;
+        }
         return Utils.loadPlatformClass(this, MinecraftWorldUnit.class, this.registryHandler, world, world.role(), level);
     }
 
     public void tickWorld(@NotNull Level level) {
         WorldUnit<?> unit = this.levelToUnit(level);
+        if (unit == null) {
+            return;
+        }
         WorldBase world = unit.feature();
         if (world.ticker() != null) {
             world.ticker().tick(unit);
         }
     }
 
-    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
+    public @Nullable <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this.registryHandler, entity.getType());
+        if (feature == null) {
+            return null;
+        }
         MinecraftEntityUnit<?, ?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this.registryHandler, feature, feature.role(), entity);
         Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
         return clazz.cast(unit);
@@ -374,11 +390,13 @@ public abstract class NexoMinecraft implements Nexo {
             @Override
             public @NotNull D decode(@NotNull RegistryFriendlyByteBuf buf) {
                 int length = buf.readVarInt();
+                if (length < 0 || length > MAX_DATA_SIZE || length > buf.readableBytes()) {
+                    throw new IllegalArgumentException("Invalid data length " + length);
+                }
                 byte[] bytes = new byte[length];
                 buf.readBytes(bytes);
                 return data.read(ByteBuffer.wrap(bytes));
             }
         };
     }
-
 }

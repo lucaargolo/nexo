@@ -25,6 +25,8 @@ import org.joml.Vector3i;
 
 import java.nio.ByteBuffer;
 
+import static java.util.Objects.requireNonNull;
+
 public final class PacketTest {
 
     private PacketTest() {
@@ -33,19 +35,19 @@ public final class PacketTest {
     public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull ScreenBase testScreen) {
         BlockPositionData blockPositionData = nexo.registerFeature(new BlockPositionData());
 
-        BlockBase air = nexo.getFeature(Feature.Type.BLOCK, Location.of("minecraft", "air"));
-        assert air != null;
-        BlockUnit<?> airUnit = nexo.unit(air);
-        assert airUnit != null;
+        BlockBase air = requireNonNull(nexo.getFeature(Feature.Type.BLOCK, Location.of("minecraft", "air")), "Missing minecraft:air feature");
+        BlockUnit<?> airUnit = requireNonNull(nexo.unit(air), "Missing minecraft:air unit");
 
         Class<EntityUnit<PlayerRole>> receiverType = Nexo.type(EntityUnit.class);
         Packet<Vector3i, EntityUnit<PlayerRole>> packet = nexo.registerFeature(new Packet<>(NexoTestMod.id("break_block"), blockPositionData, receiverType) {
             @Override
             public void handle(@NotNull EntityUnit<PlayerRole> receiver) {
                 WorldUnit<?> world = receiver.world();
-                BlockUnit<?> block = world.getBlock(value());
-                if (block != null && block.feature().location().equals(NexoTestMod.id("packet_test_block"))) {
-                    world.setBlock(value(), airUnit);
+                if (world != null) {
+                    BlockUnit<?> block = world.getBlock(value());
+                    if (block != null && block.feature().location().equals(NexoTestMod.id("packet_test_block"))) {
+                        world.setBlock(value(), airUnit);
+                    }
                 }
             }
         });

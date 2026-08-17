@@ -20,14 +20,16 @@ import org.joml.Vector3f;
 
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 public final class EntityTest {
 
     private EntityTest() {
     }
 
     public static void register(@NotNull Nexo nexo) {
-        ShaderResource vertexShader = nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.vsh"));
-        ShaderResource fragmentShader = nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.fsh"));
+        ShaderResource vertexShader = requireNonNull(nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.vsh")), "Missing blackhole.vsh shader");
+        ShaderResource fragmentShader = requireNonNull(nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.fsh")), "Missing blackhole.fsh shader");
         ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
                 NexoTestMod.id("test_entity"),

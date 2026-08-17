@@ -17,6 +17,6 @@ public abstract class EntityUnit<C extends Role> extends Unit<EntityBase, C> imp
         super(nexo, feature, role);
     }
 
-    public abstract @NotNull WorldUnit<?> world();
+    public abstract @Nullable WorldUnit<?> world();
 
 }

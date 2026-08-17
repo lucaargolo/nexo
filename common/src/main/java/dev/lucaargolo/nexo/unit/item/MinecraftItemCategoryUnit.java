@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -40,7 +41,7 @@ public abstract class MinecraftItemCategoryUnit<R extends MinecraftRegistryHandl
 
     @Override
     public @NotNull Stream<ItemUnit<?>> stream() {
-        return tab.getDisplayItems().stream().map(helper.nexo()::stackToUnit);
+        return tab.getDisplayItems().stream().map(helper.nexo()::stackToUnit).filter(Objects::nonNull);
     }
 
     @Override

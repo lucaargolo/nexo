@@ -29,7 +29,7 @@ public abstract class MinecraftEntityUnit<R extends MinecraftRegistryHandler<?>,
     }
 
     @Override
-    public @NotNull WorldUnit<?> world() {
+    public @Nullable WorldUnit<?> world() {
         return this.helper.nexo().levelToUnit(this.entity.level());
     }
 }

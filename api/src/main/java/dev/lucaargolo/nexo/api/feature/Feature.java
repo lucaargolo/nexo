@@ -118,7 +118,10 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         }
 
         public @NotNull U cast(Unit<?, ?> feature) {
-            return Objects.requireNonNull(unitType).cast(feature);
+            if (unitType == null) {
+                throw new IllegalStateException("Feature type " + this + " does not support units");
+            }
+            return unitType.cast(feature);
         }
 
         @Override

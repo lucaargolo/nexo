@@ -12,6 +12,7 @@ import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
@@ -133,10 +134,11 @@ public class MinecraftItem extends ItemBase {
     }
 
     private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {
-        Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
-        DataComponentType<D> component = clazz.cast(MinecraftFeatureType.DATA.convert(data));
-        properties = properties.component(component, data.initial());
-        return properties;
+        if (data instanceof MinecraftData<?> || MinecraftData.holder(data) == null) {
+            return properties;
+        }
+        Holder<DataComponentType<D>> holder = MinecraftData.holder(data);
+        return properties.component(holder.value(), data.initial());
     }
 
 }
