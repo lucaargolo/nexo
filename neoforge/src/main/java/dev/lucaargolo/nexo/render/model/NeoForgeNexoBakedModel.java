@@ -56,12 +56,16 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             @NotNull ModelData data,
             @Nullable RenderType renderType
     ) {
-        if (model.type != BlockState.class) return super.getQuads(state, side, random, data, renderType);
-        if (side != null) return List.of();
+        if (model.type != BlockState.class) {
+            return List.of();
+        }
+
         MinecraftBakedGraphics3D graphics = bakeBlock(state);
-        if (renderType == null) return graphics.quads();
-        LayerMode layerMode = layerMode(renderType);
-        return layerMode != null ? graphics.quads(layerMode) : List.of();
+        if (renderType == null) {
+            return graphics.quads(side);
+        }
+        LayerMode layer = layerMode(renderType);
+        return layer != null ? graphics.quads(layer, side) : List.of();
     }
 
     @Override
@@ -70,7 +74,7 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             MinecraftBakedGraphics3D graphics = bake(model.type.cast(stack));
             List<BakedModel> passes = new ArrayList<>(LayerMode.values().length);
             for (LayerMode layerMode : LayerMode.values()) {
-                List<BakedQuad> quads = graphics.quads(layerMode);
+                List<BakedQuad> quads = graphics.allQuads(layerMode);
                 if (quads.isEmpty()) continue;
                 IModelBuilder<?> builder = IModelBuilder.of(
                         ambientOcclusion,

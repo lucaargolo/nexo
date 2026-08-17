@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -79,7 +80,12 @@ public final class FabricNexoBakedModel<M, U> extends NexoBakedModel<M, U> imple
         QuadEmitter emitter = context.getEmitter();
         for (LayerMode layerMode : LayerMode.values()) {
             RenderMaterial material = materials.get(layerMode);
-            for (BakedQuad quad : graphics.quads(layerMode)) {
+            for (Direction direction : Direction.values()) {
+                for (BakedQuad quad : graphics.quads(layerMode, direction)) {
+                    emitter.fromVanilla(quad, material, direction).emit();
+                }
+            }
+            for (BakedQuad quad : graphics.quads(layerMode, null)) {
                 emitter.fromVanilla(quad, material, null).emit();
             }
         }

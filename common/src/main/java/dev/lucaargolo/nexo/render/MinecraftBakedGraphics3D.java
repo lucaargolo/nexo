@@ -18,7 +18,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 import java.util.function.Function;
 
 public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D implements Graphics3D {
@@ -27,10 +30,10 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     private final Function<Material, TextureAtlasSprite> textureGetter;
     private final Deque<Matrix4f> matrices = new ArrayDeque<>();
-    private final EnumMap<LayerMode, List<BakedQuad>> quadsByLayer = new EnumMap<>(LayerMode.class);
-    private final List<Vertex> vertices = new ArrayList<>();
 
-    private List<BakedQuad> quads = new ArrayList<>();
+    private final List<Vertex> vertices = new ArrayList<>();
+    private final List<Quad> quads = new ArrayList<>();
+
     private Matrix4f matrix = new Matrix4f();
     private @Nullable TextureAtlasSprite particle;
 
@@ -49,38 +52,29 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
                 .mul(modelTransform)
                 .translate(-0.5F, -0.5F, -0.5F);
         renderer.render(graphics, unit);
-        graphics.requireComplete();
+        if (graphics.primitive != null) {
+            throw new IllegalStateException("Renderer ended with an open " + graphics.primitive + " primitive");
+        }
+        if (!graphics.matrices.isEmpty()) {
+            throw new IllegalStateException("Renderer ended with " + graphics.matrices.size() + " unclosed matrix states");
+        }
+        if (!graphics.states.isEmpty()) {
+            throw new IllegalStateException("Renderer ended with " + graphics.states.size() + " unclosed render states");
+        }
         return graphics;
     }
 
-    @NotNull
-    public List<BakedQuad> quads() {
-        return quads;
+    public @NotNull List<BakedQuad> allQuads(@NotNull LayerMode layerMode) {
+        return quads.stream().filter(quad -> quad.layerMode == layerMode).map(Quad::quad).toList();
     }
 
-    public @NotNull List<BakedQuad> quads(@NotNull LayerMode layerMode) {
-        return quadsByLayer.getOrDefault(layerMode, List.of());
+    public @NotNull List<BakedQuad> quads(@NotNull LayerMode layerMode, @Nullable Direction direction) {
+        return quads.stream().filter(quad -> quad.layerMode == layerMode && quad.direction == direction).map(Quad::quad).toList();
     }
 
-    @Nullable
-    public TextureAtlasSprite particle() {
-        return particle;
+    public @NotNull List<BakedQuad> quads(@Nullable Direction direction) {
+        return quads.stream().filter(quad -> quad.direction == direction).map(Quad::quad).toList();
     }
-
-    private void requireComplete() {
-        if (primitive != null) {
-            throw new IllegalStateException("Renderer ended with an open " + primitive + " primitive");
-        }
-        if (!matrices.isEmpty()) {
-            throw new IllegalStateException("Renderer ended with " + matrices.size() + " unclosed matrix states");
-        }
-        if (!states.isEmpty()) {
-            throw new IllegalStateException("Renderer ended with " + states.size() + " unclosed render states");
-        }
-        quads = List.copyOf(quads);
-        quadsByLayer.replaceAll((layer, values) -> List.copyOf(values));
-    }
-
 
     @Override
     public void pushMatrix() {
@@ -89,7 +83,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void popMatrix() {
-        if (matrices.isEmpty()) throw new IllegalStateException("Cannot pop an empty matrix stack");
+        if (matrices.isEmpty()) {
+            throw new IllegalStateException("Cannot pop an empty matrix stack");
+        }
         matrix = matrices.pop();
     }
 
@@ -366,18 +362,33 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         Vector3f normal = averageNormal(face);
         Direction direction = Direction.getNearest(normal.x(), normal.y(), normal.z());
         int[] packed = new int[32];
-        for (int i = 0; i < face.length; i++) packVertex(packed, i * 8, face[i], sprite, normal);
+        for (int i = 0; i < face.length; i++) {
+            packVertex(packed, i * 8, face[i], sprite, normal);
+        }
         BakedQuad quad = new BakedQuad(packed, -1, direction, sprite, true);
-        quads.add(quad);
-        quadsByLayer.computeIfAbsent(layerMode, ignored -> new ArrayList<>()).add(quad);
+        quads.add(new Quad(quad, layerMode, isFaceCullable(face, direction) ? direction : null));
+    }
+
+    private static boolean isFaceCullable(@NotNull Vertex @NotNull [] face, @NotNull Direction direction) {
+        float boundary = direction.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1.0F : 0.0F;
+        for (Vertex vertex : face) {
+            float coordinate = switch (direction.getAxis()) {
+                case X -> vertex.position().x();
+                case Y -> vertex.position().y();
+                case Z -> vertex.position().z();
+            };
+            if (coordinate != boundary) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static @NotNull Vector3f averageNormal(Vertex @NotNull [] vertices) {
         Vector3f normal = new Vector3f();
         for (Vertex vertex : vertices) normal.add(vertex.normal());
         if (normal.lengthSquared() <= 1.0E-8F) {
-            normal.set(vertices[1].position()).sub(vertices[0].position())
-                    .cross(new Vector3f(vertices[2].position()).sub(vertices[0].position()));
+            normal.set(vertices[1].position()).sub(vertices[0].position()).cross(new Vector3f(vertices[2].position()).sub(vertices[0].position()));
         }
         if (normal.lengthSquared() <= 1.0E-8F) normal.set(0.0F, 1.0F, 0.0F);
         return normal.normalize();
@@ -429,5 +440,13 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
             float v,
             @NotNull Vector3f normal
     ) {
+    }
+
+    private record Quad(
+            @NotNull BakedQuad quad,
+            @NotNull LayerMode layerMode,
+            @Nullable Direction direction
+    ) {
+
     }
 }
