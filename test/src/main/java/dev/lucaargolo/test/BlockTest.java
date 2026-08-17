@@ -56,6 +56,9 @@ public final class BlockTest {
         registerModelBlock(nexo, category, NexoTestMod.id("test_block"), ModelResource.full(NexoTestMod.id("test_block")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_2"), ModelResource.full(Location.of("minecraft", "block/yellow_wool")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_block_3"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_cutout"), ModelResource.full(Location.of("minecraft", "block/oak_leaves")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_translucent"), ModelResource.full(NexoTestMod.id("test_block_translucent")));
+        registerModelBlock(nexo, category, NexoTestMod.id("test_block_translucent_2"), ModelResource.full(Location.of("minecraft", "block/orange_stained_glass")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.gltf")));
         registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.obj")));
 

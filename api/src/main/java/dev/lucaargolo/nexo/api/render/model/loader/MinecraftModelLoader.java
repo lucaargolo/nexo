@@ -112,7 +112,7 @@ public final class MinecraftModelLoader implements ModelLoader {
         }
         for (String key : values.keySet()) {
             Location texture = resolveTexture(key, values, new ArrayList<>());
-            if (texture != null) materials.put(key, new Material<>(texture, texture));
+            if (texture != null) materials.put(key, Material.of(texture));
         }
     }
 
@@ -185,7 +185,7 @@ public final class MinecraftModelLoader implements ModelLoader {
                 } else {
                     Location texture = parseResourceLocation(reference);
                     material = "direct_" + directTextureIndex++;
-                    materials.put(material, new Material<>(texture, texture));
+                    materials.put(material, Material.of(texture));
                 }
                 appendFace(geometry.computeIfAbsent(material, ignored -> new FloatBuilder()), from, to, orientation, face, transform);
             }

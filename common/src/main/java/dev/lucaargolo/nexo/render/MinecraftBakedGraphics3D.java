@@ -3,8 +3,6 @@ package dev.lucaargolo.nexo.render;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
-import dev.lucaargolo.nexo.api.render.shader.Shader;
-import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -20,10 +18,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D implements Graphics3D {
@@ -32,9 +27,10 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     private final Function<Material, TextureAtlasSprite> textureGetter;
     private final Deque<Matrix4f> matrices = new ArrayDeque<>();
-    private final List<BakedQuad> quads = new ArrayList<>();
+    private final EnumMap<LayerMode, List<BakedQuad>> quadsByLayer = new EnumMap<>(LayerMode.class);
     private final List<Vertex> vertices = new ArrayList<>();
 
+    private List<BakedQuad> quads = new ArrayList<>();
     private Matrix4f matrix = new Matrix4f();
     private @Nullable TextureAtlasSprite particle;
 
@@ -59,7 +55,11 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @NotNull
     public List<BakedQuad> quads() {
-        return List.copyOf(quads);
+        return quads;
+    }
+
+    public @NotNull List<BakedQuad> quads(@NotNull LayerMode layerMode) {
+        return quadsByLayer.getOrDefault(layerMode, List.of());
     }
 
     @Nullable
@@ -77,6 +77,8 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         if (!states.isEmpty()) {
             throw new IllegalStateException("Renderer ended with " + states.size() + " unclosed render states");
         }
+        quads = List.copyOf(quads);
+        quadsByLayer.replaceAll((layer, values) -> List.copyOf(values));
     }
 
 
@@ -122,70 +124,31 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     }
 
     @Override
-    public @NotNull Shader createShader(@NotNull ShaderSource source) {
-        throw unsupported("shaders while baking a model");
-    }
-
-    @Override
-    public void bindShader(@Nullable Shader shader) {
-        if (shader != null) throw unsupported("shaders while baking a model");
-    }
-
-    @Override
-    public @Nullable Shader shader() {
-        return null;
-    }
-
-    @Override
-    public @NotNull Location sceneTexture() {
-        throw unsupported("scene textures while baking a model");
-    }
-
-
-    @Override
-    public void blendMode(@NotNull BlendMode mode) {
-        if (mode != BlendMode.DISABLED) throw unsupported("blend mode " + mode);
-        state.blendMode = mode;
-    }
-
-    @Override
     public void lineWidth(float width) {
         if (width != 1.0F) throw unsupported("line width");
-        state.lineWidth = width;
-    }
-
-    @Override
-    public void textureFilter(@NotNull TextureFilter min, @NotNull TextureFilter mag) {
-        if (min != TextureFilter.NEAREST || mag != TextureFilter.NEAREST) {
-            throw unsupported("texture filtering");
-        }
-        state.minFilter = min;
-        state.magFilter = mag;
     }
 
     @Override
     public void depthMode(@NotNull DepthMode mode) {
         if (mode != DepthMode.ENABLED) throw unsupported("depth mode " + mode);
-        state.depthMode = mode;
-    }
-
-    @Override
-    public void depthMask(boolean write) {
-        if (!write) throw unsupported("disabled depth writes");
-        state.depthMask = write;
-    }
-
-    @Override
-    public void cullMode(@NotNull CullMode mode) {
-        if (mode != CullMode.BACK) throw unsupported("cull mode " + mode);
-        state.cullMode = mode;
     }
 
     @Override
     public void lightmap(float u, float v) {
         if (u != 0.0F || v != 0.0F) throw unsupported("custom lightmap coordinates");
-        state.lightU = u;
-        state.lightV = v;
+    }
+
+    @Override
+    public void bindMaterial(@NotNull dev.lucaargolo.nexo.api.render.Material<?> material) {
+        if (material.shader() != null) throw unsupported("shaders while baking a model");
+        if (material.minFilter() != TextureFilter.NEAREST || material.magFilter() != TextureFilter.NEAREST) {
+            throw unsupported("texture filtering");
+        }
+        if (material.blendMode() != BlendMode.DISABLED && material.blendMode() != BlendMode.ALPHA) {
+            throw unsupported("blend mode " + material.blendMode());
+        }
+        if (material.cullMode() == CullMode.FRONT) throw unsupported("front-face culling");
+        super.bindMaterial(material);
     }
 
 
@@ -196,7 +159,12 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void fillRect(float x, float y, float width, float height) {
-        drawTextureRegion(x, y, width, height, 0.0F, 0.0F, 1.0F, 1.0F);
+        beginShape(PrimitiveType.QUADS);
+        shapeVertex(x, y + height, x, y, x + width, y + height);
+        shapeVertex(x + width, y + height, x, y, x + width, y + height);
+        shapeVertex(x + width, y, x, y, x + width, y + height);
+        shapeVertex(x, y, x, y, x + width, y + height);
+        end();
     }
 
     @Override
@@ -253,16 +221,6 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     @Override
     public float textWidth(@NotNull String text) {
         throw unsupported("text");
-    }
-
-    @Override
-    public void textureBounds(float minX, float minY, float maxX, float maxY) {
-        throw unsupported("texture bounds");
-    }
-
-    @Override
-    public void resetTextureBounds() {
-        throw unsupported("texture bounds");
     }
 
     @Override
@@ -344,19 +302,20 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
             return;
         }
 
-        TextureAtlasSprite sprite = sprite(state.texture);
+        TextureAtlasSprite sprite = sprite(texture());
         if (particle == null) particle = sprite;
+        LayerMode layerMode = state.material != null ? state.material.layerMode() : LayerMode.SOLID;
         switch (completed) {
             case QUADS -> {
                 requireVertexMultiple(completed, 4);
                 for (int i = 0; i < vertices.size(); i += 4) {
-                    addQuad(sprite, vertices.get(i), vertices.get(i + 1), vertices.get(i + 2), vertices.get(i + 3));
+                    addQuad(layerMode, sprite, vertices.get(i), vertices.get(i + 1), vertices.get(i + 2), vertices.get(i + 3));
                 }
             }
             case TRIANGLES -> {
                 requireVertexMultiple(completed, 3);
                 for (int i = 0; i < vertices.size(); i += 3) {
-                    addQuad(sprite, vertices.get(i), vertices.get(i + 1), vertices.get(i + 2), vertices.get(i + 2));
+                    addQuad(layerMode, sprite, vertices.get(i), vertices.get(i + 1), vertices.get(i + 2), vertices.get(i + 2));
                 }
             }
             case TRIANGLE_STRIP -> {
@@ -365,15 +324,15 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
                     Vertex a = vertices.get(i);
                     Vertex b = vertices.get(i + 1);
                     Vertex c = vertices.get(i + 2);
-                    if ((i & 1) == 0) addQuad(sprite, a, b, c, c);
-                    else addQuad(sprite, b, a, c, c);
+                    if ((i & 1) == 0) addQuad(layerMode, sprite, a, b, c, c);
+                    else addQuad(layerMode, sprite, b, a, c, c);
                 }
             }
             case TRIANGLE_FAN -> {
                 if (vertices.size() < 3) throw new IllegalStateException("TRIANGLE_FAN needs at least three vertices");
                 Vertex center = vertices.getFirst();
                 for (int i = 1; i < vertices.size() - 1; i++) {
-                    addQuad(sprite, center, vertices.get(i), vertices.get(i + 1), vertices.get(i + 1));
+                    addQuad(layerMode, sprite, center, vertices.get(i), vertices.get(i + 1), vertices.get(i + 1));
                 }
             }
             default -> throw unsupported(completed.name().toLowerCase());
@@ -396,6 +355,7 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     }
 
     private void addQuad(
+            @NotNull LayerMode layerMode,
             @NotNull TextureAtlasSprite sprite,
             @NotNull Vertex v0,
             @NotNull Vertex v1,
@@ -407,7 +367,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         Direction direction = Direction.getNearest(normal.x(), normal.y(), normal.z());
         int[] packed = new int[32];
         for (int i = 0; i < face.length; i++) packVertex(packed, i * 8, face[i], sprite, normal);
-        quads.add(new BakedQuad(packed, -1, direction, sprite, true));
+        BakedQuad quad = new BakedQuad(packed, -1, direction, sprite, true);
+        quads.add(quad);
+        quadsByLayer.computeIfAbsent(layerMode, ignored -> new ArrayList<>()).add(quad);
     }
 
     private static @NotNull Vector3f averageNormal(Vertex @NotNull [] vertices) {

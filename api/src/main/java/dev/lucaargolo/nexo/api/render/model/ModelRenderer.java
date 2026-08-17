@@ -69,10 +69,7 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
 
     private static void renderMesh(@NotNull Graphics3D graphics, @NotNull Mesh mesh, @NotNull Material<?> material) {
         graphics.pushState();
-        graphics.bindTexture(material.texture().left());
-        graphics.color(material.color());
-        graphics.cullMode(material.cullMode());
-        graphics.blendMode(material.blendMode());
+        graphics.bindMaterial(material);
         PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS ? PrimitiveType.LINES : mesh.primitiveType();
         graphics.begin(primitive, VertexFormat.POSITION_COLOR_TEX_NORMAL);
         float[] data = mesh.vertexData();

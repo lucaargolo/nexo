@@ -99,7 +99,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         });
         this.nexo().modBus().addListener(SpriteAtlasStitchEvent.class, event -> {
             event.registered().addAll(minecraftAtlas.getRegistered(event.atlas()));
-            event.embedded().putAll(minecraftAtlas.getEmbedded(event.atlas()));
+            event.embedded().addAll(minecraftAtlas.getEmbedded(event.atlas()));
             event.setNexo(this.nexo());
         });
     }

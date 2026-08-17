@@ -6,10 +6,7 @@ import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.model.ModelResources;
-import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.render.util.CullMode;
-import dev.lucaargolo.nexo.api.render.util.FloatBuilder;
-import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
@@ -74,7 +71,8 @@ public final class ObjModelLoader implements ModelLoader {
                 float[] color = diffuse == null ? new float[]{1, 1, 1, opacity} : new float[]{diffuse.getX(), diffuse.getY(), diffuse.getZ(), opacity};
                 Location texture = ModelResources.resolve(mtlPath, material.getMapKd());
                 BlendMode blend = opacity < 1.0F ? BlendMode.ALPHA : BlendMode.DISABLED;
-                result.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend));
+                LayerMode layer = opacity < 1.0F ? LayerMode.TRANSLUCENT : LayerMode.SOLID;
+                result.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend, layer));
             }
         }
         return result;

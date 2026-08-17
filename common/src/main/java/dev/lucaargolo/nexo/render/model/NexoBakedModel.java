@@ -49,15 +49,19 @@ public abstract class NexoBakedModel<M, U> implements BakedModel {
             @NotNull RandomSource random
     ) {
         if(model.type == BlockState.class && side == null) {
-            return MinecraftBakedGraphics3D.bake(
-                    model.renderer,
-                    model.factory.apply(state != null ? model.type.cast(state) : model.base),
-                    textureGetter,
-                    modelTransform
-            ).quads();
+            return bake(state != null ? model.type.cast(state) : model.base).quads();
         } else {
             return List.of();
         }
+    }
+
+    protected final @NotNull MinecraftBakedGraphics3D bake(@NotNull M value) {
+        return MinecraftBakedGraphics3D.bake(
+                model.renderer,
+                model.factory.apply(value),
+                textureGetter,
+                modelTransform
+        );
     }
 
     @Override

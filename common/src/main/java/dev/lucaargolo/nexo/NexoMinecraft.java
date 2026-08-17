@@ -13,6 +13,8 @@ import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -116,6 +118,16 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @NotNull Logger getLogger() {
         return LOGGER;
+    }
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        return renderingHandler.createShader(source);
+    }
+
+    @Override
+    public @NotNull Location sceneTexture() {
+        return renderingHandler.sceneTexture();
     }
 
     @Override

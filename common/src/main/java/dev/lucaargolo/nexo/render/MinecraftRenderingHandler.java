@@ -15,6 +15,8 @@ import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -64,13 +66,22 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
         return shaderRenderer;
     }
 
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        return new MinecraftShader(source, shaderRenderer);
+    }
+
+    public @NotNull Location sceneTexture() {
+        return MinecraftShaderRenderer.SCENE_TEXTURE;
+    }
+
     public void registerImage(@NotNull ImageResource resource) {
-        minecraftAtlas.register(MinecraftAtlas.BLOCK_ATLAS, resource.location());
+        //TODO: Use a custom atlas for image elements
+        minecraftAtlas.register(MinecraftAtlas.BLOCK_ATLAS, Material.of(resource.location()));
     }
 
     public void registerModel(@NotNull ModelResource resource) {
         ModelRenderer<ModelResource> renderer = new ModelRenderer<>(resource);
-        registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+        registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, renderer.materials().values());
         registerModel(
                 NexoMinecraft.rl(resource.location().withoutExtension()),
                 () -> new NexoUnbakedModel<>(nexo, ModelResource.class, resource, Function.identity(), renderer)
@@ -85,7 +96,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                     Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer != null && renderer.resolved()) {
-                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, renderer.materials().values());
                     }
                     if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer) {
                         this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
@@ -104,7 +115,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                     Renderer<Graphics3D, ItemUnit<?>> renderer = item.renderer();
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer != null && renderer.resolved()) {
-                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, renderer.materials().values());
                     }
                     if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
                         this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
@@ -122,13 +133,15 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 case EntityBase entity -> {
                     Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
                     if (renderer != null && renderer.resolved()) {
-                        this.registerTextures(nexo, renderer.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                        //TODO: Use a custom atlas for entity elements
+                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, renderer.materials().values());
                     }
                     this.registerEntityRenderer(entity);
                 }
                 case ScreenBase screen -> {
                     if (screen.resolved()) {
-                        this.registerTextures(nexo, screen.materials().values(), MinecraftAtlas.BLOCK_ATLAS);
+                        //TODO: Use a custom atlas for screen elements
+                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, screen.materials().values());
                     }
                 }
                 default -> {}
@@ -149,7 +162,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
             return ItemRenderer.EMPTY;
         }else{
             return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, matrices, vertexConsumers, shaderRenderer, light, overlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(matrices, vertexConsumers, shaderRenderer, light, overlay);
                 try {
                     renderer.render(graphics, nexo.stackToUnit(stack));
                 } finally {
@@ -165,7 +178,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
         if(renderer != null) {
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, poseStack, bufferSource, shaderRenderer, packedLight, packedOverlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(poseStack, bufferSource, shaderRenderer, packedLight, packedOverlay);
                 try {
                     renderer.render(graphics, nexo.blockToUnit(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity));
                 } finally {
@@ -187,7 +200,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
                     MinecraftGraphics3D graphics = new MinecraftGraphics3D(
-                            nexo, pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
+                            pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
                     );
                     try {
                         renderer.render(graphics, nexo.entityToUnit(pEntity));
@@ -213,15 +226,9 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
         return NexoMinecraft.rl(location).withPrefix(prefix);
     }
 
-    private void registerTextures(Nexo nexo, Collection<Material<?>> materials, Location atlas) {
+    private void registerMaterials(Nexo nexo, Location atlas, Collection<Material<?>> materials) {
         for (Material<?> material : materials) {
-            Location location = material.location();
-            Object data = material.data();
-            if(data instanceof Location) {
-                this.minecraftAtlas.register(atlas, location);
-            }else if(data instanceof byte[] array) {
-                this.minecraftAtlas.register(atlas, location, array);
-            }
+            this.minecraftAtlas.register(atlas, material);
         }
     }
 

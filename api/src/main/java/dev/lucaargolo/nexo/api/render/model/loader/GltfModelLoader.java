@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.model.ModelResources;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
+import dev.lucaargolo.nexo.api.render.util.LayerMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Pair;
@@ -125,8 +126,13 @@ public final class GltfModelLoader implements ModelLoader {
                 if (texture != null) {
                     float[] factor = pbr.getBaseColorFactor().clone();
                     CullMode cull = pbr.isDoubleSided() ? CullMode.DISABLED : CullMode.BACK;
-                    BlendMode blend = pbr.getAlphaMode() == MaterialModelV2.AlphaMode.BLEND ? BlendMode.ALPHA : BlendMode.DISABLED;
-                    result.put(name, new Material<>(texture, factor, cull, blend));
+                    LayerMode layer = switch (pbr.getAlphaMode()) {
+                        case OPAQUE -> LayerMode.SOLID;
+                        case MASK -> LayerMode.CUTOUT;
+                        case BLEND -> LayerMode.TRANSLUCENT;
+                    };
+                    BlendMode blend = layer == LayerMode.TRANSLUCENT ? BlendMode.ALPHA : BlendMode.DISABLED;
+                    result.put(name, new Material<>(texture, factor, cull, blend, layer));
                 }
             }
         }

@@ -1,10 +1,7 @@
 package dev.lucaargolo.nexo.api.render;
 
-import dev.lucaargolo.nexo.api.render.shader.Shader;
-import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
-import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.render.util.TextureFilter;
-import dev.lucaargolo.nexo.api.render.util.TextureWrap;
+import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,23 +27,15 @@ public interface Graphics2D {
     void color(float @NotNull [] rgba);
     float @NotNull [] color();
 
-    void blendMode(@NotNull BlendMode mode);
-    @NotNull BlendMode blendMode();
-
-    @NotNull Shader createShader(@NotNull ShaderSource source);
-
-    void bindShader(@Nullable Shader shader);
-
-    @Nullable Shader shader();
-
-
-    @NotNull Location sceneTexture();
+    void bindMaterial(@NotNull Material<?> material);
+    @Nullable Material<?> material();
 
     void lineWidth(float width);
     float lineWidth();
 
     void clip(float x, float y, float width, float height);
     void disableClip();
+
     void scissor(int x, int y, int width, int height);
     void disableScissor();
 
@@ -64,22 +53,17 @@ public interface Graphics2D {
     void drawArc(float x, float y, float radius, float startAngle, float endAngle);
     void fillArc(float x, float y, float radius, float startAngle, float endAngle);
 
-    void bindTexture(@NotNull Location texture);
-    void drawTexture(float x, float y, float width, float height);
-    void drawTextureRegion(float x, float y, float width, float height,
-                           float u0, float v0, float u1, float v1);
-    void textureFilter(@NotNull TextureFilter min, @NotNull TextureFilter mag);
-    void textureWrap(@NotNull TextureWrap wrapS, @NotNull TextureWrap wrapT);
-
-    void textureBounds(float minX, float minY, float maxX, float maxY);
-
-    void resetTextureBounds();
+    void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format);
+    void vertex(float @NotNull ... data);
+    void end();
 
     void drawText(@NotNull String text, float x, float y);
 
-    float textWidth(@NotNull String text);
     void font(@Nullable Location font);
     @Nullable Location font();
     void fontSize(float size);
     float fontSize();
+
+    float textWidth(@NotNull String text);
+
 }

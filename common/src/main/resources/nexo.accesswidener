@@ -7,3 +7,4 @@ accessible field net/minecraft/client/gui/font/FontManager textureManager Lnet/m
 accessible field net/minecraft/client/gui/font/FontManager providersToClose Ljava/util/List;
 accessible field net/minecraft/client/gui/font/FontManager fontSets Ljava/util/Map;
 accessible field net/minecraft/client/gui/font/FontManager lastFontSetCache Lnet/minecraft/client/gui/font/FontSet;
+accessible field net/minecraft/client/renderer/texture/SpriteContents originalImage Lcom/mojang/blaze3d/platform/NativeImage;

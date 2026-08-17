@@ -6,8 +6,7 @@ import com.mojang.blaze3d.vertex.*;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
-import dev.lucaargolo.nexo.api.render.shader.Shader;
-import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -42,7 +41,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
 
     protected final @NotNull PoseStack poses;
-    private final @NotNull NexoMinecraft nexo;
     private final @NotNull MultiBufferSource buffers;
     private final @NotNull MinecraftShaderRenderer shaderRenderer;
     private final @NotNull Map<RenderKey, RenderType> customRenderTypes = new HashMap<>();
@@ -53,20 +51,19 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private @Nullable BufferBuilder deferredBuilder;
     private @Nullable ByteBufferBuilder deferredAllocation;
     private @Nullable RenderType activeRenderType;
+    private @Nullable TextureAtlasSprite boundSprite;
     private float @Nullable [] firstVertex;
     private int vertexCount;
     private int matrixDepth;
     private boolean finished;
 
     public MinecraftGraphics2D(
-            @NotNull NexoMinecraft nexo,
             @NotNull PoseStack poses,
             @NotNull MultiBufferSource buffers,
             @NotNull MinecraftShaderRenderer shaderRenderer,
             int packedLight,
             int packedOverlay
     ) {
-        this.nexo = nexo;
         this.poses = poses;
         this.buffers = buffers;
         this.shaderRenderer = shaderRenderer;
@@ -74,7 +71,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         this.packedOverlay = packedOverlay;
         poses.pushPose();
         state.depthMode = DepthMode.DISABLED;
-        state.cullMode = CullMode.DISABLED;
     }
 
     public void finish() {
@@ -132,40 +128,34 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         return new Matrix4f(poses.last().pose());
     }
 
-
     @Override
-    public @NotNull Shader createShader(@NotNull ShaderSource source) {
-        requireOutsidePrimitive("create a shader");
-        return new MinecraftShader(source, shaderRenderer);
+    protected @NotNull CullMode defaultCullMode() {
+        return CullMode.DISABLED;
     }
 
     @Override
-    public void bindShader(@Nullable Shader shader) {
-        requireOutsidePrimitive("bind a shader");
+    public void popState() {
+        super.popState();
+        updateBoundSprite();
+    }
+
+
+    @Override
+    public void bindMaterial(@NotNull Material<?> material) {
+        var shader = material.shader();
         if (shader != null && !(shader instanceof MinecraftShader)) {
             throw new IllegalArgumentException("Shader was created by another rendering backend");
         }
         if (shader instanceof MinecraftShader minecraftShader && minecraftShader.closed()) {
-            throw new IllegalStateException("Cannot bind a closed shader");
+            throw new IllegalStateException("Cannot bind a material with a closed shader");
         }
-        state.shader = shader;
+        super.bindMaterial(material);
+        updateBoundSprite();
     }
 
-    @Override
-    public @Nullable Shader shader() {
-        return state.shader;
-    }
-
-    @Override
-    public @NotNull Location sceneTexture() {
-        return MinecraftShaderRenderer.SCENE_TEXTURE;
-    }
-
-
-    @Override
-    public void bindTexture(@NotNull Location texture) {
-        super.bindTexture(texture);
-        state.sprite = sprite(texture);
+    private void updateBoundSprite() {
+        Location texture = texture();
+        boundSprite = texture != null ? sprite(texture) : null;
     }
 
 
@@ -383,7 +373,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         primitive = type;
         this.format = format;
         activeRenderType = renderType(type);
-        if (state.shader != null && shaderRenderer.deferred()) {
+        if (shader() != null && shaderRenderer.deferred()) {
             deferredAllocation = new ByteBufferBuilder(262144);
             deferredBuilder = new BufferBuilder(deferredAllocation, mode(type), customVertexFormat(format));
             consumer = deferredBuilder;
@@ -402,7 +392,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         if (data.length != format.stride()) {
             throw new IllegalArgumentException(format + " needs " + format.stride() + " values, received " + data.length);
         }
-        if (firstVertex == null) firstVertex = data.clone();
+        if (primitive == PrimitiveType.LINE_LOOP && firstVertex == null) firstVertex = data.clone();
         emit(data);
         vertexCount++;
     }
@@ -431,45 +421,36 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             }
         }
 
-        float r;
-        float g;
-        float b;
-        float a;
-        if (state.texture != null && textureOffset >= 0) {
-            r = 1.0F;
-            g = 1.0F;
-            b = 1.0F;
-            a = 1.0F;
-        } else {
-            r = state.color[0];
-            g = state.color[1];
-            b = state.color[2];
-            a = state.color[3];
-            if (colorOffset >= 0) {
-                r *= data[colorOffset];
-                g *= data[colorOffset + 1];
-                b *= data[colorOffset + 2];
-                a *= data[colorOffset + 3];
-            }
+        float r = state.color[0];
+        float g = state.color[1];
+        float b = state.color[2];
+        float a = state.color[3];
+        if (colorOffset >= 0) {
+            r *= data[colorOffset];
+            g *= data[colorOffset + 1];
+            b *= data[colorOffset + 2];
+            a *= data[colorOffset + 3];
         }
 
         VertexConsumer actualConsumer = consumer;
+        TextureAtlasSprite sprite = boundSprite;
+        boolean textured = sprite != null;
+        boolean defaultTexturedShader = shader() == null && textured;
         actualConsumer.addVertex(poses.last(), data[0], data[1], data[2])
                 .setColor(r, g, b, a);
         if (textureOffset >= 0) {
             float u = data[textureOffset];
             float v = data[textureOffset + 1];
-            if (state.texture != null) {
-                TextureAtlasSprite sprite = (TextureAtlasSprite) state.sprite;
+            if (textured) {
                 u = sprite.getU(u);
                 v = sprite.getV(v);
             }
             actualConsumer.setUv(u, v);
         }
-        if (state.shader == null && state.texture != null) {
+        if (defaultTexturedShader) {
             actualConsumer.setOverlay(packedOverlay).setLight(light());
         }
-        if (normalOffset >= 0 || state.shader == null && state.texture != null) {
+        if (normalOffset >= 0 || defaultTexturedShader) {
             Vector3f normal = normalOffset >= 0
                     ? new Vector3f(data[normalOffset], data[normalOffset + 1], data[normalOffset + 2])
                     : state.normal;
@@ -527,28 +508,31 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
-        boolean textured = state.texture != null && format != VertexFormat.POSITION;
-        MinecraftShader shader = (MinecraftShader) state.shader;
+        boolean textured = boundSprite != null && hasTextureCoordinates(format);
+        MinecraftShader shader = (MinecraftShader) shader();
+        Material<?> material = state.material;
         Map<String, MinecraftShader.UniformValue> uniforms = shader == null ? null : shader.uniforms();
         RenderKey key = new RenderKey(
                 mode(type),
                 textured,
-                state.blendMode,
+                blendMode(),
                 state.depthMode,
-                state.depthMask,
-                state.cullMode,
-                state.minFilter,
-                state.magFilter,
+                cullMode(),
+                textured && material != null ? material.minFilter() : TextureFilter.NEAREST,
+                textured && material != null ? material.magFilter() : TextureFilter.NEAREST,
                 shader == null ? null : format,
                 shader,
                 uniforms
         );
         Map<RenderKey, RenderType> cache = shader == null ? RENDER_TYPES : customRenderTypes;
-        return cache.computeIfAbsent(key, MinecraftGraphics2D::createRenderType);
+        return cache.computeIfAbsent(key, NexoRenderState::create);
     }
 
-    private static @NotNull RenderType createRenderType(@NotNull RenderKey key) {
-        return NexoRenderState.create(key);
+    private static boolean hasTextureCoordinates(@NotNull VertexFormat format) {
+        return switch (format) {
+            case POSITION_TEX, POSITION_COLOR_TEX, POSITION_TEX_NORMAL, POSITION_COLOR_TEX_NORMAL -> true;
+            case POSITION, POSITION_COLOR -> false;
+        };
     }
 
     private static boolean blurred(@NotNull TextureFilter min, @NotNull TextureFilter mag) {
@@ -583,7 +567,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     }
 
     private int light() {
-        return state.customLight ? ((int) state.lightU) | (((int) state.lightV) << 16) : packedLight;
+        return state.light != NO_LIGHT_OVERRIDE ? state.light : packedLight;
     }
 
     private static @NotNull TextureAtlasSprite sprite(@NotNull Location texture) {
@@ -601,7 +585,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             boolean textured,
             @NotNull BlendMode blendMode,
             @NotNull DepthMode depthMode,
-            boolean depthMask,
             @NotNull CullMode cullMode,
             @NotNull TextureFilter minFilter,
             @NotNull TextureFilter magFilter,
@@ -640,7 +623,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             states.add(transparency(key.blendMode));
             states.add(depthTest(key.depthMode));
             states.add(cullState(key.cullMode));
-            states.add(writeMask(key.depthMode, key.depthMask));
+            states.add(writeMask(key.depthMode));
             if (key.textured) {
                 states.add(new TextureStateShard(
                         InventoryMenu.BLOCK_ATLAS,
@@ -698,7 +681,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             return switch (mode) {
                 case DISABLED -> NO_DEPTH_TEST;
                 case READ_ONLY, ENABLED -> LEQUAL_DEPTH_TEST;
-                case REVERSED -> GREATER_DEPTH_TEST;
+                case REVERSED_READ_ONLY, REVERSED -> GREATER_DEPTH_TEST;
             };
         }
 
@@ -721,8 +704,8 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             };
         }
 
-        private static @NotNull WriteMaskStateShard writeMask(@NotNull DepthMode mode, boolean depthMask) {
-            return (mode == DepthMode.ENABLED || mode == DepthMode.REVERSED) && depthMask
+        private static @NotNull WriteMaskStateShard writeMask(@NotNull DepthMode mode) {
+            return mode == DepthMode.ENABLED || mode == DepthMode.REVERSED
                     ? COLOR_DEPTH_WRITE
                     : COLOR_WRITE;
         }

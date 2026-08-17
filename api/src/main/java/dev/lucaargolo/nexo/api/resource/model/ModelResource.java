@@ -45,7 +45,7 @@ public abstract class ModelResource extends Resource<ModelResource> {
     }
 
     public static @NotNull ModelResource full(@NotNull Location location) {
-        return full(location.withoutExtension(), new Material<>(location, location));
+        return full(location.withoutExtension(), Material.of(location));
     }
 
     public static @NotNull ModelResource full(@NotNull Location location, @NotNull Material<?> material) {

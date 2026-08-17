@@ -47,7 +47,7 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderRenderer.close());
         SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
             registered.addAll(minecraftAtlas.getRegistered(atlas));
-            embedded.putAll(minecraftAtlas.getEmbedded(atlas));
+            embedded.addAll(minecraftAtlas.getEmbedded(atlas));
             return this.nexo();
         });
 

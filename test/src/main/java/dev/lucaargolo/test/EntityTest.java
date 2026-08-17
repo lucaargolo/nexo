@@ -31,7 +31,7 @@ public final class EntityTest {
         ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
                 NexoTestMod.id("test_entity"),
-                blackHoleRenderer(blackHoleSource)
+                blackHoleRenderer(nexo, blackHoleSource)
         ) {
             @Override
             public Ticker<EntityUnit<?>> ticker() {
@@ -40,16 +40,21 @@ public final class EntityTest {
         });
     }
 
-    private static @NotNull Renderer<Graphics3D, EntityUnit<?>> blackHoleRenderer(ShaderSource source) {
+    private static @NotNull Renderer<Graphics3D, EntityUnit<?>> blackHoleRenderer(@NotNull Nexo nexo, @NotNull ShaderSource source) {
         return new Renderer<>() {
 
             private Shader shader;
+            private Material<Void> material;
 
             @Override
             public void render(@NotNull Graphics3D graphics, @NotNull EntityUnit<?> unit) {
                 if (shader == null) {
-                    shader = graphics.createShader(source);
-                    shader.uniform(ShaderBuiltins.CHANNEL_0, graphics.sceneTexture());
+                    shader = nexo.createShader(source);
+                    shader.uniform(ShaderBuiltins.CHANNEL_0, nexo.sceneTexture());
+                    material = Material.untextured()
+                            .withShader(shader)
+                            .withBlendMode(BlendMode.ALPHA)
+                            .withCullMode(CullMode.DISABLED);
                 }
 
                 shader.uniform("iEventHorizon", 0.235F);
@@ -68,10 +73,8 @@ public final class EntityTest {
                 graphics.rotate(yaw, 0.0F, 1.0F, 0.0F);
                 graphics.rotate(pitch, 1.0F, 0.0F, 0.0F);
                 graphics.scale(4.95F, 4.95F, 4.95F);
-                graphics.bindShader(shader);
-                graphics.blendMode(BlendMode.ALPHA);
+                graphics.bindMaterial(material);
                 graphics.depthMode(DepthMode.ENABLED);
-                graphics.cullMode(CullMode.DISABLED);
                 drawBlackHoleQuad(graphics);
                 graphics.popMatrix();
                 graphics.popState();

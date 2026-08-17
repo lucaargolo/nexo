@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.DepthMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
@@ -48,36 +47,15 @@ public abstract class AbstractMinecraftGraphics3D extends AbstractMinecraftGraph
     }
 
     @Override
-    public void depthMask(boolean write) {
-        requireOutsidePrimitive("change render state");
-        state.depthMask = write;
-    }
-
-
-    @Override
-    public void cullMode(@NotNull CullMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.cullMode = mode;
-    }
-
-    @Override
-    public @NotNull CullMode cullMode() {
-        return state.cullMode;
-    }
-
-
-    @Override
     public void lightmap(float u, float v) {
         requireOutsidePrimitive("change render state");
-        state.customLight = true;
-        state.lightU = u;
-        state.lightV = v;
+        state.light = ((int) u) | (((int) v) << 16);
     }
 
     @Override
     public void normal(float nx, float ny, float nz) {
         requireOutsidePrimitive("change render state");
-        state.normal = new Vector3f(nx, ny, nz);
+        state.normal.set(nx, ny, nz);
     }
 
     @Override

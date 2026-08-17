@@ -4,5 +4,6 @@ public enum DepthMode {
     DISABLED,
     READ_ONLY,
     ENABLED,
+    REVERSED_READ_ONLY,
     REVERSED,
 }

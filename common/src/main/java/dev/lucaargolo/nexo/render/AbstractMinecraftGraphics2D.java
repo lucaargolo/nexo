@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -10,15 +11,15 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 import java.util.ArrayDeque;
-import java.util.Deque;
 
 public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
-    protected final Deque<State> states = new ArrayDeque<>();
+    protected static final int NO_LIGHT_OVERRIDE = Integer.MIN_VALUE;
+
+    protected final ArrayDeque<State> states = new ArrayDeque<>();
     protected State state = new State();
     protected @Nullable PrimitiveType primitive;
     protected @Nullable VertexFormat format;
-
 
     @Override
     public void pushState() {
@@ -73,7 +74,10 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     @Override
     public void color(float r, float g, float b, float a) {
         requireOutsidePrimitive("change render state");
-        state.color = new float[]{r, g, b, a};
+        state.color[0] = r;
+        state.color[1] = g;
+        state.color[2] = b;
+        state.color[3] = a;
     }
 
     @Override
@@ -85,18 +89,6 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     @Override
     public float @NotNull [] color() {
         return state.color.clone();
-    }
-
-
-    @Override
-    public void blendMode(@NotNull BlendMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.blendMode = mode;
-    }
-
-    @Override
-    public @NotNull BlendMode blendMode() {
-        return state.blendMode;
     }
 
 
@@ -114,26 +106,18 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
 
     @Override
-    public void bindTexture(@NotNull Location texture) {
-        requireOutsidePrimitive("bind a texture");
-        state.texture = texture;
-    }
-
-    @Override
-    public void textureFilter(@NotNull TextureFilter min, @NotNull TextureFilter mag) {
-        requireOutsidePrimitive("change texture filtering");
-        state.minFilter = min;
-        state.magFilter = mag;
-    }
-
-    @Override
-    public void textureWrap(@NotNull TextureWrap wrapS, @NotNull TextureWrap wrapT) {
-        requireOutsidePrimitive("change texture wrapping");
-        if (wrapS != TextureWrap.CLAMP || wrapT != TextureWrap.CLAMP) {
+    public void bindMaterial(@NotNull Material<?> material) {
+        requireOutsidePrimitive("bind a material");
+        if (material.wrapS() != TextureWrap.CLAMP || material.wrapT() != TextureWrap.CLAMP) {
             throw unsupported("texture wrapping other than CLAMP");
         }
-        state.wrapS = wrapS;
-        state.wrapT = wrapT;
+        state.material = material;
+        state.color = material.color();
+    }
+
+    @Override
+    public @Nullable Material<?> material() {
+        return state.material;
     }
 
 
@@ -244,31 +228,14 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         end();
     }
 
-    @Override
-    public void textureBounds(float minX, float minY, float maxX, float maxY) {
-        state.textureBounds = new float[]{minX, minY, maxX, maxY};
-    }
-
-    @Override
-    public void resetTextureBounds() {
-        state.textureBounds = null;
-    }
-
     protected void beginShape(@NotNull PrimitiveType type) {
-        begin(type, state.texture != null ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
+        begin(type, texture() != null ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
     }
 
     protected void shapeVertex(float x, float y, float minX, float minY, float maxX, float maxY) {
-        if (state.texture == null) {
+        if (texture() == null) {
             vertex(x, y, 0.0F);
             return;
-        }
-        float[] bounds = state.textureBounds;
-        if (bounds != null) {
-            minX = bounds[0];
-            minY = bounds[1];
-            maxX = bounds[2];
-            maxY = bounds[3];
         }
         float u = maxX > minX ? (x - minX) / (maxX - minX) : 0.0F;
         float v = maxY > minY ? (y - minY) / (maxY - minY) : 0.0F;
@@ -283,32 +250,6 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     public void fillCircle(float x, float y, float radius) {
         fillEllipse(x, y, radius * 2.0F, radius * 2.0F);
     }
-
-    @Override
-    public void drawTexture(float x, float y, float width, float height) {
-        drawTextureRegion(x, y, width, height, 0.0F, 0.0F, 1.0F, 1.0F);
-    }
-
-    @Override
-    public void drawTextureRegion(
-            float x,
-            float y,
-            float width,
-            float height,
-            float u0,
-            float v0,
-            float u1,
-            float v1
-    ) {
-        if (state.texture == null) throw new IllegalStateException("Cannot draw a texture before binding one");
-        begin(PrimitiveType.QUADS, VertexFormat.POSITION_TEX_NORMAL);
-        vertex(x, y + height, 0.0F, u0, v1, 0.0F, 0.0F, 1.0F);
-        vertex(x + width, y + height, 0.0F, u1, v1, 0.0F, 0.0F, 1.0F);
-        vertex(x + width, y, 0.0F, u1, v0, 0.0F, 0.0F, 1.0F);
-        vertex(x, y, 0.0F, u0, v0, 0.0F, 0.0F, 1.0F);
-        end();
-    }
-
 
     @Override
     public void clip(float x, float y, float width, float height) {
@@ -341,6 +282,26 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         if (primitive != null) throw new IllegalStateException("Cannot " + operation + " inside begin/end");
     }
 
+    protected @Nullable Location texture() {
+        return state.material != null ? state.material.location() : null;
+    }
+
+    protected @Nullable Shader shader() {
+        return state.material != null ? state.material.shader() : null;
+    }
+
+    protected @NotNull BlendMode blendMode() {
+        return state.material != null ? state.material.blendMode() : BlendMode.DISABLED;
+    }
+
+    protected @NotNull CullMode cullMode() {
+        return state.material != null ? state.material.cullMode() : defaultCullMode();
+    }
+
+    protected @NotNull CullMode defaultCullMode() {
+        return CullMode.BACK;
+    }
+
     protected static int channel(float value) {
         return Math.round(Math.clamp(value, 0.0F, 1.0F) * 255.0F);
     }
@@ -350,26 +311,14 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     }
 
 
-    protected static class State {
+    protected static final class State {
         protected float[] color = {1.0F, 1.0F, 1.0F, 1.0F};
-        protected BlendMode blendMode = BlendMode.DISABLED;
         protected float lineWidth = 1.0F;
-        protected @Nullable Location texture;
-        protected @Nullable Object sprite;
-        protected float @Nullable [] textureBounds;
-        protected TextureFilter minFilter = TextureFilter.NEAREST;
-        protected TextureFilter magFilter = TextureFilter.NEAREST;
-        protected TextureWrap wrapS = TextureWrap.CLAMP;
-        protected TextureWrap wrapT = TextureWrap.CLAMP;
+        protected @Nullable Material<?> material;
         protected @Nullable Location font;
         protected float fontSize = 9.0F;
         protected DepthMode depthMode = DepthMode.ENABLED;
-        protected boolean depthMask = true;
-        protected CullMode cullMode = CullMode.BACK;
-        protected @Nullable Shader shader;
-        protected boolean customLight;
-        protected float lightU;
-        protected float lightV;
+        protected int light = NO_LIGHT_OVERRIDE;
         protected Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 
         protected State() {
@@ -377,24 +326,12 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
         protected State(@NotNull State other) {
             color = other.color.clone();
-            blendMode = other.blendMode;
             lineWidth = other.lineWidth;
-            texture = other.texture;
-            sprite = other.sprite;
-            textureBounds = other.textureBounds != null ? other.textureBounds.clone() : null;
-            minFilter = other.minFilter;
-            magFilter = other.magFilter;
-            wrapS = other.wrapS;
-            wrapT = other.wrapT;
+            material = other.material;
             font = other.font;
             fontSize = other.fontSize;
             depthMode = other.depthMode;
-            depthMask = other.depthMask;
-            cullMode = other.cullMode;
-            shader = other.shader;
-            customLight = other.customLight;
-            lightU = other.lightU;
-            lightV = other.lightV;
+            light = other.light;
             normal = new Vector3f(other.normal);
         }
     }

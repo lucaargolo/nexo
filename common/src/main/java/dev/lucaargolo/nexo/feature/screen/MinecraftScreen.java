@@ -62,7 +62,6 @@ public class MinecraftScreen extends Screen {
         unit.setMouse(mouseX, mouseY);
         NexoMinecraft nexo = helper.nexo();
         MinecraftGraphics2D g = new MinecraftGraphics2D(
-                nexo,
                 graphics.pose(),
                 graphics.bufferSource(),
                 nexo.getRenderingHandler().shaderRenderer(),

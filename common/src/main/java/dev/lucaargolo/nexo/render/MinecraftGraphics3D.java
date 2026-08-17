@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.DepthMode;
@@ -16,16 +15,19 @@ import org.joml.Vector3f;
 public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Graphics3D {
 
     public MinecraftGraphics3D(
-            @NotNull NexoMinecraft nexo,
             @NotNull PoseStack poses,
             @NotNull MultiBufferSource buffers,
             @NotNull MinecraftShaderRenderer shaderRenderer,
             int packedLight,
             int packedOverlay
     ) {
-        super(nexo, poses, buffers, shaderRenderer, packedLight, packedOverlay);
+        super(poses, buffers, shaderRenderer, packedLight, packedOverlay);
         state.depthMode = DepthMode.ENABLED;
-        state.cullMode = CullMode.BACK;
+    }
+
+    @Override
+    protected @NotNull CullMode defaultCullMode() {
+        return CullMode.BACK;
     }
 
     @Override
@@ -64,34 +66,15 @@ public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Gr
     }
 
     @Override
-    public void depthMask(boolean write) {
-        requireOutsidePrimitive("change render state");
-        state.depthMask = write;
-    }
-
-    @Override
-    public void cullMode(@NotNull CullMode mode) {
-        requireOutsidePrimitive("change render state");
-        state.cullMode = mode;
-    }
-
-    @Override
-    public @NotNull CullMode cullMode() {
-        return state.cullMode;
-    }
-
-    @Override
     public void lightmap(float u, float v) {
         requireOutsidePrimitive("change render state");
-        state.customLight = true;
-        state.lightU = u;
-        state.lightV = v;
+        state.light = ((int) u) | (((int) v) << 16);
     }
 
     @Override
     public void normal(float nx, float ny, float nz) {
         requireOutsidePrimitive("change render state");
-        state.normal = new Vector3f(nx, ny, nz);
+        state.normal.set(nx, ny, nz);
     }
 
     @Override

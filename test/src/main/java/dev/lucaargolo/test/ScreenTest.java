@@ -7,7 +7,11 @@ import dev.lucaargolo.nexo.api.feature.screen.widget.Button;
 import dev.lucaargolo.nexo.api.feature.screen.widget.Label;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
+import dev.lucaargolo.nexo.api.render.util.CullMode;
+import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +22,10 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class ScreenTest extends SimpleScreen {
+
+    private static final Material<Void> UI_MATERIAL = Material.untextured()
+            .withBlendMode(BlendMode.ALPHA)
+            .withCullMode(CullMode.DISABLED);
 
     private static final float[] POLYGON_X = {32.0F, 56.0F, 56.0F, 32.0F, 8.0F, 8.0F};
     private static final float[] POLYGON_Y = {4.0F, 18.0F, 46.0F, 60.0F, 46.0F, 18.0F};
@@ -119,14 +127,12 @@ public class ScreenTest extends SimpleScreen {
                     g -> g.drawPolygon(STAR_X, STAR_Y),
                     g -> {
                         g.color(1.0F, 0.8F, 0.15F, 0.75F);
-                        g.textureBounds(1.5F, 5.7F, 58.5F, 60.0F);
-                        fillTriangle(g, 30.0F, 60.0F, 23.0F, 39.7F, 37.1F, 39.7F);
-                        fillTriangle(g, 1.5F, 39.3F, 23.0F, 39.7F, 18.6F, 26.3F);
-                        fillTriangle(g, 12.4F, 5.7F, 18.6F, 26.3F, 30.0F, 18.0F);
-                        fillTriangle(g, 47.6F, 5.7F, 30.0F, 18.0F, 41.4F, 26.3F);
-                        fillTriangle(g, 58.5F, 39.3F, 41.4F, 26.3F, 37.1F, 39.7F);
-                        g.fillPolygon(STAR_CORE_X, STAR_CORE_Y);
-                        g.resetTextureBounds();
+                        fillTriangle(g, 30.0F, 60.0F, 23.0F, 39.7F, 37.1F, 39.7F, 1.5F, 5.7F, 58.5F, 60.0F);
+                        fillTriangle(g, 1.5F, 39.3F, 23.0F, 39.7F, 18.6F, 26.3F, 1.5F, 5.7F, 58.5F, 60.0F);
+                        fillTriangle(g, 12.4F, 5.7F, 18.6F, 26.3F, 30.0F, 18.0F, 1.5F, 5.7F, 58.5F, 60.0F);
+                        fillTriangle(g, 47.6F, 5.7F, 30.0F, 18.0F, 41.4F, 26.3F, 1.5F, 5.7F, 58.5F, 60.0F);
+                        fillTriangle(g, 58.5F, 39.3F, 41.4F, 26.3F, 37.1F, 39.7F, 1.5F, 5.7F, 58.5F, 60.0F);
+                        fillPolygon(g, STAR_CORE_X, STAR_CORE_Y, 1.5F, 5.7F, 58.5F, 60.0F);
                     }
             ),
             new ShapeTest("Hexagram", 30.0F, 30.0F,
@@ -136,15 +142,13 @@ public class ScreenTest extends SimpleScreen {
                     ),
                     g -> {
                         g.color(0.75F, 0.45F, 0.85F, 0.75F);
-                        g.textureBounds(0.0F, -4.64F, 60.0F, 64.64F);
-                        fillTriangle(g, 30.0F, -4.64F, 20.0F, 12.68F, 40.0F, 12.68F);
-                        fillTriangle(g, 0.0F, 12.68F, 10.0F, 30.0F, 20.0F, 12.68F);
-                        fillTriangle(g, 60.0F, 12.68F, 40.0F, 12.68F, 50.0F, 30.0F);
-                        fillTriangle(g, 0.0F, 47.32F, 20.0F, 47.32F, 10.0F, 30.0F);
-                        fillTriangle(g, 60.0F, 47.32F, 50.0F, 30.0F, 40.0F, 47.32F);
-                        fillTriangle(g, 30.0F, 64.64F, 20.0F, 47.32F, 40.0F, 47.32F);
-                        g.fillPolygon(HEXAGRAM_CENTER_X, HEXAGRAM_CENTER_Y);
-                        g.resetTextureBounds();
+                        fillTriangle(g, 30.0F, -4.64F, 20.0F, 12.68F, 40.0F, 12.68F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillTriangle(g, 0.0F, 12.68F, 10.0F, 30.0F, 20.0F, 12.68F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillTriangle(g, 60.0F, 12.68F, 40.0F, 12.68F, 50.0F, 30.0F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillTriangle(g, 0.0F, 47.32F, 20.0F, 47.32F, 10.0F, 30.0F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillTriangle(g, 60.0F, 47.32F, 50.0F, 30.0F, 40.0F, 47.32F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillTriangle(g, 30.0F, 64.64F, 20.0F, 47.32F, 40.0F, 47.32F, 0.0F, -4.64F, 60.0F, 64.64F);
+                        fillPolygon(g, HEXAGRAM_CENTER_X, HEXAGRAM_CENTER_Y, 0.0F, -4.64F, 60.0F, 64.64F);
                     }
             ),
             new ShapeTest("Trapezoid", 30.0F, 35.56F,
@@ -161,10 +165,8 @@ public class ScreenTest extends SimpleScreen {
                     ),
                     g -> {
                         g.color(0.35F, 0.75F, 0.4F, 0.75F);
-                        g.textureBounds(5.0F, 5.0F, 55.0F, 45.0F);
-                        g.fillRect(5.0F, 15.0F, 30.0F, 20.0F);
-                        g.fillPolygon(ARROW_HEAD_X, ARROW_HEAD_Y);
-                        g.resetTextureBounds();
+                        fillRect(g, 5.0F, 15.0F, 30.0F, 20.0F, 5.0F, 5.0F, 55.0F, 45.0F);
+                        fillPolygon(g, ARROW_HEAD_X, ARROW_HEAD_Y, 5.0F, 5.0F, 55.0F, 45.0F);
                     }
             ),
             new ShapeTest("Plus", 30.0F, 30.0F,
@@ -176,13 +178,11 @@ public class ScreenTest extends SimpleScreen {
                     },
                     g -> {
                         g.color(0.3F, 0.5F, 0.95F, 0.75F);
-                        g.textureBounds(5.0F, 5.0F, 55.0F, 55.0F);
-                        g.fillRect(20.0F, 20.0F, 20.0F, 20.0F);
-                        g.fillRect(20.0F, 5.0F, 20.0F, 15.0F);
-                        g.fillRect(20.0F, 40.0F, 20.0F, 15.0F);
-                        g.fillRect(5.0F, 20.0F, 15.0F, 20.0F);
-                        g.fillRect(40.0F, 20.0F, 15.0F, 20.0F);
-                        g.resetTextureBounds();
+                        fillRect(g, 20.0F, 20.0F, 20.0F, 20.0F, 5.0F, 5.0F, 55.0F, 55.0F);
+                        fillRect(g, 20.0F, 5.0F, 20.0F, 15.0F, 5.0F, 5.0F, 55.0F, 55.0F);
+                        fillRect(g, 20.0F, 40.0F, 20.0F, 15.0F, 5.0F, 5.0F, 55.0F, 55.0F);
+                        fillRect(g, 5.0F, 20.0F, 15.0F, 20.0F, 5.0F, 5.0F, 55.0F, 55.0F);
+                        fillRect(g, 40.0F, 20.0F, 15.0F, 20.0F, 5.0F, 5.0F, 55.0F, 55.0F);
                     }
             ),
             new ShapeTest("Heart", 30.0F, 19.13F,
@@ -212,13 +212,25 @@ public class ScreenTest extends SimpleScreen {
     private static List<TextureOption> textureOptions() {
         List<TextureOption> options = new ArrayList<>();
         for (String color : List.of("white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray", "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black")) {
-            options.add(new TextureOption(color + "_wool", Location.of("minecraft", "block/" + color + "_wool")));
+            options.add(new TextureOption(color + "_wool", material(Location.of("minecraft", "block/" + color + "_wool"))));
         }
-        options.add(new TextureOption("bedrock", Location.of("minecraft", "block/bedrock")));
-        options.add(new TextureOption("JPEG loader", NexoTestMod.id("test_block_jpeg")));
-        options.add(new TextureOption("WebP loader", NexoTestMod.id("test_block_webp")));
+        options.add(new TextureOption("bedrock", material(Location.of("minecraft", "block/bedrock"))));
+        options.add(new TextureOption("orange_stained_glass", material(Location.of("minecraft", "block/orange_stained_glass"))));
+        options.add(new TextureOption("JPEG loader", material(NexoTestMod.id("test_block_jpeg"))));
+        options.add(new TextureOption("WebP loader", material(NexoTestMod.id("test_block_webp"))));
+        options.add(new TextureOption("Translucent", material(NexoTestMod.id("test_block_translucent"))));
         options.add(new TextureOption("None", null));
         return options;
+    }
+
+    private static @NotNull Material<Location> material(@NotNull Location location) {
+        return new Material<>(
+                location,
+                location,
+                new float[]{1.0F, 1.0F, 1.0F, 1.0F},
+                CullMode.DISABLED,
+                BlendMode.ALPHA
+        );
     }
 
     private static final int DESIGN_WIDTH = 175;
@@ -313,9 +325,9 @@ public class ScreenTest extends SimpleScreen {
 
     @Override
     public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> unit) {
+        graphics.bindMaterial(UI_MATERIAL);
         graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
         graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
-        graphics.blendMode(BlendMode.ALPHA);
         graphics.font(FONTS.get(fontIndex).location());
 
         graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
@@ -337,8 +349,8 @@ public class ScreenTest extends SimpleScreen {
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(cellX, cellY);
-        if (texture.location() != null) {
-            graphics.bindTexture(texture.location());
+        if (texture.material() != null) {
+            graphics.bindMaterial(texture.material());
         }
         graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
         String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
@@ -389,8 +401,71 @@ public class ScreenTest extends SimpleScreen {
         super.onInputMove(screen, axis, delta);
     }
 
-    private static void fillTriangle(@NotNull Graphics2D graphics, float x1, float y1, float x2, float y2, float x3, float y3) {
-        graphics.fillPolygon(new float[]{x1, x2, x3}, new float[]{y1, y2, y3});
+    private static void fillTriangle(
+            @NotNull Graphics2D graphics,
+            float x1, float y1,
+            float x2, float y2,
+            float x3, float y3,
+            float minX, float minY,
+            float maxX, float maxY
+    ) {
+        boolean textured = begin(graphics, PrimitiveType.TRIANGLES);
+        vertex(graphics, textured, x1, y1, minX, minY, maxX, maxY);
+        vertex(graphics, textured, x2, y2, minX, minY, maxX, maxY);
+        vertex(graphics, textured, x3, y3, minX, minY, maxX, maxY);
+        graphics.end();
+    }
+
+    private static void fillRect(
+            @NotNull Graphics2D graphics,
+            float x, float y,
+            float width, float height,
+            float minX, float minY,
+            float maxX, float maxY
+    ) {
+        boolean textured = begin(graphics, PrimitiveType.QUADS);
+        vertex(graphics, textured, x, y + height, minX, minY, maxX, maxY);
+        vertex(graphics, textured, x + width, y + height, minX, minY, maxX, maxY);
+        vertex(graphics, textured, x + width, y, minX, minY, maxX, maxY);
+        vertex(graphics, textured, x, y, minX, minY, maxX, maxY);
+        graphics.end();
+    }
+
+    private static void fillPolygon(
+            @NotNull Graphics2D graphics,
+            float @NotNull [] x,
+            float @NotNull [] y,
+            float minX, float minY,
+            float maxX, float maxY
+    ) {
+        boolean textured = begin(graphics, PrimitiveType.TRIANGLE_FAN);
+        for (int i = 0; i < x.length; i++) {
+            vertex(graphics, textured, x[i], y[i], minX, minY, maxX, maxY);
+        }
+        graphics.end();
+    }
+
+    private static boolean begin(@NotNull Graphics2D graphics, @NotNull PrimitiveType primitive) {
+        Material<?> material = graphics.material();
+        boolean textured = material != null && material.texture() != null;
+        graphics.begin(primitive, textured ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
+        return textured;
+    }
+
+    private static void vertex(
+            @NotNull Graphics2D graphics,
+            boolean textured,
+            float x, float y,
+            float minX, float minY,
+            float maxX, float maxY
+    ) {
+        if (textured) {
+            float u = maxX > minX ? (x - minX) / (maxX - minX) : 0.0F;
+            float v = maxY > minY ? (y - minY) / (maxY - minY) : 0.0F;
+            graphics.vertex(x, y, 0.0F, u, v);
+        } else {
+            graphics.vertex(x, y, 0.0F);
+        }
     }
 
     private record ShapeTest(
@@ -402,7 +477,7 @@ public class ScreenTest extends SimpleScreen {
     ) {
     }
 
-    private record TextureOption(@NotNull String name, @Nullable Location location) {
+    private record TextureOption(@NotNull String name, @Nullable Material<Location> material) {
     }
 
     private record FontOption(@NotNull String name, @Nullable Location location) {
