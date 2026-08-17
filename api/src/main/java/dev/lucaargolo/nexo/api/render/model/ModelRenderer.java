@@ -1,6 +1,10 @@
 package dev.lucaargolo.nexo.api.render.model;
 
-import dev.lucaargolo.nexo.api.render.*;
+import dev.lucaargolo.nexo.api.render.DrawCall;
+import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.api.render.Material;
+import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
@@ -107,8 +111,8 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
             boolean shade
     ) {
 
-        public @Nullable Transform transform(Location string) {
-            return transforms.get(string);
+        public @Nullable Transform transform(@NotNull Location location) {
+            return transforms.get(location);
         }
     }
 }

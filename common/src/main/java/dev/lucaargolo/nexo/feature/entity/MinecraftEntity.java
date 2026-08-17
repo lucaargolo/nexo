@@ -59,7 +59,7 @@ public final class MinecraftEntity extends EntityBase {
 
     @Override
     public @Nullable Renderer<Graphics3D, EntityUnit<?>> renderer() {
-        //TODO: This
+        // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 
@@ -91,10 +91,6 @@ public final class MinecraftEntity extends EntityBase {
             }
             return null;
         });
-        extender.override(Utils.At.AFTER_SUPER, "defineSynchedData", void.class, SynchedEntityData.Builder.class, (feature, builder) -> null);
-        extender.override(Utils.At.AFTER_SUPER, "readAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
-        extender.override(Utils.At.AFTER_SUPER, "addAdditionalSaveData", void.class, CompoundTag.class, (feature, tag) -> null);
-
         Function<Parameters, M> entityFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.type(), parameters.level());
         return EntityType.Builder
                 .of((type, level) -> entityFactory.apply(new Parameters(type, level)), MobCategory.MISC)

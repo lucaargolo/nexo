@@ -34,28 +34,28 @@ public abstract class Resource<T extends Resource<T>> {
         public static final @NotNull Type<ShaderResource> SHADER = new Type<>(ShaderResource.class);
         public static final @NotNull Type<FontResource> FONT = new Type<>(FontResource.class);
 
-        private final Class<T> type;
+        private final @NotNull Class<T> type;
 
-        private Type(Class<T> type) {
+        private Type(@NotNull Class<T> type) {
             this.type = type;
         }
 
-        public Class<T> type() {
+        public @NotNull Class<T> type() {
             return type;
         }
 
-        public boolean isInstance(Resource<?> resource) {
+        public boolean isInstance(@NotNull Resource<?> resource) {
             return type.isInstance(resource);
         }
 
-        public T cast(Resource<?> resource) {
+        public @NotNull T cast(@NotNull Resource<?> resource) {
             return type.cast(resource);
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type<?> that)) return false;
+            if (o == null || !(o instanceof Type<?> that)) return false;
             return type.equals(that.type);
         }
 

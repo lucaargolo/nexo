@@ -1,19 +1,35 @@
 package dev.lucaargolo.nexo.api.render.model.loader;
 
-import de.javagl.obj.*;
+import de.javagl.obj.FloatTuple;
+import de.javagl.obj.Mtl;
+import de.javagl.obj.MtlReader;
+import de.javagl.obj.Obj;
+import de.javagl.obj.ObjFace;
+import de.javagl.obj.ObjReader;
+import de.javagl.obj.ObjUtils;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
 import dev.lucaargolo.nexo.api.render.model.Model;
 import dev.lucaargolo.nexo.api.render.model.ModelResources;
-import dev.lucaargolo.nexo.api.render.util.*;
+import dev.lucaargolo.nexo.api.render.util.BlendMode;
+import dev.lucaargolo.nexo.api.render.util.CullMode;
+import dev.lucaargolo.nexo.api.render.util.FloatBuilder;
+import dev.lucaargolo.nexo.api.render.util.LayerMode;
+import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringTokenizer;
 
 public final class ObjModelLoader implements ModelLoader {
 

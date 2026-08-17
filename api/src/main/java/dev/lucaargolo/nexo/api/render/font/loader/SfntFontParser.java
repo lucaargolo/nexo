@@ -1,9 +1,9 @@
 package dev.lucaargolo.nexo.api.render.font.loader;
 
 import dev.lucaargolo.nexo.api.render.font.Font;
+import java.awt.FontFormatException;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -315,7 +315,7 @@ public final class SfntFontParser {
 
     private static final class IntArrayBuilder {
 
-        private int[] values = new int[256];
+        private int @NotNull [] values = new int[256];
         private int size;
 
         private void add(int value) {
@@ -325,7 +325,7 @@ public final class SfntFontParser {
             values[size++] = value;
         }
 
-        private int[] toArray() {
+        private int @NotNull [] toArray() {
             return Arrays.copyOf(values, size);
         }
 

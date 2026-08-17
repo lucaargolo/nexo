@@ -30,32 +30,12 @@ public final class Location {
         return path;
     }
 
-    public @NotNull Location withNamespace(@NotNull String namespace) {
-        return Location.of(namespace, path);
-    }
-
-    public @NotNull Location withNamespace(@NotNull Function<Location, String> function) {
-        return Location.of(function.apply(this), path);
-    }
-
-    public @NotNull Location withPath(@NotNull String path) {
-        return Location.of(namespace, path);
-    }
-
     public @NotNull Location withPath(@NotNull Function<Location, String> function) {
         return Location.of(namespace, function.apply(this));
     }
 
-    public @NotNull Location withNamespacePrefix(@NotNull String prefix) {
-        return Location.of(prefix + namespace, path);
-    }
-
     public @NotNull Location withPathPrefix(@NotNull String prefix) {
         return Location.of(namespace, prefix + path);
-    }
-
-    public @NotNull Location withNamespaceSuffix(@NotNull String suffix) {
-        return Location.of(namespace + suffix, path);
     }
 
     public @NotNull Location withPathSuffix(@NotNull String suffix) {

@@ -76,7 +76,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         return tags().contains(tag);
     }
 
-    public record Tag(Location location) {}
+    public record Tag(@NotNull Location location) {}
 
     public static final class Type<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
@@ -105,19 +105,20 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
             this(featureType, null);
         }
 
-        public boolean isInstance(Feature<?, ?> feature) {
+        public boolean isInstance(@NotNull Feature<?, ?> feature) {
             return featureType.isInstance(feature);
         }
 
-        public boolean isInstance(Unit<?, ?> unit) {
+        // Returns false for every unit when this feature type does not support units.
+        public boolean isInstance(@Nullable Unit<?, ?> unit) {
             return unitType != null && unitType.isInstance(unit);
         }
 
-        public @NotNull T cast(Feature<?, ?> feature) {
+        public @NotNull T cast(@NotNull Feature<?, ?> feature) {
             return featureType.cast(feature);
         }
 
-        public @NotNull U cast(Unit<?, ?> feature) {
+        public @NotNull U cast(@NotNull Unit<?, ?> feature) {
             if (unitType == null) {
                 throw new IllegalStateException("Feature type " + this + " does not support units");
             }
@@ -125,9 +126,9 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) return true;
-            if (!(o instanceof Type<?, ?> that)) return false;
+            if (o == null || !(o instanceof Type<?, ?> that)) return false;
             return featureType.equals(that.featureType);
         }
 

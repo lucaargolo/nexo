@@ -69,7 +69,7 @@ public class MinecraftItem extends ItemBase {
 
     @Override
     public @Nullable StaticRenderer<Graphics3D, ItemUnit<?>> renderer() {
-        //TODO: This
+        // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 

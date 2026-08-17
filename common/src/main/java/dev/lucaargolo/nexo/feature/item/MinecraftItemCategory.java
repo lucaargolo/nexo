@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MinecraftItemCategory extends ItemCategoryBase {
 
-    //TODO: Improve this
     public static final ConcurrentHashMap<ItemCategoryBase, List<ItemBase>> ITEM_MAP = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<Location, ItemCategoryBase> FEATURE_MAP = new ConcurrentHashMap<>();

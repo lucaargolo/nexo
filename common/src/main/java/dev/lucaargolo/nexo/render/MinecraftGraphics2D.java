@@ -2,17 +2,30 @@ package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Material;
-import dev.lucaargolo.nexo.api.render.util.*;
+import dev.lucaargolo.nexo.api.render.util.BlendMode;
+import dev.lucaargolo.nexo.api.render.util.CullMode;
+import dev.lucaargolo.nexo.api.render.util.DepthMode;
+import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.render.util.TextureFilter;
+import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
@@ -35,7 +48,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements Graphics2D, AutoCloseable {
+public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements Graphics2D, AutoCloseable {
 
     private static final int CURVE_SEGMENTS = 32;
     private static final Map<RenderKey, RenderType> RENDER_TYPES = new ConcurrentHashMap<>();
@@ -140,6 +153,11 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     @Override
     protected @NotNull CullMode defaultCullMode() {
         return CullMode.DISABLED;
+    }
+
+    @Override
+    public @NotNull Vector3f cameraPosition() {
+        return new Matrix4f(poses.last().pose()).invert().transformPosition(new Vector3f());
     }
 
     @Override

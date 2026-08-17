@@ -100,7 +100,7 @@ public class MinecraftBlock extends BlockBase {
 
     @Override
     public @Nullable Renderer<Graphics3D, BlockUnit<?>> renderer() {
-        //TODO: This
+        // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 
@@ -159,7 +159,7 @@ public class MinecraftBlock extends BlockBase {
             if (data instanceof DataBase.Constrained<?> constrained) {
                 dataProperties.add(new DataProperty<>(constrained));
             }
-        };
+        }
         extender.initialize(feature -> {
             BlockState state = feature.getStateDefinition().any();
             for (DataProperty<?> property : dataProperties) {

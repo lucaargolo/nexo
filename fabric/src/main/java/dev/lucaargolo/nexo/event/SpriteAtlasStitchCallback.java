@@ -13,7 +13,10 @@ public interface SpriteAtlasStitchCallback {
     Event<SpriteAtlasStitchCallback> EVENT = EventFactory.createArrayBacked(SpriteAtlasStitchCallback.class, callbacks -> (atlas, registered, embedded) -> {
         Nexo nexo = null;
         for (SpriteAtlasStitchCallback callback : callbacks) {
-            nexo = callback.onStitch(atlas, registered, embedded);
+            Nexo value = callback.onStitch(atlas, registered, embedded);
+            if (nexo == null && value != null) {
+                nexo = value;
+            }
         }
         return nexo;
     });

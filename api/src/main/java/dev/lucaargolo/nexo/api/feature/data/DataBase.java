@@ -49,6 +49,11 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>,
         throw new UnsupportedOperationException("Can't cast value for non-constrained data");
     }
 
+    /**
+     * Optional base for data types that can be bridged to blockstate properties.
+     * Only data types with a small, enumerable value set should extend this, since the values
+     * become candidate blockstate property values (today only {@link BooleanData} does).
+     */
     public abstract static class Constrained<T extends Comparable<T>> extends DataBase<T> {
 
         public Constrained(@NotNull Location location) {
@@ -68,7 +73,7 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>,
             return valueClass().cast(value);
         }
 
-        public String name() {
+        public @NotNull String name() {
             return location().path();
         }
 

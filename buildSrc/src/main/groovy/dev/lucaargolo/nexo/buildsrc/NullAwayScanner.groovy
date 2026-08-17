@@ -12,7 +12,7 @@ class NullAwayScanner {
         def errors = []
         dir.eachFileRecurse { f ->
             if (!f.name.endsWith('.class')) return
-            if (f.name.contains('$')) return
+            if (f.name.matches('.*\\$\\d+.*')) return
             try {
                 new ClassReader(f.bytes).accept(
                     new AnnotationCheckVisitor(NULLABLE_DESC, NOTNULL_DESC, PRIMITIVES, errors), 0)
