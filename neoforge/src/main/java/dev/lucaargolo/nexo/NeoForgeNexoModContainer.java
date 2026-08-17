@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.NexoException;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforgespi.language.*;
@@ -44,7 +45,17 @@ public class NeoForgeNexoModContainer extends ModContainer {
 
         @Override
         public ArtifactVersion getVersion() {
-            return new DefaultArtifactVersion(mod.version());
+            try {
+                return new DefaultArtifactVersion(mod.version());
+            } catch (IllegalArgumentException e) {
+                try {
+                    return new DefaultArtifactVersion("0.0.0");
+                } catch (IllegalArgumentException ex) {
+                    NexoException nex = new NexoException("Failed to parse mod version '" + mod.version() + "', fallback '0.0.0' also failed", ex);
+                    nex.addSuppressed(e);
+                    throw nex;
+                }
+            }
         }
 
         @Override

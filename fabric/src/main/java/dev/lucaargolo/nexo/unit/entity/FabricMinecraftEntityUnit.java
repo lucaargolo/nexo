@@ -31,7 +31,11 @@ public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
         AttachmentType<D> type = helper.getDataAttachment(data);
-        this.entity.setAttached(type, d);
+        if (d == null) {
+            this.entity.removeAttached(type);
+        } else {
+            this.entity.setAttached(type, d);
+        }
     }
 
 

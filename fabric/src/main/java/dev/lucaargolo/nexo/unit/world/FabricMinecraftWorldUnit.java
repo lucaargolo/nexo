@@ -25,7 +25,11 @@ public class FabricMinecraftWorldUnit extends MinecraftWorldUnit<FabricMinecraft
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
         AttachmentType<D> type = helper.getDataAttachment(data);
-        this.level.setAttached(type, d);
+        if (d == null) {
+            this.level.removeAttached(type);
+        } else {
+            this.level.setAttached(type, d);
+        }
     }
 
 }

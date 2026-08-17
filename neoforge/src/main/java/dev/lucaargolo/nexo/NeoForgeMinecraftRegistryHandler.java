@@ -30,6 +30,8 @@ import net.neoforged.neoforge.registries.callback.AddCallback;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,8 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
     private final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
+    private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
+    private boolean featureRegistrationActive;
 
     public NeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -60,6 +64,19 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
                 MinecraftFeatureType.WORLD.index(this, holder);
             });
         });
+    }
+
+    @Override
+    public void beginFeatureRegistration() {
+        featureRegistrationActive = true;
+    }
+
+    @Override
+    public void endFeatureRegistration() {
+        featureRegistrationActive = false;
+        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
+        pendingFeatureEvents.clear();
+        events.forEach(this.nexo()::emit);
     }
 
     @Override
@@ -115,7 +132,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             Consumer<Holder<M>> consumer = (holder) -> {
-                this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
             };
             registry.addCallback((AddCallback<M>) (r, raw, id, value) -> {
                 consumer.accept(r.getHolder(raw).orElseThrow());
@@ -127,9 +144,17 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
         view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-            this.nexo().emit(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
+            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
             dynamicHolders.put(holder.key(), holder);
         });
+    }
+
+    private void emitFeatureRegistered(FeatureRegisteredEvent event) {
+        if (featureRegistrationActive) {
+            pendingFeatureEvents.add(event);
+        } else {
+            this.nexo().emit(event);
+        }
     }
 
 

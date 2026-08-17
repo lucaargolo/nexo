@@ -26,6 +26,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.event.GameShuttingDownEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -65,7 +66,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 shaderRenderer.endFrame();
             }
         });
-        NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> shaderRenderer.close());
+        NeoForge.EVENT_BUS.addListener(GameShuttingDownEvent.class, event -> shaderRenderer.close());
         this.nexo().modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
             for (ResourceLocation modelId : itemModels) {
                 event.register(new ModelResourceLocation(modelId, ModelResourceLocation.STANDALONE_VARIANT));
