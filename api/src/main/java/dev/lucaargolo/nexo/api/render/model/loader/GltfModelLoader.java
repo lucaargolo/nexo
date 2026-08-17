@@ -131,19 +131,24 @@ public final class GltfModelLoader implements ModelLoader {
             materialKeys.put(material, name);
             if (material instanceof MaterialModelV2 pbr) {
                 Pair<Location, ?> texture = textureLocation(modelPath, pbr.getBaseColorTexture(), gltf, imageLocations);
+                float[] factor = pbr.getBaseColorFactor().clone();
+                CullMode cull = pbr.isDoubleSided() ? CullMode.DISABLED : CullMode.BACK;
+                LayerMode layer = switch (pbr.getAlphaMode()) {
+                    case OPAQUE -> LayerMode.SOLID;
+                    case MASK -> LayerMode.CUTOUT;
+                    case BLEND -> LayerMode.TRANSLUCENT;
+                };
+                BlendMode blend = layer == LayerMode.TRANSLUCENT ? BlendMode.ALPHA : BlendMode.DISABLED;
                 if (texture != null) {
-                    float[] factor = pbr.getBaseColorFactor().clone();
-                    CullMode cull = pbr.isDoubleSided() ? CullMode.DISABLED : CullMode.BACK;
-                    LayerMode layer = switch (pbr.getAlphaMode()) {
-                        case OPAQUE -> LayerMode.SOLID;
-                        case MASK -> LayerMode.CUTOUT;
-                        case BLEND -> LayerMode.TRANSLUCENT;
-                    };
-                    BlendMode blend = layer == LayerMode.TRANSLUCENT ? BlendMode.ALPHA : BlendMode.DISABLED;
                     result.put(name, new Material<>(texture, factor, cull, blend, layer));
+                } else {
+                    result.put(name, new Material<Void>(null, factor, cull, blend, layer));
                 }
+            } else {
+                result.put(name, Material.untextured());
             }
         }
+        result.putIfAbsent(DEFAULT_MATERIAL, Material.untextured());
         return result;
     }
 
@@ -195,12 +200,15 @@ public final class GltfModelLoader implements ModelLoader {
         for (MeshModel mesh : node.getMeshModels()) {
             float[] weights = node.getWeights() != null ? node.getWeights() : mesh.getWeights();
             for (MeshPrimitiveModel primitive : mesh.getMeshPrimitiveModels()) {
-                meshes.add(createMesh(primitive, weights, transform, normalTransform, materialKeys));
+                Mesh created = createMesh(primitive, weights, transform, normalTransform, materialKeys);
+                if (created != null) {
+                    meshes.add(created);
+                }
             }
         }
     }
 
-    private static @NotNull Mesh createMesh(
+    private static @Nullable Mesh createMesh(
             @NotNull MeshPrimitiveModel primitive,
             float @Nullable [] weights,
             @NotNull Matrix4f transform,
@@ -214,6 +222,9 @@ public final class GltfModelLoader implements ModelLoader {
         int[] indices = indices(primitive, positions.getCount());
         Topology topology = topology(primitive.getMode(), indices);
         int[] expanded = topology.indices();
+        if (expanded.length == 0) {
+            return null;
+        }
 
         AccessorModel texCoords = textureCoordinates(primitive);
         AccessorModel colors = primitive.getAttributes().get("COLOR_0");

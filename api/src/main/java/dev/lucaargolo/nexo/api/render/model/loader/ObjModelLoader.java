@@ -69,12 +69,18 @@ public final class ObjModelLoader implements ModelLoader {
                 Float dissolve = material.getD();
                 float opacity = dissolve == null ? 1.0F : dissolve;
                 float[] color = diffuse == null ? new float[]{1, 1, 1, opacity} : new float[]{diffuse.getX(), diffuse.getY(), diffuse.getZ(), opacity};
-                Location texture = ModelResources.resolve(mtlPath, material.getMapKd());
+                String mapKd = material.getMapKd();
+                Location texture = mapKd == null ? null : ModelResources.resolve(mtlPath, mapKd);
                 BlendMode blend = opacity < 1.0F ? BlendMode.ALPHA : BlendMode.DISABLED;
                 LayerMode layer = opacity < 1.0F ? LayerMode.TRANSLUCENT : LayerMode.SOLID;
-                result.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend, layer));
+                if (texture != null) {
+                    result.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend, layer));
+                } else {
+                    result.put(material.getName(), new Material<Location>(null, color, CullMode.BACK, blend, layer));
+                }
             }
         }
+        result.putIfAbsent("default", Material.untextured());
         return result;
     }
 
