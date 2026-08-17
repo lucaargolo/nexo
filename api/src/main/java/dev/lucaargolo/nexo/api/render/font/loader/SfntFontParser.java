@@ -91,8 +91,8 @@ public final class SfntFontParser {
         }
 
         try {
-            java.awt.Font awtFont = java.awt.Font
-                    .createFont(java.awt.Font.TRUETYPE_FONT, new ByteArrayInputStream(data))
+            Font awtFont = Font
+                    .createFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(data))
                     .deriveFont(FONT_SIZE * OVERSAMPLE);
             AwtGlyphRasterizer rasterizer = new AwtGlyphRasterizer(awtFont);
             return new Font(supportedGlyphs, rasterizer::rasterize);
@@ -340,7 +340,7 @@ public final class SfntFontParser {
             }
 
             BufferedImage image = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_BYTE_GRAY);
-            java.awt.Graphics2D graphics = image.createGraphics();
+            Graphics2D graphics = image.createGraphics();
             try {
                 graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

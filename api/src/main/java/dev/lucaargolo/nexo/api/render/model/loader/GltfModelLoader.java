@@ -63,7 +63,9 @@ public final class GltfModelLoader implements ModelLoader {
         for (NodeModel node : sceneNodes(asset, gltf)) {
             appendNodeMeshes(node, materialKeys, meshes);
         }
-        if (meshes.isEmpty()) throw new IllegalArgumentException("glTF contains no renderable mesh primitives");
+        if (meshes.isEmpty()) {
+            throw new IllegalArgumentException("glTF contains no renderable mesh primitives");
+        }
         return new Model(data, meshes, materials, Map.of(), true);
     }
 
@@ -89,7 +91,9 @@ public final class GltfModelLoader implements ModelLoader {
             if (asset instanceof GltfAssetV2 assetV2 && assetV2.getGltf().getScene() != null) {
                 scene = assetV2.getGltf().getScene();
             }
-            if (scene < 0 || scene >= scenes.size()) throw new IllegalArgumentException("Invalid default glTF scene: " + scene);
+            if (scene < 0 || scene >= scenes.size()) {
+                throw new IllegalArgumentException("Invalid default glTF scene: " + scene);
+            }
             return flatten(scenes.get(scene).getNodeModels());
         }
         List<NodeModel> roots = model.getNodeModels().stream().filter(node -> node.getParent() == null).toList();
@@ -98,13 +102,17 @@ public final class GltfModelLoader implements ModelLoader {
 
     private static @NotNull List<NodeModel> flatten(@NotNull List<NodeModel> roots) {
         List<NodeModel> result = new ArrayList<>();
-        for (NodeModel root : roots) appendNode(root, result);
+        for (NodeModel root : roots) {
+            appendNode(root, result);
+        }
         return result;
     }
 
     private static void appendNode(@NotNull NodeModel node, @NotNull List<NodeModel> result) {
         result.add(node);
-        for (NodeModel child : node.getChildren()) appendNode(child, result);
+        for (NodeModel child : node.getChildren()) {
+            appendNode(child, result);
+        }
     }
 
     private static @NotNull Map<String, Material<?>> createMaterials(
@@ -140,9 +148,13 @@ public final class GltfModelLoader implements ModelLoader {
     }
 
     private static @NotNull String uniqueName(@NotNull Map<String, ?> values, @NotNull String requested) {
-        if (!values.containsKey(requested)) return requested;
+        if (!values.containsKey(requested)) {
+            return requested;
+        }
         int suffix = 2;
-        while (values.containsKey(requested + "_" + suffix)) suffix++;
+        while (values.containsKey(requested + "_" + suffix)) {
+            suffix++;
+        }
         return requested + "_" + suffix;
     }
 
@@ -152,12 +164,18 @@ public final class GltfModelLoader implements ModelLoader {
             @NotNull GltfModel gltf,
             @NotNull Map<ImageModel, Pair<Location, ?>> locations
     ) {
-        if (texture == null) return null;
+        if (texture == null) {
+            return null;
+        }
         ImageModel image = texture.getImageModel();
         Pair<Location, ?> existing = locations.get(image);
-        if (existing != null) return existing;
+        if (existing != null) {
+            return existing;
+        }
         ByteBuffer imageData = image.getImageData();
-        if (imageData == null) throw new IllegalArgumentException("glTF texture has no image data");
+        if (imageData == null) {
+            throw new IllegalArgumentException("glTF texture has no image data");
+        }
         byte[] bytes = new byte[imageData.remaining()];
         imageData.get(bytes);
         int imageIndex = gltf.getImageModels().indexOf(image);
@@ -190,7 +208,9 @@ public final class GltfModelLoader implements ModelLoader {
             @NotNull Map<MaterialModel, String> materialKeys
     ) {
         AccessorModel positions = primitive.getAttributes().get("POSITION");
-        if (positions == null) throw new IllegalArgumentException("glTF mesh primitive has no POSITION attribute");
+        if (positions == null) {
+            throw new IllegalArgumentException("glTF mesh primitive has no POSITION attribute");
+        }
         int[] indices = indices(primitive, positions.getCount());
         Topology topology = topology(primitive.getMode(), indices);
         int[] expanded = topology.indices();
@@ -218,7 +238,9 @@ public final class GltfModelLoader implements ModelLoader {
                     : normalData.vector3(source);
             applyMorphTargets(position, normal, source, morphTargets);
             transform.transformPosition(position);
-            if (normalData != null) normalTransform.transform(normal).normalize();
+            if (normalData != null) {
+                normalTransform.transform(normal).normalize();
+            }
 
             vertices[offset] = position.x;
             vertices[offset + 1] = position.y;
@@ -233,11 +255,15 @@ public final class GltfModelLoader implements ModelLoader {
             vertices[offset + 10] = normal.y;
             vertices[offset + 11] = normal.z;
         }
-        if (normalData == null && topology.type() == PrimitiveType.TRIANGLES) generateNormals(vertices);
+        if (normalData == null && topology.type() == PrimitiveType.TRIANGLES) {
+            generateNormals(vertices);
+        }
 
         MaterialModel material = primitive.getMaterialModel();
         String materialKey = material == null ? DEFAULT_MATERIAL : materialKeys.get(material);
-        if (materialKey == null) throw new IllegalArgumentException("glTF primitive references an unknown material");
+        if (materialKey == null) {
+            throw new IllegalArgumentException("glTF primitive references an unknown material");
+        }
         return new Mesh(topology.type(), materialKey, vertices);
     }
 
@@ -256,7 +282,9 @@ public final class GltfModelLoader implements ModelLoader {
             int minimumComponents,
             int maximumComponents
     ) {
-        if (accessor == null) return;
+        if (accessor == null) {
+            return;
+        }
         int components = accessor.getElementType().getNumComponents();
         if (components < minimumComponents || components > maximumComponents) {
             throw new IllegalArgumentException(
@@ -280,12 +308,16 @@ public final class GltfModelLoader implements ModelLoader {
             @NotNull List<Map<String, AccessorModel>> targets,
             int vertexCount
     ) {
-        if (weights == null) return List.of();
+        if (weights == null) {
+            return List.of();
+        }
         List<MorphTarget> result = new ArrayList<>();
         int count = Math.min(weights.length, targets.size());
         for (int i = 0; i < count; i++) {
             float weight = weights[i];
-            if (weight == 0.0F) continue;
+            if (weight == 0.0F) {
+                continue;
+            }
             AccessorModel positions = targets.get(i).get("POSITION");
             AccessorModel normals = targets.get(i).get("NORMAL");
             validateAttribute("morph POSITION", positions, vertexCount, 3, 3);
@@ -306,8 +338,12 @@ public final class GltfModelLoader implements ModelLoader {
             @NotNull List<MorphTarget> targets
     ) {
         for (MorphTarget target : targets) {
-            if (target.positions() != null) position.fma(target.weight(), target.positions().vector3(vertex));
-            if (target.normals() != null) normal.fma(target.weight(), target.normals().vector3(vertex));
+            if (target.positions() != null) {
+                position.fma(target.weight(), target.positions().vector3(vertex));
+            }
+            if (target.normals() != null) {
+                normal.fma(target.weight(), target.normals().vector3(vertex));
+            }
         }
     }
 
@@ -315,7 +351,9 @@ public final class GltfModelLoader implements ModelLoader {
         AccessorModel accessor = primitive.getIndices();
         if (accessor == null) {
             int[] result = new int[vertexCount];
-            for (int i = 0; i < result.length; i++) result[i] = i;
+            for (int i = 0; i < result.length; i++) {
+                result[i] = i;
+            }
             return result;
         }
         AccessorData data = accessor.getAccessorData();
@@ -346,7 +384,9 @@ public final class GltfModelLoader implements ModelLoader {
     }
 
     private static int @NotNull [] triangleStrip(int @NotNull [] indices) {
-        if (indices.length < 3) return new int[0];
+        if (indices.length < 3) {
+            return new int[0];
+        }
         int[] result = new int[(indices.length - 2) * 3];
         for (int i = 2; i < indices.length; i++) {
             int offset = (i - 2) * 3;
@@ -358,7 +398,9 @@ public final class GltfModelLoader implements ModelLoader {
     }
 
     private static int @NotNull [] triangleFan(int @NotNull [] indices) {
-        if (indices.length < 3) return new int[0];
+        if (indices.length < 3) {
+            return new int[0];
+        }
         int[] result = new int[(indices.length - 2) * 3];
         for (int i = 2; i < indices.length; i++) {
             int offset = (i - 2) * 3;
@@ -377,7 +419,11 @@ public final class GltfModelLoader implements ModelLoader {
             Vector3f edgeA = new Vector3f(vertices[bOffset], vertices[bOffset + 1], vertices[bOffset + 2]).sub(a);
             Vector3f edgeB = new Vector3f(vertices[cOffset], vertices[cOffset + 1], vertices[cOffset + 2]).sub(a);
             Vector3f normal = edgeA.cross(edgeB);
-            if (normal.lengthSquared() == 0.0F) normal.set(0, 1, 0); else normal.normalize();
+            if (normal.lengthSquared() == 0.0F) {
+                normal.set(0, 1, 0);
+            } else {
+                normal.normalize();
+            }
             for (int vertex = 0; vertex < 3; vertex++) {
                 int normalOffset = offset + vertex * Mesh.VERTEX_STRIDE + 9;
                 vertices[normalOffset] = normal.x;

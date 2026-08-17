@@ -42,7 +42,9 @@ public abstract class MinecraftWorldUnit<R extends MinecraftRegistryHandler<?>> 
     public @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);
-        if (state.isAir()) return null;
+        if (state.isAir()) {
+            return null;
+        }
         return this.helper.nexo().blockToUnit(level, mcPos, state);
     }
 

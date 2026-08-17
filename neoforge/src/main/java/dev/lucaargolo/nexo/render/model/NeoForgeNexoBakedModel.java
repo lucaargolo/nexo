@@ -39,12 +39,18 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             @NotNull RandomSource random,
             @NotNull ModelData data
     ) {
-        if (model.type != BlockState.class) return super.getRenderTypes(state, random, data);
+        if (model.type != BlockState.class) {
+            return super.getRenderTypes(state, random, data);
+        }
         EnumSet<LayerMode> layers = EnumSet.noneOf(LayerMode.class);
         model.renderer.materials().values().forEach(material -> layers.add(material.layerMode()));
-        if (layers.isEmpty()) layers.add(LayerMode.SOLID);
+        if (layers.isEmpty()) {
+            layers.add(LayerMode.SOLID);
+        }
         List<RenderType> renderTypes = new ArrayList<>(LayerMode.values().length);
-        for (LayerMode layerMode : layers) renderTypes.add(blockRenderType(layerMode));
+        for (LayerMode layerMode : layers) {
+            renderTypes.add(blockRenderType(layerMode));
+        }
         return ChunkRenderTypeSet.of(renderTypes);
     }
 
@@ -75,7 +81,9 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             List<BakedModel> passes = new ArrayList<>(LayerMode.values().length);
             for (LayerMode layerMode : LayerMode.values()) {
                 List<BakedQuad> quads = graphics.allQuads(layerMode);
-                if (quads.isEmpty()) continue;
+                if (quads.isEmpty()) {
+                    continue;
+                }
                 IModelBuilder<?> builder = IModelBuilder.of(
                         ambientOcclusion,
                         usesBlockLight(),
@@ -85,7 +93,9 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
                         particle,
                         renderTypeGroup(layerMode)
                 );
-                for (BakedQuad quad : quads) builder.addUnculledFace(quad);
+                for (BakedQuad quad : quads) {
+                    builder.addUnculledFace(quad);
+                }
                 passes.add(builder.build());
             }
             return List.copyOf(passes);
@@ -107,9 +117,15 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
     }
 
     private static @Nullable LayerMode layerMode(@NotNull RenderType renderType) {
-        if (renderType == RenderType.solid()) return LayerMode.SOLID;
-        if (renderType == RenderType.cutout()) return LayerMode.CUTOUT;
-        if (renderType == RenderType.translucent()) return LayerMode.TRANSLUCENT;
+        if (renderType == RenderType.solid()) {
+            return LayerMode.SOLID;
+        }
+        if (renderType == RenderType.cutout()) {
+            return LayerMode.CUTOUT;
+        }
+        if (renderType == RenderType.translucent()) {
+            return LayerMode.TRANSLUCENT;
+        }
         return null;
     }
 
@@ -120,7 +136,9 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
             case TRANSLUCENT -> "translucent";
         };
         RenderTypeGroup group = NamedRenderTypeManager.get(ResourceLocation.withDefaultNamespace(name));
-        if (group.isEmpty()) throw new IllegalStateException("Missing NeoForge render type group minecraft:" + name);
+        if (group.isEmpty()) {
+            throw new IllegalStateException("Missing NeoForge render type group minecraft:" + name);
+        }
         return group;
     }
 }

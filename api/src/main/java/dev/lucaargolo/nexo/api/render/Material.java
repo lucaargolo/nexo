@@ -157,8 +157,12 @@ public final class Material<T> {
 
     @Override
     public boolean equals(@Nullable Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
         var that = (Material<?>) obj;
         return Objects.equals(this.texture, that.texture) &&
                 Arrays.equals(this.color, that.color) &&

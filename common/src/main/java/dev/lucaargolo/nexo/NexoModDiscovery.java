@@ -58,7 +58,9 @@ public abstract class NexoModDiscovery<N extends Nexo> {
         for (ModDescriptor descriptor : descriptors) {
             NexoMinecraft.LOGGER.info("Discovered Nexo mod {} ({}) at {}", descriptor.id, descriptor.name, descriptor.sourcePath);
             discovered++;
-            if (mods.containsKey(descriptor.id)) continue;
+            if (mods.containsKey(descriptor.id)) {
+                continue;
+            }
 
             Nexo.Mod mod = new Nexo.Mod(descriptor.id, descriptor.name, descriptor.description, descriptor.version, descriptor.authors, descriptor.sourcePath);
             mods.put(descriptor.id, mod);

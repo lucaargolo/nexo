@@ -66,14 +66,18 @@ public final class Location {
         return withPath(l -> {
             String path = l.path();
             int dot = path.lastIndexOf('.');
-            if (dot > -1) path = path.substring(0, dot);
+            if (dot > -1) {
+                path = path.substring(0, dot);
+            }
             return path;
         });
     }
 
     @Override
     public boolean equals(@Nullable Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Location that = (Location) o;
         return namespace.equals(that.namespace) && path.equals(that.path);

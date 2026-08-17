@@ -17,9 +17,13 @@ public final class ModelResources {
     public static @NotNull Location resolve(@NotNull Location base, @NotNull String reference) {
         String value = reference.replace('\\', '/');
         int suffix = value.indexOf('?');
-        if (suffix >= 0) value = value.substring(0, suffix);
+        if (suffix >= 0) {
+            value = value.substring(0, suffix);
+        }
         suffix = value.indexOf('#');
-        if (suffix >= 0) value = value.substring(0, suffix);
+        if (suffix >= 0) {
+            value = value.substring(0, suffix);
+        }
         value = URLDecoder.decode(value, StandardCharsets.UTF_8);
 
         int colon = value.indexOf(':');
@@ -40,9 +44,13 @@ public final class ModelResources {
         StringTokenizer tokenizer = new StringTokenizer(path, "/");
         while (tokenizer.hasMoreTokens()) {
             String segment = tokenizer.nextToken();
-            if (segment.isEmpty() || segment.equals(".")) continue;
+            if (segment.isEmpty() || segment.equals(".")) {
+                continue;
+            }
             if (segment.equals("..")) {
-                if (segments.isEmpty()) throw new IllegalArgumentException("Resource path escapes its namespace: " + path);
+                if (segments.isEmpty()) {
+                    throw new IllegalArgumentException("Resource path escapes its namespace: " + path);
+                }
                 segments.removeLast();
             } else {
                 segments.addLast(segment);

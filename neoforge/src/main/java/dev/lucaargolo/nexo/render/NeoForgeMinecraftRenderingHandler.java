@@ -58,8 +58,12 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     public void init() {
         super.init();
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, event -> {
-            if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) shaderRenderer.beginFrame();
-            else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) shaderRenderer.endFrame();
+            if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
+                shaderRenderer.beginFrame();
+            }
+            else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+                shaderRenderer.endFrame();
+            }
         });
         NeoForge.EVENT_BUS.addListener(ClientPlayerNetworkEvent.LoggingOut.class, event -> shaderRenderer.close());
         this.nexo().modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {

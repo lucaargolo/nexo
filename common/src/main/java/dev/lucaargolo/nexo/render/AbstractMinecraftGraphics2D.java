@@ -30,7 +30,9 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     @Override
     public void popState() {
         requireOutsidePrimitive("change render state");
-        if (states.isEmpty()) throw new IllegalStateException("Cannot pop an empty render-state stack");
+        if (states.isEmpty()) {
+            throw new IllegalStateException("Cannot pop an empty render-state stack");
+        }
         state = states.pop();
     }
 
@@ -82,7 +84,9 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
     @Override
     public void color(float @NotNull [] rgba) {
-        if (rgba.length != 4) throw new IllegalArgumentException("A color requires exactly four components");
+        if (rgba.length != 4) {
+            throw new IllegalArgumentException("A color requires exactly four components");
+        }
         color(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
 
@@ -95,7 +99,9 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     @Override
     public void lineWidth(float width) {
         requireOutsidePrimitive("change render state");
-        if (width <= 0.0F) throw new IllegalArgumentException("Line width must be positive");
+        if (width <= 0.0F) {
+            throw new IllegalArgumentException("Line width must be positive");
+        }
         state.lineWidth = width;
     }
 
@@ -135,7 +141,9 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     @Override
     public void fontSize(float size) {
         requireOutsidePrimitive("change the font size");
-        if (size <= 0.0F) throw new IllegalArgumentException("Font size must be positive");
+        if (size <= 0.0F) {
+            throw new IllegalArgumentException("Font size must be positive");
+        }
         state.fontSize = size;
     }
 
@@ -150,19 +158,14 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
     }
 
-    /**
-     * Strokes a polyline as filled quads honoring {@link #lineWidth(float)}.
-     * Closed loops get mitered joins at every vertex, open strips get butt caps.
-     * Minecraft ignores {@code RenderSystem.lineWidth} on modern renderers, so wide lines
-     * must be expanded into geometry instead of relying on GL line width.
-     */
     protected void strokePolyline(float @NotNull [] @NotNull [] points, boolean closed) {
         int count = points.length;
-        if (count < 2) return;
+        if (count < 2) {
+            return;
+        }
         float half = state.lineWidth * 0.5F;
         int segmentCount = closed ? count : count - 1;
 
-        // Unit normals of every segment, perpendicular to its direction
         float[] nx = new float[segmentCount];
         float[] ny = new float[segmentCount];
         for (int i = 0; i < segmentCount; i++) {
@@ -177,14 +180,15 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
             }
         }
 
-        // Mitered offset per vertex, capped at four times the half width
         float[] ox = new float[count];
         float[] oy = new float[count];
         for (int j = 0; j < count; j++) {
             int prev = closed ? (j - 1 + count) % count : j - 1;
             boolean hasPrev = prev >= 0;
             boolean hasNext = closed ? true : j < segmentCount;
-            if (!hasPrev && !hasNext) continue;
+            if (!hasPrev && !hasNext) {
+                continue;
+            }
             float pxn = hasPrev ? nx[prev] : 0.0F;
             float pyn = hasPrev ? ny[prev] : 0.0F;
             float qxn = hasNext ? nx[j] : 0.0F;
@@ -200,7 +204,6 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
                 ox[j] = bx * scale;
                 oy[j] = by * scale;
             } else {
-                // Reversed direction: fall back to a single side
                 float n = hasPrev ? pxn : qxn;
                 float m = hasPrev ? pyn : qyn;
                 ox[j] = n * half;
@@ -279,7 +282,9 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
 
     protected void requireOutsidePrimitive(@NotNull String operation) {
-        if (primitive != null) throw new IllegalStateException("Cannot " + operation + " inside begin/end");
+        if (primitive != null) {
+            throw new IllegalStateException("Cannot " + operation + " inside begin/end");
+        }
     }
 
     protected @Nullable Location texture() {

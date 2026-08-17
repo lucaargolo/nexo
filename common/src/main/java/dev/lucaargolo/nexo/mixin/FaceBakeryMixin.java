@@ -49,7 +49,9 @@ public class FaceBakeryMixin {
             CallbackInfo ci
     ) {
         Vector3f original = SAVED_VERTEX.get();
-        if (original == null) return;
+        if (original == null) {
+            return;
+        }
 
         vertex.set(original);
         Vector3f euler = ((BlockElementRotationMixed) (Object) rotation).nexo$getEulerRotation();

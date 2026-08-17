@@ -121,29 +121,39 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void lineWidth(float width) {
-        if (width != 1.0F) throw unsupported("line width");
+        if (width != 1.0F) {
+            throw unsupported("line width");
+        }
     }
 
     @Override
     public void depthMode(@NotNull DepthMode mode) {
-        if (mode != DepthMode.ENABLED) throw unsupported("depth mode " + mode);
+        if (mode != DepthMode.ENABLED) {
+            throw unsupported("depth mode " + mode);
+        }
     }
 
     @Override
     public void lightmap(float u, float v) {
-        if (u != 0.0F || v != 0.0F) throw unsupported("custom lightmap coordinates");
+        if (u != 0.0F || v != 0.0F) {
+            throw unsupported("custom lightmap coordinates");
+        }
     }
 
     @Override
     public void bindMaterial(@NotNull dev.lucaargolo.nexo.api.render.Material<?> material) {
-        if (material.shader() != null) throw unsupported("shaders while baking a model");
+        if (material.shader() != null) {
+            throw unsupported("shaders while baking a model");
+        }
         if (material.minFilter() != TextureFilter.NEAREST || material.magFilter() != TextureFilter.NEAREST) {
             throw unsupported("texture filtering");
         }
         if (material.blendMode() != BlendMode.DISABLED && material.blendMode() != BlendMode.ALPHA) {
             throw unsupported("blend mode " + material.blendMode());
         }
-        if (material.cullMode() == CullMode.FRONT) throw unsupported("front-face culling");
+        if (material.cullMode() == CullMode.FRONT) {
+            throw unsupported("front-face culling");
+        }
         super.bindMaterial(material);
     }
 
@@ -194,7 +204,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
             throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
         }
         begin(PrimitiveType.TRIANGLE_FAN, VertexFormat.POSITION_TEX);
-        for (int i = 0; i < x.length; i++) vertex(x[i], y[i], 0.0F, 0.0F, 0.0F);
+        for (int i = 0; i < x.length; i++) {
+            vertex(x[i], y[i], 0.0F, 0.0F, 0.0F);
+        }
         vertex(x[0], y[0], 0.0F, 0.0F, 0.0F);
         end();
     }
@@ -227,7 +239,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format) {
-        if (primitive != null) throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
+        if (primitive != null) {
+            throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
+        }
         if (type != PrimitiveType.QUADS
                 && type != PrimitiveType.TRIANGLES
                 && type != PrimitiveType.TRIANGLE_STRIP
@@ -241,7 +255,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void vertex(float @NotNull ... data) {
-        if (primitive == null || format == null) throw new IllegalStateException("Cannot add a vertex outside begin/end");
+        if (primitive == null || format == null) {
+            throw new IllegalStateException("Cannot add a vertex outside begin/end");
+        }
         if (data.length != format.stride()) {
             throw new IllegalArgumentException(format + " needs " + format.stride() + " values, received " + data.length);
         }
@@ -270,7 +286,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         }
 
         Vector4f position = matrix.transform(new Vector4f(data[0], data[1], data[2], 1.0F));
-        if (position.w() != 0.0F && position.w() != 1.0F) position.div(position.w());
+        if (position.w() != 0.0F && position.w() != 1.0F) {
+            position.div(position.w());
+        }
 
         float[] color = colorOffset >= 0
                 ? new float[]{data[colorOffset], data[colorOffset + 1], data[colorOffset + 2], data[colorOffset + 3]}
@@ -288,7 +306,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     @Override
     public void end() {
-        if (primitive == null) throw new IllegalStateException("Cannot end without begin");
+        if (primitive == null) {
+            throw new IllegalStateException("Cannot end without begin");
+        }
         PrimitiveType completed = primitive;
         primitive = null;
         format = null;
@@ -299,7 +319,9 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         }
 
         TextureAtlasSprite sprite = sprite(texture());
-        if (particle == null) particle = sprite;
+        if (particle == null) {
+            particle = sprite;
+        }
         LayerMode layerMode = state.material != null ? state.material.layerMode() : LayerMode.SOLID;
         switch (completed) {
             case QUADS -> {
@@ -315,17 +337,25 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
                 }
             }
             case TRIANGLE_STRIP -> {
-                if (vertices.size() < 3) throw new IllegalStateException("TRIANGLE_STRIP needs at least three vertices");
+                if (vertices.size() < 3) {
+                    throw new IllegalStateException("TRIANGLE_STRIP needs at least three vertices");
+                }
                 for (int i = 0; i < vertices.size() - 2; i++) {
                     Vertex a = vertices.get(i);
                     Vertex b = vertices.get(i + 1);
                     Vertex c = vertices.get(i + 2);
-                    if ((i & 1) == 0) addQuad(layerMode, sprite, a, b, c, c);
-                    else addQuad(layerMode, sprite, b, a, c, c);
+                    if ((i & 1) == 0) {
+                        addQuad(layerMode, sprite, a, b, c, c);
+                    }
+                    else {
+                        addQuad(layerMode, sprite, b, a, c, c);
+                    }
                 }
             }
             case TRIANGLE_FAN -> {
-                if (vertices.size() < 3) throw new IllegalStateException("TRIANGLE_FAN needs at least three vertices");
+                if (vertices.size() < 3) {
+                    throw new IllegalStateException("TRIANGLE_FAN needs at least three vertices");
+                }
                 Vertex center = vertices.getFirst();
                 for (int i = 1; i < vertices.size() - 1; i++) {
                     addQuad(layerMode, sprite, center, vertices.get(i), vertices.get(i + 1), vertices.get(i + 1));
@@ -386,11 +416,15 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
 
     private static @NotNull Vector3f averageNormal(Vertex @NotNull [] vertices) {
         Vector3f normal = new Vector3f();
-        for (Vertex vertex : vertices) normal.add(vertex.normal());
+        for (Vertex vertex : vertices) {
+            normal.add(vertex.normal());
+        }
         if (normal.lengthSquared() <= 1.0E-8F) {
             normal.set(vertices[1].position()).sub(vertices[0].position()).cross(new Vector3f(vertices[2].position()).sub(vertices[0].position()));
         }
-        if (normal.lengthSquared() <= 1.0E-8F) normal.set(0.0F, 1.0F, 0.0F);
+        if (normal.lengthSquared() <= 1.0E-8F) {
+            normal.set(0.0F, 1.0F, 0.0F);
+        }
         return normal.normalize();
     }
 

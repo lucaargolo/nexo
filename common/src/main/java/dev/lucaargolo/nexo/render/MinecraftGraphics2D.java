@@ -74,10 +74,18 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     }
 
     public void finish() {
-        if (finished) return;
-        if (primitive != null) throw new IllegalStateException("Renderer ended with an open " + primitive + " primitive");
-        if (matrixDepth != 0) throw new IllegalStateException("Renderer ended with " + matrixDepth + " unclosed matrix states");
-        if (!states.isEmpty()) throw new IllegalStateException("Renderer ended with " + states.size() + " unclosed render states");
+        if (finished) {
+            return;
+        }
+        if (primitive != null) {
+            throw new IllegalStateException("Renderer ended with an open " + primitive + " primitive");
+        }
+        if (matrixDepth != 0) {
+            throw new IllegalStateException("Renderer ended with " + matrixDepth + " unclosed matrix states");
+        }
+        if (!states.isEmpty()) {
+            throw new IllegalStateException("Renderer ended with " + states.size() + " unclosed render states");
+        }
         poses.popPose();
         finished = true;
     }
@@ -98,7 +106,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     @Override
     public void popMatrix() {
         requireOutsidePrimitive("change the matrix");
-        if (matrixDepth == 0) throw new IllegalStateException("Cannot pop an empty matrix stack");
+        if (matrixDepth == 0) {
+            throw new IllegalStateException("Cannot pop an empty matrix stack");
+        }
         poses.popPose();
         matrixDepth--;
     }
@@ -226,13 +236,16 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     private void roundedRect(float x, float y, float width, float height, float radius, PrimitiveType type) {
         float actualRadius = clampRadius(radius, width, height);
         beginShape(type);
-        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x + width * 0.5F, y + height * 0.5F, x, y, x + width, y + height);
+        if (type == PrimitiveType.TRIANGLE_FAN) {
+            shapeVertex(x + width * 0.5F, y + height * 0.5F, x, y, x + width, y + height);
+        }
         arcVertices(x + width - actualRadius, y + actualRadius, actualRadius, -90.0F, 0.0F, 8, x, y, x + width, y + height);
         arcVertices(x + width - actualRadius, y + height - actualRadius, actualRadius, 0.0F, 90.0F, 8, x, y, x + width, y + height);
         arcVertices(x + actualRadius, y + height - actualRadius, actualRadius, 90.0F, 180.0F, 8, x, y, x + width, y + height);
         arcVertices(x + actualRadius, y + actualRadius, actualRadius, 180.0F, 270.0F, 8, x, y, x + width, y + height);
-        // Re-emit the first corner vertex to close triangle fans
-        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x + width - actualRadius, y, x, y, x + width, y + height);
+        if (type == PrimitiveType.TRIANGLE_FAN) {
+            shapeVertex(x + width - actualRadius, y, x, y, x + width, y + height);
+        }
         end();
     }
 
@@ -284,9 +297,12 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
             maxY = Math.max(maxY, y[i]);
         }
         beginShape(type);
-        for (int i = 0; i < x.length; i++) shapeVertex(x[i], y[i], minX, minY, maxX, maxY);
-        // Re-emit the first vertex to close triangle fans
-        if (type == PrimitiveType.TRIANGLE_FAN) shapeVertex(x[0], y[0], minX, minY, maxX, maxY);
+        for (int i = 0; i < x.length; i++) {
+            shapeVertex(x[i], y[i], minX, minY, maxX, maxY);
+        }
+        if (type == PrimitiveType.TRIANGLE_FAN) {
+            shapeVertex(x[0], y[0], minX, minY, maxX, maxY);
+        }
         end();
     }
 
@@ -368,8 +384,12 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format) {
-        if (primitive != null) throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
-        if (type == PrimitiveType.POINTS) throw unsupported("point primitives");
+        if (primitive != null) {
+            throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
+        }
+        if (type == PrimitiveType.POINTS) {
+            throw unsupported("point primitives");
+        }
         primitive = type;
         this.format = format;
         activeRenderType = renderType(type);
@@ -392,7 +412,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
         if (data.length != format.stride()) {
             throw new IllegalArgumentException(format + " needs " + format.stride() + " values, received " + data.length);
         }
-        if (primitive == PrimitiveType.LINE_LOOP && firstVertex == null) firstVertex = data.clone();
+        if (primitive == PrimitiveType.LINE_LOOP && firstVertex == null) {
+            firstVertex = data.clone();
+        }
         emit(data);
         vertexCount++;
     }
@@ -460,7 +482,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
     @Override
     public void end() {
-        if (primitive == null) throw new IllegalStateException("Cannot end without begin");
+        if (primitive == null) {
+            throw new IllegalStateException("Cannot end without begin");
+        }
         if (primitive == PrimitiveType.LINE_LOOP && firstVertex != null) {
             emit(firstVertex);
         }
@@ -503,7 +527,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     }
 
     private static void requireMinimum(@NotNull PrimitiveType type, int count, int minimum) {
-        if (count < minimum) throw new IllegalStateException(type + " needs at least " + minimum + " vertices");
+        if (count < minimum) {
+            throw new IllegalStateException(type + " needs at least " + minimum + " vertices");
+        }
     }
 
 
@@ -637,10 +663,14 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
 
         private static com.mojang.blaze3d.vertex.@NotNull VertexFormat minecraftFormat(@NotNull RenderKey key) {
             if (key.shader == null) {
-                if (key.textured) return DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP;
+                if (key.textured) {
+                    return DefaultVertexFormat.POSITION_COLOR_TEX_LIGHTMAP;
+                }
                 return DefaultVertexFormat.POSITION_COLOR;
             }
-            if (key.vertexFormat == null) throw new IllegalStateException("Custom shader render type has no vertex format");
+            if (key.vertexFormat == null) {
+                throw new IllegalStateException("Custom shader render type has no vertex format");
+            }
             return customVertexFormat(key.vertexFormat);
         }
 

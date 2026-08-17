@@ -71,13 +71,17 @@ public final class MinecraftShaderRenderer {
 
     @NotNull RenderTarget sceneTexture() {
         TextureTarget texture = sceneTexture;
-        if (texture == null) throw new IllegalStateException("Scene texture is unavailable outside deferred world rendering");
+        if (texture == null) {
+            throw new IllegalStateException("Scene texture is unavailable outside deferred world rendering");
+        }
         return texture;
     }
 
     void endFrame() {
         worldRendering = false;
-        if (draws.isEmpty()) return;
+        if (draws.isEmpty()) {
+            return;
+        }
 
         Minecraft minecraft = Minecraft.getInstance();
         RenderTarget main = minecraft.getMainRenderTarget();
@@ -87,7 +91,9 @@ public final class MinecraftShaderRenderer {
 
         while (true) {
             Draw draw = draws.pollFirst();
-            if (draw == null) break;
+            if (draw == null) {
+                break;
+            }
             try (draw) {
                 Matrix4f previousModelView = new Matrix4f(RenderSystem.getModelViewMatrix());
                 Matrix4f previousProjection = new Matrix4f(RenderSystem.getProjectionMatrix());
@@ -112,7 +118,9 @@ public final class MinecraftShaderRenderer {
     void close() {
         worldRendering = false;
         Draw draw;
-        while ((draw = draws.pollFirst()) != null) draw.close();
+        while ((draw = draws.pollFirst()) != null) {
+            draw.close();
+        }
         TextureTarget texture = sceneTexture;
         if (texture != null) {
             texture.destroyBuffers();

@@ -69,7 +69,9 @@ public record Model(
 
     public static @Nullable Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         for (ModelLoader loader : LOADERS) {
-            if (!loader.supports(path)) continue;
+            if (!loader.supports(path)) {
+                continue;
+            }
             Model model = load(loader, nexo, path, data);
             if (model != null) {
                 return model;
@@ -82,7 +84,9 @@ public record Model(
         for (ModelLoader loader : LOADERS) {
             for (Location resolvedPath : loader.resolve(path)) {
                 byte[] data = nexo.loadResource(resolvedPath);
-                if (data == null) continue;
+                if (data == null) {
+                    continue;
+                }
                 Model model = load(loader, nexo, resolvedPath, data);
                 if (model != null) {
                     return model;

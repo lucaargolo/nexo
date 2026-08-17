@@ -27,7 +27,9 @@ public record Image(byte @NotNull [] data) {
 
     public static @Nullable Image load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         for (ImageLoader loader : LOADERS) {
-            if (!loader.supports(path)) continue;
+            if (!loader.supports(path)) {
+                continue;
+            }
             Image image = load(loader, nexo, path, data);
             if (image != null) {
                 return image;
@@ -57,7 +59,9 @@ public record Image(byte @NotNull [] data) {
         for (ImageLoader loader : LOADERS) {
             for (Location resolvedPath : loader.resolve(path)) {
                 byte[] data = nexo.loadResource(resolvedPath);
-                if (data == null) continue;
+                if (data == null) {
+                    continue;
+                }
                 Image image = load(loader, nexo, resolvedPath, data);
                 if (image != null) {
                     return image;

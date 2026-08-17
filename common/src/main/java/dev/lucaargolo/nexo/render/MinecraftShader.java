@@ -17,20 +17,15 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix2f;
-import org.joml.Matrix2fc;
-import org.joml.Matrix3f;
-import org.joml.Matrix3fc;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
+import org.joml.*;
 
-import java.util.Optional;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
@@ -119,7 +114,9 @@ final class MinecraftShader implements Shader {
         ResourceProvider fallback = Minecraft.getInstance().getResourceManager();
         ResourceProvider provider = location -> {
             byte[] data = resources.get(location);
-            if (data == null) return fallback.getResource(location);
+            if (data == null) {
+                return fallback.getResource(location);
+            }
             Resource coreShader = fallback.getResource(ResourceLocation.withDefaultNamespace("shaders/core/position.json"))
                     .orElseThrow(() -> new IllegalStateException("Minecraft core shaders are unavailable"));
             return Optional.of(new Resource(coreShader.source(), () -> new ByteArrayInputStream(data)));
@@ -221,7 +218,9 @@ final class MinecraftShader implements Shader {
         Matrix2f copy = new Matrix2f(value);
         put(name, "mat2", (shader, uniformName) -> {
             Uniform uniform = shader.getUniform(uniformName);
-            if (uniform != null) uniform.setMat2x2(copy.m00(), copy.m01(), copy.m10(), copy.m11());
+            if (uniform != null) {
+                uniform.setMat2x2(copy.m00(), copy.m01(), copy.m10(), copy.m11());
+            }
         });
     }
 
@@ -253,7 +252,9 @@ final class MinecraftShader implements Shader {
     private void integers(@NotNull String name, @NotNull String type, int @NotNull ... data) {
         put(name, type, (shader, uniformName) -> {
             Uniform uniform = shader.getUniform(uniformName);
-            if (uniform == null) return;
+            if (uniform == null) {
+                return;
+            }
             switch (data.length) {
                 case 1 -> uniform.set(data[0]);
                 case 2 -> uniform.set(data[0], data[1]);
@@ -267,7 +268,9 @@ final class MinecraftShader implements Shader {
     private void floats(@NotNull String name, @NotNull String type, float @NotNull ... data) {
         put(name, type, (shader, uniformName) -> {
             Uniform uniform = shader.getUniform(uniformName);
-            if (uniform == null) return;
+            if (uniform == null) {
+                return;
+            }
             switch (data.length) {
                 case 1 -> uniform.set(data[0]);
                 case 2 -> uniform.set(data[0], data[1]);
@@ -281,7 +284,9 @@ final class MinecraftShader implements Shader {
     private void put(@NotNull String uniformName, @NotNull String suppliedType, @NotNull UniformValue value) {
         requireOpen();
         String declaredType = uniformTypes.get(uniformName);
-        if (declaredType == null) throw new IllegalArgumentException("Shader has no uniform named " + uniformName);
+        if (declaredType == null) {
+            throw new IllegalArgumentException("Shader has no uniform named " + uniformName);
+        }
         if (!declaredType.equals(suppliedType)) {
             throw new IllegalArgumentException(
                     "Uniform " + uniformName + " is " + declaredType + ", not " + suppliedType
@@ -298,12 +303,16 @@ final class MinecraftShader implements Shader {
     }
 
     private void requireOpen() {
-        if (closed) throw new IllegalStateException("Shader is closed");
+        if (closed) {
+            throw new IllegalStateException("Shader is closed");
+        }
     }
 
     @Override
     public void close() {
-        if (closed) return;
+        if (closed) {
+            return;
+        }
         closed = true;
         variants.values().forEach(ShaderInstance::close);
         variants.clear();
@@ -323,8 +332,9 @@ final class MinecraftShader implements Shader {
         while (matcher.find()) {
             String type = matcher.group(1);
             String name = matcher.group(2);
-            if (matcher.group(3) != null)
+            if (matcher.group(3) != null) {
                 throw new IllegalArgumentException("Uniform arrays are not supported yet: " + name);
+            }
             String previous = result.putIfAbsent(name, type);
             if (previous != null && !previous.equals(type)) {
                 throw new IllegalArgumentException("Uniform " + name + " has conflicting shader-stage types");
@@ -358,22 +368,30 @@ final class MinecraftShader implements Shader {
 
     private static void set(@NotNull ShaderInstance shader, @NotNull String name, float value) {
         Uniform uniform = shader.getUniform(name);
-        if (uniform != null) uniform.set(value);
+        if (uniform != null) {
+            uniform.set(value);
+        }
     }
 
     private static void set(@NotNull ShaderInstance shader, @NotNull String name, int value) {
         Uniform uniform = shader.getUniform(name);
-        if (uniform != null) uniform.set(value);
+        if (uniform != null) {
+            uniform.set(value);
+        }
     }
 
     private static void set(@NotNull ShaderInstance shader, @NotNull String name, @NotNull Matrix3f value) {
         Uniform uniform = shader.getUniform(name);
-        if (uniform != null) uniform.set(value);
+        if (uniform != null) {
+            uniform.set(value);
+        }
     }
 
     private static void set(@NotNull ShaderInstance shader, @NotNull String name, @NotNull Matrix4f value) {
         Uniform uniform = shader.getUniform(name);
-        if (uniform != null) uniform.set(value);
+        if (uniform != null) {
+            uniform.set(value);
+        }
     }
 
     private static @NotNull ResourceLocation shaderResource(@NotNull String name, @NotNull String extension) {

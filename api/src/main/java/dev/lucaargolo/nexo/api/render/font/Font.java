@@ -56,7 +56,9 @@ public final class Font {
 
     public static @Nullable Font load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
         for (FontLoader loader : LOADERS) {
-            if (!loader.supports(path)) continue;
+            if (!loader.supports(path)) {
+                continue;
+            }
             Font font = load(loader, nexo, path, data);
             if (font != null) {
                 return font;
@@ -86,7 +88,9 @@ public final class Font {
         for (FontLoader loader : LOADERS) {
             for (Location resolvedPath : loader.resolve(path)) {
                 byte[] data = nexo.loadResource(resolvedPath);
-                if (data == null) continue;
+                if (data == null) {
+                    continue;
+                }
                 Font font = load(loader, nexo, resolvedPath, data);
                 if (font != null) {
                     return font;

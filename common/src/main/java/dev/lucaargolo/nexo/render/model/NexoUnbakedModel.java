@@ -78,8 +78,8 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
             @NotNull Renderer<?, ?> renderer,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter
     ) {
-        dev.lucaargolo.nexo.api.render.Material<?> material = renderer.material("particle");
-        dev.lucaargolo.nexo.api.util.Location location = material != null ? material.location() : null;
+        Material<?> material = renderer.material("particle");
+        Location location = material != null ? material.location() : null;
         return textureGetter.apply(new Material(
                 InventoryMenu.BLOCK_ATLAS,
                 location == null ? MissingTextureAtlasSprite.getLocation() : NexoMinecraft.rl(location)
@@ -115,8 +115,12 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
         ItemTransform ground = transform(function, ItemDisplayContext.GROUND);
         ItemTransform fixed = transform(function, ItemDisplayContext.FIXED);
 
-        if (ItemTransform.NO_TRANSFORM.equals(thirdPersonLeft)) thirdPersonLeft = thirdPersonRight;
-        if (ItemTransform.NO_TRANSFORM.equals(firstPersonLeft)) firstPersonLeft = firstPersonRight;
+        if (ItemTransform.NO_TRANSFORM.equals(thirdPersonLeft)) {
+            thirdPersonLeft = thirdPersonRight;
+        }
+        if (ItemTransform.NO_TRANSFORM.equals(firstPersonLeft)) {
+            firstPersonLeft = firstPersonRight;
+        }
 
         return new ItemTransforms(
                 thirdPersonLeft,

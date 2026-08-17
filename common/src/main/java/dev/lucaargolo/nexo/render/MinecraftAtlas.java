@@ -36,7 +36,9 @@ public final class MinecraftAtlas {
     @SuppressWarnings("unchecked")
     public void register(Location atlas, Material<?> material) {
         Pair<Location, ?> textureData = material.texture();
-        if (textureData == null) return;
+        if (textureData == null) {
+            return;
+        }
         Object data = textureData.right();
         if(data instanceof Location) {
             registry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<Location>) material);
@@ -56,11 +58,15 @@ public final class MinecraftAtlas {
     public static @NotNull List<SpriteContents> collectSpriteContents(Nexo nexo, List<SpriteContents> contentsList, List<Material<Location>> registered, List<Material<byte[]>> embedded) {
         List<SpriteContents> augmented = new ArrayList<>(contentsList);
         Map<ResourceLocation, SpriteContents> existing = new HashMap<>(contentsList.size());
-        for (SpriteContents contents : contentsList) existing.put(contents.name(), contents);
+        for (SpriteContents contents : contentsList) {
+            existing.put(contents.name(), contents);
+        }
 
         for (Material<Location> material : registered) {
             Pair<Location, Location> texture = material.texture();
-            if (texture == null) continue;
+            if (texture == null) {
+                continue;
+            }
             Location location = texture.left();
             ResourceLocation id = NexoMinecraft.rl(location.withoutExtension());
             try {
@@ -74,7 +80,9 @@ public final class MinecraftAtlas {
                     NexoMinecraft.LOGGER.debug("Injected {} at {}", spriteContents, id);
                 } else {
                     SpriteContents contents = existing.get(id);
-                    if (contents == null) throw new FileNotFoundException();
+                    if (contents == null) {
+                        throw new FileNotFoundException();
+                    }
                     classify(material, contents.originalImage);
                 }
             } catch (Exception e) {
@@ -84,7 +92,9 @@ public final class MinecraftAtlas {
 
         for (Material<byte[]> material : embedded) {
             Pair<Location, byte[]> texture = material.texture();
-            if (texture == null) continue;
+            if (texture == null) {
+                continue;
+            }
             ResourceLocation id = NexoMinecraft.rl(texture.left().withoutExtension());
             try (InputStream in = new ByteArrayInputStream(texture.right())) {
                 NativeImage image = NativeImage.read(in);
@@ -116,8 +126,9 @@ public final class MinecraftAtlas {
             }
         }
 
-        if (inferred.ordinal() > material.layerMode().ordinal())
+        if (inferred.ordinal() > material.layerMode().ordinal()) {
             material.withLayerMode(inferred);
+        }
     }
 
 }

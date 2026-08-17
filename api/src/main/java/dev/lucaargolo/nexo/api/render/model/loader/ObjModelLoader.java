@@ -87,10 +87,14 @@ public final class ObjModelLoader implements ModelLoader {
             int comment = line.indexOf('#');
             String value = comment < 0 ? line : line.substring(0, comment);
             StringTokenizer tokens = new StringTokenizer(value);
-            if (!tokens.hasMoreTokens() || !tokens.nextToken().equalsIgnoreCase("v")) return;
+            if (!tokens.hasMoreTokens() || !tokens.nextToken().equalsIgnoreCase("v")) {
+                return;
+            }
             int count = tokens.countTokens();
             float[] components = new float[count];
-            for (int i = 0; i < count; i++) components[i] = Float.parseFloat(tokens.nextToken());
+            for (int i = 0; i < count; i++) {
+                components[i] = Float.parseFloat(tokens.nextToken());
+            }
             if (count >= 7) {
                 result.add(new float[]{components[4], components[5], components[6]});
             } else if (count == 6) {

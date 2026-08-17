@@ -38,9 +38,10 @@ public class BlockItem extends ItemBase {
     }
 
     public static @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer(@Nullable Renderer<Graphics3D, BlockUnit<?>> renderer) {
-        if (renderer == null) return null;
+        if (renderer == null) {
+            return null;
+        }
         if (renderer instanceof StaticRenderer<?, ?>) {
-            @SuppressWarnings("unchecked")
             StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer = (StaticRenderer<Graphics3D, BlockUnit<?>>) renderer;
             return new StaticBlockItemRenderer(staticRenderer);
         }
@@ -58,7 +59,9 @@ public class BlockItem extends ItemBase {
         @Override
         public void render(@NotNull Graphics3D graphics, @NotNull ItemUnit<?> unit) {
             BlockUnit<?> block = block(unit);
-            if (block != null) delegate.render(graphics, block);
+            if (block != null) {
+                delegate.render(graphics, block);
+            }
         }
 
         @Override

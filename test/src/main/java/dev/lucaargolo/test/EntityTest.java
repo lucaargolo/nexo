@@ -64,8 +64,12 @@ public final class EntityTest {
                 graphics.pushMatrix();
                 graphics.translate(0.0F, 1.8F, 0.0F);
                 Vector3f camera = graphics.cameraPosition();
-                if (camera.lengthSquared() > 1.0E-6F) camera.normalize();
-                else camera.set(0.0F, 0.0F, 1.0F);
+                if (camera.lengthSquared() > 1.0E-6F) {
+                    camera.normalize();
+                }
+                else {
+                    camera.set(0.0F, 0.0F, 1.0F);
+                }
                 shader.uniform("iCameraDirection", camera.x(), camera.y(), camera.z());
                 float horizontalDistance = (float) Math.hypot(camera.x(), camera.z());
                 float yaw = (float) Math.toDegrees(Math.atan2(camera.x(), camera.z()));

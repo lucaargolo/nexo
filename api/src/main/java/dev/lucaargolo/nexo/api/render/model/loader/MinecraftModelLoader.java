@@ -79,7 +79,9 @@ public final class MinecraftModelLoader implements ModelLoader {
                 throw new JsonParseException("Cyclic model parent chain: " + String.join(" -> ", visited.stream().map(Location::toString).toList()) + " -> " + parentPath);
             }
             byte[] parentData = nexo.loadResource(parentPath);
-            if (parentData == null) break;
+            if (parentData == null) {
+                break;
+            }
             current = JsonParser.parseString(new String(parentData, StandardCharsets.UTF_8)).getAsJsonObject();
             chain.add(current);
         }
@@ -88,8 +90,12 @@ public final class MinecraftModelLoader implements ModelLoader {
 
     private static @NotNull Location normalizeModelPath(@NotNull Location path) {
         String value = path.path();
-        if (!value.startsWith("models/")) value = "models/" + value;
-        if (!value.endsWith(".json")) value += ".json";
+        if (!value.startsWith("models/")) {
+            value = "models/" + value;
+        }
+        if (!value.endsWith(".json")) {
+            value += ".json";
+        }
         return Location.of(path.namespace(), value);
     }
 
@@ -100,7 +106,9 @@ public final class MinecraftModelLoader implements ModelLoader {
         Map<String, String> values = new LinkedHashMap<>();
         for (int i = chain.size() - 1; i >= 0; i--) {
             JsonObject root = chain.get(i);
-            if (!root.has("textures")) continue;
+            if (!root.has("textures")) {
+                continue;
+            }
             for (var entry : root.getAsJsonObject("textures").entrySet()) {
                 JsonElement value = entry.getValue();
                 if (value.isJsonPrimitive()) {
@@ -112,7 +120,9 @@ public final class MinecraftModelLoader implements ModelLoader {
         }
         for (String key : values.keySet()) {
             Location texture = resolveTexture(key, values, new ArrayList<>());
-            if (texture != null) materials.put(key, Material.of(texture));
+            if (texture != null) {
+                materials.put(key, Material.of(texture));
+            }
         }
     }
 
@@ -125,8 +135,12 @@ public final class MinecraftModelLoader implements ModelLoader {
             throw new JsonParseException("Cyclic texture reference: " + String.join(" -> ", chain) + " -> " + key);
         }
         String value = values.get(key);
-        if (value == null) return null;
-        if (!value.startsWith("#")) return parseResourceLocation(value);
+        if (value == null) {
+            return null;
+        }
+        if (!value.startsWith("#")) {
+            return parseResourceLocation(value);
+        }
         chain.add(key);
         Location resolved = resolveTexture(value.substring(1), values, chain);
         chain.removeLast();
@@ -134,11 +148,12 @@ public final class MinecraftModelLoader implements ModelLoader {
     }
 
     private static @NotNull Map<Location, Transform> parseDisplay(@NotNull JsonObject root) {
-        // "transforms" is retained for models authored against older Nexo versions.
         JsonObject display = root.has("display")
                 ? root.getAsJsonObject("display")
                 : root.has("transforms") ? root.getAsJsonObject("transforms") : null;
-        if (display == null) return Map.of();
+        if (display == null) {
+            return Map.of();
+        }
 
         Map<Location, Transform> transforms = new LinkedHashMap<>();
         for (var entry : display.entrySet()) {
@@ -164,7 +179,9 @@ public final class MinecraftModelLoader implements ModelLoader {
             Vector3f to = parseFloat3(object, "to", 0);
             Matrix4f transform = parseRotation(object);
             JsonObject faces = object.getAsJsonObject("faces");
-            if (faces == null || faces.isEmpty()) throw new JsonParseException("Element has no faces");
+            if (faces == null || faces.isEmpty()) {
+                throw new JsonParseException("Element has no faces");
+            }
 
             for (var entry : faces.entrySet()) {
                 Orientation orientation;
@@ -237,7 +254,9 @@ public final class MinecraftModelLoader implements ModelLoader {
 
     private static @NotNull Matrix4f parseRotation(@NotNull JsonObject element) {
         Matrix4f matrix = new Matrix4f();
-        if (!element.has("rotation")) return matrix;
+        if (!element.has("rotation")) {
+            return matrix;
+        }
         JsonObject rotation = element.getAsJsonObject("rotation");
         Vector3f origin = parseFloat3(rotation, "origin", 8).div(16.0F);
         matrix.translate(origin);
@@ -259,9 +278,15 @@ public final class MinecraftModelLoader implements ModelLoader {
                 }
             }
         } else {
-            if (rotation.has("x")) matrix.rotateX((float) Math.toRadians(rotation.get("x").getAsFloat()));
-            if (rotation.has("y")) matrix.rotateY((float) Math.toRadians(rotation.get("y").getAsFloat()));
-            if (rotation.has("z")) matrix.rotateZ((float) Math.toRadians(rotation.get("z").getAsFloat()));
+            if (rotation.has("x")) {
+                matrix.rotateX((float) Math.toRadians(rotation.get("x").getAsFloat()));
+            }
+            if (rotation.has("y")) {
+                matrix.rotateY((float) Math.toRadians(rotation.get("y").getAsFloat()));
+            }
+            if (rotation.has("z")) {
+                matrix.rotateZ((float) Math.toRadians(rotation.get("z").getAsFloat()));
+            }
         }
         return matrix.translate(-origin.x, -origin.y, -origin.z);
     }
@@ -323,14 +348,20 @@ public final class MinecraftModelLoader implements ModelLoader {
     }
 
     private static @NotNull Vector3f parseFloat3(@NotNull JsonObject object, @NotNull String key, float defaultValue) {
-        if (!object.has(key)) return new Vector3f(defaultValue);
+        if (!object.has(key)) {
+            return new Vector3f(defaultValue);
+        }
         JsonArray values = object.getAsJsonArray(key);
-        if (values.size() != 3) throw new JsonParseException("Expected 3 values for '" + key + "'");
+        if (values.size() != 3) {
+            throw new JsonParseException("Expected 3 values for '" + key + "'");
+        }
         return new Vector3f(values.get(0).getAsFloat(), values.get(1).getAsFloat(), values.get(2).getAsFloat());
     }
 
     private static float @NotNull [] parseFloat4(@NotNull JsonArray values) {
-        if (values.size() != 4) throw new JsonParseException("Expected 4 UV values");
+        if (values.size() != 4) {
+            throw new JsonParseException("Expected 4 UV values");
+        }
         return new float[]{
                 values.get(0).getAsFloat(), values.get(1).getAsFloat(),
                 values.get(2).getAsFloat(), values.get(3).getAsFloat()

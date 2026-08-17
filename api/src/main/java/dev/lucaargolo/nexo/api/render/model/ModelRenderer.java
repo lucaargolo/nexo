@@ -37,7 +37,9 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
     @Override
     public @NotNull Transform transform(@NotNull Location location) {
         Transform transform = compiled().transform(location);
-        if (transform != null) return transform;
+        if (transform != null) {
+            return transform;
+        }
         return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F));
     }
 
