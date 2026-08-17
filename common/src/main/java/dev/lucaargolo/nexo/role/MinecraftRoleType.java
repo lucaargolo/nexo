@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.role;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;

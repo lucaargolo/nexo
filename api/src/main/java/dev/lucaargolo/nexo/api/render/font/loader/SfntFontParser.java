@@ -2,14 +2,8 @@ package dev.lucaargolo.nexo.api.render.font.loader;
 
 import dev.lucaargolo.nexo.api.render.font.Font;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -22,9 +16,7 @@ public final class SfntFontParser {
     private static final int CFF_SIGNATURE = 0x4F54544F;
     private static final int CMAP_TAG = 0x636D6170;
 
-    private static final float FONT_SIZE = 10.0F;
-    private static final float OVERSAMPLE = 4.0F;
-    private static final @NotNull FontRenderContext FONT_CONTEXT = new FontRenderContext(null, true, true);
+
 
     private SfntFontParser() {
     }
@@ -91,10 +83,7 @@ public final class SfntFontParser {
         }
 
         try {
-            Font awtFont = Font
-                    .createFont(Font.TRUETYPE_FONT, new ByteArrayInputStream(data))
-                    .deriveFont(FONT_SIZE * OVERSAMPLE);
-            AwtGlyphRasterizer rasterizer = new AwtGlyphRasterizer(awtFont);
+            AwtGlyphRasterizer rasterizer = new AwtGlyphRasterizer(data);
             return new Font(supportedGlyphs, rasterizer::rasterize);
         } catch (FontFormatException e) {
             throw new IOException("Could not parse sfnt outlines", e);
@@ -322,47 +311,6 @@ public final class SfntFontParser {
 
     private static long readUnsignedInt(byte @NotNull [] data, int offset) {
         return Integer.toUnsignedLong(readInt(data, offset));
-    }
-
-    private record AwtGlyphRasterizer(java.awt.Font font) {
-
-        private @Nullable Font.Glyph rasterize(int codePoint) {
-            String text = new String(Character.toChars(codePoint));
-            GlyphVector vector = font.createGlyphVector(FONT_CONTEXT, text);
-            if (vector.getNumGlyphs() != 1 || vector.getGlyphCode(0) == font.getMissingGlyphCode()) {
-                return null;
-            }
-
-            float advance = vector.getGlyphMetrics(0).getAdvanceX() / OVERSAMPLE;
-            Rectangle bounds = vector.getGlyphPixelBounds(0, FONT_CONTEXT, 0.0F, 0.0F);
-            if (bounds.width == 0 || bounds.height == 0) {
-                return new Font.Glyph(advance);
-            }
-
-            BufferedImage image = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_BYTE_GRAY);
-            Graphics2D graphics = image.createGraphics();
-            try {
-                graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-                graphics.setColor(Color.WHITE);
-                graphics.drawGlyphVector(vector, -bounds.x, -bounds.y);
-            } finally {
-                graphics.dispose();
-            }
-
-            byte[] luminance = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
-            return new Font.Glyph(
-                    luminance,
-                    bounds.width,
-                    bounds.height,
-                    advance,
-                    bounds.x / OVERSAMPLE,
-                    -bounds.y / OVERSAMPLE,
-                    OVERSAMPLE
-            );
-        }
-
     }
 
     private static final class IntArrayBuilder {

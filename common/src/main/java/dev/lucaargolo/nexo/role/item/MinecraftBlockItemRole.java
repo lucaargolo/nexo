@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.role.item;
 
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;

@@ -7,6 +7,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.font.Font;
+import dev.lucaargolo.nexo.api.render.font.Glyph;
 import dev.lucaargolo.nexo.api.util.Location;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
@@ -117,7 +118,7 @@ public final class MinecraftFont {
 
         @Override
         public @Nullable GlyphInfo getGlyph(int character) {
-            Font.Glyph glyph = font.glyph(character);
+            Glyph glyph = font.glyph(character);
             if (glyph == null) {
                 return null;
             }
@@ -138,7 +139,7 @@ public final class MinecraftFont {
 
     }
 
-    private record ParsedGlyphInfo(Font.Glyph glyph) implements GlyphInfo {
+    private record ParsedGlyphInfo(Glyph glyph) implements GlyphInfo {
 
         @Override
         public float getAdvance() {
@@ -152,7 +153,7 @@ public final class MinecraftFont {
 
     }
 
-    private record ParsedSheetGlyphInfo(Font.Glyph glyph) implements SheetGlyphInfo {
+    private record ParsedSheetGlyphInfo(Glyph glyph) implements SheetGlyphInfo {
 
         @Override
         public int getPixelWidth() {

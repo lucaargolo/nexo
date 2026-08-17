@@ -4,10 +4,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.neoforged.bus.api.Event;
-import net.neoforged.fml.event.IModBusEvent;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 public class WorldDimensionsBakeEvent extends Event {

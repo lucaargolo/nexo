@@ -3,16 +3,12 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Nexo;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
-import net.neoforged.neoforgespi.language.IConfigurable;
-import net.neoforged.neoforgespi.language.IModFileInfo;
-import net.neoforged.neoforgespi.language.IModInfo;
-import net.neoforged.neoforgespi.language.IModLanguageLoader;
+import net.neoforged.neoforgespi.language.*;
 import net.neoforged.neoforgespi.locating.ForgeFeature;
 import net.neoforged.neoforgespi.locating.IModFile;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
-import net.neoforged.neoforgespi.language.ModFileScanData;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
