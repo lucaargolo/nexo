@@ -43,7 +43,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
     protected final @NotNull PoseStack poses;
     private final @NotNull MultiBufferSource buffers;
     private final @NotNull MinecraftShaderRenderer shaderRenderer;
-    private final @NotNull Map<RenderKey, RenderType> customRenderTypes = new HashMap<>();
     private final int packedLight;
     private final int packedOverlay;
 
@@ -550,8 +549,11 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics2D implements 
                 shader,
                 uniforms
         );
-        Map<RenderKey, RenderType> cache = shader == null ? RENDER_TYPES : customRenderTypes;
-        return cache.computeIfAbsent(key, NexoRenderState::create);
+        return RENDER_TYPES.computeIfAbsent(key, NexoRenderState::create);
+    }
+
+    static void removeRenderTypes(@NotNull MinecraftShader shader) {
+        RENDER_TYPES.keySet().removeIf(key -> key.shader() == shader);
     }
 
     private static boolean hasTextureCoordinates(@NotNull VertexFormat format) {

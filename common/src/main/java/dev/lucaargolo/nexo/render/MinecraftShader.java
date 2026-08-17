@@ -314,6 +314,7 @@ final class MinecraftShader implements Shader {
             return;
         }
         closed = true;
+        MinecraftGraphics2D.removeRenderTypes(this);
         variants.values().forEach(ShaderInstance::close);
         variants.clear();
         values.clear();

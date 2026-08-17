@@ -25,6 +25,8 @@ public abstract class NexoModDiscovery<N extends Nexo> {
 
     private static final String MOD_JSON = "nexo.mod.json";
 
+    private static final Map<String, URLClassLoader> LOADERS = new ConcurrentHashMap<>();
+
     protected final Map<String, Nexo.Mod> mods = new ConcurrentHashMap<>();
 
     private final N nexo;
@@ -142,7 +144,16 @@ public abstract class NexoModDiscovery<N extends Nexo> {
             if (Files.isRegularFile(descriptor.sourcePath)) {
                 // JAR: create a classloader for this JAR
                 URL url = descriptor.sourcePath.toUri().toURL();
+                URLClassLoader previous = LOADERS.remove(descriptor.id);
+                if (previous != null) {
+                    try {
+                        previous.close();
+                    } catch (IOException ignored) {
+                        NexoMinecraft.LOGGER.warn("Failed to close classloader for mod {}", descriptor.id, ignored);
+                    }
+                }
                 URLClassLoader jarLoader = new URLClassLoader(new URL[]{url}, parentCl);
+                LOADERS.put(descriptor.id, jarLoader);
                 return jarLoader.loadClass(descriptor.entrypoint);
             } else {
                 // Directory: class should be on the system classpath
