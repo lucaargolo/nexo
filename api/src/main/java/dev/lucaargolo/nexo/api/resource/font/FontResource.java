@@ -26,7 +26,10 @@ public abstract class FontResource extends Resource<FontResource> {
 
     @Override
     public byte @Nullable [] data() {
-        return null;
+        if (!resolved()) {
+            return null;
+        }
+        return font().vectorData();
     }
 
     public @NotNull Font font() {

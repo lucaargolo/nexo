@@ -8,7 +8,8 @@
   "client": [
     "BlockElementRotationMixin",
     "FaceBakeryMixin",
-    "FontManagerMixin"
+    "FontManagerMixin",
+    "GlyphRenderTypesMixin"
   ],
   "server": [],
   "injectors": {

@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.api.render.font.loader;
 
 import dev.lucaargolo.nexo.api.render.font.Font;
-import java.awt.FontFormatException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -82,12 +81,7 @@ public final class SfntFontParser {
             throw new IOException("Font Unicode character map contains no glyphs");
         }
 
-        try {
-            AwtGlyphRasterizer rasterizer = new AwtGlyphRasterizer(data);
-            return new Font(supportedGlyphs, rasterizer::rasterize);
-        } catch (FontFormatException e) {
-            throw new IOException("Could not parse sfnt outlines", e);
-        }
+        return new Font(data, supportedGlyphs, trueTypeOutline);
     }
 
     private static int @NotNull [] parseCharacterMap(byte @NotNull [] data, int cmapOffset, int cmapLength) throws IOException {

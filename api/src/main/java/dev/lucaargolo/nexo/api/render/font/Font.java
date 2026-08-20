@@ -10,48 +10,62 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.IntFunction;
 
 public final class Font {
 
     private static final @NotNull List<FontLoader> LOADERS = new CopyOnWriteArrayList<>();
 
+    private final byte @NotNull [] vectorData;
     private final int @NotNull [] supportedGlyphs;
-    private final @NotNull IntFunction<@Nullable Glyph> glyphLoader;
-    private final @NotNull Map<Integer, Glyph> loadedGlyphs = new ConcurrentHashMap<>();
+    private final boolean trueTypeOutlines;
+    private final boolean linearFiltering;
 
-    public Font(int @NotNull [] supportedGlyphs, @NotNull IntFunction<@Nullable Glyph> glyphLoader) {
+    public Font(
+            byte @NotNull [] vectorData,
+            int @NotNull [] supportedGlyphs,
+            boolean trueTypeOutlines
+    ) {
+        this(vectorData, supportedGlyphs, trueTypeOutlines, true);
+    }
+
+    public Font(
+            byte @NotNull [] vectorData,
+            int @NotNull [] supportedGlyphs,
+            boolean trueTypeOutlines,
+            boolean linearFiltering
+    ) {
+        if (vectorData.length == 0) {
+            throw new IllegalArgumentException("Font vector data must not be empty");
+        }
         this.supportedGlyphs = Arrays.stream(supportedGlyphs)
                 .filter(Character::isValidCodePoint)
                 .distinct()
                 .sorted()
                 .toArray();
-        this.glyphLoader = glyphLoader;
+        this.vectorData = vectorData.clone();
+        this.trueTypeOutlines = trueTypeOutlines;
+        this.linearFiltering = linearFiltering;
     }
 
-    public Font(@NotNull Map<Integer, Glyph> glyphs) {
-        Map<Integer, Glyph> immutableGlyphs = Map.copyOf(glyphs);
-        this.supportedGlyphs = immutableGlyphs.keySet().stream()
-                .mapToInt(Integer::intValue)
-                .filter(Character::isValidCodePoint)
-                .sorted()
-                .toArray();
-        this.glyphLoader = immutableGlyphs::get;
-        this.loadedGlyphs.putAll(immutableGlyphs);
+    public Font(byte @NotNull [] vectorData, int @NotNull [] supportedGlyphs) {
+        this(vectorData, supportedGlyphs, true);
+    }
+
+    public byte @NotNull [] vectorData() {
+        return vectorData.clone();
+    }
+
+    public boolean trueTypeOutlines() {
+        return trueTypeOutlines;
+    }
+
+    public boolean linearFiltering() {
+        return linearFiltering;
     }
 
     public int @NotNull [] supportedGlyphs() {
         return supportedGlyphs.clone();
-    }
-
-    public @Nullable Glyph glyph(int codePoint) {
-        if (Arrays.binarySearch(supportedGlyphs, codePoint) < 0) {
-            return null;
-        }
-        return loadedGlyphs.computeIfAbsent(codePoint, glyphLoader::apply);
     }
 
     public static @Nullable Font load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) {
