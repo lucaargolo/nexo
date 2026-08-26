@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.input.GlfwKeyMapper;
+import dev.lucaargolo.nexo.render.MinecraftAtlas;
 import dev.lucaargolo.nexo.render.MinecraftGraphics2D;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import net.minecraft.client.gui.GuiGraphics;
@@ -65,6 +66,7 @@ public class MinecraftScreen extends Screen {
                 graphics.pose(),
                 graphics.bufferSource(),
                 nexo.getRenderingHandler().shaderRenderer(),
+                MinecraftAtlas.SCREEN_ATLAS,
                 LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY
         );

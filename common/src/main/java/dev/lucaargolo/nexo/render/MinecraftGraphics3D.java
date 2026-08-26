@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.DepthMode;
+import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
@@ -19,7 +20,18 @@ public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Gr
             int packedLight,
             int packedOverlay
     ) {
-        super(poses, buffers, shaderRenderer, packedLight, packedOverlay);
+        this(poses, buffers, shaderRenderer, MinecraftAtlas.BLOCK_ATLAS, packedLight, packedOverlay);
+    }
+
+    public MinecraftGraphics3D(
+            @NotNull PoseStack poses,
+            @NotNull MultiBufferSource buffers,
+            @NotNull MinecraftShaderRenderer shaderRenderer,
+            @NotNull Location atlas,
+            int packedLight,
+            int packedOverlay
+    ) {
+        super(poses, buffers, shaderRenderer, atlas, packedLight, packedOverlay);
         state.depthMode = DepthMode.ENABLED;
     }
 

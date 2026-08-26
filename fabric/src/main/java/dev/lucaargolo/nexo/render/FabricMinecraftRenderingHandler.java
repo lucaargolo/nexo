@@ -9,12 +9,14 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -51,6 +53,7 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
             embedded.addAll(minecraftAtlas.getEmbedded(atlas));
             return this.nexo();
         });
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new FabricMinecraftAtlasReloadListener(minecraftAtlas));
 
         ModelLoadingPlugin.register(pluginContext -> {
             pluginContext.addModels(itemModelIds);

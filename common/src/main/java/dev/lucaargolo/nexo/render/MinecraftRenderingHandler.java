@@ -35,7 +35,6 @@ import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -75,8 +74,9 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
     }
 
     public void registerImage(@NotNull ImageResource resource) {
-        //TODO: Use a custom atlas for image elements
         minecraftAtlas.register(MinecraftAtlas.BLOCK_ATLAS, Material.of(resource.location()));
+        minecraftAtlas.register(MinecraftAtlas.ENTITY_ATLAS, Material.of(resource.location()));
+        minecraftAtlas.register(MinecraftAtlas.SCREEN_ATLAS, Material.of(resource.location()));
     }
 
     public void registerModel(@NotNull ModelResource resource) {
@@ -133,15 +133,13 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 case EntityBase entity -> {
                     Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
                     if (renderer != null && renderer.resolved()) {
-                        //TODO: Use a custom atlas for entity elements
-                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, renderer.materials().values());
+                        this.registerMaterials(nexo, MinecraftAtlas.ENTITY_ATLAS, renderer.materials().values());
                     }
                     this.registerEntityRenderer(entity);
                 }
                 case ScreenBase screen -> {
                     if (screen.resolved()) {
-                        //TODO: Use a custom atlas for screen elements
-                        this.registerMaterials(nexo, MinecraftAtlas.BLOCK_ATLAS, screen.materials().values());
+                        this.registerMaterials(nexo, MinecraftAtlas.SCREEN_ATLAS, screen.materials().values());
                     }
                 }
                 default -> {}
@@ -200,7 +198,12 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
                     MinecraftGraphics3D graphics = new MinecraftGraphics3D(
-                            pPoseStack, pBufferSource, shaderRenderer, pPackedLight, OverlayTexture.NO_OVERLAY
+                            pPoseStack,
+                            pBufferSource,
+                            shaderRenderer,
+                            MinecraftAtlas.ENTITY_ATLAS,
+                            pPackedLight,
+                            OverlayTexture.NO_OVERLAY
                     );
                     try {
                         renderer.render(graphics, nexo.entityToUnit(pEntity));
@@ -211,7 +214,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
 
                 @Override
                 public @NotNull ResourceLocation getTextureLocation(@NotNull T pEntity) {
-                    return InventoryMenu.BLOCK_ATLAS;
+                    return NexoMinecraft.rl(MinecraftAtlas.ENTITY_ATLAS);
                 }
             });
         }

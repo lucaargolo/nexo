@@ -17,7 +17,6 @@ import dev.lucaargolo.nexo.api.render.util.DepthMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.TextureFilter;
 import dev.lucaargolo.nexo.api.render.util.VertexFormat;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -32,7 +31,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -56,6 +54,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
     protected final @NotNull PoseStack poses;
     private final @NotNull MultiBufferSource buffers;
     private final @NotNull MinecraftShaderRenderer shaderRenderer;
+    private final @NotNull Location atlas;
     private final int packedLight;
     private final int packedOverlay;
 
@@ -76,9 +75,21 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
             int packedLight,
             int packedOverlay
     ) {
+        this(poses, buffers, shaderRenderer, MinecraftAtlas.BLOCK_ATLAS, packedLight, packedOverlay);
+    }
+
+    public MinecraftGraphics2D(
+            @NotNull PoseStack poses,
+            @NotNull MultiBufferSource buffers,
+            @NotNull MinecraftShaderRenderer shaderRenderer,
+            @NotNull Location atlas,
+            int packedLight,
+            int packedOverlay
+    ) {
         this.poses = poses;
         this.buffers = buffers;
         this.shaderRenderer = shaderRenderer;
+        this.atlas = atlas;
         this.packedLight = packedLight;
         this.packedOverlay = packedOverlay;
         poses.pushPose();
@@ -179,10 +190,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
         super.bindMaterial(material);
         updateBoundSprite();
     }
-
     private void updateBoundSprite() {
         Location texture = texture();
-        boundSprite = texture != null ? sprite(texture) : null;
+        boundSprite = texture != null ? sprite(texture, atlasFor(texture)) : null;
     }
 
 
@@ -391,6 +401,9 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
         MutableComponent component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
         return minecraftFont.width(component) * scale;
     }
+    private static int packColor(float @NotNull [] color) {
+        return channel(color[3]) << 24 | channel(color[0]) << 16 | channel(color[1]) << 8 | channel(color[2]);
+    }
 
     public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
         begin(PrimitiveType.LINES, VertexFormat.POSITION);
@@ -526,17 +539,6 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
         vertexCount = 0;
     }
 
-    private static void validateVertexCount(@NotNull PrimitiveType type, int count) {
-        switch (type) {
-            case QUADS -> requireMultiple(type, count, 4);
-            case TRIANGLES -> requireMultiple(type, count, 3);
-            case LINES -> requireMultiple(type, count, 2);
-            case TRIANGLE_STRIP, TRIANGLE_FAN -> requireMinimum(type, count, 3);
-            case LINE_STRIP, LINE_LOOP -> requireMinimum(type, count, 2);
-            case POINTS -> throw unsupported("point primitives");
-        }
-    }
-
     private static void requireMultiple(@NotNull PrimitiveType type, int count, int multiple) {
         if (count == 0 || count % multiple != 0) {
             throw new IllegalStateException(type + " needs a non-empty multiple of " + multiple + " vertices");
@@ -548,16 +550,27 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
             throw new IllegalStateException(type + " needs at least " + minimum + " vertices");
         }
     }
-
+    private static void validateVertexCount(@NotNull PrimitiveType type, int count) {
+        switch (type) {
+            case QUADS -> requireMultiple(type, count, 4);
+            case TRIANGLES -> requireMultiple(type, count, 3);
+            case LINES -> requireMultiple(type, count, 2);
+            case TRIANGLE_STRIP, TRIANGLE_FAN -> requireMinimum(type, count, 3);
+            case LINE_STRIP, LINE_LOOP -> requireMinimum(type, count, 2);
+            case POINTS -> throw unsupported("point primitives");
+        }
+    }
 
     private @NotNull RenderType renderType(@NotNull PrimitiveType type) {
         boolean textured = boundSprite != null && hasTextureCoordinates(format);
         MinecraftShader shader = (MinecraftShader) shader();
         Material<?> material = state.material;
+        Location texture = material == null ? null : material.location();
         Map<String, MinecraftShader.UniformValue> uniforms = shader == null ? null : shader.uniforms();
         RenderKey key = new RenderKey(
                 mode(type),
                 textured,
+                textured && texture != null ? atlasFor(texture) : null,
                 blendMode(),
                 state.depthMode,
                 cullMode(),
@@ -616,19 +629,22 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
         return state.light != NO_LIGHT_OVERRIDE ? state.light : packedLight;
     }
 
-    private static @NotNull TextureAtlasSprite sprite(@NotNull Location texture) {
-        TextureAtlas atlas = Minecraft.getInstance().getModelManager().getAtlas(InventoryMenu.BLOCK_ATLAS);
+    private static @NotNull TextureAtlasSprite sprite(@NotNull Location texture, @NotNull Location atlas) {
+        if (!(Minecraft.getInstance().getTextureManager().getTexture(NexoMinecraft.rl(atlas), null) instanceof TextureAtlas textureAtlas)) {
+            throw new IllegalStateException("Atlas is not registered: " + atlas);
+        }
         ResourceLocation location = NexoMinecraft.rl(texture.withoutExtension());
-        return atlas.getSprite(location);
+        return textureAtlas.getSprite(location);
     }
 
-    private static int packColor(float @NotNull [] color) {
-        return channel(color[3]) << 24 | channel(color[0]) << 16 | channel(color[1]) << 8 | channel(color[2]);
+    private @NotNull Location atlasFor(@NotNull Location texture) {
+        return atlas;
     }
 
     private record RenderKey(
             @NotNull Mode mode,
             boolean textured,
+            @Nullable Location atlas,
             @NotNull BlendMode blendMode,
             @NotNull DepthMode depthMode,
             @NotNull CullMode cullMode,
@@ -639,6 +655,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
             @Nullable Map<String, MinecraftShader.UniformValue> uniforms
     ) {
     }
+
 
     private static final class NexoRenderState extends RenderType {
 
@@ -672,7 +689,7 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
             states.add(writeMask(key.depthMode));
             if (key.textured) {
                 states.add(new TextureStateShard(
-                        InventoryMenu.BLOCK_ATLAS,
+                        NexoMinecraft.rl(key.atlas),
                         blurred(key.minFilter, key.magFilter),
                         mipmapped(key.minFilter)
                 ));

@@ -9,10 +9,18 @@ import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.image.ImageResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Pair;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.AbstractTexture;
 import net.minecraft.client.renderer.texture.SpriteContents;
+import net.minecraft.client.renderer.texture.SpriteLoader;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceMetadata;
+import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -21,17 +29,75 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
 
-public final class MinecraftAtlas {
-
+public final class MinecraftAtlas implements PreparableReloadListener {
     public static final Location BLOCK_ATLAS = Location.of("minecraft", "textures/atlas/blocks.png");
+    public static final Location ENTITY_ATLAS = Location.of("nexo", "textures/atlas/entity.png");
+    public static final Location SCREEN_ATLAS = Location.of("minecraft", "textures/atlas/gui.png");
 
     private final Map<Location, List<Material<Location>>> registry = new ConcurrentHashMap<>();
     private final Map<Location, List<Material<byte[]>>> embeddedRegistry = new ConcurrentHashMap<>();
+    private final Map<Location, TextureAtlas> managedAtlases = new ConcurrentHashMap<>();
+
+    @Override
+    public @NotNull CompletableFuture<Void> reload(
+            @NotNull PreparationBarrier barrier,
+            @NotNull ResourceManager resourceManager,
+            @NotNull ProfilerFiller preparationsProfiler,
+            @NotNull ProfilerFiller reloadProfiler,
+            @NotNull Executor backgroundExecutor,
+            @NotNull Executor gameExecutor
+    ) {
+        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
+        Set<Location> locations = new HashSet<>(registry.keySet());
+        locations.addAll(embeddedRegistry.keySet());
+        List<CompletableFuture<Void>> reloads = new ArrayList<>();
+        for (Location location : locations) {
+            ResourceLocation atlasLocation = NexoMinecraft.rl(location);
+            AbstractTexture existing = textureManager.getTexture(atlasLocation, null);
+            TextureAtlas atlas;
+            if (existing instanceof TextureAtlas existingAtlas) {
+                if (managedAtlases.get(location) != existingAtlas) {
+                    continue;
+                }
+                atlas = existingAtlas;
+            } else {
+                atlas = new TextureAtlas(atlasLocation);
+                textureManager.register(atlasLocation, atlas);
+                managedAtlases.put(location, atlas);
+            }
+            reloads.add(
+                    SpriteLoader.create(atlas)
+                            .loadAndStitch(
+                                    resourceManager,
+                                    NexoMinecraft.rl(atlasInfo(location)),
+                                    0,
+                                    backgroundExecutor
+                            )
+                            .thenCompose(SpriteLoader.Preparations::waitForUpload)
+                            .thenCompose(barrier::wait)
+                            .thenAcceptAsync(atlas::upload, gameExecutor)
+            );
+        }
+        return CompletableFuture.allOf(reloads.toArray(CompletableFuture[]::new));
+    }
+
+    public static @NotNull Location atlasInfo(@NotNull Location atlas) {
+        String path = atlas.withoutExtension().path();
+        String prefix = "textures/atlas/";
+        if (path.startsWith(prefix)) {
+            path = path.substring(prefix.length());
+        }
+        return Location.of(atlas.namespace(), "atlases/" + path);
+    }
 
     @SuppressWarnings("unchecked")
     public void register(Location atlas, Material<?> material) {

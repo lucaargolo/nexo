@@ -30,6 +30,7 @@ import net.neoforged.neoforge.event.GameShuttingDownEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -107,6 +108,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
             event.embedded().addAll(minecraftAtlas.getEmbedded(event.atlas()));
             event.setNexo(this.nexo());
         });
+        this.nexo().modBus().addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(minecraftAtlas));
     }
 
     @Override

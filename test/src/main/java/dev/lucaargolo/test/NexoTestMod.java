@@ -27,6 +27,7 @@ public class NexoTestMod {
         nexo.registerResource(Resource.Type.FONT, id("fonts/source_serif_4_regular"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_jpeg"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_webp"));
+        nexo.registerResource(Resource.Type.IMAGE, id("test_block_translucent"));
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
         ScreenBase testScreen = ScreenTest.register(nexo);
         BlockTest.register(nexo, category);
