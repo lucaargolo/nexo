@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.screen.widget.Label;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Material;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
@@ -234,7 +235,7 @@ public class ScreenTest extends SimpleScreen {
     }
 
     private static final int DESIGN_WIDTH = 175;
-    private static final int DESIGN_HEIGHT = 95;
+    private static final int DESIGN_HEIGHT = 120;
 
     private static final List<FontOption> FONTS = List.of(
             new FontOption("Default", null),
@@ -247,6 +248,12 @@ public class ScreenTest extends SimpleScreen {
             new FontOption("Illageralt", Location.of("minecraft", "illageralt")),
             new FontOption("Unknown", Location.of("unknown", "unknown"))
         );
+
+    private static final Text RICH_TEXT = Text.parse(
+            "[b]Bold[/b] [i]Italic[/i] [u]Under[/u] [s]Strike[/s]\n"
+                    + "[color=#55ffff]Color[/color] [size=12]Size[/size] "
+                    + "[o]Obf[/o] [font=" + NexoTestMod.id("fonts/fira_mono") + "]Font[/font]"
+    );
 
     private int currentIndex;
     private int textureIndex;
@@ -328,7 +335,9 @@ public class ScreenTest extends SimpleScreen {
         graphics.bindMaterial(UI_MATERIAL);
         graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
         graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
-        graphics.font(FONTS.get(fontIndex).location());
+
+        graphics.color(1F, 1F, 1F, 1.0F);
+        graphics.drawText(RICH_TEXT, 10, 50);
 
         graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
         graphics.fillRoundedRect(
@@ -354,8 +363,10 @@ public class ScreenTest extends SimpleScreen {
         }
         graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
         String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
-        float nameWidth = graphics.textWidth(name);
-        graphics.drawText(name, Math.round((DESIGN_WIDTH - nameWidth) * 0.5F), 0);
+        Location selectedFont = FONTS.get(fontIndex).location();
+        Text text = Text.parse((selectedFont == null ? "" : "[font=" + selectedFont + "]") + name);
+        float nameWidth = graphics.textWidth(text);
+        graphics.drawText(text, Math.round((DESIGN_WIDTH - nameWidth) * 0.5F), 0);
         graphics.translate(0, 16);
         graphics.scale(contentScale, contentScale);
         float contentCenterX = shapeTest.centerX();

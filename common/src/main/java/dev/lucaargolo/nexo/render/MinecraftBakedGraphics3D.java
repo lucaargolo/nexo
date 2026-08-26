@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.render;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.DepthMode;
@@ -246,12 +247,12 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     }
 
     @Override
-    public void drawText(@NotNull String text, float x, float y) {
+    public void drawText(@NotNull Text text, float x, float y) {
         throw unsupported("text");
     }
 
     @Override
-    public float textWidth(@NotNull String text) {
+    public float textWidth(@NotNull Text text) {
         throw unsupported("text");
     }
 

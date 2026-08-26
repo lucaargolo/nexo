@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Material;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.DepthMode;
@@ -30,6 +31,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -380,26 +382,82 @@ public class MinecraftGraphics2D extends AbstractMinecraftGraphics3D implements 
 
 
     @Override
-    public void drawText(@NotNull String text, float x, float y) {
+    public void drawText(@NotNull Text text, float x, float y) {
         requireOutsidePrimitive("draw text");
         Font minecraftFont = Minecraft.getInstance().font;
-        Matrix4f matrix = matrix();
-        float scale = state.fontSize / minecraftFont.lineHeight;
-        matrix.scale(scale);
         int color = packColor(state.color);
         int light = light();
-        ResourceLocation font = state.font != null ?  NexoMinecraft.rl(state.font) : NexoMinecraft.rl(DEFAULT_FONT);
-        MutableComponent component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
-        minecraftFont.drawInBatch(component, x / scale, y / scale, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, light);
+        float cursorX = x;
+        float cursorY = y;
+        float lineHeight = 0.0F;
+        for (Text.Run run : text.runs()) {
+            Text.Style style = run.style();
+            float scale = style.size() / minecraftFont.lineHeight;
+            String[] lines = run.text().split("\\n", -1);
+            lineHeight = Math.max(lineHeight, style.size());
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                if (!line.isEmpty()) {
+                    MutableComponent component = component(line, style);
+                    Matrix4f matrix = matrix();
+                    matrix.scale(scale);
+                    minecraftFont.drawInBatch(
+                            component,
+                            cursorX / scale,
+                            cursorY / scale,
+                            color,
+                            false,
+                            matrix,
+                            buffers,
+                            Font.DisplayMode.NORMAL,
+                            0,
+                            light
+                    );
+                    cursorX += minecraftFont.width(component) * scale;
+                }
+                if (i < lines.length - 1) {
+                    cursorX = x;
+                    cursorY += lineHeight;
+                    lineHeight = 0.0F;
+                }
+            }
+        }
     }
 
     @Override
-    public float textWidth(@NotNull String text) {
+    public float textWidth(@NotNull Text text) {
         Font minecraftFont = Minecraft.getInstance().font;
-        float scale = state.fontSize / minecraftFont.lineHeight;
-        ResourceLocation font = state.font != null ?  NexoMinecraft.rl(state.font) : NexoMinecraft.rl(DEFAULT_FONT);
-        MutableComponent component = Component.literal(text).withStyle(Style.EMPTY.withFont(font));
-        return minecraftFont.width(component) * scale;
+        float width = 0.0F;
+        float lineWidth = 0.0F;
+        for (Text.Run run : text.runs()) {
+            Text.Style style = run.style();
+            float scale = style.size() / minecraftFont.lineHeight;
+            String[] lines = run.text().split("\\n", -1);
+            for (int i = 0; i < lines.length; i++) {
+                if (!lines[i].isEmpty()) {
+                    lineWidth += minecraftFont.width(component(lines[i], style)) * scale;
+                }
+                if (i < lines.length - 1) {
+                    width = Math.max(width, lineWidth);
+                    lineWidth = 0.0F;
+                }
+            }
+        }
+        return Math.max(width, lineWidth);
+    }
+
+    private static @NotNull MutableComponent component(@NotNull String text, @NotNull Text.Style style) {
+        ResourceLocation font = style.font() != null ? NexoMinecraft.rl(style.font()) : NexoMinecraft.rl(DEFAULT_FONT);
+        Style minecraftStyle = Style.EMPTY.withFont(font)
+                .withBold(style.bold())
+                .withItalic(style.italic())
+                .withUnderlined(style.underlined())
+                .withStrikethrough(style.strikethrough())
+                .withObfuscated(style.obfuscated());
+        if (style.color() != null) {
+            minecraftStyle = minecraftStyle.withColor(TextColor.fromRgb(style.color()));
+        }
+        return Component.literal(text).withStyle(minecraftStyle);
     }
     private static int packColor(float @NotNull [] color) {
         return channel(color[3]) << 24 | channel(color[0]) << 16 | channel(color[1]) << 8 | channel(color[2]);

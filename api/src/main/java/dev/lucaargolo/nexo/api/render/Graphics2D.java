@@ -57,13 +57,7 @@ public interface Graphics2D {
     void vertex(float @NotNull ... data);
     void end();
 
-    void drawText(@NotNull String text, float x, float y);
-
-    void font(@Nullable Location font);
-    @Nullable Location font();
-    void fontSize(float size);
-    float fontSize();
-
-    float textWidth(@NotNull String text);
+    void drawText(@NotNull Text text, float x, float y);
+    float textWidth(@NotNull Text text);
 
 }

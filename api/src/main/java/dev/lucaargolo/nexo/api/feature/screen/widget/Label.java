@@ -1,9 +1,10 @@
 package dev.lucaargolo.nexo.api.feature.screen.widget;
 
 import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
-import org.jetbrains.annotations.NotNull;
 
+import org.jetbrains.annotations.NotNull;
 public class Label extends Widget {
 
     private @NotNull String text;
@@ -16,11 +17,12 @@ public class Label extends Widget {
 
     @Override
     public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
+        Text parsedText = Text.parse(text);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
         graphics.color(color);
-        graphics.drawText(text, 0.0F, 0.0F);
+        graphics.drawText(parsedText, 0.0F, 0.0F);
         graphics.popMatrix();
         graphics.popState();
     }

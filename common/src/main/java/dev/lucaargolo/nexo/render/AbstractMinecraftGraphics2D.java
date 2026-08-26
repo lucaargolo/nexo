@@ -133,32 +133,8 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
 
 
     @Override
-    public void font(@Nullable Location font) {
-        requireOutsidePrimitive("change the font");
-        state.font = font;
-    }
-
-    @Override
-    public @Nullable Location font() {
-        return state.font;
-    }
-
-    @Override
-    public void fontSize(float size) {
-        requireOutsidePrimitive("change the font size");
-        if (size <= 0.0F) {
-            throw new IllegalArgumentException("Font size must be positive");
-        }
-        state.fontSize = size;
-    }
-
-    @Override
-    public float fontSize() {
-        return state.fontSize;
-    }
 
 
-    @Override
     public void drawLine(float x1, float y1, float x2, float y2) {
         strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
     }
@@ -325,8 +301,6 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         protected float[] color = {1.0F, 1.0F, 1.0F, 1.0F};
         protected float lineWidth = 1.0F;
         protected @Nullable Material<?> material;
-        protected @Nullable Location font;
-        protected float fontSize = 9.0F;
         protected DepthMode depthMode = DepthMode.ENABLED;
         protected int light = NO_LIGHT_OVERRIDE;
         protected Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
@@ -338,8 +312,6 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
             color = other.color.clone();
             lineWidth = other.lineWidth;
             material = other.material;
-            font = other.font;
-            fontSize = other.fontSize;
             depthMode = other.depthMode;
             light = other.light;
             normal = new Vector3f(other.normal);

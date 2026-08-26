@@ -2,9 +2,10 @@ package dev.lucaargolo.nexo.api.feature.screen.widget;
 
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
-import org.jetbrains.annotations.NotNull;
 
+import org.jetbrains.annotations.NotNull;
 public class Button extends Widget {
 
     private static final float @NotNull [] BASE_COLOR = {0.25F, 0.25F, 0.35F, 0.85F};
@@ -31,6 +32,7 @@ public class Button extends Widget {
     @Override
     public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
         boolean hovered = contains(screen.mouse().x(), screen.mouse().y());
+        Text parsedText = Text.parse(text);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
@@ -38,7 +40,7 @@ public class Button extends Widget {
         graphics.fillRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
         graphics.color(TEXT_COLOR);
         graphics.drawRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
-        graphics.drawText(text, 8.0F, Math.round((height() - graphics.fontSize()) * 0.5F));
+        graphics.drawText(parsedText, 8.0F, Math.round((height() - parsedText.maxSize()) * 0.5F));
         graphics.popMatrix();
         graphics.popState();
     }
