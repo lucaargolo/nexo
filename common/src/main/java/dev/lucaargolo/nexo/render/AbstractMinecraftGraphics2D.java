@@ -3,92 +3,66 @@ package dev.lucaargolo.nexo.render;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
-import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.render.util.CullMode;
-import dev.lucaargolo.nexo.api.render.util.DepthMode;
-import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.TextureWrap;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayDeque;
+public interface AbstractMinecraftGraphics2D extends Graphics2D {
 
-public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
+    int NO_LIGHT_OVERRIDE = Integer.MIN_VALUE;
 
-    protected static final int NO_LIGHT_OVERRIDE = Integer.MIN_VALUE;
-
-    protected final ArrayDeque<State> states = new ArrayDeque<>();
-    protected State state = new State();
-    protected @Nullable PrimitiveType primitive;
-    protected @Nullable VertexFormat format;
+    State state();
+    PrimitiveType primitive();
 
     @Override
-    public void pushState() {
-        requireOutsidePrimitive("change render state");
-        states.push(new State(state));
-    }
-
-    @Override
-    public void popState() {
-        requireOutsidePrimitive("change render state");
-        if (states.isEmpty()) {
-            throw new IllegalStateException("Cannot pop an empty render-state stack");
-        }
-        state = states.pop();
-    }
-
-
-    @Override
-    public void translate(float x, float y) {
+    default void translate(float x, float y) {
         requireOutsidePrimitive("change the matrix");
         matrixTranslate(x, y, 0.0F);
     }
 
     @Override
-    public void rotate(float angle) {
+    default void rotate(float angle) {
         requireOutsidePrimitive("change the matrix");
         matrixRotate(angle, 0.0F, 0.0F, 1.0F);
     }
 
     @Override
-    public void scale(float x, float y) {
+    default void scale(float x, float y) {
         requireOutsidePrimitive("change the matrix");
         matrixScale(x, y, 1.0F);
     }
 
     @Override
-    public void mulMatrix(@NotNull Matrix4f matrix) {
+    default void mulMatrix(@NotNull Matrix4f matrix) {
         requireOutsidePrimitive("change the matrix");
         matrixMul(matrix);
     }
 
     @Override
-    public @NotNull Matrix4f matrix() {
+    default @NotNull Matrix4f matrix() {
         return matrixGet();
     }
 
-    protected abstract void matrixTranslate(float x, float y, float z);
-    protected abstract void matrixRotate(float angle, float axisX, float axisY, float axisZ);
-    protected abstract void matrixScale(float x, float y, float z);
-    protected abstract void matrixMul(@NotNull Matrix4f matrix);
-    protected abstract @NotNull Matrix4f matrixGet();
-
+    void matrixTranslate(float x, float y, float z);
+    void matrixRotate(float angle, float axisX, float axisY, float axisZ);
+    void matrixScale(float x, float y, float z);
+    void matrixMul(@NotNull Matrix4f matrix);
+    @NotNull Matrix4f matrixGet();
 
     @Override
-    public void color(float r, float g, float b, float a) {
+    default void color(float r, float g, float b, float a) {
         requireOutsidePrimitive("change render state");
-        state.color[0] = r;
-        state.color[1] = g;
-        state.color[2] = b;
-        state.color[3] = a;
+        state().color[0] = r;
+        state().color[1] = g;
+        state().color[2] = b;
+        state().color[3] = a;
     }
 
     @Override
-    public void color(float @NotNull [] rgba) {
+    default void color(float @NotNull [] rgba) {
         if (rgba.length != 4) {
             throw new IllegalArgumentException("A color requires exactly four components");
         }
@@ -96,55 +70,41 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
     }
 
     @Override
-    public float @NotNull [] color() {
-        return state.color.clone();
+    default float @NotNull [] color() {
+        return state().color.clone();
     }
 
 
     @Override
-    public void lineWidth(float width) {
+    default void lineWidth(float width) {
         requireOutsidePrimitive("change render state");
         if (width <= 0.0F) {
             throw new IllegalArgumentException("Line width must be positive");
         }
-        state.lineWidth = width;
+        state().lineWidth = width;
     }
 
     @Override
-    public float lineWidth() {
-        return state.lineWidth;
-    }
-
-
-    @Override
-    public void bindMaterial(@NotNull Material<?> material) {
-        requireOutsidePrimitive("bind a material");
-        if (material.wrapS() != TextureWrap.CLAMP || material.wrapT() != TextureWrap.CLAMP) {
-            throw unsupported("texture wrapping other than CLAMP");
-        }
-        state.material = material;
-        state.color = material.colorData().clone();
+    default float lineWidth() {
+        return state().lineWidth;
     }
 
     @Override
-    public @Nullable Material<?> material() {
-        return state.material;
+    default @Nullable Material<?> material() {
+        return state().material;
     }
 
-
     @Override
-
-
-    public void drawLine(float x1, float y1, float x2, float y2) {
+    default void drawLine(float x1, float y1, float x2, float y2) {
         strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
     }
 
-    protected void strokePolyline(float @NotNull [] @NotNull [] points, boolean closed) {
+    default void strokePolyline(float @NotNull [] @NotNull [] points, boolean closed) {
         int count = points.length;
         if (count < 2) {
             return;
         }
-        float half = state.lineWidth * 0.5F;
+        float half = state().lineWidth * 0.5F;
         int segmentCount = closed ? count : count - 1;
 
         float[] nx = new float[segmentCount];
@@ -212,11 +172,11 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         end();
     }
 
-    protected void beginShape(@NotNull PrimitiveType type) {
+    default void beginShape(@NotNull PrimitiveType type) {
         begin(type, texture() != null ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
     }
 
-    protected void shapeVertex(float x, float y, float minX, float minY, float maxX, float maxY) {
+    default void shapeVertex(float x, float y, float minX, float minY, float maxX, float maxY) {
         if (texture() == null) {
             vertex(x, y, 0.0F);
             return;
@@ -225,90 +185,83 @@ public abstract class AbstractMinecraftGraphics2D implements Graphics2D {
         float v = maxY > minY ? (y - minY) / (maxY - minY) : 0.0F;
         vertex(x, y, 0.0F, u, v);
     }
+
     @Override
-    public void drawCircle(float x, float y, float radius) {
+    default void drawCircle(float x, float y, float radius) {
         drawEllipse(x, y, radius * 2.0F, radius * 2.0F);
     }
 
     @Override
-    public void fillCircle(float x, float y, float radius) {
+    default void fillCircle(float x, float y, float radius) {
         fillEllipse(x, y, radius * 2.0F, radius * 2.0F);
     }
 
     @Override
-    public void clip(float x, float y, float width, float height) {
+    default void clip(float x, float y, float width, float height) {
         throw unsupported("clip regions");
     }
 
     @Override
-    public void disableClip() {
+    default void disableClip() {
     }
 
     @Override
-    public void scissor(int x, int y, int width, int height) {
+    default void scissor(int x, int y, int width, int height) {
         throw unsupported("scissor regions");
     }
 
     @Override
-    public void disableScissor() {
+    default void disableScissor() {
     }
 
+    void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format);
 
+    void vertex(float @NotNull ... data);
 
-    public abstract void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format);
+    void end();
 
-    public abstract void vertex(float @NotNull ... data);
+    default @Nullable Location texture() {
+        return state().material != null ? state().material.location() : null;
+    }
 
-    public abstract void end();
+    default @Nullable Shader shader() {
+        return state().material != null ? state().material.shader() : null;
+    }
 
+    default @NotNull BlendMode blendMode() {
+        return state().material != null ? state().material.blendMode() : BlendMode.DISABLED;
+    }
 
-    protected void requireOutsidePrimitive(@NotNull String operation) {
-        if (primitive != null) {
+    default @NotNull CullMode cullMode() {
+        return state().material != null ? state().material.cullMode() : defaultCullMode();
+    }
+
+    default @NotNull CullMode defaultCullMode() {
+        return CullMode.BACK;
+    }
+
+    default void requireOutsidePrimitive(@NotNull String operation) {
+        if (primitive() != null) {
             throw new IllegalStateException("Cannot " + operation + " inside begin/end");
         }
     }
 
-    protected @Nullable Location texture() {
-        return state.material != null ? state.material.location() : null;
-    }
-
-    protected @Nullable Shader shader() {
-        return state.material != null ? state.material.shader() : null;
-    }
-
-    protected @NotNull BlendMode blendMode() {
-        return state.material != null ? state.material.blendMode() : BlendMode.DISABLED;
-    }
-
-    protected @NotNull CullMode cullMode() {
-        return state.material != null ? state.material.cullMode() : defaultCullMode();
-    }
-
-    protected @NotNull CullMode defaultCullMode() {
-        return CullMode.BACK;
-    }
-
-    protected static int channel(float value) {
-        return Math.round(Math.clamp(value, 0.0F, 1.0F) * 255.0F);
-    }
-
-    protected static @NotNull UnsupportedOperationException unsupported(@NotNull String operation) {
+    static @NotNull UnsupportedOperationException unsupported(@NotNull String operation) {
         return new UnsupportedOperationException("Minecraft rendering does not support " + operation);
     }
 
+    final class State {
+        float[] color = {1.0F, 1.0F, 1.0F, 1.0F};
+        float lineWidth = 1.0F;
+        @Nullable Material<?> material;
+        DepthMode depthMode = DepthMode.ENABLED;
+        int light = NO_LIGHT_OVERRIDE;
+        Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
 
-    protected static final class State {
-        protected float[] color = {1.0F, 1.0F, 1.0F, 1.0F};
-        protected float lineWidth = 1.0F;
-        protected @Nullable Material<?> material;
-        protected DepthMode depthMode = DepthMode.ENABLED;
-        protected int light = NO_LIGHT_OVERRIDE;
-        protected Vector3f normal = new Vector3f(0.0F, 1.0F, 0.0F);
-
-        protected State() {
+        State() {
         }
 
-        protected State(@NotNull State other) {
+        State(@NotNull State other) {
             color = other.color.clone();
             lineWidth = other.lineWidth;
             material = other.material;

@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
@@ -10,27 +10,27 @@ import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<R extends MinecraftRegistryHandler<?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
 
-    protected final @NotNull R helper;
+    protected final @NotNull N nexo;
     protected final @NotNull CreativeModeTab tab;
 
     protected final Set<ItemUnit<?>> addedItems = ConcurrentHashMap.newKeySet();
     protected final Set<ItemUnit<?>> removedItems = ConcurrentHashMap.newKeySet();
 
     public MinecraftItemCategoryUnit(
-            @NotNull R helper,
+            @NotNull N nexo,
             @NotNull ItemCategoryBase feature,
             @Nullable C role,
             @NotNull CreativeModeTab tab
     ) {
-        super(helper.nexo(), feature, role);
-        this.helper = helper;
+        super(nexo, feature, role);
+        this.nexo = nexo;
         this.tab = tab;
     }
 
@@ -41,7 +41,7 @@ public abstract class MinecraftItemCategoryUnit<R extends MinecraftRegistryHandl
 
     @Override
     public @NotNull Stream<ItemUnit<?>> stream() {
-        return tab.getDisplayItems().stream().map(helper.nexo()::stackToUnit).filter(Objects::nonNull);
+        return tab.getDisplayItems().stream().map(nexo::stackToUnit).filter(Objects::nonNull);
     }
 
     @Override

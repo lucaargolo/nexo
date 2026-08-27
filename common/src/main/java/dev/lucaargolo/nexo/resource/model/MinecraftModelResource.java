@@ -27,7 +27,7 @@ public final class MinecraftModelResource extends ModelResource {
         return model != null || resolved;
     }
 
-    public static ModelResource lookup(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    public static ModelResource lookup(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         ModelResource registered = RESOURCE_MAP.get(location);
         if (registered != null) {
             return registered;
@@ -41,12 +41,12 @@ public final class MinecraftModelResource extends ModelResource {
         ));
     }
 
-    public static @NotNull ModelResource register(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    public static @NotNull ModelResource register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         return register(nexo, location, Model.load(nexo, location));
     }
 
     public static @NotNull ModelResource register(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Location location,
             byte @NotNull [] data
     ) {
@@ -54,7 +54,7 @@ public final class MinecraftModelResource extends ModelResource {
     }
 
     private static @NotNull ModelResource register(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Location location,
             @Nullable Model loaded
     ) {
@@ -64,7 +64,7 @@ public final class MinecraftModelResource extends ModelResource {
 
         ModelResource resource = new MinecraftModelResource(location, true, () -> loaded);
         RESOURCE_MAP.put(location, resource);
-        nexo.registerModelResource(resource);
+        nexo.getRenderingHandler().registerModel(resource);
         return resource;
     }
 

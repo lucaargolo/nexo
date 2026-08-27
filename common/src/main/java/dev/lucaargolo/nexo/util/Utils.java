@@ -7,15 +7,9 @@ import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.implementation.*;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
-
-import net.bytebuddy.implementation.FieldAccessor;
-import net.bytebuddy.implementation.FixedValue;
-import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.SuperMethodCall;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +27,7 @@ public final class Utils {
 
     private Utils() {}
 
-    public static <T> Extender<T> extend(@NotNull NexoMinecraft nexo, @NotNull Class<? extends T> type) {
+    public static <T> Extender<T> extend(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<? extends T> type) {
         return new Extender<>(nexo, type);
     }
     
@@ -58,11 +52,11 @@ public final class Utils {
         }
     }
 
-    public static <T> T loadPlatformClass(NexoMinecraft nexo, Class<T> clazz, Object... parameters) {
+    public static <T> T loadPlatformClass(NexoMinecraft<?, ?, ?, ?> nexo, Class<? super T> clazz, Object... parameters) {
         return loadPlatformClass(nexo, null, clazz, parameters);
     }
 
-    public static <T> T loadPlatformClass(NexoMinecraft nexo, String mod, Class<T> clazz, Object... parameters) {
+    public static <T> T loadPlatformClass(NexoMinecraft<?, ?, ?, ?> nexo, String mod, Class<? super T> clazz, Object... parameters) {
         String originalName = clazz.getName();
 
         String commonClassPrefix = mod == null ? nexo.getPlatform() : nexo.isModLoaded(mod) ? nexo.getPlatform() : "Empty";
@@ -72,13 +66,13 @@ public final class Utils {
 
         if (nexo.getSide().isClient()) {
             try {
-                Class<? extends T> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
+                Class<?> clientPlatformClass = clazz.getClassLoader().loadClass(clientClassName).asSubclass(clazz);
                 return instantiate(clientPlatformClass, parameters);
             } catch (Exception ignored) {
             }
         }
         try {
-            Class<? extends T> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
+            Class<?> commonPlatformClass = clazz.getClassLoader().loadClass(commonClassName).asSubclass(clazz);
             return instantiate(commonPlatformClass, parameters);
         } catch (Exception exception) {
             throw new NexoException("Failed to load platform class for " + clazz.getName(), exception);
@@ -94,7 +88,7 @@ public final class Utils {
                 && !type.isSealed();
     }
 
-    private static <T> T instantiate(Class<? extends T> type, Object[] parameters) throws ReflectiveOperationException {
+    private static <T> T instantiate(Class<?> type, Object[] parameters) throws ReflectiveOperationException {
         Constructor<?> selected = null;
         int selectedScore = Integer.MAX_VALUE;
         for (Constructor<?> constructor : type.getConstructors()) {
@@ -230,7 +224,7 @@ public final class Utils {
 
     public static final class Extender<T> {
 
-        private final NexoMinecraft nexo;
+        private final NexoMinecraft<?, ?, ?, ?> nexo;
         private final Class<? extends T> type;
         private final Set<Class<?>> interfaces = new LinkedHashSet<>();
         private final Set<Method> overrides = new LinkedHashSet<>();
@@ -240,7 +234,7 @@ public final class Utils {
         private boolean constructorCustomized;
         private Class<? extends T> generatedClass;
 
-        private Extender(NexoMinecraft nexo, Class<? extends T> type) {
+        private Extender(NexoMinecraft<?, ?, ?, ?> nexo, Class<? extends T> type) {
             this.nexo = nexo;
             this.type = type;
             if (!isExtendable(type)) {

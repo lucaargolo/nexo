@@ -1,0 +1,13 @@
+{
+  "item_category.nexo_test.test": "Categoría de prueba de Nexo",
+  "screen.nexo_test.test_screen": "Pantalla de prueba de Nexo",
+  "screen.nexo_test.previous": "Anterior",
+  "screen.nexo_test.next": "Siguiente",
+  "screen.nexo_test.texture": "Textura: {0} ({1}/{2})",
+  "screen.nexo_test.font": "Fuente: {0}",
+  "screen.nexo_test.mouse": "Ratón: {0}, {1}",
+  "text.nexo_test.rich": "[b]Localizado[/b] {0}",
+  "block.nexo_test.test_block": "Bloque de prueba",
+  "item.nexo_test.test_item": "Objeto de prueba",
+  "entity.nexo_test.test_entity": "Entidad de prueba"
+}

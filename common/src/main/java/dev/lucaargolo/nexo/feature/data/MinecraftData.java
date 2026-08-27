@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -45,12 +44,12 @@ public class MinecraftData<D> extends DataBase<D> {
         }
     };
 
-    private final @NotNull MinecraftRegistryHandler<?> helper;
+    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull Holder<?> holder;
 
-    private MinecraftData(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<?> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.DATA, holder));
-        this.helper = helper;
+    private MinecraftData(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<?> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.DATA, holder));
+        this.nexo = nexo;
         this.holder = holder;
     }
 
@@ -66,14 +65,14 @@ public class MinecraftData<D> extends DataBase<D> {
 
     @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), this.helper.getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), nexo.getRegistryHandler().getRegistry());
         componentType().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), this.helper.getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), nexo.getRegistryHandler().getRegistry());
         return componentType().streamCodec().decode(buf);
     }
 
@@ -112,25 +111,25 @@ public class MinecraftData<D> extends DataBase<D> {
         return FEATURE_MAP.get(location);
     }
 
-    public static DataBase<?> register(MinecraftRegistryHandler<?> helper, DataBase<?> data) {
+    public static DataBase<?> register(NexoMinecraft<?, ?, ?, ?> nexo, DataBase<?> data) {
         DataBase<?> registered = FEATURE_MAP.get(data.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(data.location());
         FEATURE_MAP.put(data.location(), data);
-        helper.registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(helper, data));
-        helper.registerDataAttachment(data);
+        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.DATA_COMPONENT_TYPE, id, MinecraftFeatureType.DATA.craft(nexo, data));
+        nexo.getRegistryHandler().registerDataAttachment(data);
         return data;
     }
 
-    public static DataBase<?> index(MinecraftRegistryHandler<?> helper, Holder<DataComponentType<?>> holder) {
+    public static DataBase<?> index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<DataComponentType<?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftData<>(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftData<>(nexo, holder));
     }
 
-    public static <T> DataComponentType<T> craft(MinecraftRegistryHandler<?> helper, DataBase<T> data) {
+    public static <T> DataComponentType<T> craft(NexoMinecraft<?, ?, ?, ?> nexo, DataBase<T> data) {
         DataComponentType.Builder<T> builder = DataComponentType.builder();
         if (data.persistent()) {
             Codec<T> codec = NexoMinecraft.createCodec(data);

@@ -8,64 +8,62 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public abstract class AbstractMinecraftGraphics3D extends AbstractMinecraftGraphics2D implements Graphics3D {
-
+public interface AbstractMinecraftGraphics3D extends AbstractMinecraftGraphics2D, Graphics3D {
 
     @Override
-    public void translate(float x, float y, float z) {
+    default void translate(float x, float y, float z) {
         requireOutsidePrimitive("change the matrix");
         matrixTranslate(x, y, z);
     }
 
     @Override
-    public void rotate(float angle, float axisX, float axisY, float axisZ) {
+    default void rotate(float angle, float axisX, float axisY, float axisZ) {
         requireOutsidePrimitive("change the matrix");
         matrixRotate(angle, axisX, axisY, axisZ);
     }
 
     @Override
-    public void rotate(@NotNull Vector3f axis, float angle) {
+    default void rotate(@NotNull Vector3f axis, float angle) {
         rotate(angle, axis.x(), axis.y(), axis.z());
     }
 
     @Override
-    public void scale(float x, float y, float z) {
+    default void scale(float x, float y, float z) {
         requireOutsidePrimitive("change the matrix");
         matrixScale(x, y, z);
     }
 
-
     @Override
-    public void depthMode(@NotNull DepthMode mode) {
+    default void depthMode(@NotNull DepthMode mode) {
         requireOutsidePrimitive("change render state");
-        state.depthMode = mode;
+        state().depthMode = mode;
     }
 
     @Override
-    public @NotNull DepthMode depthMode() {
-        return state.depthMode;
+    default @NotNull DepthMode depthMode() {
+        return state().depthMode;
     }
 
     @Override
-    public void lightmap(float u, float v) {
+    default void lightmap(float u, float v) {
         requireOutsidePrimitive("change render state");
-        state.light = ((int) u) | (((int) v) << 16);
+        state().light = ((int) u) | (((int) v) << 16);
     }
 
     @Override
-    public void normal(float nx, float ny, float nz) {
+    default void normal(float nx, float ny, float nz) {
         requireOutsidePrimitive("change render state");
-        state.normal.set(nx, ny, nz);
+        state().normal.set(nx, ny, nz);
     }
 
     @Override
-    public void normal(@NotNull Vector3f normal) {
+    default void normal(@NotNull Vector3f normal) {
         normal(normal.x(), normal.y(), normal.z());
     }
 
 
     @Override
-    public void drawCube(float x, float y, float z, float sizeX, float sizeY, float sizeZ) {
+    default void drawCube(float x, float y, float z, float sizeX, float sizeY, float sizeZ) {
         Vector3f p000 = new Vector3f(x, y, z);
         Vector3f p001 = new Vector3f(x, y, z + sizeZ);
         Vector3f p010 = new Vector3f(x, y + sizeY, z);
@@ -83,7 +81,7 @@ public abstract class AbstractMinecraftGraphics3D extends AbstractMinecraftGraph
     }
 
     @Override
-    public void drawQuad(
+    default void drawQuad(
             @NotNull Vector3f v0,
             @NotNull Vector3f v1,
             @NotNull Vector3f v2,
@@ -100,17 +98,17 @@ public abstract class AbstractMinecraftGraphics3D extends AbstractMinecraftGraph
 
 
     @Override
-    public void perspective(float fov, float aspect, float near, float far) {
+    default void perspective(float fov, float aspect, float near, float far) {
         mulMatrix(new Matrix4f().perspective((float) Math.toRadians(fov), aspect, near, far));
     }
 
     @Override
-    public void ortho(float left, float right, float bottom, float top, float near, float far) {
+    default void ortho(float left, float right, float bottom, float top, float near, float far) {
         mulMatrix(new Matrix4f().ortho(left, right, bottom, top, near, far));
     }
 
     @Override
-    public void lookAt(@NotNull Vector3f eye, @NotNull Vector3f center, @NotNull Vector3f up) {
+    default void lookAt(@NotNull Vector3f eye, @NotNull Vector3f center, @NotNull Vector3f up) {
         mulMatrix(new Matrix4f().lookAt(eye, center, up));
     }
 

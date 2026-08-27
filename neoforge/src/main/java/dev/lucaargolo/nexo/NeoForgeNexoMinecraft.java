@@ -3,7 +3,10 @@ package dev.lucaargolo.nexo;
 import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.util.Side;
+import dev.lucaargolo.nexo.event.LanguageLookupEvent;
+import dev.lucaargolo.nexo.event.LanguageReloadEvent;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
+import dev.lucaargolo.nexo.render.NeoForgeMinecraftRenderingHandler;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
@@ -27,15 +30,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 @Mod(NexoMinecraft.MOD_ID)
-public class NeoForgeNexoMinecraft extends NexoMinecraft {
+public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, NeoForgeNexoModDiscoveryHandler, NeoForgeMinecraftRegistryHandler, NeoForgeMinecraftRenderingHandler> {
 
     private final IEventBus modBus;
 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
         this.modBus.addListener(this::registerPackets);
+        NeoForge.EVENT_BUS.addListener(LanguageLookupEvent.class, this::lookupLanguage);
+        NeoForge.EVENT_BUS.addListener(LanguageReloadEvent.class, event -> this.getLanguageHandler().select(event.locale()));
         this.init();
         NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> this.tickWorld(event.getLevel()));
+    }
+
+    private void lookupLanguage(LanguageLookupEvent event) {
+        event.translation(this.getLanguageHandler().translateNexo(event.key()));
     }
 
     private void registerPackets(RegisterPayloadHandlersEvent event) {

@@ -17,12 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Matrix2f;
-import org.joml.Matrix2fc;
-import org.joml.Matrix3f;
-import org.joml.Matrix3fc;
-import org.joml.Matrix4f;
-import org.joml.Matrix4fc;
+import org.joml.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

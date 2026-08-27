@@ -10,16 +10,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-public class NeoForgeNexoModDiscovery extends NexoModDiscovery<NeoForgeNexoMinecraft> {
+public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<NeoForgeNexoMinecraft> {
 
-    public NeoForgeNexoModDiscovery(NeoForgeNexoMinecraft nexo) {
+    public NeoForgeNexoModDiscoveryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
     }
 
@@ -31,14 +26,14 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery<NeoForgeNexoMinec
         String legacyCp = System.getProperty("legacyClassPath");
         if (legacyCp != null) {
             for (String entry : legacyCp.split(File.pathSeparator)) {
-                NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
+                NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
             }
         }
 
         String sysCp = System.getProperty("java.class.path");
         if (sysCp != null) {
             for (String entry : sysCp.split(File.pathSeparator)) {
-                NexoModDiscovery.addPath(Path.of(entry), jars, dirs);
+                NexoModDiscoveryHandler.addPath(Path.of(entry), jars, dirs);
             }
         }
 
@@ -46,13 +41,13 @@ public class NeoForgeNexoModDiscovery extends NexoModDiscovery<NeoForgeNexoMinec
         if (Files.isDirectory(modsDir)) {
             try (var stream = Files.list(modsDir)) {
                 stream.filter(p -> p.getFileName().toString().endsWith(".jar"))
-                      .forEach(p -> NexoModDiscovery.addPath(p, jars, dirs));
+                      .forEach(p -> NexoModDiscoveryHandler.addPath(p, jars, dirs));
             } catch (IOException ignored) {
             }
         }
 
-        init(jars, dirs);
-        this.nexo().modBus().addListener(this::onLoadComplete);
+        init(jars, dirs, this.nexo.getLanguageHandler()::load);
+        this.nexo.modBus().addListener(this::onLoadComplete);
     }
 
     private void onLoadComplete(FMLLoadCompleteEvent event) {

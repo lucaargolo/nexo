@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.screen;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
@@ -32,9 +31,9 @@ public class MinecraftScreen extends Screen {
             Input.Axis.GAMEPAD_RIGHT_TRIGGER
     };
 
-    private final @NotNull MinecraftRegistryHandler<?> helper;
+    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull ScreenBase feature;
-    private final @NotNull MinecraftScreenUnit<?, ?> unit;
+    private final @NotNull MinecraftScreenUnit<?> unit;
 
     private final @NotNull GLFWGamepadState gamepadState = GLFWGamepadState.create();
     private final byte[] previousButtons = new byte[GLFW.GLFW_GAMEPAD_BUTTON_LAST + 1];
@@ -45,9 +44,9 @@ public class MinecraftScreen extends Screen {
     private double lastMouseX = -1.0;
     private double lastMouseY = -1.0;
 
-    public MinecraftScreen(@NotNull MinecraftRegistryHandler<?> helper, @NotNull ScreenBase feature, @NotNull MinecraftScreenUnit<?, ?> unit) {
-        super(Component.literal(feature.location().toString()));
-        this.helper = helper;
+    public MinecraftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase feature, @NotNull MinecraftScreenUnit<?> unit) {
+        super(Component.translatable(feature.languageKey()));
+        this.nexo = nexo;
         this.feature = feature;
         this.unit = unit;
     }
@@ -61,11 +60,10 @@ public class MinecraftScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         unit.setMouse(mouseX, mouseY);
-        NexoMinecraft nexo = helper.nexo();
         MinecraftGraphics2D g = new MinecraftGraphics2D(
+                nexo,
                 graphics.pose(),
                 graphics.bufferSource(),
-                nexo.getRenderingHandler().shaderRenderer(),
                 MinecraftAtlas.SCREEN_ATLAS,
                 LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY

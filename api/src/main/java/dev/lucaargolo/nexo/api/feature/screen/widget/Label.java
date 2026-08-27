@@ -7,31 +7,30 @@ import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
 public class Label extends Widget {
 
-    private @NotNull String text;
+    private @NotNull Text text;
     private final float @NotNull [] color = {1.0F, 1.0F, 1.0F, 1.0F};
 
-    public Label(float x, float y, @NotNull String text) {
+    public Label(float x, float y, @NotNull Text text) {
         super(x, y, 0.0F, 0.0F);
         this.text = text;
     }
 
     @Override
     public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
-        Text parsedText = Text.parse(text);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
         graphics.color(color);
-        graphics.drawText(parsedText, 0.0F, 0.0F);
+        graphics.drawText(text, 0.0F, 0.0F);
         graphics.popMatrix();
         graphics.popState();
     }
 
-    public @NotNull String text() {
+    public @NotNull Text text() {
         return text;
     }
 
-    public void text(@NotNull String text) {
+    public void text(@NotNull Text text) {
         this.text = text;
     }
 

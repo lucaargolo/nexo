@@ -255,6 +255,11 @@ public class ScreenTest extends SimpleScreen {
                     + "[o]Obf[/o] [font=" + NexoTestMod.id("fonts/fira_mono") + "]Font[/font]"
     );
 
+    private static final Text LOCALIZED_TEXT = Text.translatable(
+            "text.nexo_test.rich",
+            Text.literal("Nexo")
+    );
+
     private int currentIndex;
     private int textureIndex;
     private int fontIndex;
@@ -282,19 +287,19 @@ public class ScreenTest extends SimpleScreen {
         cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
         int cellWidth = DESIGN_WIDTH * contentScale;
 
-        addWidget(new Label(10.0F, 10.0F, "Nexo Screen - Shape Tests"));
-        mouseLabel = new Label(10.0F, 19.0F, "");
+        addWidget(new Label(10.0F, 10.0F, Text.translatable("screen.nexo_test.test_screen")));
+        mouseLabel = new Label(10.0F, 19.0F, Text.literal(""));
         addWidget(mouseLabel);
         int buttonY = cellY + 35 + DESIGN_HEIGHT * contentScale + 10;
-        addWidget(new Button(cellX, buttonY, 80.0F, 20.0F, "Previous", this::previous));
-        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, "Next", this::next));
+        addWidget(new Button(cellX, buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previous));
+        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::next));
         int textureButtonY = buttonY + 42;
-        textureLabel = new Label(cellX, textureButtonY - 14.0F, "");
+        textureLabel = new Label(cellX, textureButtonY - 14.0F, Text.literal(""));
         addWidget(textureLabel);
-        addWidget(new Button(cellX, textureButtonY, 80.0F, 20.0F, "Previous", this::previousTexture));
-        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, "Next", this::nextTexture));
+        addWidget(new Button(cellX, textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previousTexture));
+        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::nextTexture));
         int fontButtonY = textureButtonY + 42;
-        fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, "Font: " + FONTS.get(fontIndex).name(), this::toggleFont);
+        fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
         addWidget(fontButton);
         updateTextureLabel();
     }
@@ -322,12 +327,17 @@ public class ScreenTest extends SimpleScreen {
     }
 
     private void updateTextureLabel() {
-        textureLabel.text("Texture: " + TEXTURES.get(textureIndex).name() + " (" + (textureIndex + 1) + "/" + TEXTURES.size() + ")");
+        textureLabel.text(Text.translatable(
+                "screen.nexo_test.texture",
+                Text.literal(TEXTURES.get(textureIndex).name()),
+                Text.literal(Integer.toString(textureIndex + 1)),
+                Text.literal(Integer.toString(TEXTURES.size()))
+        ));
     }
 
     private void toggleFont() {
         fontIndex = Math.floorMod(fontIndex + 1, FONTS.size());
-        fontButton.text("Font: " + FONTS.get(fontIndex).name());
+        fontButton.text(Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())));
     }
 
     @Override
@@ -338,6 +348,7 @@ public class ScreenTest extends SimpleScreen {
 
         graphics.color(1F, 1F, 1F, 1.0F);
         graphics.drawText(RICH_TEXT, 10, 50);
+        graphics.drawText(LOCALIZED_TEXT, 10, 70);
 
         graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
         graphics.fillRoundedRect(
@@ -351,7 +362,11 @@ public class ScreenTest extends SimpleScreen {
         ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
         TextureOption texture = TEXTURES.get(textureIndex);
 
-        mouseLabel.text("Mouse: " + unit.mouse().x() + ", " + unit.mouse().y());
+        mouseLabel.text(Text.translatable(
+                "screen.nexo_test.mouse",
+                Text.literal(Float.toString(unit.mouse().x())),
+                Text.literal(Float.toString(unit.mouse().y()))
+        ));
 
         super.render(graphics, unit);
 

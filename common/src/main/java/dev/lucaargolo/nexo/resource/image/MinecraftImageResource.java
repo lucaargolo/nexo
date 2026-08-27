@@ -27,7 +27,7 @@ public final class MinecraftImageResource extends ImageResource {
         return image != null || resolved;
     }
 
-    public static ImageResource lookup(NexoMinecraft nexo, Location location) {
+    public static ImageResource lookup(NexoMinecraft<?, ?, ?, ?> nexo, Location location) {
         ImageResource registered = RESOURCE_MAP.get(location);
         if (registered != null) {
             return registered;
@@ -41,12 +41,12 @@ public final class MinecraftImageResource extends ImageResource {
         ));
     }
 
-    public static @NotNull ImageResource register(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    public static @NotNull ImageResource register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         return register(nexo, location, Image.load(nexo, location));
     }
 
     public static @NotNull ImageResource register(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Location location,
             byte @NotNull [] data
     ) {
@@ -54,7 +54,7 @@ public final class MinecraftImageResource extends ImageResource {
     }
 
     private static @NotNull ImageResource register(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Location location,
             @Nullable Image loaded
     ) {
@@ -64,7 +64,7 @@ public final class MinecraftImageResource extends ImageResource {
 
         ImageResource resource = new MinecraftImageResource(location, true, () -> loaded);
         RESOURCE_MAP.put(location, resource);
-        nexo.registerImageResource(resource);
+        nexo.getRenderingHandler().registerImage(resource);
         return resource;
     }
 }

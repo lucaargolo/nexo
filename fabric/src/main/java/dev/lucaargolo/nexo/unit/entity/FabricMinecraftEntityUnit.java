@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
+import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -11,10 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<FabricMinecraftRegistryHandler, C, E> {
+public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<FabricNexoMinecraft, C, E> {
 
-    public FabricMinecraftEntityUnit(@NotNull FabricMinecraftRegistryHandler helper, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
-        super(helper, feature, role, entity);
+    public FabricMinecraftEntityUnit(@NotNull FabricNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+        super(nexo, feature, role, entity);
     }
 
     @Override
@@ -24,13 +24,13 @@ public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends
 
     @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
-        AttachmentType<D> type = helper.getDataAttachment(data);
+        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
         return this.feature.data().contains(data) ? this.entity.getAttachedOrCreate(type) : this.entity.getAttached(type);
     }
 
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
-        AttachmentType<D> type = helper.getDataAttachment(data);
+        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
         if (d == null) {
             this.entity.removeAttached(type);
         } else {

@@ -5,13 +5,7 @@ import dev.lucaargolo.nexo.api.NexoException;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.VersionParsingException;
-import net.fabricmc.loader.api.metadata.ContactInformation;
-import net.fabricmc.loader.api.metadata.CustomValue;
-import net.fabricmc.loader.api.metadata.ModDependency;
-import net.fabricmc.loader.api.metadata.ModEnvironment;
-import net.fabricmc.loader.api.metadata.ModMetadata;
-import net.fabricmc.loader.api.metadata.ModOrigin;
-import net.fabricmc.loader.api.metadata.Person;
+import net.fabricmc.loader.api.metadata.*;
 
 import java.nio.file.Path;
 import java.util.Collection;

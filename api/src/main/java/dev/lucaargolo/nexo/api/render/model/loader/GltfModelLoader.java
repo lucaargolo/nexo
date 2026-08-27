@@ -1,5 +1,11 @@
 package dev.lucaargolo.nexo.api.render.model.loader;
 
+import de.javagl.jgltf.model.*;
+import de.javagl.jgltf.model.io.GltfAsset;
+import de.javagl.jgltf.model.io.GltfAssetReader;
+import de.javagl.jgltf.model.io.GltfReference;
+import de.javagl.jgltf.model.io.v2.GltfAssetV2;
+import de.javagl.jgltf.model.v2.MaterialModelV2;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.model.Mesh;
@@ -11,22 +17,6 @@ import dev.lucaargolo.nexo.api.render.util.LayerMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Pair;
-import de.javagl.jgltf.model.AccessorData;
-import de.javagl.jgltf.model.AccessorModel;
-import de.javagl.jgltf.model.GltfModel;
-import de.javagl.jgltf.model.GltfModels;
-import de.javagl.jgltf.model.ImageModel;
-import de.javagl.jgltf.model.MaterialModel;
-import de.javagl.jgltf.model.MeshModel;
-import de.javagl.jgltf.model.MeshPrimitiveModel;
-import de.javagl.jgltf.model.NodeModel;
-import de.javagl.jgltf.model.SceneModel;
-import de.javagl.jgltf.model.TextureModel;
-import de.javagl.jgltf.model.io.GltfAsset;
-import de.javagl.jgltf.model.io.GltfAssetReader;
-import de.javagl.jgltf.model.io.GltfReference;
-import de.javagl.jgltf.model.io.v2.GltfAssetV2;
-import de.javagl.jgltf.model.v2.MaterialModelV2;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3f;
@@ -36,12 +26,7 @@ import org.joml.Vector3f;
 import java.io.ByteArrayInputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public final class GltfModelLoader implements ModelLoader {
 

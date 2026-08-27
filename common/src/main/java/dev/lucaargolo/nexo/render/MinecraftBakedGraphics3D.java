@@ -4,13 +4,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.render.util.BlendMode;
-import dev.lucaargolo.nexo.api.render.util.CullMode;
-import dev.lucaargolo.nexo.api.render.util.DepthMode;
-import dev.lucaargolo.nexo.api.render.util.LayerMode;
-import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.TextureFilter;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -25,27 +19,28 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
-public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D implements Graphics3D {
+public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics3D {
 
     private static final Location MISSING_TEXTURE = Location.of("minecraft", "missingno");
 
     private final Function<Material, TextureAtlasSprite> textureGetter;
+
     private final Deque<Matrix4f> matrices = new ArrayDeque<>();
 
+    private final ArrayDeque<State> states = new ArrayDeque<>();
+    private State state = new State();
     private final List<Vertex> vertices = new ArrayList<>();
     private final List<Quad> quads = new ArrayList<>();
 
     private final Map<LayerMode, List<BakedQuad>> quadsByLayer = new HashMap<>();
     private final Map<LayerMode, Map<Direction, List<BakedQuad>>> quadsByLayerAndDirection = new HashMap<>();
     private final Map<Direction, List<BakedQuad>> quadsByDirection = new HashMap<>();
+
+    private @Nullable PrimitiveType primitive;
+    private @Nullable VertexFormat format;
 
     private Matrix4f matrix = new Matrix4f();
     private @Nullable TextureAtlasSprite particle;
@@ -115,27 +110,52 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
     }
 
     @Override
-    protected void matrixTranslate(float x, float y, float z) {
+    public void pushState() {
+        requireOutsidePrimitive("change render state");
+        states.push(new State(state));
+    }
+
+    @Override
+    public void popState() {
+        requireOutsidePrimitive("change render state");
+        if (states.isEmpty()) {
+            throw new IllegalStateException("Cannot pop an empty render-state stack");
+        }
+        state = states.pop();
+    }
+
+    @Override
+    public State state() {
+        return state;
+    }
+
+    @Override
+    public PrimitiveType primitive() {
+        return primitive;
+    }
+
+    @Override
+    public void matrixTranslate(float x, float y, float z) {
         matrix.translate(x, y, z);
     }
 
     @Override
-    protected void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
+    public void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
         matrix.rotate((float) Math.toRadians(angle), axisX, axisY, axisZ);
     }
 
     @Override
-    protected void matrixScale(float x, float y, float z) {
+    public void matrixScale(float x, float y, float z) {
         matrix.scale(x, y, z);
     }
 
     @Override
-    protected void matrixMul(@NotNull Matrix4f m) {
+    public void matrixMul(@NotNull Matrix4f m) {
         matrix.mul(m);
     }
 
     @Override
-    protected @NotNull Matrix4f matrixGet() {
+    public @NotNull Matrix4f matrixGet() {
         return new Matrix4f(matrix);
     }
 
@@ -179,9 +199,13 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         if (material.cullMode() == CullMode.FRONT) {
             throw unsupported("front-face culling");
         }
-        super.bindMaterial(material);
+        requireOutsidePrimitive("bind a material");
+        if (material.wrapS() != TextureWrap.CLAMP || material.wrapT() != TextureWrap.CLAMP) {
+            throw AbstractMinecraftGraphics2D.unsupported("texture wrapping other than CLAMP");
+        }
+        state().material = material;
+        state().color = material.colorData().clone();
     }
-
 
     @Override
     public void drawRect(float x, float y, float width, float height) {
@@ -472,6 +496,13 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         target[offset + 7] = packNormal(normal);
     }
 
+    private static int packNormal(@NotNull Vector3f normal) {
+        int x = Math.round(Math.clamp(normal.x(), -1.0F, 1.0F) * 127.0F) & 0xFF;
+        int y = Math.round(Math.clamp(normal.y(), -1.0F, 1.0F) * 127.0F) & 0xFF;
+        int z = Math.round(Math.clamp(normal.z(), -1.0F, 1.0F) * 127.0F) & 0xFF;
+        return x | y << 8 | z << 16;
+    }
+
     private static int packColor(float @NotNull [] color) {
         int red = channel(color[0]);
         int green = channel(color[1]);
@@ -480,17 +511,12 @@ public final class MinecraftBakedGraphics3D extends AbstractMinecraftGraphics3D 
         return red | green << 8 | blue << 16 | alpha << 24;
     }
 
-    private static int packNormal(@NotNull Vector3f normal) {
-        int x = Math.round(Math.clamp(normal.x(), -1.0F, 1.0F) * 127.0F) & 0xFF;
-        int y = Math.round(Math.clamp(normal.y(), -1.0F, 1.0F) * 127.0F) & 0xFF;
-        int z = Math.round(Math.clamp(normal.z(), -1.0F, 1.0F) * 127.0F) & 0xFF;
-        return x | y << 8 | z << 16;
+    private static int channel(float value) {
+        return Math.round(Math.clamp(value, 0.0F, 1.0F) * 255.0F);
     }
 
-    protected static @NotNull UnsupportedOperationException unsupported(@NotNull String operation) {
-        return new UnsupportedOperationException(
-                "Minecraft baked models cannot represent renderer operation: " + operation
-        );
+    private static @NotNull UnsupportedOperationException unsupported(@NotNull String operation) {
+        return new UnsupportedOperationException("Minecraft baked rendering does not support " + operation);
     }
 
     private record Vertex(

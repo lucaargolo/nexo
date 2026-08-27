@@ -49,6 +49,10 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         return location;
     }
 
+    public final @NotNull String languageKey() {
+        return type().identifier + "." + location.namespace() + "." + location.path().replace("/", ".");
+    }
+
     public @Nullable Role role() {
         return role.get();
     }
@@ -82,27 +86,33 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
         private static final @NotNull List<Type<?, ?>> ALL = new ArrayList<>();
 
-        public static final @NotNull Type<?, ?> DATA = new Type<>(DataBase.class);
-        public static final @NotNull Type<?, ?> PACKET = new Type<>(Packet.class);
-        public static final @NotNull Type<BlockBase, BlockUnit<?>> BLOCK = new Type<>(BlockBase.class, Nexo.type(BlockUnit.class));
-        public static final @NotNull Type<ItemBase, ItemUnit<?>> ITEM = new Type<>(ItemBase.class, Nexo.type(ItemUnit.class));
-        public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> ITEM_CATEGORY = new Type<>(ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
-        public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>(EntityBase.class, Nexo.type(EntityUnit.class));
-        public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>(WorldBase.class, Nexo.type(WorldUnit.class));
-        public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>(BiomeBase.class);
-        public static final @NotNull Type<ScreenBase, ScreenUnit<?>> SCREEN = new Type<>(ScreenBase.class, Nexo.type(ScreenUnit.class));
+        public static final @NotNull Type<?, ?> DATA = new Type<>("data", DataBase.class);
+        public static final @NotNull Type<?, ?> PACKET = new Type<>("packet", Packet.class);
+        public static final @NotNull Type<BlockBase, BlockUnit<?>> BLOCK = new Type<>("block", BlockBase.class, Nexo.type(BlockUnit.class));
+        public static final @NotNull Type<ItemBase, ItemUnit<?>> ITEM = new Type<>("item", ItemBase.class, Nexo.type(ItemUnit.class));
+        public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> ITEM_CATEGORY = new Type<>("item_category", ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
+        public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
+        public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
+        public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>("biome", BiomeBase.class);
+        public static final @NotNull Type<ScreenBase, ScreenUnit<?>> SCREEN = new Type<>("screen", ScreenBase.class, Nexo.type(ScreenUnit.class));
 
+        private final @NotNull String identifier;
         private final @NotNull Class<T> featureType;
         private final @Nullable Class<U> unitType;
 
-        private Type(@NotNull Class<T> featureType, @Nullable Class<U> unitType) {
+        private Type(@NotNull String identifier, @NotNull Class<T> featureType, @Nullable Class<U> unitType) {
+            this.identifier = identifier;
             this.featureType = featureType;
             this.unitType = unitType;
             ALL.add(this);
         }
 
-        private Type(@NotNull Class<T> featureType) {
-            this(featureType, null);
+        private Type(@NotNull String identifier, @NotNull Class<T> featureType) {
+            this(identifier, featureType, null);
+        }
+
+        public @NotNull String identifier() {
+            return identifier;
         }
 
         public boolean isInstance(@NotNull Feature<?, ?> feature) {
@@ -127,14 +137,14 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
         @Override
         public boolean equals(@Nullable Object o) {
-            if (this == o) return true;
-            if (o == null || !(o instanceof Type<?, ?> that)) return false;
-            return featureType.equals(that.featureType);
+            if (o == null || getClass() != o.getClass()) return false;
+            Type<?, ?> type = (Type<?, ?>) o;
+            return Objects.equals(identifier, type.identifier) && Objects.equals(featureType, type.featureType) && Objects.equals(unitType, type.unitType);
         }
 
         @Override
         public int hashCode() {
-            return featureType.hashCode();
+            return Objects.hash(identifier, featureType, unitType);
         }
 
         public static @NotNull Iterable<Type<?, ?>> values() {

@@ -1,10 +1,6 @@
 package dev.lucaargolo.nexo.api.feature.block;
 
-import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.InitialDataProvider;
-import dev.lucaargolo.nexo.api.feature.ItemProvider;
-import dev.lucaargolo.nexo.api.feature.RendererProvider;
-import dev.lucaargolo.nexo.api.feature.TickerProvider;
+import dev.lucaargolo.nexo.api.feature.*;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;

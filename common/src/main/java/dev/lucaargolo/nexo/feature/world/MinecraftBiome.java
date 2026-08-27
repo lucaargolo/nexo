@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.world;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -39,8 +38,8 @@ public class MinecraftBiome extends BiomeBase {
     @NotNull
     private final Holder<Biome> holder;
 
-    private MinecraftBiome(MinecraftRegistryHandler<?> helper, @NotNull Holder<Biome> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.BIOME, holder));
+    private MinecraftBiome(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Biome> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.BIOME, holder));
         this.holder = holder;
     }
 
@@ -53,24 +52,24 @@ public class MinecraftBiome extends BiomeBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static BiomeBase register(MinecraftRegistryHandler<?> helper, BiomeBase biome) {
+    public static BiomeBase register(NexoMinecraft<?, ?, ?, ?> nexo, BiomeBase biome) {
         BiomeBase registered = FEATURE_MAP.get(biome.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(biome.location());
         FEATURE_MAP.put(biome.location(), biome);
-        helper.registerDynamicFeature(Registries.BIOME, id, MinecraftFeatureType.BIOME.craft(helper, biome));
+        nexo.getRegistryHandler().registerDynamicFeature(Registries.BIOME, id, MinecraftFeatureType.BIOME.craft(nexo, biome));
         return biome;
     }
 
-    public static BiomeBase index(MinecraftRegistryHandler<?> helper, Holder<Biome> holder) {
+    public static BiomeBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<Biome> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBiome(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBiome(nexo, holder));
     }
 
-    public static Biome craft(MinecraftRegistryHandler<?> helper, BiomeBase biome) {
+    public static Biome craft(NexoMinecraft<?, ?, ?, ?> nexo, BiomeBase biome) {
         return new Biome.BiomeBuilder()
                 .temperature(0.0f)
                 .downfall(0.0f)

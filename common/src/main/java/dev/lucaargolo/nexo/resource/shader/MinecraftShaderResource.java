@@ -27,7 +27,7 @@ public final class MinecraftShaderResource extends ShaderResource {
         return source != null || resolved;
     }
 
-    public static ShaderResource lookup(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    public static ShaderResource lookup(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         ShaderResource registered = RESOURCE_MAP.get(location);
         if (registered != null) {
             return registered;
@@ -41,7 +41,7 @@ public final class MinecraftShaderResource extends ShaderResource {
         ));
     }
 
-    private static @Nullable String lookupShader(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    private static @Nullable String lookupShader(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         byte[] data = nexo.loadResource(location);
         if (data != null) {
             return new String(data, StandardCharsets.UTF_8);
@@ -59,7 +59,7 @@ public final class MinecraftShaderResource extends ShaderResource {
     }
 
     public static @NotNull ShaderResource register(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Location location,
             byte @NotNull [] data
     ) {

@@ -47,9 +47,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
+public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?, ?>> {
 
     private final N nexo;
+
     protected final MinecraftAtlas minecraftAtlas = new MinecraftAtlas();
     protected final MinecraftShaderRenderer shaderRenderer = new MinecraftShaderRenderer();
 
@@ -154,13 +155,13 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
 
     protected abstract void registerItemRenderer(ItemBase item);
 
-    protected ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
+    protected ItemRenderer createItemRenderer(NexoMinecraft<N, ?, ?, ?> nexo, ItemBase base) {
         Renderer<Graphics3D, ItemUnit<?>> renderer = base.renderer();
         if(renderer == null) {
             return ItemRenderer.EMPTY;
         }else{
             return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(matrices, vertexConsumers, shaderRenderer, light, overlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
                 try {
                     renderer.render(graphics, nexo.stackToUnit(stack));
                 } finally {
@@ -176,7 +177,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
         if(renderer != null) {
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
-                MinecraftGraphics3D graphics = new MinecraftGraphics3D(poseStack, bufferSource, shaderRenderer, packedLight, packedOverlay);
+                MinecraftGraphics3D graphics = new MinecraftGraphics3D(nexo, poseStack, bufferSource, packedLight, packedOverlay);
                 try {
                     renderer.render(graphics, nexo.blockToUnit(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity));
                 } finally {
@@ -198,9 +199,9 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft> {
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
                     MinecraftGraphics3D graphics = new MinecraftGraphics3D(
+                            nexo,
                             pPoseStack,
                             pBufferSource,
-                            shaderRenderer,
                             MinecraftAtlas.ENTITY_ATLAS,
                             pPackedLight,
                             OverlayTexture.NO_OVERLAY

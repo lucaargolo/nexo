@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.screen;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
-public final class MinecraftScreenUnit<R extends MinecraftRegistryHandler<?>, C extends Role> extends ScreenUnit<C> implements MinecraftUnit<MinecraftScreen> {
+public final class MinecraftScreenUnit<C extends Role> extends ScreenUnit<C> implements MinecraftUnit<MinecraftScreen> {
 
     private final @NotNull MinecraftScreen view;
     private final @NotNull Vector2f mouse = new Vector2f();
 
-    public MinecraftScreenUnit(@NotNull R helper, @NotNull ScreenBase feature, @Nullable C role) {
-        super(helper.nexo(), feature, role);
-        this.view = new MinecraftScreen(helper, feature, this);
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase feature, @Nullable C role) {
+        super(nexo, feature, role);
+        this.view = new MinecraftScreen(nexo, feature, this);
     }
 
     @Override

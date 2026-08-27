@@ -4,11 +4,13 @@
   "package": "dev.lucaargolo.nexo.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "LanguageMixin",
     "RegistryDataLoaderMixin",
     "WorldDimensionsMixin"
   ],
   "client": [
     "BlockStateModelLoaderMixin",
+    "LanguageManagerMixin",
     "ModelBakeryMixin",
     "SpriteLoaderMixin"
   ],

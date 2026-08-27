@@ -25,15 +25,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
-import net.neoforged.neoforge.event.GameShuttingDownEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.GameShuttingDownEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -142,7 +141,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         entitiesToRegister.add(entity);
     }
 
-    private IClientItemExtensions createItemExtensions(NexoMinecraft nexo, ItemBase base) {
+    private IClientItemExtensions createItemExtensions(NexoMinecraft<NeoForgeNexoMinecraft, ?, ?, ?> nexo, ItemBase base) {
         ItemRenderer renderer = createItemRenderer(nexo, base);
         Minecraft minecraft = Minecraft.getInstance();
         BlockEntityRenderDispatcher dispatcher = minecraft.getBlockEntityRenderDispatcher();

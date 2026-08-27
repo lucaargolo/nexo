@@ -3,7 +3,10 @@ package dev.lucaargolo.nexo;
 import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.util.Side;
+import dev.lucaargolo.nexo.event.LanguageLookupCallback;
+import dev.lucaargolo.nexo.event.LanguageReloadCallback;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
+import dev.lucaargolo.nexo.render.FabricMinecraftRenderingHandler;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
@@ -26,13 +29,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
+public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, FabricNexoModDiscoveryHandler, FabricMinecraftRegistryHandler, FabricMinecraftRenderingHandler> implements ModInitializer {
 
     @Nullable
     private MinecraftServer currentServer;
 
     @Override
     public void onInitialize() {
+        LanguageLookupCallback.EVENT.register(this.getLanguageHandler()::translateNexo);
+        LanguageReloadCallback.EVENT.register(this.getLanguageHandler()::select);
         this.init();
         PayloadTypeRegistry.playC2S().register(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC);

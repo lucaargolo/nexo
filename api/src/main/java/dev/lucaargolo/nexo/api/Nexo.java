@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.language.Language;
 import dev.lucaargolo.nexo.api.render.shader.Shader;
 import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.resource.Resource;
@@ -20,6 +21,8 @@ import java.util.function.Predicate;
 public interface Nexo {
 
     @NotNull Logger getLogger();
+
+    @NotNull Language language();
 
     @NotNull Shader createShader(@NotNull ShaderSource source);
 

@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.packet;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -42,23 +41,23 @@ public final class MinecraftPacket {
         return FEATURE_MAP.get(location);
     }
 
-    public static @NotNull Packet<?, ?> register(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Packet<?, ?> packet) {
+    public static @NotNull Packet<?, ?> register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Packet<?, ?> packet) {
         Packet<?, ?> registered = FEATURE_MAP.putIfAbsent(packet.location(), packet);
         if (registered != null) {
             return registered;
         }
-        Holder<Packet<?, ?>> holder = helper.registerBuiltinFeature(REGISTRY, NexoMinecraft.rl(packet.location()), () -> packet);
+        Holder<Packet<?, ?>> holder = nexo.getRegistryHandler().registerBuiltinFeature(REGISTRY, NexoMinecraft.rl(packet.location()), () -> packet);
         HOLDER_MAP.put(packet.location(), holder);
         return packet;
     }
 
-    public static @NotNull Packet<?, ?> index(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<Packet<?, ?>> holder) {
+    public static @NotNull Packet<?, ?> index(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Packet<?, ?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, key -> holder.value());
     }
 
-    public static @NotNull Packet<?, ?> craft(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Packet<?, ?> packet) {
+    public static @NotNull Packet<?, ?> craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Packet<?, ?> packet) {
         return packet;
     }
 

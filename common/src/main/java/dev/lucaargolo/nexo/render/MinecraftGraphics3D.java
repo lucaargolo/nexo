@@ -1,9 +1,10 @@
 package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
-import dev.lucaargolo.nexo.api.render.util.DepthMode;
+import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
+import dev.lucaargolo.nexo.api.render.util.VertexFormat;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.jetbrains.annotations.NotNull;
@@ -11,32 +12,26 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 
-public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Graphics3D {
+public final class MinecraftGraphics3D extends MinecraftGraphics2D implements AbstractMinecraftGraphics3D {
 
-    public MinecraftGraphics3D(
-            @NotNull PoseStack poses,
-            @NotNull MultiBufferSource buffers,
-            @NotNull MinecraftShaderRenderer shaderRenderer,
-            int packedLight,
-            int packedOverlay
-    ) {
-        this(poses, buffers, shaderRenderer, MinecraftAtlas.BLOCK_ATLAS, packedLight, packedOverlay);
+    public MinecraftGraphics3D(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull PoseStack poses, @NotNull MultiBufferSource buffers, int packedLight, int packedOverlay) {
+        super(nexo, poses, buffers, packedLight, packedOverlay);
     }
 
-    public MinecraftGraphics3D(
-            @NotNull PoseStack poses,
-            @NotNull MultiBufferSource buffers,
-            @NotNull MinecraftShaderRenderer shaderRenderer,
-            @NotNull Location atlas,
-            int packedLight,
-            int packedOverlay
-    ) {
-        super(poses, buffers, shaderRenderer, atlas, packedLight, packedOverlay);
-        state.depthMode = DepthMode.ENABLED;
+    public MinecraftGraphics3D(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull PoseStack poses, @NotNull MultiBufferSource buffers, @NotNull Location atlas, int packedLight, int packedOverlay) {
+        super(nexo, poses, buffers, atlas, packedLight, packedOverlay);
     }
 
     @Override
-    protected @NotNull CullMode defaultCullMode() {
+    public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
+        begin(PrimitiveType.LINES, VertexFormat.POSITION);
+        vertex(x1, y1, z1);
+        vertex(x2, y2, z2);
+        end();
+    }
+
+    @Override
+    public @NotNull CullMode defaultCullMode() {
         return CullMode.BACK;
     }
 
@@ -44,4 +39,5 @@ public final class MinecraftGraphics3D extends MinecraftGraphics2D implements Gr
     public @NotNull Vector3f cameraPosition() {
         return new Matrix4f(poses.last().pose()).invert().transformPosition(new Vector3f());
     }
+
 }

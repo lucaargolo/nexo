@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.world;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -15,16 +15,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class MinecraftWorldUnit<R extends MinecraftRegistryHandler<?>> extends WorldUnit<Role> implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends WorldUnit<Role> implements MinecraftUnit<Level> {
 
     @NotNull
-    protected final R helper;
+    protected final N nexo;
     @NotNull
     protected final Level level;
 
-    public MinecraftWorldUnit(@NotNull R helper, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
-        super(helper.nexo(), feature, role);
-        this.helper = helper;
+    public MinecraftWorldUnit(@NotNull N nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+        super(nexo, feature, role);
+        this.nexo = nexo;
         this.level = level;
     }
 
@@ -45,7 +45,7 @@ public abstract class MinecraftWorldUnit<R extends MinecraftRegistryHandler<?>> 
         if (state.isAir()) {
             return null;
         }
-        return this.helper.nexo().blockToUnit(level, mcPos, state);
+        return this.nexo.blockToUnit(level, mcPos, state);
     }
 
     @Override

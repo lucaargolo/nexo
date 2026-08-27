@@ -15,7 +15,6 @@ import net.minecraft.world.item.CreativeModeTab;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 

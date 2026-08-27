@@ -5,7 +5,6 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
@@ -29,12 +28,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.callback.AddCallback;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -61,7 +55,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         NeoForge.EVENT_BUS.addListener(WorldDimensionsBakeEvent.class, event -> {
             event.dimensions().forEach((key, stem) -> {
                 Holder<LevelStem> holder = event.registry().getHolderOrThrow(key);
-                MinecraftFeatureType.WORLD.index(this, holder);
+                MinecraftFeatureType.WORLD.index(this.nexo(), holder);
             });
         });
     }
@@ -114,8 +108,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
-        Location location = category.location();
-        Component title = Component.translatable("itemGroup."+location.namespace()+"."+location.path());
+        Component title = Component.translatable(category.languageKey());
         return CreativeModeTab.builder().title(title).displayItems((parameters, output) -> {
             MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
                 output.accept(MinecraftFeatureType.ITEM.convert(item));
@@ -132,7 +125,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             Consumer<Holder<M>> consumer = (holder) -> {
-                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this, holder)));
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
             };
             registry.addCallback((AddCallback<M>) (r, raw, id, value) -> {
                 consumer.accept(r.getHolder(raw).orElseThrow());
@@ -144,7 +137,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
         view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this, holder)));
+            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this.nexo(), holder)));
             dynamicHolders.put(holder.key(), holder);
         });
     }
@@ -157,7 +150,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         }
     }
 
-
     private <R> DeferredRegister<R> getOrCreateDeferredRegister(Registry<R> registry, String namespace) {
         DeferredRegister<?> deferredRegister = deferredRegistries
             .computeIfAbsent(registry, r -> new HashMap<>())
@@ -169,7 +161,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         Class<DeferredRegister<R>> clazz = Nexo.type(DeferredRegister.class);
         return clazz.cast(deferredRegister);
     }
-
 
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);

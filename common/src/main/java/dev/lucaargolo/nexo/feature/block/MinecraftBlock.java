@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.block;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
@@ -83,13 +82,13 @@ public class MinecraftBlock extends BlockBase {
     };
 
     @NotNull
-    private final MinecraftRegistryHandler<?> helper;
+    private final NexoMinecraft<?, ?, ?, ?> nexo;
     @NotNull
     private final Holder<Block> holder;
 
-    private MinecraftBlock(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<Block> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.BLOCK, holder));
-        this.helper = helper;
+    private MinecraftBlock(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Block> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.BLOCK, holder));
+        this.nexo = nexo;
         this.holder = holder;
     }
 
@@ -107,7 +106,7 @@ public class MinecraftBlock extends BlockBase {
     @Override
     public @Nullable ItemBase item() {
         Item item = this.holder.value().asItem();
-        return MinecraftFeatureType.ITEM.convert(helper, item);
+        return MinecraftFeatureType.ITEM.convert(nexo, item);
     }
 
     @Override
@@ -129,16 +128,16 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static BlockBase register(MinecraftRegistryHandler<?> helper, BlockBase block) {
+    public static BlockBase register(NexoMinecraft<?, ?, ?, ?> nexo, BlockBase block) {
         BlockBase registered = FEATURE_MAP.get(block.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(block.location());
         FEATURE_MAP.put(block.location(), block);
-        helper.registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(helper, block));
+        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(nexo, block));
         if(isDynamicBlock(block)) {
-            Holder<BlockEntityType<?>> holder = helper.registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
+            Holder<BlockEntityType<?>> holder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
                 BlockEntityType.BlockEntitySupplier<?> supplier = ENTITY_MAP.get(block.location());
                 return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
             });
@@ -147,13 +146,13 @@ public class MinecraftBlock extends BlockBase {
         return block;
     }
 
-    public static BlockBase index(MinecraftRegistryHandler<?> helper, Holder<Block> holder) {
+    public static BlockBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<Block> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(nexo, holder));
     }
 
-    public static <M extends Block> Block craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
+    public static <M extends Block> Block craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
         @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
         for (DataBase<?> data : block.data()) {
             if (data instanceof DataBase.Constrained<?> constrained) {
@@ -175,9 +174,9 @@ public class MinecraftBlock extends BlockBase {
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
-            BlockUnit<?> unit = helper.nexo().blockToUnit(level, pos, state);
-            WorldUnit<?> world = helper.nexo().levelToUnit(level);
-            Interaction interaction = block.onInteract(unit, world, helper.nexo().entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
+            BlockUnit<?> unit = nexo.blockToUnit(level, pos, state);
+            WorldUnit<?> world = nexo.levelToUnit(level);
+            Interaction interaction = block.onInteract(unit, world, nexo.entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
             return switch (interaction) {
                 case PASS -> InteractionResult.PASS;
                 case FAIL -> InteractionResult.FAIL;
@@ -204,7 +203,7 @@ public class MinecraftBlock extends BlockBase {
                     if (ticker == null || type != blockEntityType()) {
                         return null;
                     }
-                    return (tickerLevel, pos, tickerState, entity) -> ticker.tick(helper.nexo().blockToUnit(level, pos, state, entity));
+                    return (tickerLevel, pos, tickerState, entity) -> ticker.tick(nexo.blockToUnit(level, pos, state, entity));
                 }
 
                 private @NotNull BlockEntityType<?> blockEntityType() {

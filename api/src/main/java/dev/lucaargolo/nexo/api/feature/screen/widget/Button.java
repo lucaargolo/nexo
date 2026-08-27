@@ -12,27 +12,26 @@ public class Button extends Widget {
     private static final float @NotNull [] HOVER_COLOR = {0.35F, 0.35F, 0.5F, 0.9F};
     private static final float @NotNull [] TEXT_COLOR = {1.0F, 1.0F, 1.0F, 1.0F};
 
-    private @NotNull String text;
+    private @NotNull Text text;
     private final @NotNull Runnable action;
 
-    public Button(float x, float y, float width, float height, @NotNull String text, @NotNull Runnable action) {
+    public Button(float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
         super(x, y, width, height);
         this.text = text;
         this.action = action;
     }
 
-    public void text(@NotNull String text) {
+    public void text(@NotNull Text text) {
         this.text = text;
     }
 
-    public @NotNull String text() {
+    public @NotNull Text text() {
         return text;
     }
 
     @Override
     public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
         boolean hovered = contains(screen.mouse().x(), screen.mouse().y());
-        Text parsedText = Text.parse(text);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
@@ -40,7 +39,7 @@ public class Button extends Widget {
         graphics.fillRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
         graphics.color(TEXT_COLOR);
         graphics.drawRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
-        graphics.drawText(parsedText, 8.0F, Math.round((height() - parsedText.maxSize()) * 0.5F));
+        graphics.drawText(text, 8.0F, Math.round((height() - text.maxSize()) * 0.5F));
         graphics.popMatrix();
         graphics.popState();
     }

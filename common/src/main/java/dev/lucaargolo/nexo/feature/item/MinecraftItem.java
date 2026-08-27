@@ -1,8 +1,6 @@
 package dev.lucaargolo.nexo.feature.item;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
@@ -50,15 +48,15 @@ public class MinecraftItem extends ItemBase {
         }
     };
 
-    private final @NotNull MinecraftRegistryHandler<?> helper;
+    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull Holder<Item> holder;
 
     private boolean computedCategory = false;
     private @Nullable ItemCategoryBase category;
 
-    private MinecraftItem(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<Item> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ITEM, holder));
-        this.helper = helper;
+    private MinecraftItem(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Item> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ITEM, holder));
+        this.nexo = nexo;
         this.holder = holder;
     }
 
@@ -81,7 +79,7 @@ public class MinecraftItem extends ItemBase {
             for(CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
                 for(ItemStack stack : tab.getDisplayItems()) {
                     if(stack.getItem() == item) {
-                        this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.helper, tab);
+                        this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.nexo, tab);
                         return this.category;
                     }
                 }
@@ -94,7 +92,7 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemBase register(MinecraftRegistryHandler<?> helper, ItemBase item) {
+    public static ItemBase register(NexoMinecraft<?, ?, ?, ?> nexo, ItemBase item) {
         ItemBase registered = FEATURE_MAP.get(item.location());
         if (registered != null) {
             return registered;
@@ -104,21 +102,21 @@ public class MinecraftItem extends ItemBase {
         if(item.category() != null) {
             MinecraftItemCategory.ITEM_MAP.computeIfAbsent(item.category(), c -> new LinkedList<>()).add(item);
         }
-        helper.registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(helper, item));
+        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(nexo, item));
         return item;
     }
 
-    public static ItemBase index(MinecraftRegistryHandler<?> helper, Holder<Item> holder) {
+    public static ItemBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<Item> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(nexo, holder));
     }
 
-    public static <M extends Item> Item craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
+    public static <M extends Item> Item craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
         extender.override(Utils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
             Ticker<ItemUnit<?>> ticker = item.ticker();
             if (ticker != null) {
-                ticker.tick(helper.nexo().stackToUnit(stack));
+                ticker.tick(nexo.stackToUnit(stack));
             }
             return null;
         });

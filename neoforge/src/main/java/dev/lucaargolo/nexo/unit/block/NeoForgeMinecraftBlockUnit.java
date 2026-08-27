@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -12,10 +12,10 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<NeoForgeMinecraftRegistryHandler, C>{
+public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<NeoForgeNexoMinecraft, C>{
 
-    public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeMinecraftRegistryHandler helper, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
-        super(helper, feature, role, level, position, state, entity);
+    public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+        super(nexo, feature, role, level, position, state, entity);
     }
 
     @Override
@@ -23,7 +23,7 @@ public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUn
         if (data instanceof DataBase.Constrained<?> constrained && this.feature.data().contains(constrained)) {
             return data.cast(this.getStateData(constrained));
         }else if(this.entity != null) {
-            AttachmentType<D> type = helper.getDataAttachment(data);
+            AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
             return this.feature.data().contains(data) ? this.entity.getData(type) : this.entity.getExistingDataOrNull(type);
         }else if(data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to get non-initial constrained data " + data + " from non-dynamic MinecraftBlockUnit");
@@ -40,7 +40,7 @@ public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUn
                 this.level.setBlockAndUpdate(this.position, this.state);
             }
         }else if(this.entity != null) {
-            AttachmentType<D> type = helper.getDataAttachment(data);
+            AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
             this.entity.setData(type, d);
         }else if(data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to set non-initial constrained data " + data + " to non-dynamic MinecraftBlockUnit");

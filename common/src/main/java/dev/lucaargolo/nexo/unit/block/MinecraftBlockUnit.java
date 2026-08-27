@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -21,9 +21,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
 
-public abstract class MinecraftBlockUnit<R extends MinecraftRegistryHandler<?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
+public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
 
-    protected final @NotNull R helper;
+    protected final @NotNull N nexo;
 
     protected final @Nullable Level level;
     protected final @Nullable BlockPos position;
@@ -31,9 +31,9 @@ public abstract class MinecraftBlockUnit<R extends MinecraftRegistryHandler<?>, 
 
     protected @NotNull BlockState state;
 
-    public MinecraftBlockUnit(@NotNull R helper, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
-        super(helper.nexo(), feature, role);
-        this.helper = helper;
+    public MinecraftBlockUnit(@NotNull N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+        super(nexo, feature, role);
+        this.nexo = nexo;
         this.level = level;
         this.position = position;
         this.state = state;
@@ -46,7 +46,7 @@ public abstract class MinecraftBlockUnit<R extends MinecraftRegistryHandler<?>, 
 
     @Override
     public @Nullable WorldUnit<?> world() {
-        return this.level != null ? this.helper.nexo().levelToUnit(this.level) : null;
+        return this.level != null ? this.nexo.levelToUnit(this.level) : null;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.world;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -47,8 +46,8 @@ public class MinecraftWorld extends WorldBase {
     @NotNull
     private final Holder<LevelStem> holder;
 
-    private MinecraftWorld(MinecraftRegistryHandler<?> helper, @NotNull Holder<LevelStem> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.WORLD, holder));
+    private MinecraftWorld(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<LevelStem> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.WORLD, holder));
         this.holder = holder;
     }
 
@@ -61,25 +60,25 @@ public class MinecraftWorld extends WorldBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static WorldBase register(MinecraftRegistryHandler<?> helper, WorldBase world) {
+    public static WorldBase register(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
         WorldBase registered = FEATURE_MAP.get(world.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(world.location());
         FEATURE_MAP.put(world.location(), world);
-        helper.registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(helper, DimensionType.class, world));
-        helper.registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(helper, world));
+        nexo.getRegistryHandler().registerDynamicFeature(Registries.DIMENSION_TYPE, id, MinecraftFeatureType.WORLD.craft(nexo, DimensionType.class, world));
+        nexo.getRegistryHandler().registerDynamicFeature(Registries.LEVEL_STEM, id, MinecraftFeatureType.WORLD.craft(nexo, world));
         return world;
     }
 
-    public static WorldBase index(MinecraftRegistryHandler<?> helper, Holder<LevelStem> holder) {
+    public static WorldBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<LevelStem> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftWorld(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftWorld(nexo, holder));
     }
 
-    public static DimensionType craftType(MinecraftRegistryHandler<?> helper, WorldBase world) {
+    public static DimensionType craftType(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
         return new DimensionType(
                 OptionalLong.empty(),
                 true,
@@ -99,11 +98,11 @@ public class MinecraftWorld extends WorldBase {
         );
     }
 
-    public static LevelStem craftStem(MinecraftRegistryHandler<?> helper, WorldBase world) {
+    public static LevelStem craftStem(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
         ResourceLocation id = NexoMinecraft.rl(world.location());
         ResourceKey<DimensionType> key = ResourceKey.create(Registries.DIMENSION_TYPE, id);
-        Holder<DimensionType> type = helper.getDynamicFeature(key);
-        Holder<Biome> biomeHolder = helper.getDynamicFeature(Biomes.THE_VOID);
+        Holder<DimensionType> type = nexo.getRegistryHandler().getDynamicFeature(key);
+        Holder<Biome> biomeHolder = nexo.getRegistryHandler().getDynamicFeature(Biomes.THE_VOID);
         FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(Optional.empty(), biomeHolder, List.of());
         FlatLevelSource source = new FlatLevelSource(settings);
         return new LevelStem(type, source);

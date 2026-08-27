@@ -27,7 +27,7 @@ public final class MinecraftFontResource extends FontResource {
         return font != null || resolved;
     }
 
-    public static FontResource lookup(NexoMinecraft nexo, Location location) {
+    public static FontResource lookup(NexoMinecraft<?, ?, ?, ?> nexo, Location location) {
         FontResource registered = RESOURCE_MAP.get(location);
         if (registered != null) {
             return registered;
@@ -42,13 +42,13 @@ public final class MinecraftFontResource extends FontResource {
     }
 
     @NotNull
-    public static FontResource register(@NotNull NexoMinecraft nexo, @NotNull Location location) {
+    public static FontResource register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
         Font loaded = Font.load(nexo, location);
         return register(location, loaded);
     }
 
     @NotNull
-    public static FontResource register(@NotNull NexoMinecraft nexo, @NotNull Location location, byte @NotNull [] data) {
+    public static FontResource register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location, byte @NotNull [] data) {
         Font loaded = Font.load(nexo, location, data);
         return register(location, loaded);
     }

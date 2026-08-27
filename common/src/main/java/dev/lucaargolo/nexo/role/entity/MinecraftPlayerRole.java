@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.role.entity;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
@@ -16,7 +15,7 @@ import java.util.function.Function;
 
 public class MinecraftPlayerRole {
 
-    public static MinecraftRoleType.Info<Entity, MinecraftEntity.Parameters> craft(NexoMinecraft nexo, EntityBase base) {
+    public static MinecraftRoleType.Info<Entity, MinecraftEntity.Parameters> craft(NexoMinecraft<?, ?, ?, ?> nexo, EntityBase base) {
         if (base.role() instanceof PlayerRole(UUID uuid, String name)) {
             Utils.Extender<Entity> extender = Utils.extend(nexo, ServerPlayer.class);
             Function<MinecraftEntity.Parameters, Entity> function = parameters -> nexo.createFakePlayer(parameters.level(), uuid, name);
@@ -25,7 +24,7 @@ public class MinecraftPlayerRole {
         return null;
     }
 
-    public static PlayerRole uncraft(MinecraftRegistryHandler<?> handler, EntityType<?> type) {
+    public static PlayerRole uncraft(NexoMinecraft<?, ?, ?, ?> nexo, EntityType<?> type) {
         if (type == EntityType.PLAYER) {
             return new PlayerRole(new UUID(0 ,0), "Null");
         };

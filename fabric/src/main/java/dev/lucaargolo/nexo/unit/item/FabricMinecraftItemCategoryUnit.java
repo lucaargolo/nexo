@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
+import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -13,15 +13,15 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FabricMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<FabricMinecraftRegistryHandler, C> {
+public class FabricMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<FabricNexoMinecraft, C> {
 
     public FabricMinecraftItemCategoryUnit(
-            @NotNull FabricMinecraftRegistryHandler helper,
+            @NotNull FabricNexoMinecraft nexo,
             @NotNull ItemCategoryBase feature,
             @Nullable C role,
             @NotNull CreativeModeTab tab
     ) {
-        super(helper, feature, role, tab);
+        super(nexo, feature, role, tab);
         ResourceKey<CreativeModeTab> tabKey = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(tab).orElseThrow();
         ItemGroupEvents.modifyEntriesEvent(tabKey).register(this::modifyEntries);
     }

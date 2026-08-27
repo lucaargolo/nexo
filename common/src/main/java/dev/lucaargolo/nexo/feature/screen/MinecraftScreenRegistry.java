@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.screen;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -42,23 +41,23 @@ public final class MinecraftScreenRegistry {
         return FEATURE_MAP.get(location);
     }
 
-    public static @NotNull ScreenBase register(@NotNull MinecraftRegistryHandler<?> helper, @NotNull ScreenBase screen) {
+    public static @NotNull ScreenBase register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase screen) {
         ScreenBase registered = FEATURE_MAP.putIfAbsent(screen.location(), screen);
         if (registered != null) {
             return registered;
         }
-        Holder<ScreenBase> holder = helper.registerBuiltinFeature(REGISTRY, NexoMinecraft.rl(screen.location()), () -> screen);
+        Holder<ScreenBase> holder = nexo.getRegistryHandler().registerBuiltinFeature(REGISTRY, NexoMinecraft.rl(screen.location()), () -> screen);
         HOLDER_MAP.put(screen.location(), holder);
         return screen;
     }
 
-    public static @NotNull ScreenBase index(@NotNull MinecraftRegistryHandler<?> helper, @NotNull Holder<ScreenBase> holder) {
+    public static @NotNull ScreenBase index(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<ScreenBase> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, key -> holder.value());
     }
 
-    public static @NotNull ScreenBase craft(@NotNull MinecraftRegistryHandler<?> helper, @NotNull ScreenBase screen) {
+    public static @NotNull ScreenBase craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase screen) {
         return screen;
     }
 

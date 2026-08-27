@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoException;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -16,16 +17,13 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public abstract class NexoModDiscovery<N extends Nexo> {
+public abstract class NexoModDiscoveryHandler<N extends Nexo> {
 
     private static final String MOD_JSON = "nexo.mod.json";
 
@@ -33,24 +31,28 @@ public abstract class NexoModDiscovery<N extends Nexo> {
 
     protected final Map<String, Nexo.Mod> mods = new ConcurrentHashMap<>();
 
-    private final N nexo;
+    protected final N nexo;
 
-    public NexoModDiscovery(N nexo) {
+    public NexoModDiscoveryHandler(N nexo) {
         this.nexo = nexo;
     }
 
-    public N nexo() {
-        return nexo;
-    }
-
     public abstract void init();
+
+    public final @NotNull Collection<Nexo.Mod> getMods() {
+        return mods.values();
+    }
 
     public final @Nullable Nexo.Mod getMod(String id) {
         return mods.get(id);
     }
 
-    protected final void init(Collection<Path> jarPaths, Collection<Path> dirPaths) {
-        ClassLoader parentCl = NexoModDiscovery.class.getClassLoader();
+    protected final void init(
+            @NotNull Collection<Path> jarPaths,
+            @NotNull Collection<Path> dirPaths,
+            @NotNull Consumer<Nexo.Mod> afterModInitialized
+    ) {
+        ClassLoader parentCl = NexoModDiscoveryHandler.class.getClassLoader();
 
         List<ModDescriptor> descriptors = new ArrayList<>();
         for (Path jarPath : jarPaths) {
@@ -74,6 +76,7 @@ public abstract class NexoModDiscovery<N extends Nexo> {
             if (descriptor.entrypoint != null && !descriptor.entrypoint.isEmpty()) {
                 instantiateMod(loadEntrypoint(descriptor, parentCl), nexo);
             }
+            afterModInitialized.accept(mod);
         }
 
         NexoMinecraft.LOGGER.info("Nexo mod scan complete: {} entries, {} mods discovered", jarPaths.size() + dirPaths.size(), discovered);

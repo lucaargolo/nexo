@@ -28,14 +28,14 @@ import java.util.function.Function;
 
 public final class NexoUnbakedModel<M, U> implements UnbakedModel {
 
-    private final @NotNull NexoMinecraft nexo;
+    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     final @NotNull Class<M> type;
     final @NotNull M base;
     final @NotNull Function<M, U> factory;
     final @NotNull StaticRenderer<Graphics3D, U> renderer;
 
     public NexoUnbakedModel(
-            @NotNull NexoMinecraft nexo,
+            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull Class<M> type,
             @NotNull M base,
             @NotNull Function<M, U> factory,

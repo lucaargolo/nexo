@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
@@ -10,16 +10,16 @@ import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class MinecraftEntityUnit<R extends MinecraftRegistryHandler<?>, C extends Role, E extends Entity> extends EntityUnit<C> implements MinecraftUnit<E> {
+public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role, E extends Entity> extends EntityUnit<C> implements MinecraftUnit<E> {
 
     @NotNull
-    protected final R helper;
+    protected final N nexo;
     @NotNull
     protected final E entity;
 
-    public MinecraftEntityUnit(@NotNull R helper, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
-        super(helper.nexo(), feature, role);
-        this.helper = helper;
+    public MinecraftEntityUnit(@NotNull N nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+        super(nexo, feature, role);
+        this.nexo = nexo;
         this.entity = entity;
     }
 
@@ -30,6 +30,6 @@ public abstract class MinecraftEntityUnit<R extends MinecraftRegistryHandler<?>,
 
     @Override
     public @Nullable WorldUnit<?> world() {
-        return this.helper.nexo().levelToUnit(this.entity.level());
+        return nexo.levelToUnit(this.entity.level());
     }
 }

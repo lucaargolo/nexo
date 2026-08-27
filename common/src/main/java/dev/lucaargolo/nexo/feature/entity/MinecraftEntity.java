@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.entity;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
@@ -13,8 +12,6 @@ import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -47,8 +44,8 @@ public final class MinecraftEntity extends EntityBase {
     @NotNull
     private final Holder<EntityType<?>> holder;
 
-    private MinecraftEntity(MinecraftRegistryHandler<?> helper, @NotNull Holder<EntityType<?>> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ENTITY, holder));
+    private MinecraftEntity(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<EntityType<?>> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ENTITY, holder));
         this.holder = holder;
     }
 
@@ -67,27 +64,27 @@ public final class MinecraftEntity extends EntityBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static EntityBase register(MinecraftRegistryHandler<?> helper, EntityBase entity) {
+    public static EntityBase register(NexoMinecraft<?, ?, ?, ?> nexo, EntityBase entity) {
         EntityBase registered = FEATURE_MAP.get(entity.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(entity.location());
         FEATURE_MAP.put(entity.location(), entity);
-        helper.registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(helper, entity));
+        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(nexo, entity));
         return entity;
     }
 
-    public static EntityBase index(MinecraftRegistryHandler<?> helper, Holder<EntityType<?>> holder) {
+    public static EntityBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<EntityType<?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(nexo, holder));
     }
 
-    public static <M extends Entity> EntityType<?> craft(MinecraftRegistryHandler<?> helper, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
+    public static <M extends Entity> EntityType<?> craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
         extender.override(Utils.At.AFTER_SUPER, "tick", void.class, feature -> {
             if (entity.ticker() != null) {
-                entity.ticker().tick(helper.nexo().entityToUnit(feature));
+                entity.ticker().tick(nexo.entityToUnit(feature));
             }
             return null;
         });

@@ -2,16 +2,18 @@ package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
-import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.resource.Resource;
-import dev.lucaargolo.nexo.api.resource.image.ImageResource;
+import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 
@@ -25,6 +27,21 @@ public class NexoTestMod {
         nexo.registerResource(Resource.Type.FONT, id("fonts/fira_mono"));
         nexo.registerResource(Resource.Type.FONT, id("fonts/source_sans_3_regular"));
         nexo.registerResource(Resource.Type.FONT, id("fonts/source_serif_4_regular"));
+        LanguageResource runtimeLanguage = nexo.registerResource(
+                Resource.Type.LANGUAGE,
+                id("languages/en_us.json"),
+                "{\"text.nexo_test.programmatic\":\"Programmatic language\"}".getBytes(StandardCharsets.UTF_8)
+        );
+        runtimeLanguage.entry("text.nexo_test.programmatic", "[i]Direct language entry[/i]");
+        if (!"[i]Direct language entry[/i]".equals(nexo.language().translate("text.nexo_test.programmatic"))) {
+            throw new IllegalStateException("LanguageResource direct entry failed");
+        }
+        for (String path : List.of("en_us.json", "lang/es_es.json", "language/fr.json", "languages/de_de.json")) {
+            requireNonNull(
+                    nexo.getResource(Resource.Type.LANGUAGE, id(path)),
+                    "Missing language resource " + path
+            );
+        }
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_jpeg"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_webp"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_translucent"));

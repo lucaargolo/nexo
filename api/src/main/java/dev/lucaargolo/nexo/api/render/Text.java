@@ -4,12 +4,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public final class Text {
 
@@ -36,14 +31,30 @@ public final class Text {
 
     private final @NotNull String source;
     private final @NotNull List<Run> runs;
+    private final @Nullable Translation translation;
 
     private Text(@NotNull String source, @NotNull List<Run> runs) {
+        this(source, runs, null);
+    }
+
+    private Text(@NotNull String source, @NotNull List<Run> runs, @Nullable Translation translation) {
         this.source = source;
         this.runs = List.copyOf(runs);
+        this.translation = translation;
     }
 
     public Text(@NotNull String text) {
         this(Objects.requireNonNull(text), List.of(new Run(text, Style.DEFAULT)));
+    }
+
+    public static @NotNull Text literal(@NotNull String text) {
+        return new Text(text);
+    }
+
+    public static @NotNull Text translatable(@NotNull String key, Text @NotNull ... arguments) {
+        Objects.requireNonNull(key, "key");
+        Objects.requireNonNull(arguments, "arguments");
+        return new Text(key, List.of(), new Translation(key, List.of(arguments)));
     }
 
     public @NotNull String source() {
@@ -54,7 +65,18 @@ public final class Text {
         return runs;
     }
 
+    public boolean isTranslatable() {
+        return translation != null;
+    }
+
+    public @NotNull Translation translation() {
+        return Objects.requireNonNull(translation, "Text is not translatable");
+    }
+
     public @NotNull String plainText() {
+        if (translation != null) {
+            return source;
+        }
         StringBuilder result = new StringBuilder();
         for (Run run : runs) {
             result.append(run.text());
@@ -211,13 +233,19 @@ public final class Text {
         }
     }
 
-
     private static @Nullable Float parseSize(@NotNull String value) {
         try {
             float size = Float.parseFloat(value.trim());
             return Float.isFinite(size) && size > 0.0F ? size : null;
         } catch (NumberFormatException ignored) {
             return null;
+        }
+    }
+
+    public record Translation(@NotNull String key, @NotNull List<@NotNull Text> arguments) {
+        public Translation {
+            Objects.requireNonNull(key, "key");
+            arguments = List.copyOf(Objects.requireNonNull(arguments, "arguments"));
         }
     }
 
@@ -331,6 +359,7 @@ public final class Text {
             };
         }
     }
+
     @Override
     public @NotNull String toString() {
         return source;

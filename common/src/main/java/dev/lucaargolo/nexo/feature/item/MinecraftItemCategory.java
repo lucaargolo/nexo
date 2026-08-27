@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.feature.item;
 
-import dev.lucaargolo.nexo.MinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -39,8 +38,8 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     @NotNull
     private final Holder<CreativeModeTab> holder;
 
-    private MinecraftItemCategory(MinecraftRegistryHandler<?> helper, @NotNull Holder<CreativeModeTab> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(helper, Type.ITEM_CATEGORY, holder));
+    private MinecraftItemCategory(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<CreativeModeTab> holder) {
+        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ITEM_CATEGORY, holder));
         this.holder = holder;
     }
 
@@ -53,25 +52,25 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemCategoryBase register(MinecraftRegistryHandler<?> helper, ItemCategoryBase category) {
+    public static ItemCategoryBase register(NexoMinecraft<?, ?, ?, ?> nexo, ItemCategoryBase category) {
         ItemCategoryBase registered = FEATURE_MAP.get(category.location());
         if (registered != null) {
             return registered;
         }
         ResourceLocation id = NexoMinecraft.rl(category.location());
         FEATURE_MAP.put(category.location(), category);
-        helper.registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(helper, category));
+        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.CREATIVE_MODE_TAB, id, MinecraftFeatureType.ITEM_CATEGORY.craft(nexo, category));
         return category;
     }
 
-    public static ItemCategoryBase index(MinecraftRegistryHandler<?> helper, Holder<CreativeModeTab> holder) {
+    public static ItemCategoryBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<CreativeModeTab> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
-        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItemCategory(helper, holder));
+        return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItemCategory(nexo, holder));
     }
 
-    public static CreativeModeTab craft(MinecraftRegistryHandler<?> helper, ItemCategoryBase category) {
-        return helper.craftCreativeTab(category);
+    public static CreativeModeTab craft(NexoMinecraft<?, ?, ?, ?> nexo, ItemCategoryBase category) {
+        return nexo.getRegistryHandler().craftCreativeTab(category);
     }
 
 }
