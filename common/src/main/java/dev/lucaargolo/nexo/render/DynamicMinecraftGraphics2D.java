@@ -8,7 +8,7 @@ import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.render.font.MinecraftTextComponents;
+import dev.lucaargolo.nexo.render.font.MinecraftText;
 import dev.lucaargolo.nexo.render.shader.MinecraftShader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -387,7 +387,7 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
         float cursorX = x;
         float cursorY = y;
         float lineHeight = 0.0F;
-        for (Text.Run run : MinecraftTextComponents.runs(nexo, text)) {
+        for (Text.Run run : MinecraftText.runs(nexo, text)) {
             Text.Style style = run.style();
             float scale = style.size() / minecraftFont.lineHeight;
             String[] lines = run.text().split("\\n", -1);
@@ -395,7 +395,7 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
             for (int i = 0; i < lines.length; i++) {
                 String line = lines[i];
                 if (!line.isEmpty()) {
-                    MutableComponent component = MinecraftTextComponents.component(line, style);
+                    MutableComponent component = MinecraftText.component(line, style);
                     Matrix4f matrix = matrix();
                     matrix.scale(scale);
                     minecraftFont.drawInBatch(
@@ -426,13 +426,13 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
         Font minecraftFont = Minecraft.getInstance().font;
         float width = 0.0F;
         float lineWidth = 0.0F;
-        for (Text.Run run : MinecraftTextComponents.runs(nexo, text)) {
+        for (Text.Run run : MinecraftText.runs(nexo, text)) {
             Text.Style style = run.style();
             float scale = style.size() / minecraftFont.lineHeight;
             String[] lines = run.text().split("\\n", -1);
             for (int i = 0; i < lines.length; i++) {
                 if (!lines[i].isEmpty()) {
-                    MutableComponent component = MinecraftTextComponents.component(lines[i], style);
+                    MutableComponent component = MinecraftText.component(lines[i], style);
                     lineWidth += minecraftFont.width(component) * scale;
                 }
                 if (i < lines.length - 1) {

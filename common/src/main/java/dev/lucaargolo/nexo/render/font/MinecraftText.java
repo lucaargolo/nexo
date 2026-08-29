@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.render.font;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -14,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class MinecraftTextComponents {
+public final class MinecraftText {
 
-    private MinecraftTextComponents() {
+    private MinecraftText() {
     }
 
     public static @NotNull MutableComponent component(@NotNull String text, @NotNull Text.Style style) {
