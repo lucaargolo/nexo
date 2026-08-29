@@ -54,14 +54,14 @@ public final class MinecraftShader implements Shader {
     private final byte @NotNull [] vertexSource;
     private final byte @NotNull [] fragmentSource;
     private final @NotNull Map<String, String> uniformTypes;
-    private final @NotNull MinecraftShaderHandler renderer;
+    private final @NotNull MinecraftShaderHandler handler;
     private final @NotNull ConcurrentHashMap<VertexFormat, ShaderInstance> variants = new ConcurrentHashMap<>();
     private final @NotNull ConcurrentHashMap<String, UniformValue> values = new ConcurrentHashMap<>();
     private volatile boolean closed;
 
-    public MinecraftShader(@NotNull ShaderSource source, @NotNull MinecraftShaderHandler renderer) {
+    public MinecraftShader(@NotNull ShaderSource source, @NotNull MinecraftShaderHandler handler) {
         Objects.requireNonNull(source, "source");
-        this.renderer = renderer;
+        this.handler = handler;
         this.uniformTypes = discoverUniforms(source);
         requireBuiltinType(ShaderBuiltins.MODEL_VIEW, "mat4");
         requireBuiltinType(ShaderBuiltins.PROJECTION, "mat4");
@@ -97,9 +97,9 @@ public final class MinecraftShader implements Shader {
             var target = Minecraft.getInstance().getMainRenderTarget();
             resolution.set((float) target.viewWidth, (float) target.viewHeight, 1.0F);
         }
-        set(instance, ShaderBuiltins.TIME, renderer.time());
-        set(instance, ShaderBuiltins.TIME_DELTA, renderer.timeDelta());
-        set(instance, ShaderBuiltins.FRAME, renderer.frame());
+        set(instance, ShaderBuiltins.TIME, handler.time());
+        set(instance, ShaderBuiltins.TIME_DELTA, handler.timeDelta());
+        set(instance, ShaderBuiltins.FRAME, handler.frame());
     }
 
     private @NotNull ShaderInstance compile(@NotNull VertexFormat format) {
@@ -240,7 +240,7 @@ public final class MinecraftShader implements Shader {
     public void uniform(@NotNull String name, @NotNull Location texture) {
         put(name, "sampler2D", (shader, uniformName) -> {
             if (texture.equals(SCENE_TEXTURE)) {
-                shader.setSampler(uniformName, renderer.sceneTexture());
+                shader.setSampler(uniformName, handler.sceneTexture());
                 return;
             }
             ResourceLocation resource = ResourceLocation.fromNamespaceAndPath(texture.namespace(), texture.path());
