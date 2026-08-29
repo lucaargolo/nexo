@@ -2,12 +2,13 @@ package dev.lucaargolo.nexo.api.unit;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.role.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("TypeParameterUnusedInFormals")
-public abstract class Unit<F extends Feature<?, ?>, C extends Role> {
+public abstract class Unit<F extends Feature<?, ?>, C extends Role> implements VaultProvider {
 
     @NotNull
     protected final Nexo nexo;

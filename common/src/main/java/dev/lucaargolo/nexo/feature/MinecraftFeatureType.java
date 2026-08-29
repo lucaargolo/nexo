@@ -32,7 +32,6 @@ import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
-import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
@@ -109,7 +108,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftItem::lookup,
             MinecraftItem.CONVERT,
             Map.of(Item.class, extensible(Item.class, Item.class, Item.Properties.class, MinecraftItem::craft)),
-            (nexo, feature, item) -> new MinecraftItemUnit<>(nexo, feature, feature.role(), item.getDefaultInstance())
+            (nexo, feature, item) -> nexo.stackToUnit(item.getDefaultInstance())
     );
 
     public static final MinecraftFeatureType<ItemCategoryBase, ItemCategoryUnit<?>, CreativeModeTab> ITEM_CATEGORY = new MinecraftFeatureType<>(

@@ -2,13 +2,17 @@ package dev.lucaargolo.nexo.unit.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
+import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,6 +24,7 @@ import org.joml.Vector3i;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Set;
 
 public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
 
@@ -52,6 +57,20 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     @Override
     public @Nullable Vector3i position() {
         return this.position != null ? new Vector3i(this.position.getX(), this.position.getY(), this.position.getZ()) : null;
+    }
+
+    @Override
+    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+        return this.container() != null && MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        return MinecraftContainerVault.KEY.equals(key) ? MinecraftContainerVault.create(this.nexo, this.container(), type) : null;
+    }
+
+    private @Nullable Container container() {
+        return this.entity instanceof Container container ? container : null;
     }
 
     protected @NotNull <T extends Comparable<T>> T getStateData(@NotNull DataBase.Constrained<T> data) {

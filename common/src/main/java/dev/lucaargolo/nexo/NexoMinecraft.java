@@ -320,7 +320,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
         ItemBase item = MinecraftFeatureType.ITEM.convert(this, stack.getItem());
-        return new MinecraftItemUnit<>(this, item, item.role(), stack);
+        return Utils.<MinecraftItemUnit<?>>loadPlatformClass(this, MinecraftItemUnit.class, this, item, item.role(), stack);
     }
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
