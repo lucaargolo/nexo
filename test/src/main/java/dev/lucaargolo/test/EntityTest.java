@@ -52,7 +52,7 @@ public final class EntityTest {
             public void render(@NotNull Graphics3D graphics, @NotNull EntityUnit<?> unit) {
                 if (shader == null) {
                     shader = nexo.createShader(source);
-                    shader.uniform(ShaderBuiltins.CHANNEL_0, nexo.sceneTexture());
+                    shader.uniform(ShaderBuiltins.CHANNEL_0, Shader.SCENE_TEXTURE);
                     material = Material.untextured()
                             .withShader(shader)
                             .withBlendMode(BlendMode.ALPHA)
@@ -87,7 +87,7 @@ public final class EntityTest {
             }
 
             private void drawBlackHoleQuad(@NotNull Graphics3D graphics) {
-                graphics.begin(PrimitiveType.QUADS, VertexFormat.POSITION_COLOR_TEX);
+                graphics.begin(PrimitiveType.QUADS, VertexLayout.POSITION_COLOR_TEX);
                 graphics.vertex(-1.0F, -1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F);
                 graphics.vertex(1.0F, -1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F);
                 graphics.vertex(1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
@@ -97,7 +97,9 @@ public final class EntityTest {
 
             @Override
             public @NotNull Map<String, Material<?>> materials() {
-                return Map.of();
+                return Map.of(
+                        "test_entity_texture", Material.of(NexoTestMod.id("test_entity_texture.png"))
+                );
             }
 
             @Override

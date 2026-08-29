@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.api.render;
 
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ public interface Graphics2D {
     void drawArc(float x, float y, float radius, float startAngle, float endAngle);
     void fillArc(float x, float y, float radius, float startAngle, float endAngle);
 
-    void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format);
+    void begin(@NotNull PrimitiveType type, @NotNull VertexLayout format);
     void vertex(float @NotNull ... data);
     void end();
 

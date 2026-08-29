@@ -26,8 +26,6 @@ public interface Nexo {
 
     @NotNull Shader createShader(@NotNull ShaderSource source);
 
-    @NotNull Location sceneTexture();
-
     @Nullable Mod getMod(@NotNull String id);
 
     byte @Nullable [] loadResource(@NotNull Location location);

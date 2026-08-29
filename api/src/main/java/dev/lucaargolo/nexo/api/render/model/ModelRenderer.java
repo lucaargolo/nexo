@@ -2,7 +2,7 @@ package dev.lucaargolo.nexo.api.render.model;
 
 import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -73,7 +73,7 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
         graphics.pushState();
         graphics.bindMaterial(material);
         PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS ? PrimitiveType.LINES : mesh.primitiveType();
-        graphics.begin(primitive, VertexFormat.POSITION_COLOR_TEX_NORMAL);
+        graphics.begin(primitive, VertexLayout.POSITION_COLOR_TEX_NORMAL);
         float[] data = mesh.vertexData();
         for (int offset = 0; offset < data.length; offset += Mesh.VERTEX_STRIDE) {
             if (mesh.primitiveType() == PrimitiveType.POINTS) {

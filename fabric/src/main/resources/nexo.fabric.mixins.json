@@ -10,7 +10,8 @@
   ],
   "client": [
     "LanguageManagerMixin",
-    "SpriteLoaderMixin"
+    "SpriteLoaderMixin",
+    "TextureAtlasMixin"
   ],
   "server": [],
   "injectors": {

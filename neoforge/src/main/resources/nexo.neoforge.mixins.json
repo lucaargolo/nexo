@@ -12,7 +12,8 @@
     "BlockStateModelLoaderMixin",
     "LanguageManagerMixin",
     "ModelBakeryMixin",
-    "SpriteLoaderMixin"
+    "SpriteLoaderMixin",
+    "TextureAtlasMixin"
   ],
   "server": [],
   "injectors": {

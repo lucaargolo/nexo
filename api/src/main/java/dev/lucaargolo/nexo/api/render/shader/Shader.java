@@ -8,6 +8,8 @@ import org.joml.Matrix4fc;
 
 public interface Shader extends AutoCloseable {
 
+    @NotNull Location SCENE_TEXTURE = Location.of("nexo", "scene");
+
     void uniform(@NotNull String name, boolean value);
     void uniform(@NotNull String name, boolean x, boolean y);
     void uniform(@NotNull String name, boolean x, boolean y, boolean z);

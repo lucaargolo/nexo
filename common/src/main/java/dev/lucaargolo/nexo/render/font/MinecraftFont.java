@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.render;
+package dev.lucaargolo.nexo.render.font;
 
 import com.mojang.blaze3d.font.GlyphInfo;
 import com.mojang.blaze3d.font.GlyphProvider;

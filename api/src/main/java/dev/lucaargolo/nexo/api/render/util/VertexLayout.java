@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.render.util;
 
-public enum VertexFormat {
+public enum VertexLayout {
     POSITION(3),
     POSITION_COLOR(7),
     POSITION_TEX(5),
@@ -10,11 +10,18 @@ public enum VertexFormat {
 
     private final int stride;
 
-    VertexFormat(int stride) {
+    VertexLayout(int stride) {
         this.stride = stride;
     }
 
     public int stride() {
         return stride;
+    }
+
+    public boolean hasTextureCoordinates() {
+        return switch (this) {
+            case POSITION_TEX, POSITION_COLOR_TEX, POSITION_TEX_NORMAL, POSITION_COLOR_TEX_NORMAL -> true;
+            case POSITION, POSITION_COLOR -> false;
+        };
     }
 }

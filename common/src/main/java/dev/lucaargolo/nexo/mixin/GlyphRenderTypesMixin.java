@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.mixin;
 
-import dev.lucaargolo.nexo.render.MinecraftFont;
+import dev.lucaargolo.nexo.render.font.MinecraftFont;
 import net.minecraft.client.gui.font.GlyphRenderTypes;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;

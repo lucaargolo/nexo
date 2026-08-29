@@ -22,7 +22,7 @@ import org.joml.Vector4f;
 import java.util.*;
 import java.util.function.Function;
 
-public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics3D {
+public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
 
     private static final Location MISSING_TEXTURE = Location.of("minecraft", "missingno");
 
@@ -40,22 +40,22 @@ public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics
     private final Map<Direction, List<BakedQuad>> quadsByDirection = new HashMap<>();
 
     private @Nullable PrimitiveType primitive;
-    private @Nullable VertexFormat format;
+    private @Nullable VertexLayout format;
 
     private Matrix4f matrix = new Matrix4f();
     private @Nullable TextureAtlasSprite particle;
 
-    private MinecraftBakedGraphics3D(@Nullable Function<Material, TextureAtlasSprite> textureGetter) {
+    private BakedMinecraftGraphics3D(@Nullable Function<Material, TextureAtlasSprite> textureGetter) {
         this.textureGetter = textureGetter;
     }
 
-    public static <U> @NotNull MinecraftBakedGraphics3D bake(
+    public static <U> @NotNull BakedMinecraftGraphics3D bake(
             @NotNull StaticRenderer<Graphics3D, U> renderer,
             @NotNull U unit,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter,
             @NotNull Matrix4f modelTransform
     ) {
-        MinecraftBakedGraphics3D graphics = new MinecraftBakedGraphics3D(textureGetter);
+        BakedMinecraftGraphics3D graphics = new BakedMinecraftGraphics3D(textureGetter);
         graphics.matrix.translate(0.5F, 0.5F, 0.5F)
                 .mul(modelTransform)
                 .translate(-0.5F, -0.5F, -0.5F);
@@ -201,7 +201,7 @@ public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics
         }
         requireOutsidePrimitive("bind a material");
         if (material.wrapS() != TextureWrap.CLAMP || material.wrapT() != TextureWrap.CLAMP) {
-            throw AbstractMinecraftGraphics2D.unsupported("texture wrapping other than CLAMP");
+            throw MinecraftGraphics2D.unsupported("texture wrapping other than CLAMP");
         }
         state().material = material;
         state().color = material.colorData().clone();
@@ -252,7 +252,7 @@ public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics
         if (x.length != y.length || x.length < 3) {
             throw new IllegalArgumentException("A polygon needs matching x/y arrays with at least three points");
         }
-        begin(PrimitiveType.TRIANGLE_FAN, VertexFormat.POSITION_TEX);
+        begin(PrimitiveType.TRIANGLE_FAN, VertexLayout.POSITION_TEX);
         for (int i = 0; i < x.length; i++) {
             vertex(x[i], y[i], 0.0F, 0.0F, 0.0F);
         }
@@ -287,7 +287,7 @@ public final class MinecraftBakedGraphics3D implements AbstractMinecraftGraphics
 
 
     @Override
-    public void begin(@NotNull PrimitiveType type, @NotNull VertexFormat format) {
+    public void begin(@NotNull PrimitiveType type, @NotNull VertexLayout format) {
         if (primitive != null) {
             throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
         }

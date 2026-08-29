@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.render.model;
 
 import dev.lucaargolo.nexo.api.render.util.LayerMode;
-import dev.lucaargolo.nexo.render.MinecraftBakedGraphics3D;
+import dev.lucaargolo.nexo.render.BakedMinecraftGraphics3D;
 import net.fabricmc.fabric.api.renderer.v1.Renderer;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
 import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
@@ -76,7 +76,7 @@ public final class FabricNexoBakedModel<M, U> extends NexoBakedModel<M, U> imple
 
     }
 
-    private void emit(@NotNull MinecraftBakedGraphics3D graphics, @NotNull RenderContext context) {
+    private void emit(@NotNull BakedMinecraftGraphics3D graphics, @NotNull RenderContext context) {
         QuadEmitter emitter = context.getEmitter();
         for (LayerMode layerMode : LayerMode.values()) {
             RenderMaterial material = materials.get(layerMode);

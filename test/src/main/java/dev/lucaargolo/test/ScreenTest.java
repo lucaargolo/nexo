@@ -12,7 +12,7 @@ import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
-import dev.lucaargolo.nexo.api.render.util.VertexFormat;
+import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class ScreenTest extends SimpleScreen {
@@ -55,7 +56,7 @@ public class ScreenTest extends SimpleScreen {
             new ShapeTest("Line", 36.0F, 37.0F,
                     g -> g.drawLine(2.0F, 12.0F, 70.0F, 62.0F),
                     g -> {
-                        g.color(0.5F, 0.8F, 0.4F, 1.0F);
+                        shapeColor(g, 0.5F, 0.8F, 0.4F, 1.0F);
                         g.lineWidth(3.0F);
                         g.drawLine(2.0F, 12.0F, 70.0F, 62.0F);
                         g.lineWidth(1.0F);
@@ -64,70 +65,70 @@ public class ScreenTest extends SimpleScreen {
             new ShapeTest("Rect", 35.0F, 35.0F,
                     g -> g.drawRect(5.0F, 5.0F, 60.0F, 60.0F),
                     g -> {
-                        g.color(0.25F, 0.65F, 0.95F, 0.75F);
+                        shapeColor(g, 0.25F, 0.65F, 0.95F, 0.75F);
                         g.fillRect(5.0F, 5.0F, 60.0F, 60.0F);
                     }
             ),
             new ShapeTest("Circle", 35.0F, 35.0F,
                     g -> g.drawCircle(35.0F, 35.0F, 28.0F),
                     g -> {
-                        g.color(0.35F, 0.85F, 0.45F, 0.75F);
+                        shapeColor(g, 0.35F, 0.85F, 0.45F, 0.75F);
                         g.fillCircle(35.0F, 35.0F, 28.0F);
                     }
             ),
             new ShapeTest("Ellipse", 35.0F, 37.5F,
                     g -> g.drawEllipse(35.0F, 37.5F, 60.0F, 45.0F),
                     g -> {
-                        g.color(0.95F, 0.75F, 0.25F, 0.75F);
+                        shapeColor(g, 0.95F, 0.75F, 0.25F, 0.75F);
                         g.fillEllipse(35.0F, 37.5F, 60.0F, 45.0F);
                     }
             ),
             new ShapeTest("RoundedRect", 35.0F, 35.0F,
                     g -> g.drawRoundedRect(5.0F, 5.0F, 60.0F, 60.0F, 12.0F),
                     g -> {
-                        g.color(0.95F, 0.35F, 0.75F, 0.75F);
+                        shapeColor(g, 0.95F, 0.35F, 0.75F, 0.75F);
                         g.fillRoundedRect(5.0F, 5.0F, 60.0F, 60.0F, 12.0F);
                     }
             ),
             new ShapeTest("Polygon", 32.0F, 32.0F,
                     g -> g.drawPolygon(POLYGON_X, POLYGON_Y),
                     g -> {
-                        g.color(0.65F, 0.45F, 0.95F, 0.75F);
+                        shapeColor(g, 0.65F, 0.45F, 0.95F, 0.75F);
                         g.fillPolygon(POLYGON_X, POLYGON_Y);
                     }
             ),
             new ShapeTest("Triangle", 30.0F, 34.0F,
                     g -> g.drawPolygon(TRIANGLE_X, TRIANGLE_Y),
                     g -> {
-                        g.color(0.95F, 0.55F, 0.2F, 0.75F);
+                        shapeColor(g, 0.95F, 0.55F, 0.2F, 0.75F);
                         g.fillPolygon(TRIANGLE_X, TRIANGLE_Y);
                     }
             ),
             new ShapeTest("Diamond", 30.0F, 32.0F,
                     g -> g.drawPolygon(DIAMOND_X, DIAMOND_Y),
                     g -> {
-                        g.color(0.2F, 0.8F, 0.8F, 0.75F);
+                        shapeColor(g, 0.2F, 0.8F, 0.8F, 0.75F);
                         g.fillPolygon(DIAMOND_X, DIAMOND_Y);
                     }
             ),
             new ShapeTest("Pentagon", 30.0F, 29.96F,
                     g -> g.drawPolygon(PENTAGON_X, PENTAGON_Y),
                     g -> {
-                        g.color(0.6F, 0.4F, 0.9F, 0.75F);
+                        shapeColor(g, 0.6F, 0.4F, 0.9F, 0.75F);
                         g.fillPolygon(PENTAGON_X, PENTAGON_Y);
                     }
             ),
             new ShapeTest("Hexagon", 30.0F, 30.0F,
                     g -> g.drawPolygon(HEXAGON_X, HEXAGON_Y),
                     g -> {
-                        g.color(0.6F, 0.85F, 0.2F, 0.75F);
+                        shapeColor(g, 0.6F, 0.85F, 0.2F, 0.75F);
                         g.fillPolygon(HEXAGON_X, HEXAGON_Y);
                     }
             ),
             new ShapeTest("Star", 30.0F, 30.0F,
                     g -> g.drawPolygon(STAR_X, STAR_Y),
                     g -> {
-                        g.color(1.0F, 0.8F, 0.15F, 0.75F);
+                        shapeColor(g, 1.0F, 0.8F, 0.15F, 0.75F);
                         fillTriangle(g, 30.0F, 60.0F, 23.0F, 39.7F, 37.1F, 39.7F, 1.5F, 5.7F, 58.5F, 60.0F);
                         fillTriangle(g, 1.5F, 39.3F, 23.0F, 39.7F, 18.6F, 26.3F, 1.5F, 5.7F, 58.5F, 60.0F);
                         fillTriangle(g, 12.4F, 5.7F, 18.6F, 26.3F, 30.0F, 18.0F, 1.5F, 5.7F, 58.5F, 60.0F);
@@ -142,7 +143,7 @@ public class ScreenTest extends SimpleScreen {
                             new float[]{-4.64F, 12.68F, 12.68F, 30.0F, 47.32F, 47.32F, 64.64F, 47.32F, 47.32F, 30.0F, 12.68F, 12.68F}
                     ),
                     g -> {
-                        g.color(0.75F, 0.45F, 0.85F, 0.75F);
+                        shapeColor(g, 0.75F, 0.45F, 0.85F, 0.75F);
                         fillTriangle(g, 30.0F, -4.64F, 20.0F, 12.68F, 40.0F, 12.68F, 0.0F, -4.64F, 60.0F, 64.64F);
                         fillTriangle(g, 0.0F, 12.68F, 10.0F, 30.0F, 20.0F, 12.68F, 0.0F, -4.64F, 60.0F, 64.64F);
                         fillTriangle(g, 60.0F, 12.68F, 40.0F, 12.68F, 50.0F, 30.0F, 0.0F, -4.64F, 60.0F, 64.64F);
@@ -155,7 +156,7 @@ public class ScreenTest extends SimpleScreen {
             new ShapeTest("Trapezoid", 30.0F, 35.56F,
                     g -> g.drawPolygon(TRAPEZOID_X, TRAPEZOID_Y),
                     g -> {
-                        g.color(0.25F, 0.7F, 0.85F, 0.75F);
+                        shapeColor(g, 0.25F, 0.7F, 0.85F, 0.75F);
                         g.fillPolygon(TRAPEZOID_X, TRAPEZOID_Y);
                     }
             ),
@@ -165,7 +166,7 @@ public class ScreenTest extends SimpleScreen {
                             new float[]{15.0F, 15.0F, 5.0F, 25.0F, 45.0F, 35.0F, 35.0F}
                     ),
                     g -> {
-                        g.color(0.35F, 0.75F, 0.4F, 0.75F);
+                        shapeColor(g, 0.35F, 0.75F, 0.4F, 0.75F);
                         fillRect(g, 5.0F, 15.0F, 30.0F, 20.0F, 5.0F, 5.0F, 55.0F, 45.0F);
                         fillPolygon(g, ARROW_HEAD_X, ARROW_HEAD_Y, 5.0F, 5.0F, 55.0F, 45.0F);
                     }
@@ -178,7 +179,7 @@ public class ScreenTest extends SimpleScreen {
                         );
                     },
                     g -> {
-                        g.color(0.3F, 0.5F, 0.95F, 0.75F);
+                        shapeColor(g, 0.3F, 0.5F, 0.95F, 0.75F);
                         fillRect(g, 20.0F, 20.0F, 20.0F, 20.0F, 5.0F, 5.0F, 55.0F, 55.0F);
                         fillRect(g, 20.0F, 5.0F, 20.0F, 15.0F, 5.0F, 5.0F, 55.0F, 55.0F);
                         fillRect(g, 20.0F, 40.0F, 20.0F, 15.0F, 5.0F, 5.0F, 55.0F, 55.0F);
@@ -189,7 +190,7 @@ public class ScreenTest extends SimpleScreen {
             new ShapeTest("Heart", 30.0F, 19.13F,
                     g -> g.drawPolygon(HEART_X, HEART_Y),
                     g -> {
-                        g.color(0.9F, 0.3F, 0.4F, 0.75F);
+                        shapeColor(g, 0.9F, 0.3F, 0.4F, 0.75F);
                         g.fillPolygon(HEART_X, HEART_Y);
                     }
             ),
@@ -200,9 +201,9 @@ public class ScreenTest extends SimpleScreen {
                         g.drawLine(49.0F, 10.75F, 35.0F, 35.0F);
                     },
                     g -> {
-                        g.color(0.30F, 0.55F, 0.95F, 0.5F);
+                        shapeColor(g, 0.30F, 0.55F, 0.95F, 0.5F);
                         g.fillArc(35.0F, 35.0F, 28.0F, 0.0F, 360.0F);
-                        g.color(0.95F, 0.55F, 0.25F, 0.85F);
+                        shapeColor(g, 0.95F, 0.55F, 0.25F, 0.85F);
                         g.fillArc(35.0F, 35.0F, 28.0F, 30.0F, 300.0F);
                     }
             )
@@ -217,6 +218,13 @@ public class ScreenTest extends SimpleScreen {
         }
         options.add(new TextureOption("bedrock", material(Location.of("minecraft", "block/bedrock"))));
         options.add(new TextureOption("orange_stained_glass", material(Location.of("minecraft", "block/orange_stained_glass"))));
+        options.add(new TextureOption("Minecraft block atlas", material(Location.of("minecraft", "block/white_wool"))));
+        options.add(new TextureOption("Nexo block atlas", material(NexoTestMod.id("test_block"))));
+        options.add(new TextureOption("Minecraft GUI atlas", material(Location.of("minecraft", "widget/button"))));
+        options.add(new TextureOption("Nexo GUI atlas", material(NexoTestMod.id("test_gui_texture.png"))));
+        options.add(new TextureOption("Nexo entity atlas", material(NexoTestMod.id("test_entity_texture.png"))));
+        options.add(new TextureOption("Minecraft non-atlas", material(Location.of("minecraft", "textures/gui/title/minecraft.png"))));
+        options.add(new TextureOption("Nexo non-atlas", material(NexoTestMod.id("test_block_jpeg"))));
         options.add(new TextureOption("JPEG loader", material(NexoTestMod.id("test_block_jpeg"))));
         options.add(new TextureOption("WebP loader", material(NexoTestMod.id("test_block_webp"))));
         options.add(new TextureOption("Translucent", material(NexoTestMod.id("test_block_translucent"))));
@@ -231,6 +239,23 @@ public class ScreenTest extends SimpleScreen {
                 new float[]{1.0F, 1.0F, 1.0F, 1.0F},
                 CullMode.DISABLED,
                 BlendMode.ALPHA
+        );
+    }
+
+    private static void shapeColor(
+            @NotNull Graphics2D graphics,
+            float r, float g, float b, float a
+    ) {
+        Material<?> material = graphics.material();
+        if (material == null || material.texture() == null) {
+            graphics.color(r, g, b, a);
+        }
+    }
+
+    @Override
+    public @NotNull Map<String, Material<?>> materials() {
+        return Map.of(
+                "test_gui_texture", material(NexoTestMod.id("test_gui_texture.png"))
         );
     }
 
@@ -474,7 +499,7 @@ public class ScreenTest extends SimpleScreen {
     private static boolean begin(@NotNull Graphics2D graphics, @NotNull PrimitiveType primitive) {
         Material<?> material = graphics.material();
         boolean textured = material != null && material.texture() != null;
-        graphics.begin(primitive, textured ? VertexFormat.POSITION_TEX : VertexFormat.POSITION);
+        graphics.begin(primitive, textured ? VertexLayout.POSITION_TEX : VertexLayout.POSITION);
         return textured;
     }
 

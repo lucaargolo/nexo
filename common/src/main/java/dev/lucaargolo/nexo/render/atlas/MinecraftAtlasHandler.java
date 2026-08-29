@@ -1,8 +1,8 @@
-package dev.lucaargolo.nexo.render;
+package dev.lucaargolo.nexo.render.atlas;
 
+import com.google.common.collect.Sets;
 import com.mojang.blaze3d.platform.NativeImage;
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.util.LayerMode;
 import dev.lucaargolo.nexo.api.resource.Resource;
@@ -18,9 +18,9 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceMetadata;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -29,14 +29,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 
-public final class MinecraftAtlas implements PreparableReloadListener {
+public final class MinecraftAtlasHandler implements PreparableReloadListener {
+
     public static final Location BLOCK_ATLAS = Location.of("minecraft", "textures/atlas/blocks.png");
     public static final Location ENTITY_ATLAS = Location.of("nexo", "textures/atlas/entity.png");
     public static final Location SCREEN_ATLAS = Location.of("minecraft", "textures/atlas/gui.png");
 
-    private final Map<Location, List<Material<Location>>> registry = new ConcurrentHashMap<>();
-    private final Map<Location, List<Material<byte[]>>> embeddedRegistry = new ConcurrentHashMap<>();
-    private final Map<Location, TextureAtlas> managedAtlases = new ConcurrentHashMap<>();
+    private final Map<Location, List<Material<Location>>> atlasRegistry = new ConcurrentHashMap<>();
+    private final Map<Location, List<Material<byte[]>>> atlasEmbeddedRegistry = new ConcurrentHashMap<>();
+    private final Map<Location, Location> atlasLookup = new LinkedHashMap<>();
+
+    private final Map<Location, NativeImage> imagesToRegister = new LinkedHashMap<>();
+
+    private final NexoMinecraft<?, ?, ?, ?> nexo;
+
+    public MinecraftAtlasHandler(NexoMinecraft<?, ?, ?, ?> nexo) {
+        this.nexo = nexo;
+    }
 
     @Override
     public @NotNull CompletableFuture<Void> reload(
@@ -47,47 +56,32 @@ public final class MinecraftAtlas implements PreparableReloadListener {
             @NotNull Executor backgroundExecutor,
             @NotNull Executor gameExecutor
     ) {
-        TextureManager textureManager = Minecraft.getInstance().getTextureManager();
-        Set<Location> locations = new HashSet<>(registry.keySet());
-        locations.addAll(embeddedRegistry.keySet());
+        TextureManager manager = Minecraft.getInstance().getTextureManager();
+        imagesToRegister.forEach((location, image) -> {
+            manager.register(NexoMinecraft.rl(location), new DynamicTexture(image));
+        });
+
+        Set<Location> atlasesLocations = Sets.union(atlasRegistry.keySet(), atlasEmbeddedRegistry.keySet());
         List<CompletableFuture<Void>> reloads = new ArrayList<>();
-        for (Location location : locations) {
-            ResourceLocation atlasLocation = NexoMinecraft.rl(location);
-            AbstractTexture existing = textureManager.getTexture(atlasLocation, null);
-            TextureAtlas atlas;
-            if (existing instanceof TextureAtlas existingAtlas) {
-                if (managedAtlases.get(location) != existingAtlas) {
-                    continue;
-                }
-                atlas = existingAtlas;
-            } else {
-                atlas = new TextureAtlas(atlasLocation);
-                textureManager.register(atlasLocation, atlas);
-                managedAtlases.put(location, atlas);
+
+        for (Location atlasLocation : atlasesLocations) {
+            AbstractTexture texture = manager.getTexture(NexoMinecraft.rl(atlasLocation), null);
+
+            if (texture == null) {
+                ResourceLocation rl = NexoMinecraft.rl(atlasLocation);
+                TextureAtlas atlas = new TextureAtlas(rl);
+                manager.register(rl, atlas);
+
+                CompletableFuture<Void> loader = SpriteLoader.create(atlas)
+                        .loadAndStitch(resourceManager, atlas.location(), 0, backgroundExecutor)
+                        .thenCompose(SpriteLoader.Preparations::waitForUpload)
+                        .thenCompose(barrier::wait)
+                        .thenAcceptAsync(atlas::upload, gameExecutor);
+
+                reloads.add(loader);
             }
-            reloads.add(
-                    SpriteLoader.create(atlas)
-                            .loadAndStitch(
-                                    resourceManager,
-                                    NexoMinecraft.rl(atlasInfo(location)),
-                                    0,
-                                    backgroundExecutor
-                            )
-                            .thenCompose(SpriteLoader.Preparations::waitForUpload)
-                            .thenCompose(barrier::wait)
-                            .thenAcceptAsync(atlas::upload, gameExecutor)
-            );
         }
         return CompletableFuture.allOf(reloads.toArray(CompletableFuture[]::new));
-    }
-
-    public static @NotNull Location atlasInfo(@NotNull Location atlas) {
-        String path = atlas.withoutExtension().path();
-        String prefix = "textures/atlas/";
-        if (path.startsWith(prefix)) {
-            path = path.substring(prefix.length());
-        }
-        return Location.of(atlas.namespace(), "atlases/" + path);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,28 +92,29 @@ public final class MinecraftAtlas implements PreparableReloadListener {
         }
         Object data = textureData.right();
         if(data instanceof Location) {
-            registry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<Location>) material);
+            atlasRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<Location>) material);
         }else if(data instanceof byte[]) {
-            embeddedRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<byte[]>) material);
+            atlasEmbeddedRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<byte[]>) material);
         }
     }
 
-    public @NotNull List<Material<Location>> getRegistered(@NotNull Location atlas) {
-        return registry.getOrDefault(atlas, List.of());
-    }
-
-    public @NotNull List<Material<byte[]>> getEmbedded(@NotNull Location atlas) {
-        return embeddedRegistry.getOrDefault(atlas, List.of());
-    }
-
-    public static @NotNull List<SpriteContents> collectSpriteContents(Nexo nexo, List<SpriteContents> contentsList, List<Material<Location>> registered, List<Material<byte[]>> embedded) {
-        List<SpriteContents> augmented = new ArrayList<>(contentsList);
-        Map<ResourceLocation, SpriteContents> existing = new HashMap<>(contentsList.size());
-        for (SpriteContents contents : contentsList) {
-            existing.put(contents.name(), contents);
+    public void register(ImageResource resource) {
+        try {
+            NativeImage image = NativeImage.read(resource.data());
+            imagesToRegister.put(resource.location(), image);
+        } catch (IOException e) {
+            NexoMinecraft.LOGGER.error("Failed to load Nexo image '{}'", resource.location(), e);
         }
+    }
 
-        for (Material<Location> material : registered) {
+    public @Nullable Location findAtlas(@NotNull Location texture) {
+        return atlasLookup.get(texture.withoutExtension());
+    }
+
+    public @NotNull List<SpriteContents> getSpriteContents(@NotNull Location atlas) {
+        List<SpriteContents> list = new ArrayList<>();
+
+        for (Material<Location> material : atlasRegistry.getOrDefault(atlas, List.of())) {
             Pair<Location, Location> texture = material.texture();
             if (texture == null) {
                 continue;
@@ -133,21 +128,15 @@ public final class MinecraftAtlas implements PreparableReloadListener {
                     classify(material, image);
                     FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
                     SpriteContents spriteContents = new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY);
-                    augmented.add(spriteContents);
+                    list.add(spriteContents);
                     NexoMinecraft.LOGGER.debug("Injected {} at {}", spriteContents, id);
-                } else {
-                    SpriteContents contents = existing.get(id);
-                    if (contents == null) {
-                        throw new FileNotFoundException();
-                    }
-                    classify(material, contents.originalImage);
                 }
             } catch (Exception e) {
                 NexoMinecraft.LOGGER.error("Failed to load Nexo atlas sprite '{}'", location, e);
             }
         }
 
-        for (Material<byte[]> material : embedded) {
+        for (Material<byte[]> material : atlasEmbeddedRegistry.getOrDefault(atlas, List.of())) {
             Pair<Location, byte[]> texture = material.texture();
             if (texture == null) {
                 continue;
@@ -157,12 +146,20 @@ public final class MinecraftAtlas implements PreparableReloadListener {
                 NativeImage image = NativeImage.read(in);
                 classify(material, image);
                 FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());
-                augmented.add(new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY));
+                list.add(new SpriteContents(id, dimensions, image, ResourceMetadata.EMPTY));
             } catch (IOException e) {
                 NexoMinecraft.LOGGER.error("Failed to load embedded Nexo atlas sprite '{}'", id, e);
             }
         }
-        return augmented;
+
+        return list;
+    }
+
+    public void onAtlasStitched(@NotNull TextureAtlas atlas, @NotNull SpriteLoader.Preparations preparations) {
+        Location atlasLocation = Location.of(atlas.location().getNamespace(), atlas.location().getPath());
+        for (ResourceLocation texture : preparations.regions().keySet()) {
+            atlasLookup.putIfAbsent(Location.of(texture.getNamespace(), texture.getPath()), atlasLocation);
+        }
     }
 
     private static void classify(Material<?> material, NativeImage image) {

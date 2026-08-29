@@ -4,8 +4,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.input.GlfwKeyMapper;
-import dev.lucaargolo.nexo.render.MinecraftAtlas;
-import dev.lucaargolo.nexo.render.MinecraftGraphics2D;
+import dev.lucaargolo.nexo.render.DynamicMinecraftGraphics2D;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -60,11 +59,10 @@ public class MinecraftScreen extends Screen {
     @Override
     public void render(@NotNull GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         unit.setMouse(mouseX, mouseY);
-        MinecraftGraphics2D g = new MinecraftGraphics2D(
+        DynamicMinecraftGraphics2D g = new DynamicMinecraftGraphics2D(
                 nexo,
                 graphics.pose(),
                 graphics.bufferSource(),
-                MinecraftAtlas.SCREEN_ATLAS,
                 LightTexture.FULL_BRIGHT,
                 OverlayTexture.NO_OVERLAY
         );

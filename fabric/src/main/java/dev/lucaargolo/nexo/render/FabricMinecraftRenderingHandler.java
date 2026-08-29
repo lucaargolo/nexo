@@ -6,7 +6,8 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.util.Side;
-import dev.lucaargolo.nexo.event.SpriteAtlasStitchCallback;
+import dev.lucaargolo.nexo.event.AtlasStitchedCallback;
+import dev.lucaargolo.nexo.event.InjectOnAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
@@ -45,15 +46,12 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
     public void init() {
         super.init();
 
-        WorldRenderEvents.START.register(context -> shaderRenderer.beginFrame());
-        WorldRenderEvents.LAST.register(context -> shaderRenderer.endFrame());
-        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderRenderer.close());
-        SpriteAtlasStitchCallback.EVENT.register((atlas, registered, embedded) -> {
-            registered.addAll(minecraftAtlas.getRegistered(atlas));
-            embedded.addAll(minecraftAtlas.getEmbedded(atlas));
-            return this.nexo();
-        });
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new FabricMinecraftAtlasReloadListener(minecraftAtlas));
+        WorldRenderEvents.START.register(context -> shaderHandler.beginFrame());
+        WorldRenderEvents.LAST.register(context -> shaderHandler.endFrame());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(client -> shaderHandler.close());
+        InjectOnAtlasStitchCallback.EVENT.register(atlasHandler::getSpriteContents);
+        AtlasStitchedCallback.EVENT.register(atlasHandler::onAtlasStitched);
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new FabricMinecraftAtlasReloadListener(atlasHandler));
 
         ModelLoadingPlugin.register(pluginContext -> {
             pluginContext.addModels(itemModelIds);
@@ -90,16 +88,16 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
 
     @Override
     protected void registerItemRenderer(ItemBase item) {
-        if (this.nexo().getSide() != Side.CLIENT) {
+        if (this.nexo.getSide() != Side.CLIENT) {
             return;
         }
-        ItemRenderer renderer = createItemRenderer(this.nexo(), item);
+        ItemRenderer renderer = createItemRenderer(this.nexo, item);
         BuiltinItemRendererRegistry.INSTANCE.register(MinecraftFeatureType.ITEM.convert(item), renderer::render);
     }
 
     @Override
     public void registerBlockRenderer(BlockBase block) {
-        if (this.nexo().getSide() != Side.CLIENT) {
+        if (this.nexo.getSide() != Side.CLIENT) {
             return;
         }
         BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(block).value();
@@ -108,7 +106,7 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
 
     @Override
     protected void registerEntityRenderer(EntityBase entity) {
-        if (this.nexo().getSide() != Side.CLIENT) {
+        if (this.nexo.getSide() != Side.CLIENT) {
             return;
         }
         EntityType<? extends Entity> type = MinecraftFeatureType.ENTITY.convert(entity);

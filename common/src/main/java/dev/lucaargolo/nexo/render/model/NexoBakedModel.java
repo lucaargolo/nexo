@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.render.model;
 
-import dev.lucaargolo.nexo.render.MinecraftBakedGraphics3D;
+import dev.lucaargolo.nexo.render.BakedMinecraftGraphics3D;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -55,8 +55,8 @@ public abstract class NexoBakedModel<M, U> implements BakedModel {
         }
     }
 
-    protected final @NotNull MinecraftBakedGraphics3D bake(@NotNull M value) {
-        return MinecraftBakedGraphics3D.bake(
+    protected final @NotNull BakedMinecraftGraphics3D bake(@NotNull M value) {
+        return BakedMinecraftGraphics3D.bake(
                 model.renderer,
                 model.factory.apply(value),
                 textureGetter,

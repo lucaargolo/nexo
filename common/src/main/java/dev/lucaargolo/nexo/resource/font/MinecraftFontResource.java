@@ -4,7 +4,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.font.Font;
 import dev.lucaargolo.nexo.api.resource.font.FontResource;
 import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.nexo.render.MinecraftFont;
+import dev.lucaargolo.nexo.render.font.MinecraftFont;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

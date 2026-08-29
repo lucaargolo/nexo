@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.render.model;
 
 import dev.lucaargolo.nexo.api.render.util.LayerMode;
-import dev.lucaargolo.nexo.render.MinecraftBakedGraphics3D;
+import dev.lucaargolo.nexo.render.BakedMinecraftGraphics3D;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -29,8 +29,8 @@ import java.util.function.Function;
 
 public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
 
-    private final Map<BlockState, MinecraftBakedGraphics3D> bakedByState = Collections.synchronizedMap(new IdentityHashMap<>());
-    private final Map<Item, MinecraftBakedGraphics3D> bakedByItem = new ConcurrentHashMap<>();
+    private final Map<BlockState, BakedMinecraftGraphics3D> bakedByState = Collections.synchronizedMap(new IdentityHashMap<>());
+    private final Map<Item, BakedMinecraftGraphics3D> bakedByItem = new ConcurrentHashMap<>();
 
     public NeoForgeNexoBakedModel(@NotNull NexoUnbakedModel<M, U> model, @NotNull Function<Material, TextureAtlasSprite> textureGetter, @NotNull Matrix4f modelTransform, boolean ambientOcclusion, @NotNull ItemTransforms transforms, @NotNull TextureAtlasSprite particle) {
         super(model, textureGetter, modelTransform, ambientOcclusion, transforms, particle);
@@ -70,7 +70,7 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
         }
 
 
-        MinecraftBakedGraphics3D graphics = bakedByState.computeIfAbsent(state, this::bakeBlock);
+        BakedMinecraftGraphics3D graphics = bakedByState.computeIfAbsent(state, this::bakeBlock);
         if (renderType == null) {
             return graphics.quads(side);
         }
@@ -82,7 +82,7 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
     public @NotNull List<BakedModel> getRenderPasses(@NotNull ItemStack stack, boolean fabulous) {
         if(model.type == ItemStack.class) {
             // Static baked models are feature-level, so the bake result does not depend on the stack contents.
-            MinecraftBakedGraphics3D graphics = bakedByItem.computeIfAbsent(stack.getItem(), ignored -> bake(model.type.cast(stack)));
+            BakedMinecraftGraphics3D graphics = bakedByItem.computeIfAbsent(stack.getItem(), ignored -> bake(model.type.cast(stack)));
             List<BakedModel> passes = new ArrayList<>(LayerMode.values().length);
             for (LayerMode layerMode : LayerMode.values()) {
                 List<BakedQuad> quads = graphics.allQuads(layerMode);
@@ -109,7 +109,7 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
         }
     }
 
-    private @NotNull MinecraftBakedGraphics3D bakeBlock(@Nullable BlockState state) {
+    private @NotNull BakedMinecraftGraphics3D bakeBlock(@Nullable BlockState state) {
         return bake(state != null ? model.type.cast(state) : model.base);
     }
 

@@ -64,7 +64,7 @@ public final class MinecraftImageResource extends ImageResource {
 
         ImageResource resource = new MinecraftImageResource(location, true, () -> loaded);
         RESOURCE_MAP.put(location, resource);
-        nexo.getRenderingHandler().registerImage(resource);
+        nexo.getRenderingHandler().atlasHandler().register(resource);
         return resource;
     }
 }

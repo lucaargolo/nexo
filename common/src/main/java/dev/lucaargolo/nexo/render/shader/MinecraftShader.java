@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.render;
+package dev.lucaargolo.nexo.render.shader;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-final class MinecraftShader implements Shader {
+public final class MinecraftShader implements Shader {
 
     private static final AtomicLong NEXT_ID = new AtomicLong();
     private static final Pattern BLOCK_COMMENT = Pattern.compile("/\\*.*?\\*/", Pattern.DOTALL);
@@ -54,12 +54,12 @@ final class MinecraftShader implements Shader {
     private final byte @NotNull [] vertexSource;
     private final byte @NotNull [] fragmentSource;
     private final @NotNull Map<String, String> uniformTypes;
-    private final @NotNull MinecraftShaderRenderer renderer;
+    private final @NotNull MinecraftShaderHandler renderer;
     private final @NotNull ConcurrentHashMap<VertexFormat, ShaderInstance> variants = new ConcurrentHashMap<>();
     private final @NotNull ConcurrentHashMap<String, UniformValue> values = new ConcurrentHashMap<>();
     private volatile boolean closed;
 
-    MinecraftShader(@NotNull ShaderSource source, @NotNull MinecraftShaderRenderer renderer) {
+    public MinecraftShader(@NotNull ShaderSource source, @NotNull MinecraftShaderHandler renderer) {
         Objects.requireNonNull(source, "source");
         this.renderer = renderer;
         this.uniformTypes = discoverUniforms(source);
@@ -73,21 +73,21 @@ final class MinecraftShader implements Shader {
         this.fragmentSource = minecraftSource(source.fragmentSource());
     }
 
-    boolean closed() {
+    public boolean closed() {
         return closed;
     }
 
-    @NotNull Map<String, UniformValue> uniforms() {
+    public @NotNull Map<String, UniformValue> uniforms() {
         requireOpen();
         return Map.copyOf(values);
     }
 
-    @NotNull ShaderInstance instance(@NotNull VertexFormat format) {
+    public @NotNull ShaderInstance instance(@NotNull VertexFormat format) {
         requireOpen();
         return variants.computeIfAbsent(format, this::compile);
     }
 
-    void apply(@NotNull ShaderInstance instance, @NotNull Map<String, UniformValue> uniforms) {
+    public void apply(@NotNull ShaderInstance instance, @NotNull Map<String, UniformValue> uniforms) {
         uniforms.forEach((uniformName, value) -> value.apply(instance, uniformName));
         set(instance, ShaderBuiltins.MODEL_VIEW, RenderSystem.getModelViewMatrix());
         set(instance, ShaderBuiltins.PROJECTION, RenderSystem.getProjectionMatrix());
@@ -239,7 +239,7 @@ final class MinecraftShader implements Shader {
     @Override
     public void uniform(@NotNull String name, @NotNull Location texture) {
         put(name, "sampler2D", (shader, uniformName) -> {
-            if (texture.equals(MinecraftShaderRenderer.SCENE_TEXTURE)) {
+            if (texture.equals(SCENE_TEXTURE)) {
                 shader.setSampler(uniformName, renderer.sceneTexture());
                 return;
             }
@@ -314,7 +314,6 @@ final class MinecraftShader implements Shader {
             return;
         }
         closed = true;
-        MinecraftGraphics2D.removeRenderTypes(this);
         variants.values().forEach(ShaderInstance::close);
         variants.clear();
         values.clear();
@@ -416,7 +415,7 @@ final class MinecraftShader implements Shader {
     }
 
     @FunctionalInterface
-    interface UniformValue {
+    public interface UniformValue {
         void apply(@NotNull ShaderInstance shader, @NotNull String name);
     }
 

@@ -7,8 +7,9 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.event.AtlasStitchedEvent;
 import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
-import dev.lucaargolo.nexo.event.SpriteAtlasStitchEvent;
+import dev.lucaargolo.nexo.event.InjectOnAtlasStitchEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.minecraft.client.Minecraft;
@@ -60,26 +61,26 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         super.init();
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, event -> {
             if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
-                shaderRenderer.beginFrame();
+                shaderHandler.beginFrame();
             }
             else if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
-                shaderRenderer.endFrame();
+                shaderHandler.endFrame();
             }
         });
-        NeoForge.EVENT_BUS.addListener(GameShuttingDownEvent.class, event -> shaderRenderer.close());
-        this.nexo().modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
+        NeoForge.EVENT_BUS.addListener(GameShuttingDownEvent.class, event -> shaderHandler.close());
+        this.nexo.modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
             for (ResourceLocation modelId : itemModels) {
                 event.register(new ModelResourceLocation(modelId, ModelResourceLocation.STANDALONE_VARIANT));
             }
         });
-        this.nexo().modBus().addListener(RegisterClientExtensionsEvent.class, event -> {
+        this.nexo.modBus().addListener(RegisterClientExtensionsEvent.class, event -> {
             for (ItemBase base : itemsToRegister) {
                 Item item = MinecraftFeatureType.ITEM.convert(base);
-                IClientItemExtensions extensions = createItemExtensions(this.nexo(), base);
+                IClientItemExtensions extensions = createItemExtensions(this.nexo, base);
                 event.registerItem(extensions, item);
             }
         });
-        this.nexo().modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
+        this.nexo.modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
             for (BlockBase base : blocksToRegister) {
                 BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(base).value();
                 this.registerBlockRenderer(type, base, event::registerBlockEntityRenderer);
@@ -89,7 +90,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 this.registerEntityRenderer(type, base, event::registerEntityRenderer);
             }
         });
-        this.nexo().modBus().addListener(ModelLoadingQueryEvent.class, event -> {
+        this.nexo.modBus().addListener(ModelLoadingQueryEvent.class, event -> {
             UnbakedModel model;
             Supplier<UnbakedModel> supplier = customModels.get(event.id());
             if (supplier != null) {
@@ -102,12 +103,13 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 if (model != null) { event.setResult(model); return; }
             }
         });
-        this.nexo().modBus().addListener(SpriteAtlasStitchEvent.class, event -> {
-            event.registered().addAll(minecraftAtlas.getRegistered(event.atlas()));
-            event.embedded().addAll(minecraftAtlas.getEmbedded(event.atlas()));
-            event.setNexo(this.nexo());
+        this.nexo.modBus().addListener(InjectOnAtlasStitchEvent.class, event -> {
+            event.injected().addAll(this.atlasHandler.getSpriteContents(event.atlas()));
         });
-        this.nexo().modBus().addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(minecraftAtlas));
+        this.nexo.modBus().addListener(AtlasStitchedEvent.class, event -> {
+            this.atlasHandler.onAtlasStitched(event.atlas(), event.preparations());
+        });
+        this.nexo.modBus().addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(atlasHandler));
     }
 
     @Override

@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.render.atlas.MinecraftAtlasHandler;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -12,9 +13,9 @@ import java.util.concurrent.Executor;
 
 public final class FabricMinecraftAtlasReloadListener implements IdentifiableResourceReloadListener {
 
-    private final MinecraftAtlas atlas;
+    private final MinecraftAtlasHandler atlas;
 
-    public FabricMinecraftAtlasReloadListener(@NotNull MinecraftAtlas atlas) {
+    public FabricMinecraftAtlasReloadListener(@NotNull MinecraftAtlasHandler atlas) {
         this.atlas = atlas;
     }
 

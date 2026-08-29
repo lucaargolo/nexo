@@ -147,12 +147,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
 
     @Override
     public @NotNull Shader createShader(@NotNull ShaderSource source) {
-        return renderingHandler.createShader(source);
-    }
-
-    @Override
-    public @NotNull Location sceneTexture() {
-        return renderingHandler.sceneTexture();
+        return renderingHandler.shaderHandler().createShader(source);
     }
 
     @Override
@@ -309,6 +304,8 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         }
     }
 
+    //TODO: Cache these
+
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         return blockToUnit(null, null, state, null);
     }
@@ -334,6 +331,13 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         return Utils.<MinecraftWorldUnit<?>>loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
     }
 
+    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
+        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this, entity.getType());
+        MinecraftEntityUnit<?, ?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
+        return clazz.cast(unit);
+    }
+
     public void tickWorld(@NotNull Level level) {
         WorldUnit<?> unit = this.levelToUnit(level);
         WorldBase world = unit.feature();
@@ -341,13 +345,6 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         if (ticker != null) {
             ticker.tick(unit);
         }
-    }
-
-    public @Nullable <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
-        EntityBase feature = MinecraftFeatureType.ENTITY.convert(this, entity.getType());
-        MinecraftEntityUnit<?, ?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
-        Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
-        return clazz.cast(unit);
     }
 
     public static ResourceLocation rl(Location location) {

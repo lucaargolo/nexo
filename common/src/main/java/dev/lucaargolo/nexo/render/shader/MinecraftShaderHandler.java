@@ -1,4 +1,4 @@
-package dev.lucaargolo.nexo.render;
+package dev.lucaargolo.nexo.render.shader;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
@@ -10,6 +10,8 @@ import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexSorting;
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
@@ -20,9 +22,7 @@ import org.joml.Matrix4f;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public final class MinecraftShaderRenderer {
-
-    static final @NotNull Location SCENE_TEXTURE = Location.of(NexoMinecraft.MOD_ID, "scene_texture");
+public final class MinecraftShaderHandler {
 
     private final @NotNull Deque<Draw> draws = new ArrayDeque<>();
     private final long startNanos = System.nanoTime();
@@ -33,7 +33,7 @@ public final class MinecraftShaderRenderer {
     private int frame = -1;
     private boolean worldRendering;
 
-    void beginFrame() {
+    public void beginFrame() {
         long now = System.nanoTime();
         time = (now - startNanos) / 1_000_000_000.0F;
         timeDelta = previousFrameNanos == 0L ? 0.0F : (now - previousFrameNanos) / 1_000_000_000.0F;
@@ -42,23 +42,23 @@ public final class MinecraftShaderRenderer {
         worldRendering = true;
     }
 
-    float time() {
+    public float time() {
         return time;
     }
 
-    float timeDelta() {
+    public float timeDelta() {
         return timeDelta;
     }
 
-    int frame() {
+    public int frame() {
         return frame;
     }
 
-    boolean deferred() {
+    public boolean deferred() {
         return worldRendering;
     }
 
-    void enqueue(
+    public void enqueue(
             @NotNull RenderType renderType,
             @NotNull MeshData mesh,
             @NotNull ByteBufferBuilder allocation,
@@ -69,7 +69,7 @@ public final class MinecraftShaderRenderer {
         draws.addLast(new Draw(renderType, mesh, allocation, modelView, projection, sorting));
     }
 
-    @NotNull RenderTarget sceneTexture() {
+    public @NotNull RenderTarget sceneTexture() {
         TextureTarget texture = sceneTexture;
         if (texture == null) {
             throw new IllegalStateException("Scene texture is unavailable outside deferred world rendering");
@@ -77,7 +77,7 @@ public final class MinecraftShaderRenderer {
         return texture;
     }
 
-    void endFrame() {
+    public void endFrame() {
         worldRendering = false;
         if (draws.isEmpty()) {
             return;
@@ -115,7 +115,7 @@ public final class MinecraftShaderRenderer {
         main.bindWrite(true);
     }
 
-    void close() {
+    public void close() {
         worldRendering = false;
         Draw draw;
         while ((draw = draws.pollFirst()) != null) {
@@ -151,6 +151,10 @@ public final class MinecraftShaderRenderer {
                 GlConst.GL_NEAREST
         );
         GlStateManager._glBindFramebuffer(GlConst.GL_FRAMEBUFFER, source.frameBufferId);
+    }
+
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        return new MinecraftShader(source, this);
     }
 
     private record Draw(
