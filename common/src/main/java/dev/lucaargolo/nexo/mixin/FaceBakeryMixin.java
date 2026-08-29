@@ -81,10 +81,12 @@ public class FaceBakeryMixin {
 
     @Unique
     private static Vector3f nexo$computeEulerRescale(Vector3f euler) {
-        float rx = 1.0F, ry = 1.0F, rz = 1.0F;
-        final float absX = Math.abs(euler.x());
-        final float absY = Math.abs(euler.y());
-        final float absZ = Math.abs(euler.z());
+        float rx = 1.0F;
+        float ry = 1.0F;
+        float rz = 1.0F;
+        float absX = Math.abs(euler.x());
+        float absY = Math.abs(euler.y());
+        float absZ = Math.abs(euler.z());
 
         if (absX > 0.001F) {
             float fac = nexo$rescaleFactor(absX);

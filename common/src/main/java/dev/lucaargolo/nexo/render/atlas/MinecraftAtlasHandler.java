@@ -91,9 +91,9 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
             return;
         }
         Object data = textureData.right();
-        if(data instanceof Location) {
+        if (data instanceof Location) {
             atlasRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<Location>) material);
-        }else if(data instanceof byte[]) {
+        } else if (data instanceof byte[]) {
             atlasEmbeddedRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<byte[]>) material);
         }
     }
@@ -167,14 +167,15 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
         int height = image.getHeight();
 
         LayerMode inferred = LayerMode.SOLID;
+        scan:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 int alpha = image.getLuminanceOrAlpha(x, y) & 0xFF;
 
                 if (alpha > 0 && alpha < 255) {
                     inferred = LayerMode.TRANSLUCENT;
-                    break;
-                }else if(alpha == 0) {
+                    break scan;
+                } else if (alpha == 0) {
                     inferred = LayerMode.CUTOUT;
                 }
             }

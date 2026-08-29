@@ -242,10 +242,7 @@ public class ScreenTest extends SimpleScreen {
         );
     }
 
-    private static void shapeColor(
-            @NotNull Graphics2D graphics,
-            float r, float g, float b, float a
-    ) {
+    private static void shapeColor(@NotNull Graphics2D graphics, float r, float g, float b, float a) {
         Material<?> material = graphics.material();
         if (material == null || material.texture() == null) {
             graphics.color(r, g, b, a);
@@ -376,13 +373,7 @@ public class ScreenTest extends SimpleScreen {
         graphics.drawText(LOCALIZED_TEXT, 10, 70);
 
         graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
-        graphics.fillRoundedRect(
-                unit.mouse().x() - 4.0F,
-                unit.mouse().y() - 4.0F,
-                8.0F,
-                8.0F,
-                2.0F
-        );
+        graphics.fillRoundedRect(unit.mouse().x() - 4.0F, unit.mouse().y() - 4.0F, 8.0F, 8.0F, 2.0F);
 
         ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
         TextureOption texture = TEXTURES.get(textureIndex);

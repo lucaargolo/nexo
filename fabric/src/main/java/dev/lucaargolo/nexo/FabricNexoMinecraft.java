@@ -107,8 +107,7 @@ public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, Fabr
     }
 
     private String getDescriptor(MappingResolver resolver, Class<?> type) {
-        if (type.isArray())
-            return '[' + getDescriptor(resolver, type.getComponentType());
+        if (type.isArray()) return '[' + getDescriptor(resolver, type.getComponentType());
         if (!type.isPrimitive()) {
             return 'L' + resolver.unmapClassName("named", type.getName()).replace('.', '/') + ';';
         }

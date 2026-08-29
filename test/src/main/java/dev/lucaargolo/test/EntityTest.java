@@ -68,8 +68,7 @@ public final class EntityTest {
                 Vector3f camera = graphics.cameraPosition();
                 if (camera.lengthSquared() > 1.0E-6F) {
                     camera.normalize();
-                }
-                else {
+                } else {
                     camera.set(0.0F, 0.0F, 1.0F);
                 }
                 shader.uniform("iCameraDirection", camera.x(), camera.y(), camera.z());
@@ -81,18 +80,14 @@ public final class EntityTest {
                 graphics.scale(4.95F, 4.95F, 4.95F);
                 graphics.bindMaterial(material);
                 graphics.depthMode(DepthMode.ENABLED);
-                drawBlackHoleQuad(graphics);
-                graphics.popMatrix();
-                graphics.popState();
-            }
-
-            private void drawBlackHoleQuad(@NotNull Graphics3D graphics) {
                 graphics.begin(PrimitiveType.QUADS, VertexLayout.POSITION_COLOR_TEX);
                 graphics.vertex(-1.0F, -1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F);
                 graphics.vertex(1.0F, -1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F);
                 graphics.vertex(1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F);
                 graphics.vertex(-1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 1.0F);
                 graphics.end();
+                graphics.popMatrix();
+                graphics.popState();
             }
 
             @Override
@@ -104,11 +99,7 @@ public final class EntityTest {
 
             @Override
             public @NotNull Transform transform(@NotNull Location location) {
-                return new Transform(
-                        new Vector3f(),
-                        new Vector3f(),
-                        new Vector3f(1.0F, 1.0F, 1.0F)
-                );
+                return new Transform(new Vector3f(), new Vector3f(), new Vector3f(1.0F, 1.0F, 1.0F));
             }
         };
     }

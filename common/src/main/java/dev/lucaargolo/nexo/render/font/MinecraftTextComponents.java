@@ -32,14 +32,11 @@ public final class MinecraftTextComponents {
             return List.of(new Text.Run(text.translation().key(), Text.Style.DEFAULT));
         }
         List<Text.Run> result = new ArrayList<>();
-        appendTemplate(nexo, result, Text.parse(translated).runs(), text.translation().arguments());
-        return List.copyOf(result);
-    }
-
-    private static void appendTemplate(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Text.Run> output, @NotNull List<Text.Run> template, @NotNull List<Text> arguments) {
-        for (Text.Run run : template) {
-            appendRunsWithTextArguments(nexo, output, run.text(), run.style(), arguments);
+        List<Text> arguments = text.translation().arguments();
+        for (Text.Run run : Text.parse(translated).runs()) {
+            appendRunsWithTextArguments(nexo, result, run.text(), run.style(), arguments);
         }
+        return List.copyOf(result);
     }
 
     private static void appendRunsWithTextArguments(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Text.Run> output, @NotNull String source, @NotNull Text.Style style, @NotNull List<Text> arguments) {
@@ -58,7 +55,18 @@ public final class MinecraftTextComponents {
             if (close < 0) {
                 break;
             }
-            int index = parseArgumentIndex(source, cursor + 1, close);
+            int index = close == cursor + 1 ? -1 : 0;
+            for (int digit = cursor + 1; index >= 0 && digit < close; digit++) {
+                char character = source.charAt(digit);
+                if (character < '0' || character > '9') {
+                    index = -1;
+                    break;
+                }
+                index = index * 10 + character - '0';
+                if (index > 1000) {
+                    index = -1;
+                }
+            }
             if (index < 0) {
                 cursor = close + 1;
                 continue;
@@ -72,7 +80,7 @@ public final class MinecraftTextComponents {
             cursor = close + 1;
             literalStart = cursor;
         }
-        appendLiteral(output, unescapeBraces(source.substring(literalStart)), style);
+        appendLiteral(output, source.substring(literalStart).replace("{{", "{").replace("}}", "}"), style);
     }
 
     private static void appendLiteral(@NotNull List<Text.Run> output, @NotNull String text, @NotNull Text.Style style) {
@@ -97,28 +105,6 @@ public final class MinecraftTextComponents {
             )));
         }
         return result;
-    }
-
-    private static int parseArgumentIndex(@NotNull String source, int start, int end) {
-        if (start >= end) {
-            return -1;
-        }
-        int value = 0;
-        for (int index = start; index < end; index++) {
-            char character = source.charAt(index);
-            if (character < '0' || character > '9') {
-                return -1;
-            }
-            value = value * 10 + character - '0';
-            if (value > 1000) {
-                return -1;
-            }
-        }
-        return value;
-    }
-
-    private static @NotNull String unescapeBraces(@NotNull String value) {
-        return value.replace("{{", "{").replace("}}", "}");
     }
 
     private static @NotNull Style minecraftStyle(@NotNull Text.Style style) {

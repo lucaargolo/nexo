@@ -38,7 +38,11 @@ public final class FabricNexoBakedModel<M, U> extends NexoBakedModel<M, U> imple
         }
         var finder = renderer.materialFinder();
         for (LayerMode layerMode : LayerMode.values()) {
-            materials.put(layerMode, finder.clear().blendMode(blendMode(layerMode)).find());
+            materials.put(layerMode, finder.clear().blendMode(switch (layerMode) {
+                case SOLID -> BlendMode.SOLID;
+                case CUTOUT -> BlendMode.CUTOUT;
+                case TRANSLUCENT -> BlendMode.TRANSLUCENT;
+            }).find());
         }
     }
 
@@ -68,12 +72,11 @@ public final class FabricNexoBakedModel<M, U> extends NexoBakedModel<M, U> imple
             @NotNull Supplier<RandomSource> randomSupplier,
             @NotNull RenderContext context
     ) {
-        if(model.type == ItemStack.class) {
+        if (model.type == ItemStack.class) {
             emit(bake(model.type.cast(stack)), context);
-        }else {
+        } else {
             super.emitItemQuads(stack, randomSupplier, context);
         }
-
     }
 
     private void emit(@NotNull BakedMinecraftGraphics3D graphics, @NotNull RenderContext context) {
@@ -91,11 +94,4 @@ public final class FabricNexoBakedModel<M, U> extends NexoBakedModel<M, U> imple
         }
     }
 
-    private static @NotNull BlendMode blendMode(@NotNull LayerMode layerMode) {
-        return switch (layerMode) {
-            case SOLID -> BlendMode.SOLID;
-            case CUTOUT -> BlendMode.CUTOUT;
-            case TRANSLUCENT -> BlendMode.TRANSLUCENT;
-        };
-    }
 }

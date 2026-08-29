@@ -37,11 +37,7 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
     }
 
     @Override
-    public @NotNull ChunkRenderTypeSet getRenderTypes(
-            @NotNull BlockState state,
-            @NotNull RandomSource random,
-            @NotNull ModelData data
-    ) {
+    public @NotNull ChunkRenderTypeSet getRenderTypes(@NotNull BlockState state, @NotNull RandomSource random, @NotNull ModelData data) {
         if (model.type != BlockState.class) {
             return super.getRenderTypes(state, random, data);
         }
@@ -52,30 +48,34 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
         }
         List<RenderType> renderTypes = new ArrayList<>(LayerMode.values().length);
         for (LayerMode layerMode : layers) {
-            renderTypes.add(blockRenderType(layerMode));
+            renderTypes.add(switch (layerMode) {
+                case SOLID -> RenderType.solid();
+                case CUTOUT -> RenderType.cutout();
+                case TRANSLUCENT -> RenderType.translucent();
+            });
         }
         return ChunkRenderTypeSet.of(renderTypes);
     }
 
     @Override
-    public @NotNull List<BakedQuad> getQuads(
-            @Nullable BlockState state,
-            @Nullable Direction side,
-            @NotNull RandomSource random,
-            @NotNull ModelData data,
-            @Nullable RenderType renderType
-    ) {
+    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, @NotNull RandomSource random, @NotNull ModelData data, @Nullable RenderType renderType) {
         if (model.type != BlockState.class) {
             return List.of();
         }
-
-
-        BakedMinecraftGraphics3D graphics = bakedByState.computeIfAbsent(state, this::bakeBlock);
+        BakedMinecraftGraphics3D graphics = bakedByState.computeIfAbsent(state, ignored -> bake(state != null ? model.type.cast(state) : model.base));
         if (renderType == null) {
             return graphics.quads(side);
         }
-        LayerMode layer = layerMode(renderType);
-        return layer != null ? graphics.quads(layer, side) : List.of();
+        if (renderType == RenderType.solid()) {
+            return graphics.quads(LayerMode.SOLID, side);
+        }
+        if (renderType == RenderType.cutout()) {
+            return graphics.quads(LayerMode.CUTOUT, side);
+        }
+        if (renderType == RenderType.translucent()) {
+            return graphics.quads(LayerMode.TRANSLUCENT, side);
+        }
+        return List.of();
     }
 
     @Override
@@ -89,15 +89,16 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
                 if (quads.isEmpty()) {
                     continue;
                 }
-                IModelBuilder<?> builder = IModelBuilder.of(
-                        ambientOcclusion,
-                        usesBlockLight(),
-                        isGui3d(),
-                        transforms,
-                        getOverrides(),
-                        particle,
-                        renderTypeGroup(layerMode)
-                );
+                String name = switch (layerMode) {
+                    case SOLID -> "solid";
+                    case CUTOUT -> "cutout";
+                    case TRANSLUCENT -> "translucent";
+                };
+                RenderTypeGroup group = NamedRenderTypeManager.get(ResourceLocation.withDefaultNamespace(name));
+                if (group.isEmpty()) {
+                    throw new IllegalStateException("Missing NeoForge render type group minecraft:" + name);
+                }
+                IModelBuilder<?> builder = IModelBuilder.of(ambientOcclusion, usesBlockLight(), isGui3d(), transforms, getOverrides(), particle, group);
                 for (BakedQuad quad : quads) {
                     builder.addUnculledFace(quad);
                 }
@@ -109,41 +110,4 @@ public final class NeoForgeNexoBakedModel<M, U> extends NexoBakedModel<M, U> {
         }
     }
 
-    private @NotNull BakedMinecraftGraphics3D bakeBlock(@Nullable BlockState state) {
-        return bake(state != null ? model.type.cast(state) : model.base);
-    }
-
-    private static @NotNull RenderType blockRenderType(@NotNull LayerMode layerMode) {
-        return switch (layerMode) {
-            case SOLID -> RenderType.solid();
-            case CUTOUT -> RenderType.cutout();
-            case TRANSLUCENT -> RenderType.translucent();
-        };
-    }
-
-    private static @Nullable LayerMode layerMode(@NotNull RenderType renderType) {
-        if (renderType == RenderType.solid()) {
-            return LayerMode.SOLID;
-        }
-        if (renderType == RenderType.cutout()) {
-            return LayerMode.CUTOUT;
-        }
-        if (renderType == RenderType.translucent()) {
-            return LayerMode.TRANSLUCENT;
-        }
-        return null;
-    }
-
-    private static @NotNull RenderTypeGroup renderTypeGroup(@NotNull LayerMode layerMode) {
-        String name = switch (layerMode) {
-            case SOLID -> "solid";
-            case CUTOUT -> "cutout";
-            case TRANSLUCENT -> "translucent";
-        };
-        RenderTypeGroup group = NamedRenderTypeManager.get(ResourceLocation.withDefaultNamespace(name));
-        if (group.isEmpty()) {
-            throw new IllegalStateException("Missing NeoForge render type group minecraft:" + name);
-        }
-        return group;
-    }
 }

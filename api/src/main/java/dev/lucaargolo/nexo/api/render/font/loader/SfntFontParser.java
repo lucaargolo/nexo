@@ -109,8 +109,24 @@ public final class SfntFontParser {
 
             int subtableOffset = cmapOffset + Math.toIntExact(relativeOffset);
             int format = readUnsignedShort(data, subtableOffset);
-            int formatScore = formatScore(format);
-            int encodingScore = encodingScore(platform, encoding);
+            int formatScore = switch (format) {
+                case 12 -> 50;
+                case 13 -> 45;
+                case 4 -> 40;
+                case 6 -> 30;
+                case 0 -> 20;
+                default -> -1;
+            };
+            int encodingScore;
+            if (platform == 0) {
+                encodingScore = 20;
+            } else if (platform == 3 && encoding == 10) {
+                encodingScore = 15;
+            } else if (platform == 3 && encoding == 1) {
+                encodingScore = 10;
+            } else {
+                encodingScore = -1;
+            }
             if (formatScore < 0 || encodingScore < 0) {
                 continue;
             }
@@ -130,30 +146,6 @@ public final class SfntFontParser {
             case 13 -> parseFormat12(data, selectedOffset, cmapOffset + cmapLength, true);
             default -> throw new IOException("Font has no supported Unicode cmap subtable");
         };
-    }
-
-    private static int formatScore(int format) {
-        return switch (format) {
-            case 12 -> 50;
-            case 13 -> 45;
-            case 4 -> 40;
-            case 6 -> 30;
-            case 0 -> 20;
-            default -> -1;
-        };
-    }
-
-    private static int encodingScore(int platform, int encoding) {
-        if (platform == 0) {
-            return 20;
-        }
-        if (platform == 3 && encoding == 10) {
-            return 15;
-        }
-        if (platform == 3 && encoding == 1) {
-            return 10;
-        }
-        return -1;
     }
 
     private static int @NotNull [] parseFormat0(byte @NotNull [] data, int offset, int tableEnd) throws IOException {

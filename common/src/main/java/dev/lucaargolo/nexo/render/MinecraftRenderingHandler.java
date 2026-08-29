@@ -144,25 +144,24 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
 
     protected ItemRenderer createItemRenderer(NexoMinecraft<N, ?, ?, ?> nexo, ItemBase base) {
         Renderer<Graphics3D, ItemUnit<?>> renderer = base.renderer();
-        if(renderer == null) {
+        if (renderer == null) {
             return ItemRenderer.EMPTY;
-        }else{
-            return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-                DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
-                try {
-                    renderer.render(graphics, nexo.stackToUnit(stack));
-                } finally {
-                    graphics.finish();
-                }
-            };
         }
+        return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
+            DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
+            try {
+                renderer.render(graphics, nexo.stackToUnit(stack));
+            } finally {
+                graphics.finish();
+            }
+        };
     }
 
     protected abstract void registerBlockRenderer(BlockBase block);
 
     protected <T extends BlockEntity> void registerBlockRenderer(BlockEntityType<T> type, BlockBase base, BiConsumer<BlockEntityType<T>, BlockEntityRendererProvider<T>> registrar) {
         Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
-        if(renderer != null) {
+        if (renderer != null) {
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
                 DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, poseStack, bufferSource, packedLight, packedOverlay);
                 try {
@@ -178,9 +177,9 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
 
     protected <T extends Entity> void registerEntityRenderer(EntityType<T> type, EntityBase base, BiConsumer<EntityType<T>, EntityRendererProvider<T>> registrar) {
         Renderer<Graphics3D, EntityUnit<?>> renderer = base.renderer();
-        if(renderer == null) {
+        if (renderer == null) {
             registrar.accept(type, NoopRenderer::new);
-        }else{
+        } else {
             registrar.accept(type, pContext -> new EntityRenderer<>(pContext) {
                 @Override
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {

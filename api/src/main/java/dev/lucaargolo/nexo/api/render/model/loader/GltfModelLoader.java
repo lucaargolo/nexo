@@ -50,7 +50,14 @@ public final class GltfModelLoader implements ModelLoader {
         if (!(asset instanceof GltfAssetV2)) {
             throw new IllegalArgumentException("Only glTF 2.0 assets are supported");
         }
-        resolveReferences(nexo, path, asset);
+        for (GltfReference reference : asset.getReferences()) {
+            Location resource = ModelResources.resolve(path, reference.getUri());
+            byte[] referencedData = nexo.loadResource(resource);
+            if (referencedData == null) {
+                throw new IllegalArgumentException("Missing glTF " + reference.getName() + ": " + resource);
+            }
+            reference.getTarget().accept(ByteBuffer.wrap(referencedData).order(ByteOrder.LITTLE_ENDIAN));
+        }
         GltfModel gltf = GltfModels.create(asset);
 
         IdentityHashMap<MaterialModel, String> materialKeys = new IdentityHashMap<>();
@@ -67,21 +74,6 @@ public final class GltfModelLoader implements ModelLoader {
             throw new IllegalArgumentException("glTF contains no renderable mesh primitives");
         }
         return new Model(data, meshes, materials, Map.of(), true);
-    }
-
-    private static void resolveReferences(
-            @NotNull Nexo nexo,
-            @NotNull Location modelPath,
-            @NotNull GltfAsset asset
-    ) {
-        for (GltfReference reference : asset.getReferences()) {
-            Location resource = ModelResources.resolve(modelPath, reference.getUri());
-            byte[] referencedData = nexo.loadResource(resource);
-            if (referencedData == null) {
-                throw new IllegalArgumentException("Missing glTF " + reference.getName() + ": " + resource);
-            }
-            reference.getTarget().accept(ByteBuffer.wrap(referencedData).order(ByteOrder.LITTLE_ENDIAN));
-        }
     }
 
     private static @NotNull List<NodeModel> sceneNodes(@NotNull GltfAsset asset, @NotNull GltfModel model) {
@@ -127,7 +119,14 @@ public final class GltfModelLoader implements ModelLoader {
             MaterialModel material = source.get(i);
             String name = material.getName() == null || material.getName().isBlank()
                     ? "material_" + i
-                    : uniqueName(result, material.getName());
+                    : material.getName();
+            if (result.containsKey(name)) {
+                int suffix = 2;
+                while (result.containsKey(name + "_" + suffix)) {
+                    suffix++;
+                }
+                name += "_" + suffix;
+            }
             materialKeys.put(material, name);
             if (material instanceof MaterialModelV2 pbr) {
                 Pair<Location, ?> texture = textureLocation(modelPath, pbr.getBaseColorTexture(), gltf, imageLocations);
@@ -150,17 +149,6 @@ public final class GltfModelLoader implements ModelLoader {
         }
         result.putIfAbsent(DEFAULT_MATERIAL, Material.untextured());
         return result;
-    }
-
-    private static @NotNull String uniqueName(@NotNull Map<String, ?> values, @NotNull String requested) {
-        if (!values.containsKey(requested)) {
-            return requested;
-        }
-        int suffix = 2;
-        while (values.containsKey(requested + "_" + suffix)) {
-            suffix++;
-        }
-        return requested + "_" + suffix;
     }
 
     private static @Nullable Pair<Location, ?> textureLocation(
@@ -219,14 +207,88 @@ public final class GltfModelLoader implements ModelLoader {
         if (positions == null) {
             throw new IllegalArgumentException("glTF mesh primitive has no POSITION attribute");
         }
-        int[] indices = indices(primitive, positions.getCount());
-        Topology topology = topology(primitive.getMode(), indices);
-        int[] expanded = topology.indices();
+        AccessorModel indexAccessor = primitive.getIndices();
+        int[] indices;
+        if (indexAccessor == null) {
+            indices = new int[positions.getCount()];
+            for (int i = 0; i < indices.length; i++) {
+                indices[i] = i;
+            }
+        } else {
+            AccessorData indexData = indexAccessor.getAccessorData();
+            ByteBuffer indexBuffer = indexData.createByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
+            indices = new int[indexAccessor.getCount()];
+            for (int i = 0; i < indices.length; i++) {
+                indices[i] = switch (indexAccessor.getComponentType()) {
+                    case 5121 -> Byte.toUnsignedInt(indexBuffer.get(i));
+                    case 5123 -> Short.toUnsignedInt(indexBuffer.getShort(i * Short.BYTES));
+                    case 5125 -> indexBuffer.getInt(i * Integer.BYTES);
+                    default -> throw new IllegalArgumentException("Unsupported glTF index component type: " + indexAccessor.getComponentType());
+                };
+            }
+        }
+        PrimitiveType primitiveType;
+        int[] expanded;
+        switch (primitive.getMode()) {
+            case 0 -> {
+                primitiveType = PrimitiveType.POINTS;
+                expanded = indices;
+            }
+            case 1 -> {
+                primitiveType = PrimitiveType.LINES;
+                expanded = indices;
+            }
+            case 2 -> {
+                primitiveType = PrimitiveType.LINE_LOOP;
+                expanded = indices;
+            }
+            case 3 -> {
+                primitiveType = PrimitiveType.LINE_STRIP;
+                expanded = indices;
+            }
+            case 4 -> {
+                primitiveType = PrimitiveType.TRIANGLES;
+                expanded = indices;
+            }
+            case 5 -> {
+                primitiveType = PrimitiveType.TRIANGLES;
+                if (indices.length < 3) {
+                    expanded = new int[0];
+                } else {
+                    expanded = new int[(indices.length - 2) * 3];
+                    for (int i = 2; i < indices.length; i++) {
+                        int offset = (i - 2) * 3;
+                        expanded[offset] = indices[(i & 1) == 0 ? i - 2 : i - 1];
+                        expanded[offset + 1] = indices[(i & 1) == 0 ? i - 1 : i - 2];
+                        expanded[offset + 2] = indices[i];
+                    }
+                }
+            }
+            case 6 -> {
+                primitiveType = PrimitiveType.TRIANGLES;
+                if (indices.length < 3) {
+                    expanded = new int[0];
+                } else {
+                    expanded = new int[(indices.length - 2) * 3];
+                    for (int i = 2; i < indices.length; i++) {
+                        int offset = (i - 2) * 3;
+                        expanded[offset] = indices[0];
+                        expanded[offset + 1] = indices[i - 1];
+                        expanded[offset + 2] = indices[i];
+                    }
+                }
+            }
+            default -> throw new IllegalArgumentException("Unsupported glTF primitive mode: " + primitive.getMode());
+        }
         if (expanded.length == 0) {
             return null;
         }
 
-        AccessorModel texCoords = textureCoordinates(primitive);
+        int textureSet = 0;
+        if (primitive.getMaterialModel() instanceof MaterialModelV2 pbr && pbr.getBaseColorTexcoord() != null) {
+            textureSet = pbr.getBaseColorTexcoord();
+        }
+        AccessorModel texCoords = primitive.getAttributes().get("TEXCOORD_" + textureSet);
         AccessorModel colors = primitive.getAttributes().get("COLOR_0");
         AccessorModel normals = primitive.getAttributes().get("NORMAL");
         validateAttribute("POSITION", positions, positions.getCount(), 3, 3);
@@ -237,7 +299,30 @@ public final class GltfModelLoader implements ModelLoader {
         FloatAccessor textureData = texCoords == null ? null : new FloatAccessor(texCoords);
         FloatAccessor colorData = colors == null ? null : new FloatAccessor(colors);
         FloatAccessor normalData = normals == null ? null : new FloatAccessor(normals);
-        List<MorphTarget> morphTargets = createMorphTargets(weights, primitive.getTargets(), positions.getCount());
+        List<MorphTarget> morphTargets;
+        if (weights == null) {
+            morphTargets = List.of();
+        } else {
+            List<MorphTarget> targets = new ArrayList<>();
+            int targetCount = Math.min(weights.length, primitive.getTargets().size());
+            for (int i = 0; i < targetCount; i++) {
+                float weight = weights[i];
+                if (weight == 0.0F) {
+                    continue;
+                }
+                Map<String, AccessorModel> target = primitive.getTargets().get(i);
+                AccessorModel targetPositions = target.get("POSITION");
+                AccessorModel targetNormals = target.get("NORMAL");
+                validateAttribute("morph POSITION", targetPositions, positions.getCount(), 3, 3);
+                validateAttribute("morph NORMAL", targetNormals, positions.getCount(), 3, 3);
+                targets.add(new MorphTarget(
+                        weight,
+                        targetPositions == null ? null : new FloatAccessor(targetPositions),
+                        targetNormals == null ? null : new FloatAccessor(targetNormals)
+                ));
+            }
+            morphTargets = List.copyOf(targets);
+        }
 
         float[] vertices = new float[expanded.length * Mesh.VERTEX_STRIDE];
         for (int output = 0; output < expanded.length; output++) {
@@ -245,9 +330,16 @@ public final class GltfModelLoader implements ModelLoader {
             int offset = output * Mesh.VERTEX_STRIDE;
             Vector3f position = positionData.vector3(source);
             Vector3f normal = normalData == null
-                    ? topology.type() == PrimitiveType.TRIANGLES ? new Vector3f() : new Vector3f(0, 1, 0)
+                    ? primitiveType == PrimitiveType.TRIANGLES ? new Vector3f() : new Vector3f(0, 1, 0)
                     : normalData.vector3(source);
-            applyMorphTargets(position, normal, source, morphTargets);
+            for (MorphTarget target : morphTargets) {
+                if (target.positions() != null) {
+                    position.fma(target.weight(), target.positions().vector3(source));
+                }
+                if (target.normals() != null) {
+                    normal.fma(target.weight(), target.normals().vector3(source));
+                }
+            }
             transform.transformPosition(position);
             if (normalData != null) {
                 normalTransform.transform(normal).normalize();
@@ -259,15 +351,33 @@ public final class GltfModelLoader implements ModelLoader {
             vertices[offset + 3] = colorData == null ? 1.0F : colorData.get(source, 0);
             vertices[offset + 4] = colorData == null ? 1.0F : colorData.get(source, 1);
             vertices[offset + 5] = colorData == null ? 1.0F : colorData.get(source, 2);
-            vertices[offset + 6] = colorData == null || colorData.components() < 4 ? 1.0F : colorData.get(source, 3);
+            vertices[offset + 6] = colorData == null || colorData.components < 4 ? 1.0F : colorData.get(source, 3);
             vertices[offset + 7] = textureData == null ? 0.0F : textureData.get(source, 0);
             vertices[offset + 8] = textureData == null ? 0.0F : textureData.get(source, 1);
             vertices[offset + 9] = normal.x;
             vertices[offset + 10] = normal.y;
             vertices[offset + 11] = normal.z;
         }
-        if (normalData == null && topology.type() == PrimitiveType.TRIANGLES) {
-            generateNormals(vertices);
+        if (normalData == null && primitiveType == PrimitiveType.TRIANGLES) {
+            for (int offset = 0; offset < vertices.length; offset += Mesh.VERTEX_STRIDE * 3) {
+                Vector3f a = new Vector3f(vertices[offset], vertices[offset + 1], vertices[offset + 2]);
+                int bOffset = offset + Mesh.VERTEX_STRIDE;
+                int cOffset = bOffset + Mesh.VERTEX_STRIDE;
+                Vector3f edgeA = new Vector3f(vertices[bOffset], vertices[bOffset + 1], vertices[bOffset + 2]).sub(a);
+                Vector3f edgeB = new Vector3f(vertices[cOffset], vertices[cOffset + 1], vertices[cOffset + 2]).sub(a);
+                Vector3f generatedNormal = edgeA.cross(edgeB);
+                if (generatedNormal.lengthSquared() == 0.0F) {
+                    generatedNormal.set(0, 1, 0);
+                } else {
+                    generatedNormal.normalize();
+                }
+                for (int vertex = 0; vertex < 3; vertex++) {
+                    int normalOffset = offset + vertex * Mesh.VERTEX_STRIDE + 9;
+                    vertices[normalOffset] = generatedNormal.x;
+                    vertices[normalOffset + 1] = generatedNormal.y;
+                    vertices[normalOffset + 2] = generatedNormal.z;
+                }
+            }
         }
 
         MaterialModel material = primitive.getMaterialModel();
@@ -275,15 +385,7 @@ public final class GltfModelLoader implements ModelLoader {
         if (materialKey == null) {
             throw new IllegalArgumentException("glTF primitive references an unknown material");
         }
-        return new Mesh(topology.type(), materialKey, vertices);
-    }
-
-    private static @Nullable AccessorModel textureCoordinates(@NotNull MeshPrimitiveModel primitive) {
-        int set = 0;
-        if (primitive.getMaterialModel() instanceof MaterialModelV2 pbr && pbr.getBaseColorTexcoord() != null) {
-            set = pbr.getBaseColorTexcoord();
-        }
-        return primitive.getAttributes().get("TEXCOORD_" + set);
+        return new Mesh(primitiveType, materialKey, vertices);
     }
 
     private static void validateAttribute(
@@ -314,159 +416,11 @@ public final class GltfModelLoader implements ModelLoader {
         }
     }
 
-    private static @NotNull List<MorphTarget> createMorphTargets(
-            float @Nullable [] weights,
-            @NotNull List<Map<String, AccessorModel>> targets,
-            int vertexCount
-    ) {
-        if (weights == null) {
-            return List.of();
-        }
-        List<MorphTarget> result = new ArrayList<>();
-        int count = Math.min(weights.length, targets.size());
-        for (int i = 0; i < count; i++) {
-            float weight = weights[i];
-            if (weight == 0.0F) {
-                continue;
-            }
-            AccessorModel positions = targets.get(i).get("POSITION");
-            AccessorModel normals = targets.get(i).get("NORMAL");
-            validateAttribute("morph POSITION", positions, vertexCount, 3, 3);
-            validateAttribute("morph NORMAL", normals, vertexCount, 3, 3);
-            result.add(new MorphTarget(
-                    weight,
-                    positions == null ? null : new FloatAccessor(positions),
-                    normals == null ? null : new FloatAccessor(normals)
-            ));
-        }
-        return List.copyOf(result);
-    }
-
-    private static void applyMorphTargets(
-            @NotNull Vector3f position,
-            @NotNull Vector3f normal,
-            int vertex,
-            @NotNull List<MorphTarget> targets
-    ) {
-        for (MorphTarget target : targets) {
-            if (target.positions() != null) {
-                position.fma(target.weight(), target.positions().vector3(vertex));
-            }
-            if (target.normals() != null) {
-                normal.fma(target.weight(), target.normals().vector3(vertex));
-            }
-        }
-    }
-
-    private static int @NotNull [] indices(@NotNull MeshPrimitiveModel primitive, int vertexCount) {
-        AccessorModel accessor = primitive.getIndices();
-        if (accessor == null) {
-            int[] result = new int[vertexCount];
-            for (int i = 0; i < result.length; i++) {
-                result[i] = i;
-            }
-            return result;
-        }
-        AccessorData data = accessor.getAccessorData();
-        ByteBuffer buffer = data.createByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
-        int[] result = new int[accessor.getCount()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = switch (accessor.getComponentType()) {
-                case 5121 -> Byte.toUnsignedInt(buffer.get(i));
-                case 5123 -> Short.toUnsignedInt(buffer.getShort(i * Short.BYTES));
-                case 5125 -> buffer.getInt(i * Integer.BYTES);
-                default -> throw new IllegalArgumentException("Unsupported glTF index component type: " + accessor.getComponentType());
-            };
-        }
-        return result;
-    }
-
-    private static @NotNull Topology topology(int mode, int @NotNull [] indices) {
-        return switch (mode) {
-            case 0 -> new Topology(PrimitiveType.POINTS, indices);
-            case 1 -> new Topology(PrimitiveType.LINES, indices);
-            case 2 -> new Topology(PrimitiveType.LINE_LOOP, indices);
-            case 3 -> new Topology(PrimitiveType.LINE_STRIP, indices);
-            case 4 -> new Topology(PrimitiveType.TRIANGLES, indices);
-            case 5 -> new Topology(PrimitiveType.TRIANGLES, triangleStrip(indices));
-            case 6 -> new Topology(PrimitiveType.TRIANGLES, triangleFan(indices));
-            default -> throw new IllegalArgumentException("Unsupported glTF primitive mode: " + mode);
-        };
-    }
-
-    private static int @NotNull [] triangleStrip(int @NotNull [] indices) {
-        if (indices.length < 3) {
-            return new int[0];
-        }
-        int[] result = new int[(indices.length - 2) * 3];
-        for (int i = 2; i < indices.length; i++) {
-            int offset = (i - 2) * 3;
-            result[offset] = indices[(i & 1) == 0 ? i - 2 : i - 1];
-            result[offset + 1] = indices[(i & 1) == 0 ? i - 1 : i - 2];
-            result[offset + 2] = indices[i];
-        }
-        return result;
-    }
-
-    private static int @NotNull [] triangleFan(int @NotNull [] indices) {
-        if (indices.length < 3) {
-            return new int[0];
-        }
-        int[] result = new int[(indices.length - 2) * 3];
-        for (int i = 2; i < indices.length; i++) {
-            int offset = (i - 2) * 3;
-            result[offset] = indices[0];
-            result[offset + 1] = indices[i - 1];
-            result[offset + 2] = indices[i];
-        }
-        return result;
-    }
-
-    private static void generateNormals(float @NotNull [] vertices) {
-        for (int offset = 0; offset < vertices.length; offset += Mesh.VERTEX_STRIDE * 3) {
-            Vector3f a = new Vector3f(vertices[offset], vertices[offset + 1], vertices[offset + 2]);
-            int bOffset = offset + Mesh.VERTEX_STRIDE;
-            int cOffset = bOffset + Mesh.VERTEX_STRIDE;
-            Vector3f edgeA = new Vector3f(vertices[bOffset], vertices[bOffset + 1], vertices[bOffset + 2]).sub(a);
-            Vector3f edgeB = new Vector3f(vertices[cOffset], vertices[cOffset + 1], vertices[cOffset + 2]).sub(a);
-            Vector3f normal = edgeA.cross(edgeB);
-            if (normal.lengthSquared() == 0.0F) {
-                normal.set(0, 1, 0);
-            } else {
-                normal.normalize();
-            }
-            for (int vertex = 0; vertex < 3; vertex++) {
-                int normalOffset = offset + vertex * Mesh.VERTEX_STRIDE + 9;
-                vertices[normalOffset] = normal.x;
-                vertices[normalOffset + 1] = normal.y;
-                vertices[normalOffset + 2] = normal.z;
-            }
-        }
-    }
-
     private record MorphTarget(
             float weight,
             @Nullable FloatAccessor positions,
             @Nullable FloatAccessor normals
     ) {
-    }
-
-    private static final class Topology {
-        private final @NotNull PrimitiveType type;
-        private final int @NotNull [] indices;
-
-        Topology(@NotNull PrimitiveType type, int @NotNull [] indices) {
-            this.type = type;
-            this.indices = indices;
-        }
-
-        @NotNull PrimitiveType type() {
-            return type;
-        }
-
-        int @NotNull [] indices() {
-            return indices;
-        }
     }
 
     private static final class FloatAccessor {
@@ -481,10 +435,6 @@ public final class GltfModelLoader implements ModelLoader {
             this.data = accessor.getAccessorData().createByteBuffer().order(ByteOrder.LITTLE_ENDIAN);
             this.components = accessor.getElementType().getNumComponents();
             this.componentSize = accessor.getComponentSizeInBytes();
-        }
-
-        int components() {
-            return components;
         }
 
         float get(int element, int component) {

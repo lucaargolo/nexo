@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
-import net.fabricmc.fabric.api.event.registry.DynamicRegistryView;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
@@ -63,7 +62,15 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     public void init() {
         super.init();
         DynamicRegistrySetupCallback.EVENT.register(view -> {
-            MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(view, type));
+            MinecraftFeatureType.all().forEach(type -> {
+                Class<MinecraftFeatureType<?, ?, Object>> featureTypeClass = Nexo.type(MinecraftFeatureType.class);
+                MinecraftFeatureType<?, ?, Object> typedType = featureTypeClass.cast(type);
+                view.registerEntryAdded(typedType.registry(), (raw, id, value) -> {
+                Holder.Reference<Object> holder = view.getOptional(typedType.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), typedType.index(this.nexo(), holder)));
+                dynamicHolders.put(holder.key(), holder);
+                });
+            });
             dynamicRegistrars.forEach((key, registrar) -> {
                 view.getOptional(key.registryKey()).ifPresent(registrar);
             });
@@ -108,7 +115,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         Component title = Component.translatable(category.languageKey());
         return FabricItemGroup.builder().title(title).displayItems((parameters, output) -> {
             MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
-               output.accept(MinecraftFeatureType.ITEM.convert(item));
+                output.accept(MinecraftFeatureType.ITEM.convert(item));
             });
         }).build();
     }
@@ -127,14 +134,6 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         });
     }
 
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
-        view.registerEntryAdded(type.registry(), (raw, id, value) -> {
-            Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), type.index(this.nexo(), holder)));
-            dynamicHolders.put(holder.key(), holder);
-        });
-    }
-
     private void emitFeatureRegistered(FeatureRegisteredEvent event) {
         if (featureRegistrationActive) {
             pendingFeatureEvents.add(event);
@@ -142,7 +141,6 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
             this.nexo().emit(event);
         }
     }
-
 
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);

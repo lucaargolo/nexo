@@ -23,7 +23,7 @@ import org.joml.Vector3f;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+
 import java.util.function.Function;
 
 public final class NexoUnbakedModel<M, U> implements UnbakedModel {
@@ -79,7 +79,8 @@ public final class NexoUnbakedModel<M, U> implements UnbakedModel {
             @NotNull Renderer<?, ?> renderer,
             @NotNull Function<Material, TextureAtlasSprite> textureGetter
     ) {
-        Location location = Optional.ofNullable(renderer.material("particle")).map(mat -> mat.location()).orElse(null);
+        dev.lucaargolo.nexo.api.render.Material<?> particle = renderer.material("particle");
+        Location location = particle == null ? null : particle.location();
         return textureGetter.apply(new Material(InventoryMenu.BLOCK_ATLAS, location == null ? MissingTextureAtlasSprite.getLocation() : NexoMinecraft.rl(location)));
     }
 

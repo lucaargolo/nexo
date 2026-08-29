@@ -27,7 +27,15 @@ public final class Mesh {
                     "Mesh data must contain a non-empty multiple of " + VERTEX_STRIDE + " floats"
             );
         }
-        validateVertexCount(primitiveType, vertices.length / VERTEX_STRIDE);
+        int count = vertices.length / VERTEX_STRIDE;
+        switch (primitiveType) {
+            case QUADS -> requireMultiple(primitiveType, count, 4);
+            case TRIANGLES -> requireMultiple(primitiveType, count, 3);
+            case LINES -> requireMultiple(primitiveType, count, 2);
+            case TRIANGLE_STRIP, TRIANGLE_FAN -> requireMinimum(primitiveType, count, 3);
+            case LINE_STRIP, LINE_LOOP -> requireMinimum(primitiveType, count, 2);
+            case POINTS -> requireMinimum(primitiveType, count, 1);
+        }
         this.vertices = vertices.clone();
     }
 
@@ -49,17 +57,6 @@ public final class Mesh {
 
     float @NotNull [] vertexData() {
         return vertices;
-    }
-
-    private static void validateVertexCount(@NotNull PrimitiveType type, int count) {
-        switch (type) {
-            case QUADS -> requireMultiple(type, count, 4);
-            case TRIANGLES -> requireMultiple(type, count, 3);
-            case LINES -> requireMultiple(type, count, 2);
-            case TRIANGLE_STRIP, TRIANGLE_FAN -> requireMinimum(type, count, 3);
-            case LINE_STRIP, LINE_LOOP -> requireMinimum(type, count, 2);
-            case POINTS -> requireMinimum(type, count, 1);
-        }
     }
 
     private static void requireMultiple(@NotNull PrimitiveType type, int count, int multiple) {

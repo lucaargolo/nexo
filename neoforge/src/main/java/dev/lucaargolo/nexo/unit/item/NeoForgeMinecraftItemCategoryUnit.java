@@ -12,12 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class NeoForgeMinecraftItemCategoryUnit<C extends Role> extends MinecraftItemCategoryUnit<NeoForgeNexoMinecraft, C> {
 
-    public NeoForgeMinecraftItemCategoryUnit(
-            @NotNull NeoForgeNexoMinecraft nexo,
-            @NotNull ItemCategoryBase feature,
-            @Nullable C role,
-            @NotNull CreativeModeTab tab
-    ) {
+    public NeoForgeMinecraftItemCategoryUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull ItemCategoryBase feature, @Nullable C role, @NotNull CreativeModeTab tab) {
         super(nexo, feature, role, tab);
         nexo.modBus().addListener(BuildCreativeModeTabContentsEvent.class, event -> {
             if (event.getTab() == tab) {

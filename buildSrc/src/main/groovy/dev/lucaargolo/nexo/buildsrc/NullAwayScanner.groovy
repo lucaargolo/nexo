@@ -25,10 +25,15 @@ class NullAwayScanner {
 }
 
 class AnnotationCheckVisitor extends ClassVisitor {
-    String nd, nnd, cn, cns
+    String nd
+    String nnd
+    String cn
+    String cns
     Set<String> p
     List<String> err
-    boolean en, rec, ann
+    boolean en
+    boolean rec
+    boolean ann
 
     AnnotationCheckVisitor(String a, String b, Set<String> ps, List<String> e) {
         super(Opcodes.ASM9)
@@ -60,21 +65,13 @@ class AnnotationCheckVisitor extends ClassVisitor {
     MethodVisitor visitMethod(int acc, String name, String desc, String sig, String[] ex) {
         if (name.contains('$') || name == '<clinit>') return null
         if (ann) return null
-        if (en && isEnumSynthetic(name, desc)) return null
-        if (rec && isRecordSynthetic(name, desc)) return null
+        if (en && ((name == 'values' && desc == "()[L${cns};") ||
+                (name == 'valueOf' && desc == "(Ljava/lang/String;)L${cns};") ||
+                (name == '<init>' && desc == '(Ljava/lang/String;I)V'))) return null
+        if (rec && ((name == 'equals' && desc == '(Ljava/lang/Object;)Z') ||
+                (name == 'hashCode' && desc == '()I') ||
+                (name == 'toString' && desc == '()Ljava/lang/String;'))) return null
         return new MethodAnnotationVisitor(this, name, desc, name == '<init>')
-    }
-
-    boolean isEnumSynthetic(String n, String d) {
-        (n == 'values' && d == "()[L${cns};") ||
-        (n == 'valueOf' && d == "(Ljava/lang/String;)L${cns};") ||
-        (n == '<init>' && d == '(Ljava/lang/String;I)V')
-    }
-
-    boolean isRecordSynthetic(String n, String d) {
-        (n == 'equals' && d == '(Ljava/lang/Object;)Z') ||
-        (n == 'hashCode' && d == '()I') ||
-        (n == 'toString' && d == '()Ljava/lang/String;')
     }
 
     boolean ref(String d) {
@@ -114,13 +111,13 @@ class FieldAnnotationVisitor extends FieldVisitor {
 
 class MethodAnnotationVisitor extends MethodVisitor {
     AnnotationCheckVisitor cv
-    String mn, md
+    String mn
+    String md
     boolean ctor
     boolean retOk
     boolean[] pOk
 
-    MethodAnnotationVisitor(AnnotationCheckVisitor c, String n, String d,
-                            boolean ct) {
+    MethodAnnotationVisitor(AnnotationCheckVisitor c, String n, String d, boolean ct) {
         super(Opcodes.ASM9)
         cv = c
         mn = n
@@ -158,8 +155,7 @@ class MethodAnnotationVisitor extends MethodVisitor {
         def at = Type.getArgumentTypes(md)
         if (!ctor) {
             def rd = md.substring(md.indexOf(')') + 1)
-            if (cv.ref(rd) && rd != 'V' && !retOk)
-                cv.err << "${cv.cn}: return type of '${mn}' missing @Nullable/@NotNull"
+            if (cv.ref(rd) && rd != 'V' && !retOk) cv.err << "${cv.cn}: return type of '${mn}' missing @Nullable/@NotNull"
         }
         // Enum constructors have synthetic (String name, int ordinal) parameters prepended by the
         // compiler. These cannot be annotated by the user, so skip them when checking annotations.

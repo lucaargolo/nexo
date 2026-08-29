@@ -37,21 +37,15 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, 
     public NeoForgeNexoMinecraft(IEventBus modBus) {
         this.modBus = modBus;
         this.modBus.addListener(this::registerPackets);
-        NeoForge.EVENT_BUS.addListener(LanguageLookupEvent.class, this::lookupLanguage);
+        NeoForge.EVENT_BUS.addListener(LanguageLookupEvent.class, event -> event.translation(this.getLanguageHandler().translateNexo(event.key())));
         NeoForge.EVENT_BUS.addListener(LanguageReloadEvent.class, event -> this.getLanguageHandler().select(event.locale()));
         this.init();
         NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> this.tickWorld(event.getLevel()));
     }
 
-    private void lookupLanguage(LanguageLookupEvent event) {
-        event.translation(this.getLanguageHandler().translateNexo(event.key()));
-    }
-
     private void registerPackets(RegisterPayloadHandlersEvent event) {
         event.registrar("1").playBidirectional(MinecraftPacketPayload.TYPE, MinecraftPacketPayload.CODEC, (payload, context) -> {
-            PacketReceiver receiver = context.flow() == PacketFlow.SERVERBOUND
-                    ? this.entityToUnit((ServerPlayer) context.player())
-                    : PacketReceiver.client();
+            PacketReceiver receiver = context.flow() == PacketFlow.SERVERBOUND ? this.entityToUnit((ServerPlayer) context.player()) : PacketReceiver.client();
             this.handleMinecraftPacket(payload, receiver);
         });
     }

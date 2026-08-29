@@ -455,10 +455,6 @@ public final class Utils {
             throw new IllegalArgumentException("No method " + returnType.getTypeName() + " " + memberName + Arrays.toString(parameterTypes) + " exists on " + type.getName());
         }
 
-        private Method findInterfaceMethod(Class<?> type, String memberName, Class<?> returnType, Class<?>[] parameterTypes) {
-            return this.getFoundMethod(type, memberName, returnType, parameterTypes);
-        }
-
         private Method findDeclaredMethod(Class<?> owner, String memberName, Class<?> returnType, Class<?>[] parameterTypes) {
             String runtimeName = nexo.getMapping(owner, memberName, returnType, parameterTypes);
             for (Method method : owner.getDeclaredMethods()) {
@@ -476,7 +472,7 @@ public final class Utils {
                 return method;
             }
             for (Class<?> parent : type.getInterfaces()) {
-                method = findInterfaceMethod(parent, memberName, returnType, parameterTypes);
+                method = getFoundMethod(parent, memberName, returnType, parameterTypes);
                 if (method != null) {
                     return method;
                 }

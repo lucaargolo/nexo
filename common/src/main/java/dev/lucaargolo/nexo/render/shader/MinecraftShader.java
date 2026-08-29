@@ -150,7 +150,7 @@ public final class MinecraftShader implements Shader {
         });
         root.add("samplers", samplers);
         root.add("uniforms", uniforms);
-        return bytes(root.toString());
+        return root.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -399,7 +399,8 @@ public final class MinecraftShader implements Shader {
     }
 
     private static byte @NotNull [] minecraftSource(@NotNull String source) {
-        return bytes(VERSION.matcher(source).find() ? source : "#version 150\n\n" + source);
+        String resolved = VERSION.matcher(source).find() ? source : "#version 150\n\n" + source;
+        return resolved.getBytes(StandardCharsets.UTF_8);
     }
 
     private static @NotNull String mapVertexAttributes(@NotNull String source) {
@@ -408,10 +409,6 @@ public final class MinecraftShader implements Shader {
             mapped = mapped.replaceAll("\\b" + Pattern.quote(attribute.getKey()) + "\\b", attribute.getValue());
         }
         return mapped;
-    }
-
-    private static byte @NotNull [] bytes(@NotNull String value) {
-        return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @FunctionalInterface

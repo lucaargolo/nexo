@@ -68,14 +68,6 @@ public final class Material<T> {
         this(new Pair<>(location, texture), color, cullMode, blendMode, layerMode);
     }
 
-    private Material(@NotNull Location location, @NotNull T texture) {
-        this(location, texture, new float[]{1.0F, 1.0F, 1.0F, 1.0F}, CullMode.BACK, BlendMode.DISABLED);
-    }
-
-    private Material() {
-        this(null, new float[]{1.0F, 1.0F, 1.0F, 1.0F}, CullMode.BACK, BlendMode.DISABLED);
-    }
-
     public @Nullable Pair<Location, T> texture() {
         return texture;
     }
@@ -203,11 +195,11 @@ public final class Material<T> {
     }
 
     public static @NotNull Material<Location> of(@NotNull Location location) {
-        return new Material<>(location, location);
+        return new Material<>(location, location, new float[]{1.0F, 1.0F, 1.0F, 1.0F}, CullMode.BACK, BlendMode.DISABLED);
     }
 
     public static @NotNull Material<Void> untextured() {
-        return new Material<>();
+        return new Material<>(null, new float[]{1.0F, 1.0F, 1.0F, 1.0F}, CullMode.BACK, BlendMode.DISABLED);
     }
 
 }

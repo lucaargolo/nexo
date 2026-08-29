@@ -54,7 +54,7 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
     }
 
     private @NotNull CompiledModel compiled() {
-        if(compiled == null) {
+        if (compiled == null) {
             Model model = this.resource.model();
             List<DrawCall<Graphics3D>> calls = new ArrayList<>(model.meshes().size());
             for (Mesh mesh : model.meshes()) {
@@ -62,33 +62,31 @@ public final class ModelRenderer<U> implements StaticRenderer<Graphics3D, U> {
                 if (material == null) {
                     throw new IllegalArgumentException("Mesh references unknown material '" + mesh.material() + "'");
                 }
-                calls.add(graphics -> renderMesh(graphics, mesh, material));
+                calls.add(graphics -> {
+                    graphics.pushState();
+                    graphics.bindMaterial(material);
+                    PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS ? PrimitiveType.LINES : mesh.primitiveType();
+                    graphics.begin(primitive, VertexLayout.POSITION_COLOR_TEX_NORMAL);
+                    float[] data = mesh.vertexData();
+                    for (int offset = 0; offset < data.length; offset += Mesh.VERTEX_STRIDE) {
+                        if (mesh.primitiveType() == PrimitiveType.POINTS) {
+                            vertex(graphics, data, offset, -POINT_RADIUS, 0, 0);
+                            vertex(graphics, data, offset, POINT_RADIUS, 0, 0);
+                            vertex(graphics, data, offset, 0, -POINT_RADIUS, 0);
+                            vertex(graphics, data, offset, 0, POINT_RADIUS, 0);
+                            vertex(graphics, data, offset, 0, 0, -POINT_RADIUS);
+                            vertex(graphics, data, offset, 0, 0, POINT_RADIUS);
+                        } else {
+                            vertex(graphics, data, offset, 0, 0, 0);
+                        }
+                    }
+                    graphics.end();
+                    graphics.popState();
+                });
             }
             compiled = new CompiledModel(calls, model.materials(), model.transforms(), model.shade());
         }
         return compiled;
-    }
-
-    private static void renderMesh(@NotNull Graphics3D graphics, @NotNull Mesh mesh, @NotNull Material<?> material) {
-        graphics.pushState();
-        graphics.bindMaterial(material);
-        PrimitiveType primitive = mesh.primitiveType() == PrimitiveType.POINTS ? PrimitiveType.LINES : mesh.primitiveType();
-        graphics.begin(primitive, VertexLayout.POSITION_COLOR_TEX_NORMAL);
-        float[] data = mesh.vertexData();
-        for (int offset = 0; offset < data.length; offset += Mesh.VERTEX_STRIDE) {
-            if (mesh.primitiveType() == PrimitiveType.POINTS) {
-                vertex(graphics, data, offset, -POINT_RADIUS, 0, 0);
-                vertex(graphics, data, offset, POINT_RADIUS, 0, 0);
-                vertex(graphics, data, offset, 0, -POINT_RADIUS, 0);
-                vertex(graphics, data, offset, 0, POINT_RADIUS, 0);
-                vertex(graphics, data, offset, 0, 0, -POINT_RADIUS);
-                vertex(graphics, data, offset, 0, 0, POINT_RADIUS);
-            } else {
-                vertex(graphics, data, offset, 0, 0, 0);
-            }
-        }
-        graphics.end();
-        graphics.popState();
     }
 
     private static void vertex(@NotNull Graphics3D graphics, float @NotNull [] data, int offset, float x, float y, float z) {

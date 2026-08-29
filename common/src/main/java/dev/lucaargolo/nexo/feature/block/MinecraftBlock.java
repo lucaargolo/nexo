@@ -136,7 +136,7 @@ public class MinecraftBlock extends BlockBase {
         ResourceLocation id = NexoMinecraft.rl(block.location());
         FEATURE_MAP.put(block.location(), block);
         nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(nexo, block));
-        if(isDynamicBlock(block)) {
+        if (isDynamicBlock(block)) {
             Holder<BlockEntityType<?>> holder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
                 BlockEntityType.BlockEntitySupplier<?> supplier = ENTITY_MAP.get(block.location());
                 return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
@@ -183,7 +183,7 @@ public class MinecraftBlock extends BlockBase {
                 case SUCCESS -> InteractionResult.SUCCESS;
             };
         });
-        if(isDynamicBlock(block)) {
+        if (isDynamicBlock(block)) {
             extender.implement(EntityBlock.class, feature -> new EntityBlock() {
                 @Nullable
                 private BlockEntityType<?> blockEntityType;

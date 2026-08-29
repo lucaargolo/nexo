@@ -41,9 +41,9 @@ public final class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impleme
         DataComponentType<D> component = find(data);
         if (value == null) {
             stack.remove(component);
-        } else {
-            stack.set(component, value);
+            return;
         }
+        stack.set(component, value);
     }
 
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {

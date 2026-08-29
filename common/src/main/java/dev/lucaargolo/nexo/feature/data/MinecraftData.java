@@ -81,12 +81,11 @@ public class MinecraftData<D> extends DataBase<D> {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
-        } else {
-            JsonObject json = new JsonObject();
-            ByteBuffer encoded = Base64.getEncoder().encode(this.write(value));
-            json.addProperty("data", StandardCharsets.UTF_8.decode(encoded).toString());
-            return json;
         }
+        JsonObject json = new JsonObject();
+        ByteBuffer encoded = Base64.getEncoder().encode(this.write(value));
+        json.addProperty("data", StandardCharsets.UTF_8.decode(encoded).toString());
+        return json;
     }
 
     @Override
@@ -94,12 +93,11 @@ public class MinecraftData<D> extends DataBase<D> {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
             return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
-        } else {
-            JsonObject json = element.getAsJsonObject();
-            String encoded = json.getAsJsonPrimitive("data").getAsString();
-            byte[] decoded = Base64.getDecoder().decode(encoded);
-            return this.read(ByteBuffer.wrap(decoded));
         }
+        JsonObject json = element.getAsJsonObject();
+        String encoded = json.getAsJsonPrimitive("data").getAsString();
+        byte[] decoded = Base64.getDecoder().decode(encoded);
+        return this.read(ByteBuffer.wrap(decoded));
     }
 
     private @NotNull DataComponentType<D> componentType() {

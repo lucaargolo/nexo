@@ -299,9 +299,8 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         }
         if (event.cancelable() && cancel) {
             return null;
-        } else {
-            return event.value();
         }
+        return event.value();
     }
 
     //TODO: Cache these

@@ -138,8 +138,8 @@ public final class MinecraftLanguageHandler implements Language {
         if (NexoMinecraft.MOD_ID.equals(mod.value())) {
             return;
         }
-        for (String path : paths(locale)) {
-            Location location = Location.of(mod.value(), path);
+        for (String template : PATHS) {
+            Location location = Location.of(mod.value(), String.format(Locale.ROOT, template, locale));
             byte[] data = nexo.loadResource(location);
             if (data == null) {
                 continue;
@@ -153,14 +153,6 @@ public final class MinecraftLanguageHandler implements Language {
             }
             break;
         }
-    }
-
-    private static @NotNull List<String> paths(@NotNull String locale) {
-        List<String> paths = new ArrayList<>(PATHS.size());
-        for (String path : PATHS) {
-            paths.add(String.format(Locale.ROOT, path, locale));
-        }
-        return paths;
     }
 
     private static @NotNull List<String> fallbackLocales(@NotNull String locale) {

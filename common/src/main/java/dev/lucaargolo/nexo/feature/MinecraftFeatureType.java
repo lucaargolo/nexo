@@ -276,7 +276,10 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     }
 
     public @NotNull T convert(NexoMinecraft<?, ?, ?, ?> nexo, M feature) {
-        return convert.backward(holder(nexo, feature));
+        RegistryAccess access = nexo.getRegistryHandler().getRegistry();
+        Registry<M> registry = access.registryOrThrow(this.registry);
+        ResourceKey<M> key = registry.getResourceKey(feature).orElseThrow();
+        return convert.backward(registry.getHolderOrThrow(key));
     }
 
     public @NotNull Supplier<M> craft(NexoMinecraft<?, ?, ?, ?> nexo, T feature) {
@@ -300,16 +303,8 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         if (unitCrafter != null) {
             T value = type.cast(feature);
             return unitCrafter.craft(nexo, value, convert(value));
-        }else {
-            return null;
         }
-    }
-
-    private Holder<M> holder(NexoMinecraft<?, ?, ?, ?> nexo, M feature) {
-        RegistryAccess access = nexo.getRegistryHandler().getRegistry();
-        Registry<M> registry = access.registryOrThrow(this.registry);
-        ResourceKey<M> key = registry.getResourceKey(feature).orElseThrow();
-        return registry.getHolderOrThrow(key);
+        return null;
     }
 
     public static <T extends Feature<T, U>, U extends Unit<T, ?>> @NotNull MinecraftFeatureType<T, U, ?> of(Feature.Type<T, U> type) {

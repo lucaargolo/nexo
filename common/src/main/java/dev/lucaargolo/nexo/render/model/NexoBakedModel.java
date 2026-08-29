@@ -48,11 +48,10 @@ public abstract class NexoBakedModel<M, U> implements BakedModel {
             @Nullable Direction side,
             @NotNull RandomSource random
     ) {
-        if(model.type == BlockState.class) {
+        if (model.type == BlockState.class) {
             return bake(state != null ? model.type.cast(state) : model.base).quads(side);
-        } else {
-            return List.of();
         }
+        return List.of();
     }
 
     protected final @NotNull BakedMinecraftGraphics3D bake(@NotNull M value) {

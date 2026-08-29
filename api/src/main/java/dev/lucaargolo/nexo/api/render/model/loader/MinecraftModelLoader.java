@@ -42,14 +42,66 @@ public final class MinecraftModelLoader implements ModelLoader {
         List<Mesh> meshes = List.of();
         for (JsonObject model : chain) {
             if (model.has("elements")) {
-                meshes = parseElements(model.getAsJsonArray("elements"), materials);
+                JsonArray elements = model.getAsJsonArray("elements");
+                Map<String, FloatBuilder> geometry = new LinkedHashMap<>();
+                int directTextureIndex = 0;
+                for (JsonElement element : elements) {
+                    JsonObject object = element.getAsJsonObject();
+                    Vector3f from = parseFloat3(object, "from", 0);
+                    Vector3f to = parseFloat3(object, "to", 0);
+                    Matrix4f transform = parseRotation(object);
+                    JsonObject faces = object.getAsJsonObject("faces");
+                    if (faces == null || faces.isEmpty()) {
+                        throw new JsonParseException("Element has no faces");
+                    }
+                    for (var entry : faces.entrySet()) {
+                        Orientation orientation;
+                        try {
+                            orientation = Orientation.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
+                        } catch (IllegalArgumentException e) {
+                            throw new JsonParseException("Unknown face orientation: " + entry.getKey(), e);
+                        }
+                        JsonObject face = entry.getValue().getAsJsonObject();
+                        JsonElement textureElement = face.get("texture");
+                        if (textureElement == null) {
+                            throw new JsonParseException("Face '" + entry.getKey() + "' is missing 'texture'");
+                        }
+                        String reference = textureElement.getAsString();
+                        String material;
+                        if (reference.startsWith("#")) {
+                            material = reference.substring(1);
+                        } else {
+                            Location texture = parseResourceLocation(reference);
+                            material = "direct_" + directTextureIndex++;
+                            materials.put(material, Material.of(texture));
+                        }
+                        appendFace(geometry.computeIfAbsent(material, ignored -> new FloatBuilder()), from, to, orientation, face, transform);
+                    }
+                }
+                List<Mesh> loadedMeshes = new ArrayList<>(geometry.size());
+                for (var entry : geometry.entrySet()) {
+                    loadedMeshes.add(new Mesh(PrimitiveType.QUADS, entry.getKey(), entry.getValue().toArray()));
+                }
+                meshes = List.copyOf(loadedMeshes);
                 break;
             }
         }
 
         Map<Location, Transform> transforms = new LinkedHashMap<>();
         for (int i = chain.size() - 1; i >= 0; i--) {
-            transforms.putAll(parseDisplay(chain.get(i)));
+            JsonObject display = chain.get(i).has("display")
+                    ? chain.get(i).getAsJsonObject("display")
+                    : chain.get(i).has("transforms") ? chain.get(i).getAsJsonObject("transforms") : null;
+            if (display != null) {
+                for (var entry : display.entrySet()) {
+                    JsonObject value = entry.getValue().getAsJsonObject();
+                    transforms.put(Location.of("minecraft", entry.getKey()), new Transform(
+                            parseFloat3(value, "rotation", 0),
+                            parseFloat3(value, "translation", 0),
+                            parseFloat3(value, "scale", 1)
+                    ));
+                }
+            }
         }
 
         boolean shade = true;
@@ -147,72 +199,6 @@ public final class MinecraftModelLoader implements ModelLoader {
         return resolved;
     }
 
-    private static @NotNull Map<Location, Transform> parseDisplay(@NotNull JsonObject root) {
-        JsonObject display = root.has("display")
-                ? root.getAsJsonObject("display")
-                : root.has("transforms") ? root.getAsJsonObject("transforms") : null;
-        if (display == null) {
-            return Map.of();
-        }
-
-        Map<Location, Transform> transforms = new LinkedHashMap<>();
-        for (var entry : display.entrySet()) {
-            JsonObject value = entry.getValue().getAsJsonObject();
-            transforms.put(Location.of("minecraft", entry.getKey()), new Transform(
-                    parseFloat3(value, "rotation", 0),
-                    parseFloat3(value, "translation", 0),
-                    parseFloat3(value, "scale", 1)
-            ));
-        }
-        return transforms;
-    }
-
-    private static @NotNull List<Mesh> parseElements(
-            @NotNull JsonArray elements,
-            @NotNull Map<String, Material<?>> materials
-    ) {
-        Map<String, FloatBuilder> geometry = new LinkedHashMap<>();
-        int directTextureIndex = 0;
-        for (JsonElement element : elements) {
-            JsonObject object = element.getAsJsonObject();
-            Vector3f from = parseFloat3(object, "from", 0);
-            Vector3f to = parseFloat3(object, "to", 0);
-            Matrix4f transform = parseRotation(object);
-            JsonObject faces = object.getAsJsonObject("faces");
-            if (faces == null || faces.isEmpty()) {
-                throw new JsonParseException("Element has no faces");
-            }
-
-            for (var entry : faces.entrySet()) {
-                Orientation orientation;
-                try {
-                    orientation = Orientation.valueOf(entry.getKey().toUpperCase(Locale.ROOT));
-                } catch (IllegalArgumentException e) {
-                    throw new JsonParseException("Unknown face orientation: " + entry.getKey(), e);
-                }
-                JsonObject face = entry.getValue().getAsJsonObject();
-                JsonElement textureElement = face.get("texture");
-                if (textureElement == null) {
-                    throw new JsonParseException("Face '" + entry.getKey() + "' is missing 'texture'");
-                }
-                String reference = textureElement.getAsString();
-                String material;
-                if (reference.startsWith("#")) {
-                    material = reference.substring(1);
-                } else {
-                    Location texture = parseResourceLocation(reference);
-                    material = "direct_" + directTextureIndex++;
-                    materials.put(material, Material.of(texture));
-                }
-                appendFace(geometry.computeIfAbsent(material, ignored -> new FloatBuilder()), from, to, orientation, face, transform);
-            }
-        }
-
-        List<Mesh> meshes = new ArrayList<>(geometry.size());
-        geometry.forEach((material, vertices) -> meshes.add(new Mesh(PrimitiveType.QUADS, material, vertices.toArray())));
-        return List.copyOf(meshes);
-    }
-
     private static void appendFace(
             @NotNull FloatBuilder target,
             @NotNull Vector3f from,
@@ -227,8 +213,34 @@ public final class MinecraftModelLoader implements ModelLoader {
         float x1 = to.x / 16.0F;
         float y1 = to.y / 16.0F;
         float z1 = to.z / 16.0F;
-        float[][] positions = positions(orientation, x0, y0, z0, x1, y1, z1);
-        float[] rectangle = face.has("uv") ? parseFloat4(face.getAsJsonArray("uv")) : defaultUv(from, to, orientation);
+        float[][] positions = switch (orientation) {
+            case UP -> new float[][]{{x0, y1, z0}, {x0, y1, z1}, {x1, y1, z1}, {x1, y1, z0}};
+            case DOWN -> new float[][]{{x0, y0, z1}, {x0, y0, z0}, {x1, y0, z0}, {x1, y0, z1}};
+            case NORTH -> new float[][]{{x1, y1, z0}, {x1, y0, z0}, {x0, y0, z0}, {x0, y1, z0}};
+            case SOUTH -> new float[][]{{x0, y1, z1}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}};
+            case WEST -> new float[][]{{x0, y1, z0}, {x0, y0, z0}, {x0, y0, z1}, {x0, y1, z1}};
+            case EAST -> new float[][]{{x1, y1, z1}, {x1, y0, z1}, {x1, y0, z0}, {x1, y1, z0}};
+        };
+        float[] rectangle;
+        if (face.has("uv")) {
+            JsonArray values = face.getAsJsonArray("uv");
+            if (values.size() != 4) {
+                throw new JsonParseException("Expected 4 UV values");
+            }
+            rectangle = new float[]{
+                    values.get(0).getAsFloat(), values.get(1).getAsFloat(),
+                    values.get(2).getAsFloat(), values.get(3).getAsFloat()
+            };
+        } else {
+            rectangle = switch (orientation) {
+                case DOWN -> new float[]{from.x, 16 - to.z, to.x, 16 - from.z};
+                case UP -> new float[]{from.x, from.z, to.x, to.z};
+                case NORTH -> new float[]{16 - to.x, 16 - to.y, 16 - from.x, 16 - from.y};
+                case SOUTH -> new float[]{from.x, 16 - to.y, to.x, 16 - from.y};
+                case WEST -> new float[]{from.z, 16 - to.y, to.z, 16 - from.y};
+                case EAST -> new float[]{16 - to.z, 16 - to.y, 16 - from.z, 16 - from.y};
+            };
+        }
         float[][] uv = {
                 {rectangle[0], rectangle[1]},
                 {rectangle[0], rectangle[3]},
@@ -236,7 +248,14 @@ public final class MinecraftModelLoader implements ModelLoader {
                 {rectangle[2], rectangle[1]}
         };
         int turns = Math.floorMod(face.has("rotation") ? face.get("rotation").getAsInt() / 90 : 0, 4);
-        Vector3f normal = normal(orientation);
+        Vector3f normal = switch (orientation) {
+            case UP -> new Vector3f(0, 1, 0);
+            case DOWN -> new Vector3f(0, -1, 0);
+            case NORTH -> new Vector3f(0, 0, -1);
+            case SOUTH -> new Vector3f(0, 0, 1);
+            case WEST -> new Vector3f(-1, 0, 0);
+            case EAST -> new Vector3f(1, 0, 0);
+        };
         Matrix3f normalMatrix = new Matrix3f(transform).invert().transpose();
         normalMatrix.transform(normal).normalize();
 
@@ -270,7 +289,8 @@ public final class MinecraftModelLoader implements ModelLoader {
                 default -> throw new JsonParseException("Unsupported model rotation axis: " + axis);
             }
             if (rotation.has("rescale") && rotation.get("rescale").getAsBoolean()) {
-                float scale = rescale(rotation.get("angle").getAsFloat());
+                float cosine = Math.abs((float) Math.cos(Math.toRadians(rotation.get("angle").getAsFloat())));
+                float scale = cosine > 1.0E-4F ? 1.0F / cosine : 1.0F;
                 switch (axis) {
                     case "x" -> matrix.scale(1, scale, scale);
                     case "y" -> matrix.scale(scale, 1, scale);
@@ -291,11 +311,6 @@ public final class MinecraftModelLoader implements ModelLoader {
         return matrix.translate(-origin.x, -origin.y, -origin.z);
     }
 
-    private static float rescale(float angle) {
-        float cosine = Math.abs((float) Math.cos(Math.toRadians(angle)));
-        return cosine > 1.0E-4F ? 1.0F / cosine : 1.0F;
-    }
-
     public static float @NotNull [] boxVertices(float fromX, float fromY, float fromZ, float toX, float toY, float toZ) {
         Vector3f from = new Vector3f(fromX, fromY, fromZ);
         Vector3f to = new Vector3f(toX, toY, toZ);
@@ -304,47 +319,6 @@ public final class MinecraftModelLoader implements ModelLoader {
             appendFace(vertices, from, to, orientation, new JsonObject(), new Matrix4f());
         }
         return vertices.toArray();
-    }
-
-    private static float @NotNull [] @NotNull [] positions(
-            @NotNull Orientation orientation,
-            float x0, float y0, float z0,
-            float x1, float y1, float z1
-    ) {
-        return switch (orientation) {
-            case UP -> new float[][]{{x0, y1, z0}, {x0, y1, z1}, {x1, y1, z1}, {x1, y1, z0}};
-            case DOWN -> new float[][]{{x0, y0, z1}, {x0, y0, z0}, {x1, y0, z0}, {x1, y0, z1}};
-            case NORTH -> new float[][]{{x1, y1, z0}, {x1, y0, z0}, {x0, y0, z0}, {x0, y1, z0}};
-            case SOUTH -> new float[][]{{x0, y1, z1}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}};
-            case WEST -> new float[][]{{x0, y1, z0}, {x0, y0, z0}, {x0, y0, z1}, {x0, y1, z1}};
-            case EAST -> new float[][]{{x1, y1, z1}, {x1, y0, z1}, {x1, y0, z0}, {x1, y1, z0}};
-        };
-    }
-
-    private static float @NotNull [] defaultUv(
-            @NotNull Vector3f from,
-            @NotNull Vector3f to,
-            @NotNull Orientation orientation
-    ) {
-        return switch (orientation) {
-            case DOWN -> new float[]{from.x, 16 - to.z, to.x, 16 - from.z};
-            case UP -> new float[]{from.x, from.z, to.x, to.z};
-            case NORTH -> new float[]{16 - to.x, 16 - to.y, 16 - from.x, 16 - from.y};
-            case SOUTH -> new float[]{from.x, 16 - to.y, to.x, 16 - from.y};
-            case WEST -> new float[]{from.z, 16 - to.y, to.z, 16 - from.y};
-            case EAST -> new float[]{16 - to.z, 16 - to.y, 16 - from.z, 16 - from.y};
-        };
-    }
-
-    private static @NotNull Vector3f normal(@NotNull Orientation orientation) {
-        return switch (orientation) {
-            case UP -> new Vector3f(0, 1, 0);
-            case DOWN -> new Vector3f(0, -1, 0);
-            case NORTH -> new Vector3f(0, 0, -1);
-            case SOUTH -> new Vector3f(0, 0, 1);
-            case WEST -> new Vector3f(-1, 0, 0);
-            case EAST -> new Vector3f(1, 0, 0);
-        };
     }
 
     private static @NotNull Vector3f parseFloat3(@NotNull JsonObject object, @NotNull String key, float defaultValue) {
@@ -356,16 +330,6 @@ public final class MinecraftModelLoader implements ModelLoader {
             throw new JsonParseException("Expected 3 values for '" + key + "'");
         }
         return new Vector3f(values.get(0).getAsFloat(), values.get(1).getAsFloat(), values.get(2).getAsFloat());
-    }
-
-    private static float @NotNull [] parseFloat4(@NotNull JsonArray values) {
-        if (values.size() != 4) {
-            throw new JsonParseException("Expected 4 UV values");
-        }
-        return new float[]{
-                values.get(0).getAsFloat(), values.get(1).getAsFloat(),
-                values.get(2).getAsFloat(), values.get(3).getAsFloat()
-        };
     }
 
     static @NotNull Location parseResourceLocation(@NotNull String value) {

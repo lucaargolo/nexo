@@ -36,12 +36,12 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     }
 
     public void init() {
-        MinecraftFeatureType.all().forEach(type -> {
+        for (MinecraftFeatureType<?, ?, ?> type : MinecraftFeatureType.all()) {
             if (type.customRegistry()) {
                 this.getOrCreateRegistry(type.registry());
             }
             this.addBuiltinRegistryListener(type);
-        });
+        }
     }
 
     public void beginFeatureRegistration() {
@@ -98,14 +98,12 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
 
     public final RegistryAccess getRegistry() {
         RegistryAccess localRegistry = getLocalRegistry();
-        if(localRegistry != null) {
+        if (localRegistry != null) {
             return localRegistry;
         }
         MinecraftServer currentServer = this.nexo.getServer();
-        if (currentServer != null) {
-            if (currentServer.isSameThread()) {
-                return currentServer.registryAccess();
-            }
+        if (currentServer != null && currentServer.isSameThread()) {
+            return currentServer.registryAccess();
         }
         return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }

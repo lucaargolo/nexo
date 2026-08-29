@@ -51,7 +51,7 @@ public class MinecraftItem extends ItemBase {
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull Holder<Item> holder;
 
-    private boolean computedCategory = false;
+    private boolean computedCategory;
     private @Nullable ItemCategoryBase category;
 
     private MinecraftItem(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Item> holder) {
@@ -73,12 +73,12 @@ public class MinecraftItem extends ItemBase {
 
     @Override
     public @Nullable ItemCategoryBase category() {
-        if(!this.computedCategory) {
+        if (!this.computedCategory) {
             this.computedCategory = true;
             Item item = MinecraftFeatureType.ITEM.convert(this);
-            for(CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
-                for(ItemStack stack : tab.getDisplayItems()) {
-                    if(stack.getItem() == item) {
+            for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
+                for (ItemStack stack : tab.getDisplayItems()) {
+                    if (stack.getItem() == item) {
                         this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.nexo, tab);
                         return this.category;
                     }
@@ -99,7 +99,7 @@ public class MinecraftItem extends ItemBase {
         }
         ResourceLocation id = NexoMinecraft.rl(item.location());
         FEATURE_MAP.put(item.location(), item);
-        if(item.category() != null) {
+        if (item.category() != null) {
             MinecraftItemCategory.ITEM_MAP.computeIfAbsent(item.category(), c -> new LinkedList<>()).add(item);
         }
         nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(nexo, item));
@@ -122,7 +122,7 @@ public class MinecraftItem extends ItemBase {
         });
 
         Item.Properties properties = new Item.Properties();
-        for(DataBase<?> data : item.data()) {
+        for (DataBase<?> data : item.data()) {
             properties = setInitialComponent(properties, data);
         }
         if (factory != null) {

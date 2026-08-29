@@ -31,12 +31,61 @@ public final class ObjModelLoader implements ModelLoader {
     public @NotNull Model load(@NotNull Nexo nexo, @NotNull Location path, byte @NotNull [] data) throws Exception {
         Obj source = ObjReader.read(new ByteArrayInputStream(data));
         Obj obj = ObjUtils.triangulate(source);
-        List<float[]> vertexColors = parseVertexColors(data);
+        String colorSource = new String(data, StandardCharsets.UTF_8)
+                .replace("\\\r\n", " ")
+                .replace("\\\n", " ");
+        List<float[]> parsedVertexColors = new ArrayList<>();
+        for (String line : colorSource.lines().toList()) {
+            int comment = line.indexOf('#');
+            String value = comment < 0 ? line : line.substring(0, comment);
+            StringTokenizer tokens = new StringTokenizer(value);
+            if (!tokens.hasMoreTokens() || !tokens.nextToken().equalsIgnoreCase("v")) {
+                continue;
+            }
+            int count = tokens.countTokens();
+            float[] components = new float[count];
+            for (int i = 0; i < count; i++) {
+                components[i] = Float.parseFloat(tokens.nextToken());
+            }
+            if (count >= 7) {
+                parsedVertexColors.add(new float[]{components[4], components[5], components[6]});
+            } else if (count == 6) {
+                parsedVertexColors.add(new float[]{components[3], components[4], components[5]});
+            } else {
+                parsedVertexColors.add(new float[]{1, 1, 1});
+            }
+        }
+        List<float[]> vertexColors = List.copyOf(parsedVertexColors);
         if (vertexColors.size() != obj.getNumVertices()) {
             throw new IllegalArgumentException("OBJ vertex color count does not match its vertex count");
         }
 
-        Map<String, Material<?>> materials = loadMaterials(nexo, path, source.getMtlFileNames());
+        Map<String, Material<?>> materials = new LinkedHashMap<>();
+        for (String library : source.getMtlFileNames()) {
+            Location mtlPath = ModelResources.resolve(path, library);
+            byte[] materialData = nexo.loadResource(mtlPath);
+            if (materialData == null) {
+                throw new IllegalArgumentException("Missing OBJ material library: " + mtlPath);
+            }
+            for (Mtl material : MtlReader.read(new ByteArrayInputStream(materialData))) {
+                FloatTuple diffuse = material.getKd();
+                Float dissolve = material.getD();
+                float opacity = dissolve == null ? 1.0F : dissolve;
+                float[] color = diffuse == null
+                        ? new float[]{1, 1, 1, opacity}
+                        : new float[]{diffuse.getX(), diffuse.getY(), diffuse.getZ(), opacity};
+                String mapKd = material.getMapKd();
+                Location texture = mapKd == null ? null : ModelResources.resolve(mtlPath, mapKd);
+                BlendMode blend = opacity < 1.0F ? BlendMode.ALPHA : BlendMode.DISABLED;
+                LayerMode layer = opacity < 1.0F ? LayerMode.TRANSLUCENT : LayerMode.SOLID;
+                if (texture != null) {
+                    materials.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend, layer));
+                } else {
+                    materials.put(material.getName(), new Material<Location>(null, color, CullMode.BACK, blend, layer));
+                }
+            }
+        }
+        materials.putIfAbsent("default", Material.untextured());
         Map<String, FloatBuilder> geometry = new LinkedHashMap<>();
 
         String activeMaterial = "default";
@@ -56,67 +105,21 @@ public final class ObjModelLoader implements ModelLoader {
         return new Model(data, meshes, materials, Map.of(), true);
     }
 
-    private static @NotNull Map<String, Material<?>> loadMaterials(@NotNull Nexo nexo, @NotNull Location objPath, @NotNull List<String> libraries) throws Exception {
-        Map<String, Material<?>> result = new LinkedHashMap<>();
-        for (String library : libraries) {
-            Location mtlPath = ModelResources.resolve(objPath, library);
-            byte[] data = nexo.loadResource(mtlPath);
-            if (data == null) {
-                throw new IllegalArgumentException("Missing OBJ material library: " + mtlPath);
-            }
-            for (Mtl material : MtlReader.read(new ByteArrayInputStream(data))) {
-                FloatTuple diffuse = material.getKd();
-                Float dissolve = material.getD();
-                float opacity = dissolve == null ? 1.0F : dissolve;
-                float[] color = diffuse == null ? new float[]{1, 1, 1, opacity} : new float[]{diffuse.getX(), diffuse.getY(), diffuse.getZ(), opacity};
-                String mapKd = material.getMapKd();
-                Location texture = mapKd == null ? null : ModelResources.resolve(mtlPath, mapKd);
-                BlendMode blend = opacity < 1.0F ? BlendMode.ALPHA : BlendMode.DISABLED;
-                LayerMode layer = opacity < 1.0F ? LayerMode.TRANSLUCENT : LayerMode.SOLID;
-                if (texture != null) {
-                    result.put(material.getName(), new Material<>(texture, texture, color, CullMode.BACK, blend, layer));
-                } else {
-                    result.put(material.getName(), new Material<Location>(null, color, CullMode.BACK, blend, layer));
-                }
-            }
-        }
-        result.putIfAbsent("default", Material.untextured());
-        return result;
-    }
-
-    private static @NotNull List<float[]> parseVertexColors(byte @NotNull [] data) {
-        String source = new String(data, StandardCharsets.UTF_8)
-                .replace("\\\r\n", " ")
-                .replace("\\\n", " ");
-        List<float[]> result = new ArrayList<>();
-        source.lines().forEach(line -> {
-            int comment = line.indexOf('#');
-            String value = comment < 0 ? line : line.substring(0, comment);
-            StringTokenizer tokens = new StringTokenizer(value);
-            if (!tokens.hasMoreTokens() || !tokens.nextToken().equalsIgnoreCase("v")) {
-                return;
-            }
-            int count = tokens.countTokens();
-            float[] components = new float[count];
-            for (int i = 0; i < count; i++) {
-                components[i] = Float.parseFloat(tokens.nextToken());
-            }
-            if (count >= 7) {
-                result.add(new float[]{components[4], components[5], components[6]});
-            } else if (count == 6) {
-                result.add(new float[]{components[3], components[4], components[5]});
-            } else {
-                result.add(new float[]{1, 1, 1});
-            }
-        });
-        return List.copyOf(result);
-    }
-
     private static void appendFace(@NotNull Obj obj, @NotNull ObjFace face, @NotNull List<float[]> vertexColors, @NotNull FloatBuilder target) {
         if (face.getNumVertices() != 3) {
             throw new IllegalArgumentException("Triangulated OBJ face is not a triangle");
         }
-        Vector3f faceNormal = computeNormal(obj, face);
+        FloatTuple a = obj.getVertex(face.getVertexIndex(0));
+        FloatTuple b = obj.getVertex(face.getVertexIndex(1));
+        FloatTuple c = obj.getVertex(face.getVertexIndex(2));
+        Vector3f edgeA = new Vector3f(b.getX() - a.getX(), b.getY() - a.getY(), b.getZ() - a.getZ());
+        Vector3f edgeB = new Vector3f(c.getX() - a.getX(), c.getY() - a.getY(), c.getZ() - a.getZ());
+        Vector3f faceNormal = edgeA.cross(edgeB);
+        if (faceNormal.lengthSquared() == 0.0F) {
+            faceNormal.set(0, 1, 0);
+        } else {
+            faceNormal.normalize();
+        }
         for (int i = 0; i < 3; i++) {
             int vertexIndex = face.getVertexIndex(i);
             FloatTuple position = obj.getVertex(vertexIndex);
@@ -133,16 +136,6 @@ public final class ObjModelLoader implements ModelLoader {
                     normal == null ? faceNormal.z : normal.getZ()
             );
         }
-    }
-
-    private static @NotNull Vector3f computeNormal(@NotNull Obj obj, @NotNull ObjFace face) {
-        FloatTuple a = obj.getVertex(face.getVertexIndex(0));
-        FloatTuple b = obj.getVertex(face.getVertexIndex(1));
-        FloatTuple c = obj.getVertex(face.getVertexIndex(2));
-        Vector3f edgeA = new Vector3f(b.getX() - a.getX(), b.getY() - a.getY(), b.getZ() - a.getZ());
-        Vector3f edgeB = new Vector3f(c.getX() - a.getX(), c.getY() - a.getY(), c.getZ() - a.getZ());
-        Vector3f normal = edgeA.cross(edgeB);
-        return normal.lengthSquared() == 0.0F ? normal.set(0, 1, 0) : normal.normalize();
     }
 
 }

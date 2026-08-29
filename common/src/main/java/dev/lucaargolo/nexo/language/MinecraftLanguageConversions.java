@@ -49,7 +49,10 @@ public final class MinecraftLanguageConversions {
                 boolean valid = true;
                 for (int part = 0; part < 6; part++) {
                     int marker = index + 2 + part * 2;
-                    if (value.charAt(marker) != '§' || !isHexDigit(value.charAt(marker + 1))) {
+                    char digit = value.charAt(marker + 1);
+                    if (value.charAt(marker) != '§' || !(digit >= '0' && digit <= '9'
+                            || digit >= 'a' && digit <= 'f'
+                            || digit >= 'A' && digit <= 'F')) {
                         valid = false;
                         break;
                     }
@@ -168,7 +171,11 @@ public final class MinecraftLanguageConversions {
                 continue;
             }
             int close = value.indexOf('}', index + 1);
-            if (close < 0 || !isNumber(value, index + 1, close)) {
+            boolean number = close >= 0 && close > index + 1;
+            for (int digit = index + 1; number && digit < close; digit++) {
+                number = Character.isDigit(value.charAt(digit));
+            }
+            if (!number) {
                 result.append(character);
                 index++;
                 continue;
@@ -209,21 +216,17 @@ public final class MinecraftLanguageConversions {
                 tagName = tagName.substring(0, separator).trim();
             }
             tagName = tagName.toLowerCase(Locale.ROOT);
-            if (isMinecraftTag(tagName)) {
+            if (switch (tagName) {
+                case "b", "bold", "i", "italic", "u", "underline", "underlined",
+                     "s", "strike", "strikethrough", "o", "obfuscated", "color",
+                     "plain", "br", "newline", "reset" -> true;
+                default -> false;
+            }) {
                 result.append(value, index, close + 1);
             }
             index = close + 1;
         }
         return result.toString();
-    }
-
-    private static boolean isMinecraftTag(@NotNull String name) {
-        return switch (name) {
-            case "b", "bold", "i", "italic", "u", "underline", "underlined",
-                 "s", "strike", "strikethrough", "o", "obfuscated", "color",
-                 "plain", "br", "newline", "reset" -> true;
-            default -> false;
-        };
     }
 
     private static void appendMinecraftStyle(@NotNull StringBuilder result, @NotNull Text.Style style) {
@@ -271,24 +274,6 @@ public final class MinecraftLanguageConversions {
             case 'f' -> "white";
             default -> null;
         };
-    }
-
-    private static boolean isHexDigit(char value) {
-        return value >= '0' && value <= '9'
-                || value >= 'a' && value <= 'f'
-                || value >= 'A' && value <= 'F';
-    }
-
-    private static boolean isNumber(@NotNull String value, int start, int end) {
-        if (start == end) {
-            return false;
-        }
-        for (int index = start; index < end; index++) {
-            if (!Character.isDigit(value.charAt(index))) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private static final class FormattingState {

@@ -33,10 +33,6 @@ public final class Text {
     private final @NotNull List<Run> runs;
     private final @Nullable Translation translation;
 
-    private Text(@NotNull String source, @NotNull List<Run> runs) {
-        this(source, runs, null);
-    }
-
     private Text(@NotNull String source, @NotNull List<Run> runs, @Nullable Translation translation) {
         this.source = source;
         this.runs = List.copyOf(runs);
@@ -44,7 +40,7 @@ public final class Text {
     }
 
     public Text(@NotNull String text) {
-        this(Objects.requireNonNull(text), List.of(new Run(text, Style.DEFAULT)));
+        this(Objects.requireNonNull(text), List.of(new Run(text, Style.DEFAULT)), null);
     }
 
     public static @NotNull Text literal(@NotNull String text) {
@@ -124,7 +120,44 @@ public final class Text {
             }
 
             String rawTag = bbcode.substring(index + 1, close);
-            Tag tag = Tag.parse(rawTag);
+            String tagValue = rawTag.trim();
+            Tag tag = null;
+            if (!tagValue.isEmpty()) {
+                boolean closing = tagValue.startsWith("/");
+                if (closing) {
+                    tagValue = tagValue.substring(1).trim();
+                }
+                if (tagValue.endsWith("/")) {
+                    tagValue = tagValue.substring(0, tagValue.length() - 1).trim();
+                }
+                int separator = tagValue.indexOf('=');
+                String name = (separator < 0 ? tagValue : tagValue.substring(0, separator)).trim().toLowerCase(Locale.ROOT);
+                boolean known = switch (name) {
+                    case "b", "bold", "i", "italic", "u", "underline", "underlined",
+                         "s", "strike", "strikethrough", "o", "obfuscated", "color", "font",
+                         "size", "plain", "br", "newline", "reset" -> true;
+                    default -> false;
+                };
+                if (known) {
+                    String canonicalName = switch (name) {
+                        case "bold" -> "b";
+                        case "italic" -> "i";
+                        case "underline", "underlined" -> "u";
+                        case "strike", "strikethrough" -> "s";
+                        case "obfuscated" -> "o";
+                        default -> name;
+                    };
+                    boolean acceptsValue = name.equals("color") || name.equals("font") || name.equals("size");
+                    if (closing) {
+                        if (separator < 0) {
+                            tag = new Tag(canonicalName, true, null);
+                        }
+                    } else if (!((separator >= 0 && !acceptsValue) || (separator < 0 && acceptsValue))) {
+                        String argument = separator < 0 ? null : tagValue.substring(separator + 1).trim();
+                        tag = new Tag(canonicalName, false, argument);
+                    }
+                }
+            }
             if (tag == null) {
                 content.append(bbcode, index, close + 1);
                 index = close + 1;
@@ -152,7 +185,67 @@ public final class Text {
                 continue;
             }
 
-            Style style = styleFor(tag, stack.peek().style());
+            Style parent = stack.peek().style();
+            Style style = switch (tag.name()) {
+                case "b", "bold" -> new Style(parent.font(), parent.size(), parent.color(), true, parent.italic(), parent.underlined(), parent.strikethrough(), parent.obfuscated());
+                case "i", "italic" -> new Style(parent.font(), parent.size(), parent.color(), parent.bold(), true, parent.underlined(), parent.strikethrough(), parent.obfuscated());
+                case "u", "underline", "underlined" -> new Style(parent.font(), parent.size(), parent.color(), parent.bold(), parent.italic(), true, parent.strikethrough(), parent.obfuscated());
+                case "s", "strike", "strikethrough" -> new Style(parent.font(), parent.size(), parent.color(), parent.bold(), parent.italic(), parent.underlined(), true, parent.obfuscated());
+                case "o", "obfuscated" -> new Style(parent.font(), parent.size(), parent.color(), parent.bold(), parent.italic(), parent.underlined(), parent.strikethrough(), true);
+                case "color" -> {
+                    if (tag.value() == null) {
+                        yield null;
+                    }
+                    String normalized = tag.value().trim().toLowerCase(Locale.ROOT);
+                    Integer color = NAMED_COLORS.get(normalized);
+                    if (color == null) {
+                        if (normalized.startsWith("#")) {
+                            normalized = normalized.substring(1);
+                        } else if (normalized.startsWith("0x")) {
+                            normalized = normalized.substring(2);
+                        }
+                        if (normalized.length() == 3) {
+                            normalized = "" + normalized.charAt(0) + normalized.charAt(0)
+                                    + normalized.charAt(1) + normalized.charAt(1)
+                                    + normalized.charAt(2) + normalized.charAt(2);
+                        }
+                        if (normalized.length() != 6) {
+                            yield null;
+                        }
+                        try {
+                            color = Integer.parseInt(normalized, 16);
+                        } catch (NumberFormatException ignored) {
+                            yield null;
+                        }
+                    }
+                    yield new Style(parent.font(), parent.size(), color, parent.bold(), parent.italic(), parent.underlined(), parent.strikethrough(), parent.obfuscated());
+                }
+                case "font" -> {
+                    if (tag.value() == null) {
+                        yield null;
+                    }
+                    String value = tag.value().trim();
+                    int separator = value.indexOf(':');
+                    yield separator <= 0 || separator == value.length() - 1
+                            ? null
+                            : new Style(Location.of(value.substring(0, separator), value.substring(separator + 1)), parent.size(), parent.color(), parent.bold(), parent.italic(), parent.underlined(), parent.strikethrough(), parent.obfuscated());
+                }
+                case "size" -> {
+                    if (tag.value() == null) {
+                        yield null;
+                    }
+                    try {
+                        float size = Float.parseFloat(tag.value().trim());
+                        yield Float.isFinite(size) && size > 0.0F
+                                ? new Style(parent.font(), size, parent.color(), parent.bold(), parent.italic(), parent.underlined(), parent.strikethrough(), parent.obfuscated())
+                                : null;
+                    } catch (NumberFormatException ignored) {
+                        yield null;
+                    }
+                }
+                case "plain" -> Style.DEFAULT;
+                default -> null;
+            };
             if (style == null) {
                 content.append(bbcode, index, close + 1);
             } else {
@@ -161,84 +254,13 @@ public final class Text {
             index = close + 1;
         }
         flush(runs, content, stack.peek().style());
-        return new Text(bbcode, runs);
+        return new Text(bbcode, runs, null);
     }
 
     private static void flush(@NotNull List<Run> runs, @NotNull StringBuilder content, @NotNull Style style) {
         if (content.length() > 0) {
             runs.add(new Run(content.toString(), style));
             content.setLength(0);
-        }
-    }
-
-    private static @Nullable Style styleFor(@NotNull Tag tag, @NotNull Style parent) {
-        return switch (tag.name()) {
-            case "b", "bold" -> parent.withBold(true);
-            case "i", "italic" -> parent.withItalic(true);
-            case "u", "underline", "underlined" -> parent.withUnderlined(true);
-            case "s", "strike", "strikethrough" -> parent.withStrikethrough(true);
-            case "o", "obfuscated" -> parent.withObfuscated(true);
-            case "color" -> {
-                if (tag.value() == null) {
-                    yield null;
-                }
-                Integer color = parseColor(tag.value());
-                yield color == null ? null : parent.withColor(color);
-            }
-            case "font" -> {
-                if (tag.value() == null) {
-                    yield null;
-                }
-                String value = tag.value().trim();
-                int separator = value.indexOf(':');
-                yield separator <= 0 || separator == value.length() - 1
-                        ? null
-                        : parent.withFont(Location.of(value.substring(0, separator), value.substring(separator + 1)));
-            }
-            case "size" -> {
-                if (tag.value() == null) {
-                    yield null;
-                }
-                Float size = parseSize(tag.value());
-                yield size == null ? null : parent.withSize(size);
-            }
-            case "plain" -> Style.DEFAULT;
-            default -> null;
-        };
-    }
-
-    private static @Nullable Integer parseColor(@NotNull String value) {
-        String normalized = value.trim().toLowerCase(Locale.ROOT);
-        Integer named = NAMED_COLORS.get(normalized);
-        if (named != null) {
-            return named;
-        }
-        if (normalized.startsWith("#")) {
-            normalized = normalized.substring(1);
-        } else if (normalized.startsWith("0x")) {
-            normalized = normalized.substring(2);
-        }
-        if (normalized.length() == 3) {
-            normalized = "" + normalized.charAt(0) + normalized.charAt(0)
-                    + normalized.charAt(1) + normalized.charAt(1)
-                    + normalized.charAt(2) + normalized.charAt(2);
-        }
-        if (normalized.length() != 6) {
-            return null;
-        }
-        try {
-            return Integer.parseInt(normalized, 16);
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
-    }
-
-    private static @Nullable Float parseSize(@NotNull String value) {
-        try {
-            float size = Float.parseFloat(value.trim());
-            return Float.isFinite(size) && size > 0.0F ? size : null;
-        } catch (NumberFormatException ignored) {
-            return null;
         }
     }
 
@@ -274,90 +296,13 @@ public final class Text {
             }
         }
 
-        private @NotNull Style withFont(@Nullable Location value) {
-            return new Style(value, size, color, bold, italic, underlined, strikethrough, obfuscated);
-        }
 
-        private @NotNull Style withSize(@NotNull Float value) {
-            return new Style(font, value, color, bold, italic, underlined, strikethrough, obfuscated);
-        }
-
-        private @NotNull Style withColor(@Nullable Integer value) {
-            return new Style(font, size, value, bold, italic, underlined, strikethrough, obfuscated);
-        }
-
-        private @NotNull Style withBold(boolean value) {
-            return new Style(font, size, color, value, italic, underlined, strikethrough, obfuscated);
-        }
-
-        private @NotNull Style withItalic(boolean value) {
-            return new Style(font, size, color, bold, value, underlined, strikethrough, obfuscated);
-        }
-
-        private @NotNull Style withUnderlined(boolean value) {
-            return new Style(font, size, color, bold, italic, value, strikethrough, obfuscated);
-        }
-
-        private @NotNull Style withStrikethrough(boolean value) {
-            return new Style(font, size, color, bold, italic, underlined, value, obfuscated);
-        }
-
-        private @NotNull Style withObfuscated(boolean value) {
-            return new Style(font, size, color, bold, italic, underlined, strikethrough, value);
-        }
     }
 
     private record Frame(@NotNull String name, @NotNull Style style) {
     }
 
     private record Tag(@NotNull String name, boolean closing, @Nullable String value) {
-        private static @Nullable Tag parse(@NotNull String source) {
-            String value = source.trim();
-            if (value.isEmpty()) {
-                return null;
-            }
-            boolean closing = value.startsWith("/");
-            if (closing) {
-                value = value.substring(1).trim();
-            }
-            if (value.endsWith("/")) {
-                value = value.substring(0, value.length() - 1).trim();
-            }
-            int separator = value.indexOf('=');
-            String name = (separator < 0 ? value : value.substring(0, separator)).trim().toLowerCase(Locale.ROOT);
-            if (!isTagName(name)) {
-                return null;
-            }
-            boolean acceptsValue = name.equals("color") || name.equals("font") || name.equals("size");
-            if (closing) {
-                return separator >= 0 ? null : new Tag(canonicalName(name), true, null);
-            }
-            if ((separator >= 0 && !acceptsValue) || (separator < 0 && acceptsValue)) {
-                return null;
-            }
-            String argument = separator < 0 ? null : value.substring(separator + 1).trim();
-            return new Tag(canonicalName(name), false, argument);
-        }
-
-        private static @NotNull String canonicalName(@NotNull String name) {
-            return switch (name) {
-                case "bold" -> "b";
-                case "italic" -> "i";
-                case "underline", "underlined" -> "u";
-                case "strike", "strikethrough" -> "s";
-                case "obfuscated" -> "o";
-                default -> name;
-            };
-        }
-
-        private static boolean isTagName(@NotNull String name) {
-            return switch (name) {
-                case "b", "bold", "i", "italic", "u", "underline", "underlined",
-                     "s", "strike", "strikethrough", "o", "obfuscated", "color", "font",
-                     "size", "plain", "br", "newline", "reset" -> true;
-                default -> false;
-            };
-        }
     }
 
     @Override

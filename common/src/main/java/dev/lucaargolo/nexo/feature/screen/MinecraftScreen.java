@@ -153,8 +153,9 @@ public class MinecraftScreen extends Screen {
         if (buttons == null || axes == null) {
             return;
         }
+        int buttonCount = Math.min(buttons.remaining(), previousButtons.length);
+        int axisCount = Math.min(axes.remaining(), previousAxes.length);
         if (polledOnce) {
-            int buttonCount = Math.min(buttons.remaining(), previousButtons.length);
             for (int i = 0; i < buttonCount; i++) {
                 boolean pressed = buttons.get(i) == GLFW.GLFW_PRESS;
                 boolean previous = previousButtons[i] == GLFW.GLFW_PRESS;
@@ -164,8 +165,8 @@ public class MinecraftScreen extends Screen {
                     feature.onInputReleased(unit, Input.gamepad(GlfwKeyMapper.gamepad(i)));
                 }
             }
-            int axisCount = Math.min(axes.remaining(), Math.min(previousAxes.length, AXIS_BY_INDEX.length));
-            for (int i = 0; i < axisCount; i++) {
+            int mappedAxisCount = Math.min(axisCount, AXIS_BY_INDEX.length);
+            for (int i = 0; i < mappedAxisCount; i++) {
                 float value = axes.get(i);
                 float delta = value - previousAxes[i];
                 if (delta != 0.0F) {
@@ -173,10 +174,10 @@ public class MinecraftScreen extends Screen {
                 }
             }
         }
-        for (int i = 0; i < buttons.remaining() && i < previousButtons.length; i++) {
+        for (int i = 0; i < buttonCount; i++) {
             previousButtons[i] = buttons.get(i);
         }
-        for (int i = 0; i < axes.remaining() && i < previousAxes.length; i++) {
+        for (int i = 0; i < axisCount; i++) {
             previousAxes[i] = axes.get(i);
         }
         polledOnce = true;

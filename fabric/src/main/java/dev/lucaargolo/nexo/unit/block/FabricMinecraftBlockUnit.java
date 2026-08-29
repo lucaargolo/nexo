@@ -23,12 +23,12 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
     public <D> D getData(@NotNull DataBase<D> data) {
         if (data instanceof DataBase.Constrained<?> constrained && this.feature.data().contains(constrained)) {
             return data.cast(this.getStateData(constrained));
-        }else if(this.entity != null) {
+        } else if (this.entity != null) {
             AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
             return this.feature.data().contains(data) ? this.entity.getAttachedOrCreate(type) : this.entity.getAttached(type);
-        }else if(data instanceof DataBase.Constrained<?>) {
+        } else if (data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to get non-initial constrained data " + data + " from non-dynamic MinecraftBlockUnit");
-        }else{
+        } else {
             throw new IllegalArgumentException("Tried to ge non-constrained data " + data + " from non-dynamic MinecraftBlockUnit");
         }
     }
@@ -37,15 +37,15 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
         if (data instanceof DataBase.Constrained<?> constrained && this.feature.data().contains(constrained)) {
             this.state = this.setStateData(constrained, d);
-            if(this.level != null && this.position != null) {
+            if (this.level != null && this.position != null) {
                 this.level.setBlockAndUpdate(this.position, this.state);
             }
-        }else if(this.entity != null) {
+        } else if (this.entity != null) {
             AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
             this.entity.setAttached(type, d);
-        }else if(data instanceof DataBase.Constrained<?>) {
+        } else if (data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to set non-initial constrained data " + data + " to non-dynamic MinecraftBlockUnit");
-        }else{
+        } else {
             throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to non-dynamic MinecraftBlockUnit");
         }
     }
