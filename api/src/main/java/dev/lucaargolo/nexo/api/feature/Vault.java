@@ -1,4 +1,6 @@
-package dev.lucaargolo.nexo.api.unit;
+package dev.lucaargolo.nexo.api.feature;
+
+import dev.lucaargolo.nexo.api.unit.Unit;
 
 import java.util.Collection;
 

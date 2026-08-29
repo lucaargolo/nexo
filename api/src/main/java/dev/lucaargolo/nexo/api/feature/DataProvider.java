@@ -1,7 +1,8 @@
-package dev.lucaargolo.nexo.api.unit;
+package dev.lucaargolo.nexo.api.feature;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
