@@ -7,39 +7,52 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
-import dev.lucaargolo.nexo.unit.FabricTransferVault;
+import dev.lucaargolo.nexo.unit.FabricStorageVault;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @SuppressWarnings("UnstableApiUsage")
 public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<FabricNexoMinecraft, C>{
 
     public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
-        super(nexo, feature, role, level, position, state, entity);
+        this(nexo, feature, role, level, position, state, entity, null);
+    }
+
+    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+        super(nexo, feature, role, level, position, state, entity, direction);
     }
 
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
-        return this.transferStorage() != null && MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : super.vaults(type);
+        Set<String> vaults = new HashSet<>(super.vaults(type));
+        if (this.transferStorage() != null && MinecraftContainerVault.supports(type)) {
+            vaults.add(MinecraftContainerVault.KEY);
+        }
+        return Set.copyOf(vaults);
     }
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        if (!MinecraftContainerVault.KEY.equals(key) || !MinecraftContainerVault.supports(type)) {
+            return super.vault(type, key);
+        }
         Storage<ItemVariant> storage = this.transferStorage();
-        if (MinecraftContainerVault.KEY.equals(key) && storage != null && MinecraftContainerVault.supports(type)) {
+        if (storage != null) {
             Class<Vault<U>> clazz = Nexo.type(Vault.class);
-            return clazz.cast(new FabricTransferVault(this.nexo, storage));
+            return clazz.cast(new FabricStorageVault(this.nexo, storage));
         }
         return super.vault(type, key);
     }
@@ -48,7 +61,7 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
         if (this.level == null || this.position == null) {
             return null;
         }
-        return ItemStorage.SIDED.find(this.level, this.position, this.state, this.entity, null);
+        return ItemStorage.SIDED.find(this.level, this.position, this.state, this.entity, this.direction);
     }
 
     @Override

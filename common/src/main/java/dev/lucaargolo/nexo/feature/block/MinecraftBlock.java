@@ -1,7 +1,9 @@
 package dev.lucaargolo.nexo.feature.block;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
@@ -10,7 +12,9 @@ import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -18,6 +22,7 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
+import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
@@ -46,6 +51,7 @@ import org.joml.Vector3i;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -104,6 +110,14 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
+    public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+        if (!MinecraftContainerVault.supports(type)) {
+            return Map.of();
+        }
+        return Map.of(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+    }
+
+    @Override
     public @Nullable ItemBase item() {
         Item item = this.holder.value().asItem();
         return MinecraftFeatureType.ITEM.convert(nexo, item);
@@ -135,7 +149,8 @@ public class MinecraftBlock extends BlockBase {
         }
         ResourceLocation id = NexoMinecraft.rl(block.location());
         FEATURE_MAP.put(block.location(), block);
-        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(nexo, block));
+        Holder<Block> blockHolder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(nexo, block));
+        nexo.getRegistryHandler().registerVaults(MinecraftFeatureType.BLOCK, block, blockHolder::value);
         if (isDynamicBlock(block)) {
             Holder<BlockEntityType<?>> holder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
                 BlockEntityType.BlockEntitySupplier<?> supplier = ENTITY_MAP.get(block.location());
@@ -231,7 +246,8 @@ public class MinecraftBlock extends BlockBase {
         Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
         return block.ticker() != null
                 || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))
-                || block.data().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>));
+                || block.data().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>))
+                || !block.vaults(Nexo.type(ItemUnit.class)).isEmpty();
     }
 
 }

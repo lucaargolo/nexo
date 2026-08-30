@@ -2,16 +2,20 @@ package dev.lucaargolo.nexo.feature.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Ticker;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
+import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
+
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
@@ -28,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -72,6 +77,14 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
+    public <V extends Unit<?, ?>> @NotNull Map<String, Function<ItemUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+        if (!MinecraftContainerVault.supports(type)) {
+            return Map.of();
+        }
+        return Map.of(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+    }
+
+    @Override
     public @Nullable ItemCategoryBase category() {
         if (!this.computedCategory) {
             this.computedCategory = true;
@@ -102,7 +115,8 @@ public class MinecraftItem extends ItemBase {
         if (item.category() != null) {
             MinecraftItemCategory.ITEM_MAP.computeIfAbsent(item.category(), c -> new LinkedList<>()).add(item);
         }
-        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(nexo, item));
+        Holder<Item> itemHolder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ITEM, id, MinecraftFeatureType.ITEM.craft(nexo, item));
+        nexo.getRegistryHandler().registerVaults(MinecraftFeatureType.ITEM, item, itemHolder::value);
         return item;
     }
 

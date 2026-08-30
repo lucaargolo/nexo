@@ -16,12 +16,12 @@ import java.util.AbstractCollection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
+public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull Storage<ItemVariant> storage;
+    final @NotNull Storage<ItemVariant> storage;
 
-    public FabricTransferVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
+    public FabricStorageVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
         this.nexo = nexo;
         this.storage = storage;
     }
@@ -55,6 +55,16 @@ public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> i
     }
 
     @Override
+    public boolean canAdd() {
+        return this.storage.supportsInsertion();
+    }
+
+    @Override
+    public boolean canRemove() {
+        return this.storage.supportsExtraction();
+    }
+
+    @Override
     public int size() {
         int size = 0;
         for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
@@ -73,7 +83,7 @@ public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> i
             return false;
         }
         for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
-            if (view.getAmount() == target.getCount() && view.getResource().matches(target)) {
+            if (view.getResource().matches(target)) {
                 return true;
             }
         }
@@ -83,7 +93,7 @@ public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> i
     @Override
     public boolean add(@NotNull ItemUnit<?> item) {
         if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
-            throw new IllegalArgumentException("FabricTransferVault only accepts MinecraftItemUnit instances");
+            throw new IllegalArgumentException("FabricStorageVault only accepts MinecraftItemUnit instances");
         }
         ItemStack source = minecraftItem.get();
         if (source.isEmpty()) {
@@ -141,7 +151,7 @@ public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> i
         Iterator<StorageView<ItemVariant>> iterator = storage.nonEmptyIterator();
         return new Iterator<>() {
             private StorageView<ItemVariant> current;
-            private int currentAmount;
+            private long currentAmount;
 
             @Override
             public boolean hasNext() {
@@ -154,8 +164,8 @@ public final class FabricTransferVault extends AbstractCollection<ItemUnit<?>> i
                     throw new NoSuchElementException();
                 }
                 current = iterator.next();
-                currentAmount = (int) Math.min(Integer.MAX_VALUE, current.getAmount());
-                return nexo.stackToUnit(current.getResource().toStack(currentAmount));
+                currentAmount = current.getAmount();
+                return nexo.stackToUnit(current.getResource().toStack((int) Math.min(Integer.MAX_VALUE, currentAmount)));
             }
 
             @Override

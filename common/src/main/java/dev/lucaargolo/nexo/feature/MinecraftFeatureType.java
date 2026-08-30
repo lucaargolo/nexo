@@ -96,7 +96,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftBlock::lookup,
             MinecraftBlock.CONVERT,
             Map.of(Block.class, extensible(Block.class, Block.class, BlockBehaviour.Properties.class, MinecraftBlock::craft)),
-            (nexo, feature, block) -> Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(nexo, MinecraftBlockUnit.class, nexo, feature, feature.role(), null, null, block.defaultBlockState(), null)
+            (nexo, feature, block) -> Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(nexo, MinecraftBlockUnit.class, nexo, feature, feature.role(), null, null, block.defaultBlockState(), null, null)
     );
 
     public static final MinecraftFeatureType<ItemBase, ItemUnit<?>, Item> ITEM = new MinecraftFeatureType<>(
@@ -252,6 +252,10 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
 
     public ResourceKey<Registry<M>> registry() {
         return registry;
+    }
+
+    public Class<M> minecraftType() {
+        return minecraftType;
     }
 
     public boolean customRegistry() {

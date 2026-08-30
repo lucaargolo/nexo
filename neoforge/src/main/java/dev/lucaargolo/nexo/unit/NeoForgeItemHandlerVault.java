@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
 public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull IItemHandler handler;
+    final @NotNull IItemHandler handler;
 
     public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
         this.nexo = nexo;
@@ -131,7 +131,7 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
                 currentSlot = nextSlot++;
                 ItemStack stack = handler.getStackInSlot(currentSlot);
                 currentAmount = stack.getCount();
-                return nexo.stackToUnit(stack);
+                return nexo.stackToUnit(stack.copy());
             }
 
             @Override

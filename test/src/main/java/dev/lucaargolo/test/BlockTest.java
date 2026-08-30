@@ -2,6 +2,7 @@ package dev.lucaargolo.test;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.data.BooleanData;
@@ -17,6 +18,7 @@ import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -26,12 +28,20 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
 public final class BlockTest {
+
+    private static final Map<Vector3i, ChestState> CHEST_STATES = new HashMap<>();
+    private static final int CHEST_CAPACITY = 27;
 
     private static final Renderer<Graphics3D, BlockUnit<?>> EMPTY_RENDERER = new Renderer<>() {
         @Override
@@ -64,8 +74,74 @@ public final class BlockTest {
         registerModelBlock(nexo, category, NexoTestMod.id("test_gltf"), requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.gltf")), "Missing test_model.gltf model"));
         registerModelBlock(nexo, category, NexoTestMod.id("test_obj"), requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_model.obj")), "Missing test_model.obj model"));
 
+        registerChestBlock(nexo, category);
         registerStateBlock(nexo, category);
         registerDynamicBlock(nexo, category);
+    }
+
+    private static void registerChestBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
+        BlockBase chest = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_chest"), ModelResource.full(NexoTestMod.id("test_block"))) {
+            @Override
+            public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
+                return Map.of("inventory", unit -> {
+                    Vector3i position = unit.position();
+                    ChestState state = position == null ? new ChestState() : CHEST_STATES.computeIfAbsent(new Vector3i(position), ignored -> new ChestState());
+                    return new ChestVault<>(type, state);
+                });
+            }
+        });
+        nexo.registerFeature(new BlockItem(chest, category));
+    }
+
+    private static final class ChestState {
+        private final List<Object> items = new ArrayList<>();
+    }
+
+    private static final class ChestVault<V extends Unit<?, ?>> extends AbstractCollection<V> implements Vault<V> {
+
+        private final Class<V> type;
+        private final ChestState state;
+
+        private ChestVault(@NotNull Class<V> type, @NotNull ChestState state) {
+            this.type = type;
+            this.state = state;
+        }
+
+        @Override
+        public boolean isFull() {
+            return this.state.items.size() >= CHEST_CAPACITY;
+        }
+
+        @Override
+        public boolean add(@NotNull V unit) {
+            return !this.isFull() && this.state.items.add(unit);
+        }
+
+        @Override
+        public @NotNull Iterator<V> iterator() {
+            Iterator<Object> iterator = this.state.items.iterator();
+            return new Iterator<>() {
+                @Override
+                public boolean hasNext() {
+                    return iterator.hasNext();
+                }
+
+                @Override
+                public @NotNull V next() {
+                    return type.cast(iterator.next());
+                }
+
+                @Override
+                public void remove() {
+                    iterator.remove();
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return this.state.items.size();
+        }
     }
 
     private static void registerModelBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull Location location, @NotNull ModelResource model) {

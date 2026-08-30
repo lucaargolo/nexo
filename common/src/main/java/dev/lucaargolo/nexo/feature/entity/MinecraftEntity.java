@@ -1,13 +1,17 @@
 package dev.lucaargolo.nexo.feature.entity;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
+import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
+import dev.lucaargolo.nexo.unit.MinecraftEquipmentVault;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
@@ -15,12 +19,16 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -60,6 +68,20 @@ public final class MinecraftEntity extends EntityBase {
         return null;
     }
 
+    @Override
+    public <V extends Unit<?, ?>> @NotNull Map<String, Function<EntityUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+        if (!MinecraftContainerVault.supports(type)) {
+            return Map.of();
+        }
+        Map<String, Function<EntityUnit<?>, ? extends @Nullable Vault<V>>> vaults = new LinkedHashMap<>();
+        vaults.put(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            String key = MinecraftEquipmentVault.key(slot);
+            vaults.put(key, unit -> unit.vault(type, key));
+        }
+        return Collections.unmodifiableMap(vaults);
+    }
+
     public static EntityBase lookup(Location location) {
         return FEATURE_MAP.get(location);
     }
@@ -71,7 +93,8 @@ public final class MinecraftEntity extends EntityBase {
         }
         ResourceLocation id = NexoMinecraft.rl(entity.location());
         FEATURE_MAP.put(entity.location(), entity);
-        nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(nexo, entity));
+        Holder<EntityType<?>> entityHolder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.ENTITY_TYPE, id, MinecraftFeatureType.ENTITY.craft(nexo, entity));
+        nexo.getRegistryHandler().registerVaults(MinecraftFeatureType.ENTITY, entity, entityHolder::value);
         return entity;
     }
 

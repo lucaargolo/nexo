@@ -29,7 +29,7 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
-            return Set.of();
+            return super.vaults(type);
         }
         Set<String> vaults = new HashSet<>(super.vaults(type));
         if (this.itemHandler() != null) {
@@ -40,8 +40,11 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        if (!MinecraftContainerVault.KEY.equals(key) || !MinecraftContainerVault.supports(type)) {
+            return super.vault(type, key);
+        }
         IItemHandler handler = this.itemHandler();
-        if (MinecraftContainerVault.KEY.equals(key) && handler != null && MinecraftContainerVault.supports(type)) {
+        if (handler != null) {
             Class<Vault<U>> clazz = Nexo.type(Vault.class);
             return clazz.cast(new NeoForgeItemHandlerVault(this.nexo, handler));
         }

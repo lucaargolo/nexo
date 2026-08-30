@@ -36,17 +36,20 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
 
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
-        return this.itemVault() != null && MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+        if (!MinecraftContainerVault.supports(type)) {
+            return super.vaults(type);
+        }
+        return this.itemVault() != null ? Set.of(MinecraftContainerVault.KEY) : super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!MinecraftContainerVault.KEY.equals(key) || !MinecraftContainerVault.supports(type)) {
-            return null;
+        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
+            return super.vault(type, key);
         }
         Vault<ItemUnit<?>> vault = this.itemVault();
         if (vault == null) {
-            return null;
+            return super.vault(type, key);
         }
         Class<Vault<U>> clazz = Nexo.type(Vault.class);
         return clazz.cast(vault);

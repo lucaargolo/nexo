@@ -1,8 +1,12 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.Vault;
+import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -12,10 +16,15 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
@@ -48,6 +57,24 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     }
 
     public void endFeatureRegistration() {
+    }
+
+    public abstract <T extends Feature<T, U> & VaultFactoryProvider<U>, U extends Unit<T, ?>, M> void registerVaults(
+            @NotNull MinecraftFeatureType<T, U, M> type,
+            @NotNull T feature,
+            @NotNull Supplier<M> minecraft
+    );
+
+    protected final <U extends Unit<?, ?>, V extends Unit<?, ?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaultFactories(
+            @NotNull VaultFactoryProvider<U> feature,
+            @NotNull Class<V> type
+    ) {
+        Map<String, Function<U, ? extends @Nullable Vault<V>>> factories = new LinkedHashMap<>(feature.vaults(type));
+        factories.forEach((key, factory) -> {
+            Objects.requireNonNull(key, "Vault key");
+            Objects.requireNonNull(factory, "Vault factory");
+        });
+        return Collections.unmodifiableMap(factories);
     }
 
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);

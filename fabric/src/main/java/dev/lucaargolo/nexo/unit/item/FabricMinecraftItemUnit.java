@@ -5,7 +5,7 @@ import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.unit.FabricTransferVault;
+import dev.lucaargolo.nexo.unit.FabricStorageVault;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -55,7 +55,7 @@ public class FabricMinecraftItemUnit<C extends Role> extends MinecraftItemUnit<C
             }
         };
         Storage<ItemVariant> storage = ItemStorage.ITEM.find(this.get(), context);
-        return storage == null ? null : new FabricTransferVault(this.nexo, storage);
+        return storage == null ? null : new FabricStorageVault(this.nexo, storage);
     }
 
 }

@@ -37,6 +37,7 @@ import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -314,8 +315,12 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
     }
 
     public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
+        return blockToUnit(level, pos, state, blockEntity, null);
+    }
+
+    public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
-        return Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity);
+        return Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {

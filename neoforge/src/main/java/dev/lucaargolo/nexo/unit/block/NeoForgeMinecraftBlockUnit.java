@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.NeoForgeItemHandlerVault;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,23 +20,38 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<NeoForgeNexoMinecraft, C>{
 
     public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
-        super(nexo, feature, role, level, position, state, entity);
+        this(nexo, feature, role, level, position, state, entity, null);
+    }
+
+    public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+        super(nexo, feature, role, level, position, state, entity, direction);
     }
 
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
-        return this.itemHandler() != null && MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : super.vaults(type);
+        if (!MinecraftContainerVault.supports(type)) {
+            return super.vaults(type);
+        }
+        Set<String> vaults = new HashSet<>(super.vaults(type));
+        if (this.itemHandler() != null) {
+            vaults.add(MinecraftContainerVault.KEY);
+        }
+        return Set.copyOf(vaults);
     }
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        if (!MinecraftContainerVault.KEY.equals(key) || !MinecraftContainerVault.supports(type)) {
+            return super.vault(type, key);
+        }
         IItemHandler handler = this.itemHandler();
-        if (MinecraftContainerVault.KEY.equals(key) && handler != null && MinecraftContainerVault.supports(type)) {
+        if (handler != null) {
             Class<Vault<U>> clazz = Nexo.type(Vault.class);
             return clazz.cast(new NeoForgeItemHandlerVault(this.nexo, handler));
         }
@@ -46,7 +62,7 @@ public class NeoForgeMinecraftBlockUnit<C extends Role> extends MinecraftBlockUn
         if (this.level == null || this.position == null) {
             return null;
         }
-        return Capabilities.ItemHandler.BLOCK.getCapability(this.level, this.position, this.state, this.entity, null);
+        return Capabilities.ItemHandler.BLOCK.getCapability(this.level, this.position, this.state, this.entity, this.direction);
     }
 
     @Override

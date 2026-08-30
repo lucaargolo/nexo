@@ -8,4 +8,12 @@ public interface Vault<U extends Unit<?, ?>> extends Collection<U> {
 
     boolean isFull();
 
+    default boolean canAdd() {
+        return true;
+    }
+
+    default boolean canRemove() {
+        return true;
+    }
+
 }

@@ -4,11 +4,16 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
+import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
 import dev.lucaargolo.nexo.util.DynamicRegistryView;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -19,14 +24,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.callback.AddCallback;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -37,6 +48,8 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
     private final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
     private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
+    private final List<Consumer<RegisterCapabilitiesEvent>> inventoryRegistrars = new ArrayList<>();
+    private final ThreadLocal<Set<Object>> activeVaultFeatures = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
     private boolean featureRegistrationActive;
 
     public NeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
@@ -46,6 +59,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     @Override
     public void init() {
         super.init();
+        this.nexo().modBus().addListener(this::registerCapabilities);
         NeoForge.EVENT_BUS.addListener(DynamicRegistrySetupEvent.class, event -> {
             MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(event.view(), type));
             dynamicRegistrars.forEach((key, registrar) -> {
@@ -71,6 +85,47 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
         pendingFeatureEvents.clear();
         events.forEach(this.nexo()::emit);
+    }
+
+    @Override
+    public <T extends Feature<T, U> & VaultFactoryProvider<U>, U extends Unit<T, ?>, M> void registerVaults(
+            @NotNull MinecraftFeatureType<T, U, M> type,
+            @NotNull T feature,
+            @NotNull Supplier<M> minecraft
+    ) {
+        Class<ItemUnit<?>> itemUnitType = Nexo.type(ItemUnit.class);
+        var vaultFactories = this.vaultFactories(feature, itemUnitType);
+        if (vaultFactories.isEmpty()) {
+            return;
+        }
+        if (type.minecraftType() == Block.class) {
+            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories)), Block.class.cast(minecraft.get())));
+        } else if (type.minecraftType() == Item.class) {
+            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), Item.class.cast(minecraft.get())));
+        } else if (type.minecraftType() == EntityType.class) {
+            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, EntityType.class.cast(minecraft.get()), (entity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories))));
+        } else {
+            throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
+        }
+    }
+
+    private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        this.inventoryRegistrars.forEach(registrar -> registrar.accept(event));
+    }
+
+    private <T> @Nullable T createVaultCapability(@NotNull Object feature, @NotNull Supplier<T> creator) {
+        Set<Object> active = this.activeVaultFeatures.get();
+        if (!active.add(feature)) {
+            return null;
+        }
+        try {
+            return creator.get();
+        } finally {
+            active.remove(feature);
+            if (active.isEmpty()) {
+                this.activeVaultFeatures.remove();
+            }
+        }
     }
 
     @Override

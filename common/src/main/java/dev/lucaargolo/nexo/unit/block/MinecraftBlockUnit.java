@@ -12,6 +12,7 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -33,16 +34,22 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     protected final @Nullable Level level;
     protected final @Nullable BlockPos position;
     protected final @Nullable BlockEntity entity;
+    protected final @Nullable Direction direction;
 
     protected @NotNull BlockState state;
 
-    public MinecraftBlockUnit(@NotNull N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+        this(nexo, feature, role, level, position, state, entity, null);
+    }
+
+    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.level = level;
         this.position = position;
         this.state = state;
         this.entity = entity;
+        this.direction = direction;
     }
 
     public @NotNull BlockState get() {
@@ -61,12 +68,19 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
 
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
-        return this.container() != null && MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+        if (!MinecraftContainerVault.supports(type)) {
+            return super.vaults(type);
+        }
+        return this.container() != null ? Set.of(MinecraftContainerVault.KEY) : super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        return MinecraftContainerVault.KEY.equals(key) ? MinecraftContainerVault.create(this.nexo, this.container(), type) : null;
+        if (!MinecraftContainerVault.supports(type)) {
+            return super.vault(type, key);
+        }
+        Container container = this.container();
+        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : super.vault(type, key);
     }
 
     private @Nullable Container container() {
