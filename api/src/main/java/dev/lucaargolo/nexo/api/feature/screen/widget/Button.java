@@ -1,12 +1,14 @@
 package dev.lucaargolo.nexo.api.feature.screen.widget;
 
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 
 import org.jetbrains.annotations.NotNull;
-public class Button extends Widget {
+
+public class Button extends Widget<ScreenBase> {
 
     private static final float @NotNull [] BASE_COLOR = {0.25F, 0.25F, 0.35F, 0.85F};
     private static final float @NotNull [] HOVER_COLOR = {0.35F, 0.35F, 0.5F, 0.9F};
@@ -15,8 +17,8 @@ public class Button extends Widget {
     private @NotNull Text text;
     private final @NotNull Runnable action;
 
-    public Button(float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
-        super(x, y, width, height);
+    public Button(@NotNull ScreenBase parent, float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
+        super(parent, x, y, width, height);
         this.text = text;
         this.action = action;
     }

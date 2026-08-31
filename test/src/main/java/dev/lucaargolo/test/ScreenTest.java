@@ -309,19 +309,19 @@ public class ScreenTest extends SimpleScreen {
         cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
         int cellWidth = DESIGN_WIDTH * contentScale;
 
-        addWidget(new Label(10.0F, 10.0F, Text.translatable("screen.nexo_test.test_screen")));
-        mouseLabel = new Label(10.0F, 19.0F, Text.literal(""));
+        addWidget(new Label(this, 10.0F, 10.0F, Text.translatable("screen.nexo_test.test_screen")));
+        mouseLabel = new Label(this, 10.0F, 19.0F, Text.literal(""));
         addWidget(mouseLabel);
         int buttonY = cellY + 35 + DESIGN_HEIGHT * contentScale + 10;
-        addWidget(new Button(cellX, buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previous));
-        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::next));
+        addWidget(new Button(this, cellX, buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previous));
+        addWidget(new Button(this, cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::next));
         int textureButtonY = buttonY + 42;
-        textureLabel = new Label(cellX, textureButtonY - 14.0F, Text.literal(""));
+        textureLabel = new Label(this, cellX, textureButtonY - 14.0F, Text.literal(""));
         addWidget(textureLabel);
-        addWidget(new Button(cellX, textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previousTexture));
-        addWidget(new Button(cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::nextTexture));
+        addWidget(new Button(this, cellX, textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previousTexture));
+        addWidget(new Button(this, cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::nextTexture));
         int fontButtonY = textureButtonY + 42;
-        fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
+        fontButton = new Button(this, cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
         addWidget(fontButton);
         updateTextureLabel();
     }

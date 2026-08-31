@@ -26,7 +26,7 @@ import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
-import dev.lucaargolo.nexo.feature.screen.MinecraftScreenRegistry;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.feature.world.MinecraftBiome;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
@@ -159,13 +159,13 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     public static final MinecraftFeatureType<ScreenBase, ScreenUnit<?>, ScreenBase> SCREEN = new MinecraftFeatureType<>(
             ScreenBase.class,
             Feature.Type.SCREEN,
-            MinecraftScreenRegistry.REGISTRY,
+            MinecraftScreen.REGISTRY,
             true,
-            MinecraftScreenRegistry::register,
-            MinecraftScreenRegistry::index,
-            MinecraftScreenRegistry::lookup,
-            MinecraftScreenRegistry.CONVERT,
-            Map.of(ScreenBase.class, direct(ScreenBase.class, MinecraftScreenRegistry::craft)),
+            MinecraftScreen::register,
+            MinecraftScreen::index,
+            MinecraftScreen::lookup,
+            MinecraftScreen.CONVERT,
+            Map.of(ScreenBase.class, direct(ScreenBase.class, MinecraftScreen::craft)),
             (nexo, feature, screen) -> new MinecraftScreenUnit<>(nexo, feature, feature.role())
     );
 

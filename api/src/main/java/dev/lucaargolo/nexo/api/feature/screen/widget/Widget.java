@@ -1,22 +1,31 @@
 package dev.lucaargolo.nexo.api.feature.screen.widget;
 
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Widget {
+public abstract class Widget<S extends ScreenBase> {
+
+    @NotNull
+    private final S parent;
 
     private float x;
     private float y;
     private final float width;
     private final float height;
 
-    public Widget(float x, float y, float width, float height) {
+    public Widget(@NotNull S parent, float x, float y, float width, float height) {
+        this.parent = parent;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+
+    public @NotNull S parent() {
+        return parent;
     }
 
     public float x() {

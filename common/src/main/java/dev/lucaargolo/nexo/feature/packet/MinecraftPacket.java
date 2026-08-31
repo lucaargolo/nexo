@@ -15,12 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class MinecraftPacket {
 
+    private static final Map<Location, Packet<?, ?>> FEATURE_MAP = new ConcurrentHashMap<>();
+    private static final Map<Location, Holder<Packet<?, ?>>> HOLDER_MAP = new ConcurrentHashMap<>();
+
     public static final ResourceKey<Registry<Packet<?, ?>>> REGISTRY = ResourceKey.createRegistryKey(
             NexoMinecraft.rl(Location.of(NexoMinecraft.MOD_ID, "packet"))
     );
-
-    private static final Map<Location, Packet<?, ?>> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final Map<Location, Holder<Packet<?, ?>>> HOLDER_MAP = new ConcurrentHashMap<>();
 
     public static final Bijection<Packet<?, ?>, Holder<Packet<?, ?>>> CONVERT = new Bijection<>() {
         @Override

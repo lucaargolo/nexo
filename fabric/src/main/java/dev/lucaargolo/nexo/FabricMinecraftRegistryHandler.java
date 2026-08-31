@@ -21,6 +21,7 @@ import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
 import net.fabricmc.fabric.api.event.registry.FabricRegistryBuilder;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -34,6 +35,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuConstructor;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -129,6 +133,24 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     @Override
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         return Registry.registerForHolder(registry, id, feature.get());
+    }
+
+    @Override
+    public <T extends AbstractContainerMenu> MenuType<T> createMenuType(MenuConstructor constructor) {
+        StreamCodec<RegistryFriendlyByteBuf, Void> codec = new StreamCodec<>() {
+            @Override
+            public void encode(@NotNull RegistryFriendlyByteBuf buffer, @Nullable Void value) {
+            }
+
+            @Override
+            public @Nullable Void decode(@NotNull RegistryFriendlyByteBuf buffer) {
+                return null;
+            }
+        };
+        return new ExtendedScreenHandlerType<>((id, inventory, ignored) -> {
+            Class<T> type = Nexo.type(AbstractContainerMenu.class);
+            return type.cast(constructor.createMenu(id, inventory, inventory.player));
+        }, codec);
     }
 
     @Override

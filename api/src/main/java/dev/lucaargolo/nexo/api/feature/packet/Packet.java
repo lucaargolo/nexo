@@ -35,14 +35,6 @@ public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet
         return data;
     }
 
-    public final @NotNull Class<R> receiverType() {
-        return receiverType;
-    }
-
-
-    /**
-     * Returns the value received in the current handler invocation, or the data's initial value when called outside of a handler.
-     */
     public final @NotNull D value() {
         Deque<D> values = receivedValues.get();
         return values.isEmpty() ? data.initial() : values.peek();

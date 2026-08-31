@@ -4,10 +4,9 @@ import dev.lucaargolo.nexo.api.input.Input;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
+public final class GlfwKeyConversions {
 
-public final class GlfwKeyMapper {
-
-    private GlfwKeyMapper() {
+    private GlfwKeyConversions() {
     }
 
     public static @NotNull Input.Key key(int code) {

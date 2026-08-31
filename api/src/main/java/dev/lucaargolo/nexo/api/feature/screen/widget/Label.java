@@ -1,17 +1,18 @@
 package dev.lucaargolo.nexo.api.feature.screen.widget;
 
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 
 import org.jetbrains.annotations.NotNull;
-public class Label extends Widget {
+public class Label extends Widget<ScreenBase> {
 
     private @NotNull Text text;
     private final float @NotNull [] color = {1.0F, 1.0F, 1.0F, 1.0F};
 
-    public Label(float x, float y, @NotNull Text text) {
-        super(x, y, 0.0F, 0.0F);
+    public Label(@NotNull ScreenBase parent, float x, float y, @NotNull Text text) {
+        super(parent, x, y, 0.0F, 0.0F);
         this.text = text;
     }
 
