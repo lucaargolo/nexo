@@ -1,7 +1,10 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupCallback;
 import dev.lucaargolo.nexo.event.LanguageReloadCallback;
@@ -15,6 +18,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
@@ -22,6 +26,8 @@ import net.fabricmc.loader.api.MappingResolver;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +51,13 @@ public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, Fabr
         ServerLifecycleEvents.SERVER_STARTING.register(server -> currentServer = server);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> currentServer = null);
         ServerTickEvents.END_WORLD_TICK.register(this::tickWorld);
+        UseBlockCallback.EVENT.register((player, level, hand, hitResult) -> {
+            if (hand != InteractionHand.MAIN_HAND) {
+                return InteractionResult.PASS;
+            }
+            BlockUnit<?> block = this.blockToUnit(level, hitResult.getBlockPos(), level.getBlockState(hitResult.getBlockPos()));
+            return this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(player).withRole(PlayerRole.class))) == null ? InteractionResult.FAIL : InteractionResult.PASS;
+        });
         if (this.getSide() == Side.CLIENT) {
             ClientPlayNetworking.registerGlobalReceiver(MinecraftPacketPayload.TYPE, (payload, context) -> this.handleMinecraftPacket(payload, PacketReceiver.client()));
             ClientTickEvents.END_WORLD_TICK.register(this::tickWorld);

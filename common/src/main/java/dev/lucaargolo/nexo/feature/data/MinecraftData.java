@@ -105,6 +105,26 @@ public class MinecraftData<D> extends DataBase<D> {
         return clazz.cast(this.holder.value());
     }
 
+    public @NotNull DataComponentType<D> component() {
+        return this.componentType();
+    }
+
+    public static final class Initial<D> extends MinecraftData<D> {
+
+        private final @NotNull D initial;
+
+        public Initial(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<?> holder, @NotNull D initial) {
+            super(nexo, holder);
+            this.initial = initial;
+        }
+
+        @Override
+        public @NotNull D initial() {
+            return this.initial;
+        }
+
+    }
+
     public static DataBase<?> lookup(Location location) {
         return FEATURE_MAP.get(location);
     }

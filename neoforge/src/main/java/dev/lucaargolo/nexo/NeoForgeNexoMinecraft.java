@@ -1,7 +1,10 @@
 package dev.lucaargolo.nexo;
 
 import com.mojang.authlib.GameProfile;
+import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupEvent;
 import dev.lucaargolo.nexo.event.LanguageReloadEvent;
@@ -12,6 +15,7 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
@@ -20,6 +24,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -40,6 +45,16 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, 
         NeoForge.EVENT_BUS.addListener(LanguageLookupEvent.class, event -> event.translation(this.getLanguageHandler().translateNexo(event.key())));
         NeoForge.EVENT_BUS.addListener(LanguageReloadEvent.class, event -> this.getLanguageHandler().select(event.locale()));
         this.init();
+        NeoForge.EVENT_BUS.addListener((PlayerInteractEvent.RightClickBlock event) -> {
+            if (event.getHand() != InteractionHand.MAIN_HAND) {
+                return;
+            }
+            Level level = event.getLevel();
+            BlockUnit<?> block = this.blockToUnit(level, event.getPos(), level.getBlockState(event.getPos()));
+            if (this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(event.getEntity()).withRole(PlayerRole.class))) == null) {
+                event.setCanceled(true);
+            }
+        });
         NeoForge.EVENT_BUS.addListener(LevelTickEvent.Post.class, event -> this.tickWorld(event.getLevel()));
     }
 

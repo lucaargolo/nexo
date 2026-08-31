@@ -20,8 +20,11 @@ import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -30,6 +33,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,10 +63,35 @@ public class MinecraftItem extends ItemBase {
     private boolean computedCategory;
     private @Nullable ItemCategoryBase category;
 
+    private final @NotNull List<@NotNull DataBase<?>> initialData;
+
     private MinecraftItem(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Item> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ITEM, holder));
         this.nexo = nexo;
         this.holder = holder;
+        Item item = holder.value();
+        List<@NotNull DataBase<?>> initialData = new ArrayList<>();
+        for (TypedDataComponent<?> component : item.components()) {
+            DataBase<?> data = componentData(component);
+            if (data != null) {
+                initialData.add(data);
+            }
+        }
+        this.initialData = List.copyOf(initialData);
+    }
+
+    @Override
+    public @NotNull List<@NotNull DataBase<?>> initialData() {
+        return this.initialData;
+    }
+
+    private <D> @Nullable DataBase<?> componentData(@NotNull TypedDataComponent<D> component) {
+        ResourceLocation id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(component.type());
+        if (id == null) {
+            return null;
+        }
+        Holder<DataComponentType<?>> holder = BuiltInRegistries.DATA_COMPONENT_TYPE.getHolderOrThrow(ResourceKey.create(Registries.DATA_COMPONENT_TYPE, id));
+        return new MinecraftData.Initial<>(this.nexo, holder, component.value());
     }
 
     @Override

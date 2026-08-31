@@ -9,6 +9,7 @@ import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.core.component.DataComponentType;
@@ -98,6 +99,9 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
     }
 
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {
+        if (data instanceof MinecraftData<D> minecraftData) {
+            return minecraftData.component();
+        }
         Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
         return clazz.cast(MinecraftFeatureType.DATA.convert(data));
     }

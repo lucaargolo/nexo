@@ -19,6 +19,7 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.data.MinecraftPropertyData;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
@@ -43,6 +44,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -92,10 +94,29 @@ public class MinecraftBlock extends BlockBase {
     @NotNull
     private final Holder<Block> holder;
 
+    private final @NotNull List<@NotNull DataBase<?>> initialData;
+
     private MinecraftBlock(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Block> holder) {
         super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.BLOCK, holder));
         this.nexo = nexo;
         this.holder = holder;
+        Block block = holder.value();
+        BlockState defaultState = block.defaultBlockState();
+        Location location = NexoMinecraft.id(holder);
+        List<@NotNull DataBase<?>> initialData = new ArrayList<>();
+        for (Property<?> property : block.getStateDefinition().getProperties()) {
+            initialData.add(propertyData(location, defaultState, property));
+        }
+        this.initialData = List.copyOf(initialData);
+    }
+
+    @Override
+    public @NotNull List<@NotNull DataBase<?>> initialData() {
+        return this.initialData;
+    }
+
+    private static <T extends Comparable<T>> @NotNull DataBase<?> propertyData(@NotNull Location location, @NotNull BlockState defaultState, @NotNull Property<T> property) {
+        return new MinecraftPropertyData<>(Location.of(location.namespace(), location.path() + "/" + property.getName()), property, defaultState.getValue(property));
     }
 
     @Override
@@ -168,22 +189,22 @@ public class MinecraftBlock extends BlockBase {
     }
 
     public static <M extends Block> Block craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
-        @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
+        @Nullable List<MinecraftDataProperty<?>> dataProperties = new ArrayList<>();
         for (DataBase<?> data : block.initialData()) {
             if (data instanceof DataBase.Constrained<?> constrained) {
-                dataProperties.add(new DataProperty<>(constrained));
+                dataProperties.add(new MinecraftDataProperty<>(constrained));
             }
         }
         extender.initialize(feature -> {
             BlockState state = feature.getStateDefinition().any();
-            for (DataProperty<?> property : dataProperties) {
+            for (MinecraftDataProperty<?> property : dataProperties) {
                 state = property.setDefault(state);
             }
             feature.registerDefaultState(state);
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, builder) -> {
-            for (DataProperty<?> property : dataProperties) {
+            for (MinecraftDataProperty<?> property : dataProperties) {
                 builder.add(property);
             }
             return null;

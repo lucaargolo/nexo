@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.Optional;
 
-public class DataProperty<D extends Comparable<D>> extends Property<D> {
+public class MinecraftDataProperty<D extends Comparable<D>> extends Property<D> {
 
     private final DataBase.Constrained<D> constrained;
 
-    protected DataProperty(DataBase.Constrained<D> constrained) {
+    protected MinecraftDataProperty(DataBase.Constrained<D> constrained) {
         super(constrained.name(), constrained.valueClass());
         this.constrained = constrained;
     }

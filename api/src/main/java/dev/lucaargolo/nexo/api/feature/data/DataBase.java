@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -79,6 +80,15 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>,
 
         public @NotNull String name() {
             return location().path();
+        }
+
+        public @NotNull T cycle(@NotNull T current) {
+            List<T> values = List.copyOf(this.values());
+            int index = values.indexOf(current);
+            if (index < 0) {
+                throw new IllegalArgumentException("Value " + current + " is not valid for data " + this.location());
+            }
+            return values.get((index + 1) % values.size());
         }
 
     }
