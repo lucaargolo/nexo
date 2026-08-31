@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.api.feature.world;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.InitialDataProvider;
+import dev.lucaargolo.nexo.api.feature.DataInitializer;
 import dev.lucaargolo.nexo.api.feature.TickerProvider;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class WorldBase extends Feature<WorldBase, WorldUnit<?>> implements TickerProvider<WorldUnit<?>>, InitialDataProvider {
+public abstract class WorldBase extends Feature<WorldBase, WorldUnit<?>> implements TickerProvider<WorldUnit<?>>, DataInitializer {
 
     public WorldBase(@NotNull Location location) {
         super(location);

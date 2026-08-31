@@ -3,7 +3,7 @@ package dev.lucaargolo.nexo;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
-import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
+import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -59,14 +59,14 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     public void endFeatureRegistration() {
     }
 
-    public abstract <T extends Feature<T, U> & VaultFactoryProvider<U>, U extends Unit<T, ?>, M> void registerVaults(
+    public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T, ?>, M> void registerVaults(
             @NotNull MinecraftFeatureType<T, U, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
     );
 
     protected final <U extends Unit<?, ?>, V extends Unit<?, ?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaultFactories(
-            @NotNull VaultFactoryProvider<U> feature,
+            @NotNull VaultFactory<U> feature,
             @NotNull Class<V> type
     ) {
         Map<String, Function<U, ? extends @Nullable Vault<V>>> factories = new LinkedHashMap<>(feature.vaults(type));

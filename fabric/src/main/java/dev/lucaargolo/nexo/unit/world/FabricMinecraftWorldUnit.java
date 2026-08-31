@@ -4,10 +4,16 @@ import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.unit.FabricAttachmentData;
+import net.fabricmc.fabric.impl.attachment.AttachmentTargetImpl;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 @SuppressWarnings("UnstableApiUsage")
 public class FabricMinecraftWorldUnit extends MinecraftWorldUnit<FabricNexoMinecraft> {
@@ -17,19 +23,21 @@ public class FabricMinecraftWorldUnit extends MinecraftWorldUnit<FabricNexoMinec
     }
 
     @Override
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        AttachmentTargetImpl target = (AttachmentTargetImpl) this.level;
+        CompoundTag tag = new CompoundTag();
+        target.fabric_writeAttachmentsToNbt(tag, this.level.registryAccess());
+        return FabricAttachmentData.data(this.nexo, this.level, List.of(), tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.CUSTOM_DATA));
+    }
+
+    @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-        return this.feature.data().contains(data) ? this.level.getAttachedOrCreate(type) : this.level.getAttached(type);
+        return FabricAttachmentData.getData(this.nexo, this.feature.initialData(), this.level, data);
     }
 
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-        if (d == null) {
-            this.level.removeAttached(type);
-        } else {
-            this.level.setAttached(type, d);
-        }
+        FabricAttachmentData.setData(this.nexo, this.level, data, d);
     }
 
 }

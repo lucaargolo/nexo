@@ -8,12 +8,16 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
+import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,6 +68,19 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     @Override
     public @Nullable Vector3i position() {
         return this.position != null ? new Vector3i(this.position.getX(), this.position.getY(), this.position.getZ()) : null;
+    }
+
+    @Override
+    public void drop(@NotNull ItemUnit<?> item) {
+        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+            throw new IllegalArgumentException("MinecraftBlockUnit only accepts MinecraftItemUnit instances");
+        }
+        if (this.level != null && this.position != null) {
+            ItemStack stack = minecraftItem.get();
+            if (!stack.isEmpty()) {
+                Block.popResource(this.level, this.position, stack.copy());
+            }
+        }
     }
 
     @Override

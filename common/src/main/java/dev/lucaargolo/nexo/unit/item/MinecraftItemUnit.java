@@ -16,6 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> implements MinecraftUnit<ItemStack> {
@@ -66,6 +68,18 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
     @Override
     public @NotNull ItemStack get() {
         return stack;
+    }
+
+    @Override
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        List<@NotNull DataBase<?>> list = new ArrayList<>();
+        stack.getComponents().forEach(component -> {
+            Object entry = stack.getComponentsPatch().get(component.type());
+            if(entry != null) {
+                list.add(MinecraftFeatureType.DATA.convert(nexo, component.type()));
+            }
+        });
+        return list;
     }
 
     @Override

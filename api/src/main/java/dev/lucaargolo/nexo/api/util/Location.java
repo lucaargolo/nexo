@@ -76,6 +76,14 @@ public final class Location {
                 .computeIfAbsent(path, p -> new Location(namespace, path));
     }
 
+    public static @NotNull Location parse(@NotNull String value) {
+        int separator = value.indexOf(':');
+        if (separator <= 0 || separator == value.length() - 1) {
+            throw new IllegalArgumentException("Invalid item location: " + value);
+        }
+        return Location.of(value.substring(0, separator), value.substring(separator + 1));
+    }
+
     @Override
     public @NotNull String toString() {
         return this.namespace + ":" + this.path;

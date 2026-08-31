@@ -189,10 +189,11 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
     }
 
     private void restore(@NotNull Vault<ItemUnit<?>> vault, @NotNull List<ItemStack> snapshot) {
-        vault.clear();
+        List<ItemUnit<?>> restored = new ArrayList<>(snapshot.size());
         for (ItemStack stack : snapshot) {
-            vault.add(this.nexo.stackToUnit(stack.copy()));
+            restored.add(this.nexo.stackToUnit(stack.copy()));
         }
+        vault.setContents(restored);
     }
 
     private @NotNull List<Slot> createSlots() {

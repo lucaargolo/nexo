@@ -22,6 +22,10 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>,
         super(location, role);
     }
 
+    public static <D> @NotNull ListData<D> list(@NotNull DataBase<D> data) {
+        return new ListData<>(data.location().withPathSuffix("_list"), data);
+    }
+
     @Override
     public final @NotNull Type<DataBase<?>, Unit<DataBase<?>, ?>> type() {
         return Type.data();

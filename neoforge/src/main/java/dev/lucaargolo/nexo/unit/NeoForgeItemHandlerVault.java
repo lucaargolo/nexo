@@ -1,16 +1,21 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractCollection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
@@ -20,6 +25,23 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
     public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
         this.nexo = nexo;
         this.handler = handler;
+    }
+
+    public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable IItemHandler handler) {
+        if (handler == null || !MinecraftContainerVault.supports(type)) {
+            return existing;
+        }
+        Set<String> vaults = new HashSet<>(existing);
+        vaults.add(MinecraftContainerVault.KEY);
+        return Set.copyOf(vaults);
+    }
+
+    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
+        if (handler == null || !MinecraftContainerVault.supports(type)) {
+            return null;
+        }
+        Class<Vault<U>> clazz = Nexo.type(Vault.class);
+        return clazz.cast(new NeoForgeItemHandlerVault(nexo, handler));
     }
 
     @Override
@@ -73,7 +95,11 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
         for (int slot = 0; slot < handler.getSlots() && !remaining.isEmpty(); slot++) {
             remaining = handler.insertItem(slot, remaining, false);
         }
-        return remaining.getCount() < source.getCount();
+        boolean inserted = remaining.getCount() < source.getCount();
+        if (inserted) {
+            this.contentsChanged();
+        }
+        return inserted;
     }
 
     @Override
@@ -89,13 +115,18 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
             if (!ItemStack.matches(handler.getStackInSlot(slot), target)) {
                 continue;
             }
-            return ItemStack.matches(handler.extractItem(slot, target.getCount(), false), target);
+            boolean removed = ItemStack.matches(handler.extractItem(slot, target.getCount(), false), target);
+            if (removed) {
+                this.contentsChanged();
+            }
+            return removed;
         }
         return false;
     }
 
     @Override
     public void clear() {
+        boolean changed = false;
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             ItemStack stack = handler.getStackInSlot(slot);
             while (!stack.isEmpty()) {
@@ -103,8 +134,12 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
                 if (extracted.isEmpty()) {
                     break;
                 }
+                changed = true;
                 stack = handler.getStackInSlot(slot);
             }
+        }
+        if (changed) {
+            this.contentsChanged();
         }
     }
 
@@ -140,6 +175,7 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
                     throw new IllegalStateException();
                 }
                 handler.extractItem(currentSlot, currentAmount, false);
+                NeoForgeItemHandlerVault.this.contentsChanged();
                 currentSlot = -1;
             }
         };

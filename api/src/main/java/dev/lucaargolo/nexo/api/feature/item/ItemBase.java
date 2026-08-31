@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
-public abstract class ItemBase extends Feature<ItemBase, ItemUnit<?>> implements ItemProvider, VaultFactoryProvider<ItemUnit<?>>, RendererProvider<Graphics3D, ItemUnit<?>>, TickerProvider<ItemUnit<?>>, InitialDataProvider {
+public abstract class ItemBase extends Feature<ItemBase, ItemUnit<?>> implements ItemProvider, VaultFactory<ItemUnit<?>>, RendererProvider<Graphics3D, ItemUnit<?>>, TickerProvider<ItemUnit<?>>, DataInitializer {
 
     public ItemBase(@NotNull Location location) {
         super(location);

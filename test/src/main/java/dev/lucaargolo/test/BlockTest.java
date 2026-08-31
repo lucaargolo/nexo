@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.block.SimpleBlock;
 import dev.lucaargolo.nexo.api.feature.data.BooleanData;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.data.ItemData;
 import dev.lucaargolo.nexo.api.feature.data.StringData;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -30,7 +31,7 @@ import org.joml.Vector3i;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +41,6 @@ import static java.util.Objects.requireNonNull;
 
 public final class BlockTest {
 
-    private static final Map<Vector3i, ChestState> CHEST_STATES = new HashMap<>();
     private static final int CHEST_CAPACITY = 27;
 
     private static final Renderer<Graphics3D, BlockUnit<?>> EMPTY_RENDERER = new Renderer<>() {
@@ -80,46 +80,82 @@ public final class BlockTest {
     }
 
     private static void registerChestBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
+        ItemData chestData = nexo.registerFeature(new ItemData(NexoTestMod.id("test_chest_data"), nexo));
+        DataBase<List<ItemUnit<?>>> chestInventory = nexo.registerFeature(DataBase.list(chestData));
         BlockBase chest = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_chest"), ModelResource.full(NexoTestMod.id("test_block"))) {
             @Override
+            public void onBreak(@NotNull BlockUnit<?> block) {
+                List<ItemUnit<?>> items = block.getData(chestInventory);
+                if (items != null) {
+                    for (ItemUnit<?> item : items) {
+                        block.drop(item);
+                    }
+                }
+            }
+
+            @Override
+            public @NotNull List<@NotNull DataBase<?>> initialData() {
+                return List.of(chestInventory);
+            }
+
+            @Override
             public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
-                return Map.of("inventory", unit -> {
-                    Vector3i position = unit.position();
-                    ChestState state = position == null ? new ChestState() : CHEST_STATES.computeIfAbsent(new Vector3i(position), ignored -> new ChestState());
-                    return new ChestVault<>(type, state);
-                });
+                return Map.of("inventory", unit -> new ChestVault<>(type, unit, chestInventory));
             }
         });
         nexo.registerFeature(new BlockItem(chest, category));
     }
 
-    private static final class ChestState {
-        private final List<Object> items = new ArrayList<>();
-    }
-
     private static final class ChestVault<V extends Unit<?, ?>> extends AbstractCollection<V> implements Vault<V> {
 
         private final Class<V> type;
-        private final ChestState state;
+        private final BlockUnit<?> block;
+        private final DataBase<List<ItemUnit<?>>> data;
+        private final List<ItemUnit<?>> items;
 
-        private ChestVault(@NotNull Class<V> type, @NotNull ChestState state) {
+        private ChestVault(@NotNull Class<V> type, @NotNull BlockUnit<?> block, @NotNull DataBase<List<ItemUnit<?>>> data) {
             this.type = type;
-            this.state = state;
+            this.block = block;
+            this.data = data;
+            List<ItemUnit<?>> stored = block.getData(data);
+            this.items = new ArrayList<>(stored != null ? stored : List.of());
         }
 
         @Override
         public boolean isFull() {
-            return this.state.items.size() >= CHEST_CAPACITY;
+            return this.items.size() >= CHEST_CAPACITY;
         }
 
         @Override
         public boolean add(@NotNull V unit) {
-            return !this.isFull() && this.state.items.add(unit);
+            if (this.isFull()) {
+                return false;
+            }
+            if (!(unit instanceof ItemUnit<?> item)) {
+                throw new IllegalArgumentException("ChestVault only accepts ItemUnit instances");
+            }
+            boolean added = this.items.add(item);
+            if (added) {
+                this.contentsChanged();
+            }
+            return added;
+        }
+
+        @Override
+        public void setContents(@NotNull Collection<? extends V> contents) {
+            this.items.clear();
+            for (V unit : contents) {
+                if (!(unit instanceof ItemUnit<?> item)) {
+                    throw new IllegalArgumentException("ChestVault only accepts ItemUnit instances");
+                }
+                this.items.add(item);
+            }
+            this.contentsChanged();
         }
 
         @Override
         public @NotNull Iterator<V> iterator() {
-            Iterator<Object> iterator = this.state.items.iterator();
+            Iterator<ItemUnit<?>> iterator = this.items.iterator();
             return new Iterator<>() {
                 @Override
                 public boolean hasNext() {
@@ -134,13 +170,19 @@ public final class BlockTest {
                 @Override
                 public void remove() {
                     iterator.remove();
+                    ChestVault.this.contentsChanged();
                 }
             };
         }
 
         @Override
         public int size() {
-            return this.state.items.size();
+            return this.items.size();
+        }
+
+        @Override
+        public void contentsChanged() {
+            this.block.setData(this.data, List.copyOf(this.items));
         }
     }
 
@@ -153,7 +195,7 @@ public final class BlockTest {
         ModelResource model = requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")), "Missing test_block.json model");
         BlockBase block = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_state"), model) {
             @Override
-            public @NotNull List<@NotNull DataBase<?>> data() {
+            public @NotNull List<@NotNull DataBase<?>> initialData() {
                 return List.of(STATE);
             }
 
@@ -181,7 +223,7 @@ public final class BlockTest {
             }
 
             @Override
-            public @NotNull List<@NotNull DataBase<?>> data() {
+            public @NotNull List<@NotNull DataBase<?>> initialData() {
                 return List.of(dynamicData);
             }
 

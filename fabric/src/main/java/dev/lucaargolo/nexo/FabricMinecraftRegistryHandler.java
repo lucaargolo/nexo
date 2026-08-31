@@ -5,7 +5,7 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
+import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -56,6 +56,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     public static final EntityApiLookup<Storage<ItemVariant>, Void> ENTITY_ITEM_STORAGE = EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(NexoMinecraft.MOD_ID, "entity_item_storage"), Storage.asClass(), Void.class);
 
     private final Map<DataBase<?>, AttachmentType<?>> dataAttachmentMap = new LinkedHashMap<>();
+    private final Map<AttachmentType<?>, DataBase<?>> attachmentDataMap = new IdentityHashMap<>();
     private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
     private final ThreadLocal<Set<Object>> activeVaultFeatures = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
     private boolean featureRegistrationActive;
@@ -78,7 +79,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
-    public <T extends Feature<T, U> & VaultFactoryProvider<U>, U extends Unit<T, ?>, M> void registerVaults(
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T, ?>, M> void registerVaults(
             @NotNull MinecraftFeatureType<T, U, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
@@ -151,6 +152,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
             }
         });
         dataAttachmentMap.put(data, type);
+        attachmentDataMap.put(type, data);
     }
 
     public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
@@ -202,6 +204,10 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
         return clazz.cast(dataAttachmentMap.get(data));
+    }
+
+    public @Nullable DataBase<?> getAttachmentData(@NotNull AttachmentType<?> type) {
+        return attachmentDataMap.get(type);
     }
 
 }

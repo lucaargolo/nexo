@@ -6,9 +6,12 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Function;
 
 public interface DataProvider {
+
+    @NotNull List<@NotNull DataBase<?>> data();
 
     <D> @Nullable D getData(@NotNull DataBase<D> data);
 

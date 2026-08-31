@@ -169,7 +169,7 @@ public class MinecraftBlock extends BlockBase {
 
     public static <M extends Block> Block craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
         @Nullable List<DataProperty<?>> dataProperties = new ArrayList<>();
-        for (DataBase<?> data : block.data()) {
+        for (DataBase<?> data : block.initialData()) {
             if (data instanceof DataBase.Constrained<?> constrained) {
                 dataProperties.add(new DataProperty<>(constrained));
             }
@@ -197,6 +197,12 @@ public class MinecraftBlock extends BlockBase {
                 case FAIL -> InteractionResult.FAIL;
                 case SUCCESS -> InteractionResult.SUCCESS;
             };
+        });
+        extender.override(Utils.At.BEFORE_SUPER, "onRemove", void.class, BlockState.class, Level.class, BlockPos.class, BlockState.class, boolean.class, (feature, state, level, pos, newState, isMoving) -> {
+            if (state.getBlock() != newState.getBlock() && !level.isClientSide) {
+                block.onBreak(nexo.blockToUnit(level, pos, state, level.getBlockEntity(pos)));
+            }
+            return null;
         });
         if (isDynamicBlock(block)) {
             extender.implement(EntityBlock.class, feature -> new EntityBlock() {
@@ -246,7 +252,7 @@ public class MinecraftBlock extends BlockBase {
         Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
         return block.ticker() != null
                 || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))
-                || block.data().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>))
+                || block.initialData().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>))
                 || !block.vaults(Nexo.type(ItemUnit.class)).isEmpty();
     }
 

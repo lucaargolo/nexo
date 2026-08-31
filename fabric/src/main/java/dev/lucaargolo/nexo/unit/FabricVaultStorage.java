@@ -33,11 +33,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         this.vaults = vaults;
     }
 
-    public static @Nullable Storage<ItemVariant> create(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
-            @NotNull Unit<?, ?> unit,
-            @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit<?>>>> vaultFactories
-    ) {
+    public static @Nullable Storage<ItemVariant> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Unit<?, ?> unit, @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit<?>>>> vaultFactories) {
         List<Vault<ItemUnit<?>>> vaults = new ArrayList<>(vaultFactories.size());
         Class<Function<Unit<?, ?>, ? extends @Nullable Vault<ItemUnit<?>>>> type = Nexo.type(Function.class);
         for (Function<?, ? extends @Nullable Vault<ItemUnit<?>>> factory : vaultFactories.values()) {
@@ -163,7 +159,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         this.ensureSnapshot(transaction);
         long stored = this.count(vault, resource);
         boolean changed = vault.add(this.nexo.stackToUnit(stack));
-        return changed ? Math.min(amount, Math.max(0, this.count(vault, resource) - stored)) : 0;
+        return changed ? Math.clamp(this.count(vault, resource) - stored, 0, amount) : 0;
     }
 
     private long extract(
@@ -256,10 +252,11 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             if (vault instanceof MinecraftItemVault minecraftVault) {
                 minecraftVault.restore(state, false);
             } else {
-                vault.clear();
+                List<ItemUnit<?>> restored = new ArrayList<>(state.size());
                 for (ItemStack stack : state) {
-                    vault.add(this.nexo.stackToUnit(stack.copy()));
+                    restored.add(this.nexo.stackToUnit(stack.copy()));
                 }
+                vault.setContents(restored);
             }
         }
     }
@@ -267,9 +264,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
     @Override
     protected void onFinalCommit() {
         for (Vault<ItemUnit<?>> vault : this.vaults) {
-            if (vault instanceof MinecraftItemVault minecraftVault) {
-                minecraftVault.markChanged();
-            }
+            vault.contentsChanged();
         }
     }
 
@@ -374,6 +369,6 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         }
     }
 
-    static record Snapshot(@NotNull List<@Nullable List<ItemStack>> vaults) {
+    protected record Snapshot(@NotNull List<@Nullable List<ItemStack>> vaults) {
     }
 }

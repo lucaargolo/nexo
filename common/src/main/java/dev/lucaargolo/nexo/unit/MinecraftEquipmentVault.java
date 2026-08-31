@@ -68,8 +68,4 @@ public final class MinecraftEquipmentVault extends MinecraftItemVault {
         return this.getItem(0).getMaxStackSize();
     }
 
-    @Override
-    void markChanged() {
-    }
-
 }

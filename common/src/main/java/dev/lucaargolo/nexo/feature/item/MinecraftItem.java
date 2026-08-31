@@ -136,7 +136,7 @@ public class MinecraftItem extends ItemBase {
         });
 
         Item.Properties properties = new Item.Properties();
-        for (DataBase<?> data : item.data()) {
+        for (DataBase<?> data : item.initialData()) {
             properties = setInitialComponent(properties, data);
         }
         if (factory != null) {
@@ -146,7 +146,7 @@ public class MinecraftItem extends ItemBase {
     }
 
     private static @NotNull <D> Item.Properties setInitialComponent(Item.Properties properties, DataBase<D> data) {
-        if (data instanceof MinecraftData<?> || MinecraftData.holder(data) == null) {
+        if (data instanceof MinecraftData<?>) {
             return properties;
         }
         Holder<DataComponentType<D>> holder = MinecraftData.holder(data);

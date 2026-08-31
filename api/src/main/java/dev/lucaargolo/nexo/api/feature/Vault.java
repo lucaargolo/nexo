@@ -4,9 +4,19 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 
 import java.util.Collection;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface Vault<U extends Unit<?, ?>> extends Collection<U> {
 
     boolean isFull();
+
+    default void contentsChanged() {
+    }
+
+    default void setContents(@NotNull Collection<? extends U> contents) {
+        this.clear();
+        this.addAll(contents);
+    }
 
     default boolean canAdd() {
         return true;

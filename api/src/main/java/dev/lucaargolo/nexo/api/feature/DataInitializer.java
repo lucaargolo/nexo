@@ -5,9 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public interface InitialDataProvider {
+public interface DataInitializer {
 
-    @NotNull default List<@NotNull DataBase<?>> data() {
+    @NotNull default List<@NotNull DataBase<?>> initialData() {
         return List.of();
     }
 

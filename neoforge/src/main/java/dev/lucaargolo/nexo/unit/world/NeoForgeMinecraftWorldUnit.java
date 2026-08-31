@@ -4,10 +4,16 @@ import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.unit.NeoForgeAttachmentData;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.AttachmentHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoMinecraft> {
 
@@ -16,19 +22,23 @@ public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoM
     }
 
     @Override
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        CompoundTag tag = new CompoundTag();
+        CompoundTag attachments = this.level.serializeAttachments(this.level.registryAccess());
+        if (attachments != null) {
+            tag.put(AttachmentHolder.ATTACHMENTS_NBT_KEY, attachments);
+        }
+        return NeoForgeAttachmentData.data(this.nexo, this.level, List.of(), tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.CUSTOM_DATA));
+    }
+
+    @Override
     public @Nullable <D> D getData(@NotNull DataBase<D> data) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-        return this.feature.data().contains(data) ? this.level.getData(type) : this.level.getExistingDataOrNull(type);
+        return NeoForgeAttachmentData.getData(this.nexo, this.feature.initialData(), this.level, data);
     }
 
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-        if (d == null) {
-            this.level.removeData(type);
-        } else {
-            this.level.setData(type, d);
-        }
+        NeoForgeAttachmentData.setData(this.nexo, this.level, data, d);
     }
 
 }

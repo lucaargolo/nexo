@@ -80,7 +80,7 @@ public class MinecraftData<D> extends DataBase<D> {
     public @NotNull JsonElement serialize(@NotNull D value) {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
-            return JsonOps.INSTANCE.withEncoder(codec).apply(value).getOrThrow();
+            return codec.encodeStart(nexo.getRegistryHandler().getRegistry().createSerializationContext(JsonOps.INSTANCE), value).getOrThrow();
         }
         JsonObject json = new JsonObject();
         ByteBuffer encoded = Base64.getEncoder().encode(this.write(value));
@@ -92,7 +92,7 @@ public class MinecraftData<D> extends DataBase<D> {
     public @NotNull D deserialize(@NotNull JsonElement element) {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
-            return JsonOps.INSTANCE.withDecoder(codec).apply(element).getOrThrow().getFirst();
+            return codec.parse(nexo.getRegistryHandler().getRegistry().createSerializationContext(JsonOps.INSTANCE), element).getOrThrow();
         }
         JsonObject json = element.getAsJsonObject();
         String encoded = json.getAsJsonPrimitive("data").getAsString();
@@ -140,7 +140,7 @@ public class MinecraftData<D> extends DataBase<D> {
         return builder.build();
     }
 
-    public static <D> @Nullable Holder<DataComponentType<D>> holder(@NotNull DataBase<D> data) {
+    public static <D> @NotNull Holder<DataComponentType<D>> holder(@NotNull DataBase<D> data) {
         Class<Holder<DataComponentType<D>>> clazz = Nexo.type(Holder.class);
         return clazz.cast(HOLDER_MAP.get(data.location()));
     }

@@ -32,8 +32,6 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
 
     abstract int slotLimit(int slot);
 
-    abstract void markChanged();
-
     @Override
     public final boolean isFull() {
         for (int slot = 0; slot < this.slotCount(); slot++) {
@@ -94,7 +92,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
         if (remaining == source.getCount()) {
             return false;
         }
-        this.markChanged();
+        this.contentsChanged();
         return true;
     }
 
@@ -106,7 +104,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
         for (int slot = 0; slot < this.slotCount(); slot++) {
             if (ItemStack.matches(this.getItem(slot), item.get())) {
                 this.setItem(slot, ItemStack.EMPTY);
-                this.markChanged();
+                this.contentsChanged();
                 return true;
             }
         }
@@ -123,7 +121,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
             }
         }
         if (changed) {
-            this.markChanged();
+            this.contentsChanged();
         }
     }
 
@@ -147,7 +145,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
         if (!simulate) {
             this.setItem(slot, current.isEmpty() ? stack.copyWithCount(amount) : current.copyWithCount(current.getCount() + amount));
             if (notify) {
-                this.markChanged();
+                this.contentsChanged();
             }
         }
         return stack.copyWithCount(stack.getCount() - amount);
@@ -170,7 +168,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
         if (!simulate) {
             this.setItem(slot, current.copyWithCount(current.getCount() - extracted));
             if (notify) {
-                this.markChanged();
+                this.contentsChanged();
             }
         }
         return result;
@@ -192,7 +190,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
             this.setItem(slot, snapshot.get(slot).copy());
         }
         if (notify) {
-            this.markChanged();
+            this.contentsChanged();
         }
     }
 
@@ -225,7 +223,7 @@ abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implem
                     throw new IllegalStateException();
                 }
                 MinecraftItemVault.this.setItem(this.currentSlot, ItemStack.EMPTY);
-                MinecraftItemVault.this.markChanged();
+                MinecraftItemVault.this.contentsChanged();
                 this.currentSlot = -1;
             }
         };

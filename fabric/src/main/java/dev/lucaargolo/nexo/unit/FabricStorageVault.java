@@ -1,7 +1,9 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -11,10 +13,13 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractCollection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
@@ -24,6 +29,23 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
     public FabricStorageVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
         this.nexo = nexo;
         this.storage = storage;
+    }
+
+    public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
+        if (storage == null || !MinecraftContainerVault.supports(type)) {
+            return existing;
+        }
+        Set<String> vaults = new HashSet<>(existing);
+        vaults.add(MinecraftContainerVault.KEY);
+        return Set.copyOf(vaults);
+    }
+
+    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
+        if (storage == null || !MinecraftContainerVault.supports(type)) {
+            return null;
+        }
+        Class<Vault<U>> clazz = Nexo.type(Vault.class);
+        return clazz.cast(new FabricStorageVault(nexo, storage));
     }
 
     @Override
@@ -105,6 +127,7 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
                 return false;
             }
             transaction.commit();
+            this.contentsChanged();
             return true;
         }
     }
@@ -129,6 +152,7 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
                     return false;
                 }
                 transaction.commit();
+                this.contentsChanged();
                 return true;
             }
             return false;
@@ -138,11 +162,16 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
     @Override
     public void clear() {
         try (Transaction transaction = Transaction.openOuter()) {
+            boolean changed = false;
             for (Iterator<StorageView<ItemVariant>> iterator = storage.nonEmptyIterator(); iterator.hasNext();) {
                 StorageView<ItemVariant> view = iterator.next();
                 view.extract(view.getResource(), view.getAmount(), transaction);
+                changed = true;
             }
             transaction.commit();
+            if (changed) {
+                this.contentsChanged();
+            }
         }
     }
 
@@ -179,6 +208,7 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
                         throw new IllegalStateException("Fabric transfer storage rejected vault iterator removal");
                     }
                     transaction.commit();
+                    FabricStorageVault.this.contentsChanged();
                 }
                 current = null;
             }

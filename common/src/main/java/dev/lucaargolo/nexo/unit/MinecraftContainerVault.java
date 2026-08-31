@@ -63,7 +63,8 @@ public final class MinecraftContainerVault extends MinecraftItemVault {
     }
 
     @Override
-    void markChanged() {
+    public void contentsChanged() {
+        super.contentsChanged();
         this.container.setChanged();
     }
 

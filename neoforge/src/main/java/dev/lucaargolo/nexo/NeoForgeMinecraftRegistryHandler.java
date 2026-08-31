@@ -5,7 +5,7 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
+import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -30,6 +30,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.dimension.LevelStem;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -88,7 +89,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends Feature<T, U> & VaultFactoryProvider<U>, U extends Unit<T, ?>, M> void registerVaults(
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T, ?>, M> void registerVaults(
             @NotNull MinecraftFeatureType<T, U, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
@@ -220,6 +221,16 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
         Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
         return clazz.cast(dataAttachmentMap.get(data).value());
+    }
+
+    public @NotNull List<@NotNull DataBase<?>> getAttachedData(@NotNull IAttachmentHolder target) {
+        List<@NotNull DataBase<?>> data = new ArrayList<>();
+        for (Map.Entry<DataBase<?>, Holder<AttachmentType<?>>> entry : dataAttachmentMap.entrySet()) {
+            if (target.hasData(entry.getValue().value())) {
+                data.add(entry.getKey());
+            }
+        }
+        return data;
     }
 
 }

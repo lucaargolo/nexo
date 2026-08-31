@@ -1,30 +1,32 @@
 package dev.lucaargolo.nexo.unit.block;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.unit.FabricAttachmentData;
 import dev.lucaargolo.nexo.unit.FabricStorageVault;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
-import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("UnstableApiUsage")
 public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<FabricNexoMinecraft, C>{
 
     public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
@@ -37,24 +39,16 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
 
     @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
-        Set<String> vaults = new HashSet<>(super.vaults(type));
-        if (this.transferStorage() != null && MinecraftContainerVault.supports(type)) {
-            vaults.add(MinecraftContainerVault.KEY);
-        }
-        return Set.copyOf(vaults);
+        return FabricStorageVault.vaults(super.vaults(type), type, this.transferStorage());
     }
 
     @Override
     public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!MinecraftContainerVault.KEY.equals(key) || !MinecraftContainerVault.supports(type)) {
+        if (!MinecraftContainerVault.KEY.equals(key)) {
             return super.vault(type, key);
         }
-        Storage<ItemVariant> storage = this.transferStorage();
-        if (storage != null) {
-            Class<Vault<U>> clazz = Nexo.type(Vault.class);
-            return clazz.cast(new FabricStorageVault(this.nexo, storage));
-        }
-        return super.vault(type, key);
+        Vault<U> vault = FabricStorageVault.create(this.nexo, type, this.transferStorage());
+        return vault == null ? super.vault(type, key) : vault;
     }
 
     private @Nullable Storage<ItemVariant> transferStorage() {
@@ -65,12 +59,23 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
     }
 
     @Override
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        if (this.entity == null) {
+            return List.of();
+        }
+        List<@NotNull DataBase<?>> componentData = new ArrayList<>();
+        this.entity.collectComponents().forEach(component -> componentData.add(MinecraftFeatureType.DATA.convert(this.nexo, component.type())));
+        CompoundTag tag = this.entity.saveWithFullMetadata(this.nexo.getRegistryHandler().getRegistry());
+        this.entity.removeComponentsFromTag(tag);
+        return FabricAttachmentData.data(this.nexo, this.entity, componentData, tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.BLOCK_ENTITY_DATA));
+    }
+
+    @Override
     public <D> D getData(@NotNull DataBase<D> data) {
-        if (data instanceof DataBase.Constrained<?> constrained && this.feature.data().contains(constrained)) {
+        if (data instanceof DataBase.Constrained<?> constrained && this.feature.initialData().contains(constrained)) {
             return data.cast(this.getStateData(constrained));
         } else if (this.entity != null) {
-            AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-            return this.feature.data().contains(data) ? this.entity.getAttachedOrCreate(type) : this.entity.getAttached(type);
+            return FabricAttachmentData.getData(this.nexo, this.feature.initialData(), this.entity, data);
         } else if (data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to get non-initial constrained data " + data + " from non-dynamic MinecraftBlockUnit");
         } else {
@@ -80,14 +85,13 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
 
     @Override
     public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
-        if (data instanceof DataBase.Constrained<?> constrained && this.feature.data().contains(constrained)) {
+        if (data instanceof DataBase.Constrained<?> constrained && this.feature.initialData().contains(constrained)) {
             this.state = this.setStateData(constrained, d);
             if (this.level != null && this.position != null) {
                 this.level.setBlockAndUpdate(this.position, this.state);
             }
         } else if (this.entity != null) {
-            AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
-            this.entity.setAttached(type, d);
+            FabricAttachmentData.setData(this.nexo, this.entity, data, d);
         } else if (data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to set non-initial constrained data " + data + " to non-dynamic MinecraftBlockUnit");
         } else {

@@ -1,8 +1,8 @@
 package dev.lucaargolo.nexo.api.feature.entity;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.InitialDataProvider;
-import dev.lucaargolo.nexo.api.feature.VaultFactoryProvider;
+import dev.lucaargolo.nexo.api.feature.DataInitializer;
+import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.RendererProvider;
 import dev.lucaargolo.nexo.api.feature.TickerProvider;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class EntityBase extends Feature<EntityBase, EntityUnit<?>> implements VaultFactoryProvider<EntityUnit<?>>, RendererProvider<Graphics3D, EntityUnit<?>>, TickerProvider<EntityUnit<?>>, InitialDataProvider {
+public abstract class EntityBase extends Feature<EntityBase, EntityUnit<?>> implements VaultFactory<EntityUnit<?>>, RendererProvider<Graphics3D, EntityUnit<?>>, TickerProvider<EntityUnit<?>>, DataInitializer {
 
     public EntityBase(@NotNull Location location) {
         super(location);
