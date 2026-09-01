@@ -9,6 +9,8 @@ import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Text;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.render.font.MinecraftText;
@@ -71,6 +73,11 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
     @Override
     public State state() {
         return state;
+    }
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        return nexo.getRenderingHandler().shaderHandler().createShader(source);
     }
 
     @Override

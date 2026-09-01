@@ -4,6 +4,8 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.Text;
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.*;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.client.renderer.block.model.BakedQuad;
@@ -121,6 +123,11 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
     @Override
     public State state() {
         return state;
+    }
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        throw unsupported("shaders while baking a model");
     }
 
     @Override

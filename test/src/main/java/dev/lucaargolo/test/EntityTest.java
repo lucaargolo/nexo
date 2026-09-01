@@ -33,7 +33,7 @@ public final class EntityTest {
         ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
                 NexoTestMod.id("test_entity"),
-                blackHoleRenderer(nexo, blackHoleSource)
+                blackHoleRenderer(blackHoleSource)
         ) {
             @Override
             public Ticker<EntityUnit<?>> ticker() {
@@ -42,7 +42,7 @@ public final class EntityTest {
         });
     }
 
-    private static @NotNull Renderer<Graphics3D, EntityUnit<?>> blackHoleRenderer(@NotNull Nexo nexo, @NotNull ShaderSource source) {
+    private static @NotNull Renderer<Graphics3D, EntityUnit<?>> blackHoleRenderer(@NotNull ShaderSource source) {
         return new Renderer<>() {
 
             private Shader shader;
@@ -51,7 +51,7 @@ public final class EntityTest {
             @Override
             public void render(@NotNull EntityUnit<?> unit, @NotNull Graphics3D graphics) {
                 if (shader == null) {
-                    shader = nexo.createShader(source);
+                    shader = graphics.createShader(source);
                     shader.uniform(ShaderBuiltins.CHANNEL_0, Shader.SCENE_TEXTURE);
                     material = Material.untextured()
                             .withShader(shader)

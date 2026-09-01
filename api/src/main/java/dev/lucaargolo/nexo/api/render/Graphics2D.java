@@ -1,5 +1,7 @@
 package dev.lucaargolo.nexo.api.render;
 
+import dev.lucaargolo.nexo.api.render.shader.Shader;
+import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -16,6 +18,8 @@ public interface Graphics2D {
     void popMatrix();
     void pushState();
     void popState();
+
+    @NotNull Shader createShader(@NotNull ShaderSource source);
 
     void translate(float x, float y);
     void rotate(float angle);

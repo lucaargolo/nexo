@@ -17,8 +17,6 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.language.Language;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
-import dev.lucaargolo.nexo.api.render.shader.Shader;
-import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
@@ -153,11 +151,6 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
     @Override
     public @NotNull Language language() {
         return languageHandler;
-    }
-
-    @Override
-    public @NotNull Shader createShader(@NotNull ShaderSource source) {
-        return renderingHandler.shaderHandler().createShader(source);
     }
 
     @Override
