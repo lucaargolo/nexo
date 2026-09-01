@@ -3,28 +3,19 @@ package dev.lucaargolo.nexo.api.feature.screen.widget;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 
 import org.jetbrains.annotations.NotNull;
-public class Label extends Widget<ScreenBase> {
+import org.joml.Vector2f;
+
+public class Label extends Widget {
+
+    private final float @NotNull [] color = {1.0F, 1.0F, 1.0F, 1.0F};
 
     private @NotNull Text text;
-    private final float @NotNull [] color = {1.0F, 1.0F, 1.0F, 1.0F};
 
     public Label(@NotNull ScreenBase parent, float x, float y, @NotNull Text text) {
         super(parent, x, y, 0.0F, 0.0F);
         this.text = text;
-    }
-
-    @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
-        graphics.pushState();
-        graphics.pushMatrix();
-        graphics.translate(x(), y());
-        graphics.color(color);
-        graphics.drawText(text, 0.0F, 0.0F);
-        graphics.popMatrix();
-        graphics.popState();
     }
 
     public @NotNull Text text() {
@@ -41,4 +32,16 @@ public class Label extends Widget<ScreenBase> {
         color[2] = b;
         color[3] = a;
     }
+
+    @Override
+    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
+        graphics.pushState();
+        graphics.pushMatrix();
+        graphics.translate(x(), y());
+        graphics.color(color);
+        graphics.drawText(text, 0.0F, 0.0F);
+        graphics.popMatrix();
+        graphics.popState();
+    }
+
 }

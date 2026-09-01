@@ -136,7 +136,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
-    public <T extends AbstractContainerMenu> MenuType<T> createMenuType(MenuConstructor constructor) {
+    public <T extends AbstractContainerMenu> MenuType<T> craftMenuType(MenuConstructor constructor) {
         StreamCodec<RegistryFriendlyByteBuf, Void> codec = new StreamCodec<>() {
             @Override
             public void encode(@NotNull RegistryFriendlyByteBuf buffer, @Nullable Void value) {

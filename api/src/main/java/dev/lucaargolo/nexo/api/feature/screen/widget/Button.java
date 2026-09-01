@@ -4,18 +4,20 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector2f;
 
-public class Button extends Widget<ScreenBase> {
+public class Button extends Widget {
 
     private static final float @NotNull [] BASE_COLOR = {0.25F, 0.25F, 0.35F, 0.85F};
     private static final float @NotNull [] HOVER_COLOR = {0.35F, 0.35F, 0.5F, 0.9F};
     private static final float @NotNull [] TEXT_COLOR = {1.0F, 1.0F, 1.0F, 1.0F};
 
-    private @NotNull Text text;
     private final @NotNull Runnable action;
+
+    private @NotNull Text text;
+    private boolean hovered = false;
 
     public Button(@NotNull ScreenBase parent, float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
         super(parent, x, y, width, height);
@@ -23,21 +25,21 @@ public class Button extends Widget<ScreenBase> {
         this.action = action;
     }
 
-    public void text(@NotNull Text text) {
-        this.text = text;
-    }
-
     public @NotNull Text text() {
         return text;
     }
 
+    public void text(@NotNull Text text) {
+        this.text = text;
+    }
+
     @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull ScreenUnit<?> screen) {
-        boolean hovered = contains(screen.mouse().x(), screen.mouse().y());
+    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
+        this.hovered = contains(mouse.x, mouse.y);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
-        graphics.color(hovered ? HOVER_COLOR : BASE_COLOR);
+        graphics.color(this.hovered ? HOVER_COLOR : BASE_COLOR);
         graphics.fillRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
         graphics.color(TEXT_COLOR);
         graphics.drawRoundedRect(0.0F, 0.0F, width(), height(), 4.0F);
@@ -47,11 +49,12 @@ public class Button extends Widget<ScreenBase> {
     }
 
     @Override
-    public boolean onInputPressed(@NotNull ScreenUnit<?> screen, @NotNull Input input) {
-        if (input.type() == Input.Type.MOUSE && contains(screen.mouse().x(), screen.mouse().y())) {
+    public boolean inputPressed(@NotNull Input input) {
+        if (input.type() == Input.Type.MOUSE && this.hovered) {
             action.run();
             return true;
         }
         return false;
     }
+
 }

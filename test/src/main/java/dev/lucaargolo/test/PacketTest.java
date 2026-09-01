@@ -16,7 +16,6 @@ import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -59,10 +58,6 @@ public final class PacketTest {
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
                 if (world.side().isClient()) {
-                    ScreenUnit<?> unit = nexo.unit(testScreen);
-                    if (unit != null) {
-                        unit.open();
-                    }
                     nexo.sendPacket(PacketReceiver.server(), packet);
                 }
                 return Interaction.SUCCESS;

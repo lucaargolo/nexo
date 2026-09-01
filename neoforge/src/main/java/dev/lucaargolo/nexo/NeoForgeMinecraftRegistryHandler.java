@@ -140,7 +140,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends AbstractContainerMenu> MenuType<T> createMenuType(MenuConstructor constructor) {
+    public <T extends AbstractContainerMenu> MenuType<T> craftMenuType(MenuConstructor constructor) {
         return IMenuTypeExtension.create((containerId, inventory, ignored) -> {
             Class<T> type = Nexo.type(AbstractContainerMenu.class);
             return type.cast(constructor.createMenu(containerId, inventory, inventory.player));

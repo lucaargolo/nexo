@@ -16,7 +16,6 @@ import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
@@ -94,7 +93,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
         public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
         public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>("biome", BiomeBase.class);
-        public static final @NotNull Type<ScreenBase, ScreenUnit<?>> SCREEN = new Type<>("screen", ScreenBase.class, Nexo.type(ScreenUnit.class));
+        public static final @NotNull Type<ScreenBase, Unit<ScreenBase, ?>> SCREEN = new Type<>("screen", ScreenBase.class);
 
         private final @NotNull String identifier;
         private final @NotNull Class<T> featureType;

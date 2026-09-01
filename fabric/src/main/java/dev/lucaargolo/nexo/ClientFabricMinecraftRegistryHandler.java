@@ -20,19 +20,6 @@ public class ClientFabricMinecraftRegistryHandler extends FabricMinecraftRegistr
     }
 
     @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <T extends AbstractContainerMenu> void registerMenuScreen(MenuType<T> menu, BiFunction<T, Inventory, Screen> factory) {
-        try {
-            Method register = MenuScreens.class.getDeclaredMethod("register", MenuType.class, MenuScreens.ScreenConstructor.class);
-            register.setAccessible(true);
-            MenuScreens.ScreenConstructor constructor = (MenuScreens.ScreenConstructor) (opened, inventory, title) -> factory.apply((T) opened, inventory);
-            register.invoke(null, menu, constructor);
-        } catch (ReflectiveOperationException exception) {
-            throw new IllegalStateException("Failed to register Fabric screen for menu " + menu, exception);
-        }
-    }
-
-    @Override
     public RegistryAccess getLocalRegistry() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.isSameThread()) {

@@ -3,14 +3,18 @@ package dev.lucaargolo.nexo.unit.entity;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
+import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.mixin.AbstractHorseAccessor;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftEquipmentVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -44,6 +48,18 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
     @Override
     public @Nullable WorldUnit<?> world() {
         return nexo.levelToUnit(this.entity.level());
+    }
+
+    @Override
+    public boolean openScreen(@NotNull ScreenBase screen) {
+        boolean dynamic = MinecraftScreen.isDynamicScreen(screen);
+        if(dynamic && side().isServer()) {
+            //TODO
+        }else if(!dynamic && side().isClient()) {
+            //TODO
+            Minecraft.getInstance().setScreen(MinecraftFeatureType.SCREEN.convert(screen));
+        }
+        return false;
     }
 
     @Override
@@ -88,4 +104,5 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
         }
         return this.entity instanceof AbstractHorse horse ? ((AbstractHorseAccessor) horse).nexo$getInventory() : null;
     }
+
 }

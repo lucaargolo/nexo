@@ -172,7 +172,7 @@ public class MinecraftBlock extends BlockBase {
         FEATURE_MAP.put(block.location(), block);
         Holder<Block> blockHolder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK, id, MinecraftFeatureType.BLOCK.craft(nexo, block));
         nexo.getRegistryHandler().registerVaults(MinecraftFeatureType.BLOCK, block, blockHolder::value);
-        if (isDynamicBlock(block)) {
+        if (MinecraftBlock.isDynamicBlock(block)) {
             Holder<BlockEntityType<?>> holder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.BLOCK_ENTITY_TYPE, id, () -> {
                 BlockEntityType.BlockEntitySupplier<?> supplier = ENTITY_MAP.get(block.location());
                 return BlockEntityType.Builder.of(supplier, HOLDER_MAP.get(block.location()).value()).build(null);
@@ -225,7 +225,7 @@ public class MinecraftBlock extends BlockBase {
             }
             return null;
         });
-        if (isDynamicBlock(block)) {
+        if (MinecraftBlock.isDynamicBlock(block)) {
             extender.implement(EntityBlock.class, feature -> new EntityBlock() {
                 @Nullable
                 private BlockEntityType<?> blockEntityType;
@@ -269,7 +269,7 @@ public class MinecraftBlock extends BlockBase {
         return extender.instantiate(properties);
     }
 
-    public static boolean isDynamicBlock(@NotNull BlockBase block) {
+    private static boolean isDynamicBlock(@NotNull BlockBase block) {
         Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
         return block.ticker() != null
                 || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))

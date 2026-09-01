@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api.unit.entity;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.DataProvider;
 import dev.lucaargolo.nexo.api.feature.SideProvider;
@@ -18,5 +19,7 @@ public abstract class EntityUnit<C extends Role> extends Unit<EntityBase, C> imp
     }
 
     public abstract @Nullable WorldUnit<?> world();
+
+    public abstract boolean openScreen(@NotNull ScreenBase screen);
 
 }

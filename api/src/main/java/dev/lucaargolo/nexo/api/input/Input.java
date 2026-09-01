@@ -23,9 +23,7 @@ public record Input(@NotNull Type type, @NotNull Key key) {
         GAMEPAD
     }
 
-
     public enum Key {
-
         UNKNOWN,
         SPACE,
         APOSTROPHE,

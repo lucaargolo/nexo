@@ -231,7 +231,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
 
     @Override
     public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature) {
-        return MinecraftFeatureType.of(feature.type()).unit(this, feature);
+        return MinecraftFeatureType.of(feature.type()).base(this, feature);
     }
 
     @Override
@@ -397,4 +397,6 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
             }
         };
     }
+
+
 }

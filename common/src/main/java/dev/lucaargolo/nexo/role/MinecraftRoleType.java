@@ -74,15 +74,23 @@ public class MinecraftRoleType<R extends Role, F extends Feature<F, ?>, M, E, P>
     public static <F extends Feature<F, ?>, M> Supplier<Role> uncraft(NexoMinecraft<?, ?, ?, ?> nexo, Feature.Type<F, ?> type, Holder<M> holder) {
         return () -> {
             M crafted = holder.value();
-            List<MinecraftRoleType<?, ?, ?, ?, ?>> list = TYPES.getOrDefault(type, List.of());
-            for (MinecraftRoleType<?, ?, ?, ?, ?> roleType : list) {
-                Role role = roleType.innerUncraft(nexo, crafted);
-                if (role != null) {
-                    return role;
-                }
-            }
-            return null;
+            return innerUncraft(nexo, crafted, TYPES.getOrDefault(type, List.of()));
         };
+    }
+
+    public static <F extends Feature<F, ?>, M> Supplier<Role> uncraft(NexoMinecraft<?, ?, ?, ?> nexo, Feature.Type<F, ?> type, M crafted) {
+        return () -> innerUncraft(nexo, crafted, TYPES.getOrDefault(type, List.of()));
+    }
+
+    @Nullable
+    private static <F extends Feature<F, ?>, M> Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, M crafted, List<MinecraftRoleType<?, ?, ?, ?, ?>> list) {
+        for (MinecraftRoleType<?, ?, ?, ?, ?> roleType : list) {
+            Role role = roleType.innerUncraft(nexo, crafted);
+            if (role != null) {
+                return role;
+            }
+        }
+        return null;
     }
 
     public record Info<M, P>(@NotNull Utils.Extender<M> extender, @Nullable Function<P, M> factory) {
