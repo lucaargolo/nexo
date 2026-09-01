@@ -110,6 +110,9 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         super.init();
         DynamicRegistrySetupCallback.EVENT.register(view -> {
             MinecraftFeatureType.all().forEach(type -> {
+                if (type.registryType() == MinecraftFeatureType.RegistryType.DIRECT) {
+                    return;
+                }
                 Class<MinecraftFeatureType<?, ?, Object>> featureTypeClass = Nexo.type(MinecraftFeatureType.class);
                 MinecraftFeatureType<?, ?, Object> typedType = featureTypeClass.cast(type);
                 view.registerEntryAdded(typedType.registry(), (raw, id, value) -> {

@@ -66,7 +66,9 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         super.init();
         this.nexo().modBus().addListener(this::registerCapabilities);
         NeoForge.EVENT_BUS.addListener(DynamicRegistrySetupEvent.class, event -> {
-            MinecraftFeatureType.all().forEach(type -> this.addDynamicRegistryListener(event.view(), type));
+            MinecraftFeatureType.all().stream()
+                    .filter(type -> type.registryType() != MinecraftFeatureType.RegistryType.DIRECT)
+                    .forEach(type -> this.addDynamicRegistryListener(event.view(), type));
             dynamicRegistrars.forEach((key, registrar) -> {
                 event.view().getOptional(key.registryKey()).ifPresent(registrar);
             });

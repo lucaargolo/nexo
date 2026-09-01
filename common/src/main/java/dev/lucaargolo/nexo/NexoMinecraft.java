@@ -91,6 +91,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
     protected final MinecraftLanguageHandler languageHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
+    public final Map<Feature.Type<?, ?>, Map<Location, Feature<?, ?>>> directRegistry = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
         this.discoveryHandler = Utils.loadPlatformClass(this, NexoModDiscoveryHandler.class, this);
@@ -217,7 +218,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
 
     @Override
     public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
-        return MinecraftFeatureType.of(type).lookup(location);
+        return MinecraftFeatureType.of(type).lookup(this, location);
     }
 
     @Override

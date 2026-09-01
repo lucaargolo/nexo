@@ -49,10 +49,12 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
 
     public void init() {
         for (MinecraftFeatureType<?, ?, ?> type : MinecraftFeatureType.all()) {
-            if (type.customRegistry()) {
+            if (type.registryType() == MinecraftFeatureType.RegistryType.CUSTOM) {
                 this.getOrCreateRegistry(type.registry());
             }
-            this.addBuiltinRegistryListener(type);
+            if (type.registryType() != MinecraftFeatureType.RegistryType.DIRECT) {
+                this.addBuiltinRegistryListener(type);
+            }
         }
     }
 

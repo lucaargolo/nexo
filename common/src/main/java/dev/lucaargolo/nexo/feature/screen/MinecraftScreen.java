@@ -22,6 +22,7 @@ import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Holder;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -45,6 +47,7 @@ public final class MinecraftScreen extends ScreenBase {
 
     private static final Map<Location, ScreenBase> FEATURE_MAP = new ConcurrentHashMap<>();
     private static final Map<Location, Screen> SCREEN_MAP = new ConcurrentHashMap<>();
+    private static final Map<Screen, ScreenBase> SCREEN_FEATURE_MAP = new ConcurrentHashMap<>();
 
     private static final Map<Location, Holder<MenuType<?>>> MENU_HOLDER_MAP = new ConcurrentHashMap<>();
 
@@ -56,8 +59,8 @@ public final class MinecraftScreen extends ScreenBase {
 
         @Override
         public ScreenBase backward(Screen screen) {
-            //TODO
-            return null;//FEATURE_MAP.get();
+            ScreenBase feature = SCREEN_FEATURE_MAP.get(screen);
+            return feature != null ? FEATURE_MAP.get(feature.location()) : FEATURE_MAP.get(MinecraftScreen.location(null, screen));
         }
     };
 
@@ -111,13 +114,11 @@ public final class MinecraftScreen extends ScreenBase {
     }
 
     public static @NotNull ScreenBase register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase screen) {
-        ScreenBase registered = FEATURE_MAP.get(screen.location());
-        if (registered != null) {
-            return registered;
-        }
         FEATURE_MAP.put(screen.location(), screen);
-        SCREEN_MAP.put(screen.location(), MinecraftFeatureType.SCREEN.craft(nexo, screen).get());
-        if (MinecraftScreen.isDynamicScreen(screen)) {
+        Screen minecraft = MinecraftFeatureType.SCREEN.craft(nexo, screen).get();
+        SCREEN_MAP.put(screen.location(), minecraft);
+        SCREEN_FEATURE_MAP.put(minecraft, screen);
+        if (MinecraftScreen.isDynamicScreen(screen) && !MENU_HOLDER_MAP.containsKey(screen.location())) {
             AtomicReference<MenuType<AbstractContainerMenu>> reference = new AtomicReference<>();
             MenuType<AbstractContainerMenu> type = nexo.getRegistryHandler().craftMenuType((containerId, inventory, player) -> new AbstractContainerMenu(reference.get(), containerId) {
                 @Override
@@ -135,6 +136,14 @@ public final class MinecraftScreen extends ScreenBase {
             MENU_HOLDER_MAP.put(screen.location(), holder);
         }
         return screen;
+    }
+
+    public static @NotNull ScreenBase index(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Screen screen) {
+        Location location = MinecraftScreen.location(nexo, screen);
+        SCREEN_MAP.put(location, screen);
+        ScreenBase feature = FEATURE_MAP.computeIfAbsent(location, key -> new MinecraftScreen(nexo, screen));
+        SCREEN_FEATURE_MAP.put(screen, feature);
+        return feature;
     }
 
     public static @NotNull <M extends Screen> Screen craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Component, M> factory, @NotNull ScreenBase screen) {
@@ -193,8 +202,14 @@ public final class MinecraftScreen extends ScreenBase {
     }
 
     private static Location location(NexoMinecraft<?, ?, ?, ?> nexo, Screen screen) {
-        //TODO
-        return Location.of("minecraft", "screen");
+        if (screen instanceof AbstractContainerScreen<?> container) {
+            return NexoMinecraft.id(BuiltInRegistries.MENU.getKey(container.getMenu().getType()));
+        }
+        //TODO: Use the mod namespace for modded screens.
+        String name = screen.getClass().getSimpleName()
+                .replaceAll("([a-z])([A-Z])", "$1_$2")
+                .toLowerCase(Locale.ROOT);
+        return Location.of("minecraft", name);
     }
 
     public static boolean isDynamicScreen(@NotNull ScreenBase base) {

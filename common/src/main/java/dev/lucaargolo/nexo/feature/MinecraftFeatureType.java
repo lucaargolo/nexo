@@ -58,11 +58,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>, M> {
+
+    public enum RegistryType {
+        BUILTIN,
+        CUSTOM,
+        DIRECT
+    }
 
     private static final Map<Feature.Type<?, ?>, MinecraftFeatureType<?, ?, ?>> TYPES = new HashMap<>();
 
@@ -171,7 +178,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     private final @NotNull Feature.Type<T, U> type;
 
     private final @Nullable ResourceKey<Registry<M>> registry;
-    private final boolean customRegistry;
+    private final @NotNull RegistryType registryType;
 
     private final @NotNull BiFunction<NexoMinecraft<?, ?, ?, ?>, T, T> registrar;
     private final @Nullable BiFunction<NexoMinecraft<?, ?, ?, ?>, Holder<M>, T> index;
@@ -187,7 +194,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             @NotNull Class<M> minecraftType,
             @NotNull Feature.Type<T, U> type,
             @Nullable ResourceKey<Registry<M>> registry,
-            boolean customRegistry,
+            @NotNull RegistryType registryType,
             @NotNull BiFunction<NexoMinecraft<?, ?, ?, ?>, T, T> registrar,
             @Nullable BiFunction<NexoMinecraft<?, ?, ?, ?>, Holder<M>, T> index,
             @NotNull Function<Location, T> lookup,
@@ -199,7 +206,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         this.minecraftType = minecraftType;
         this.type = type;
         this.registry = registry;
-        this.customRegistry = customRegistry;
+        this.registryType = registryType;
         this.registrar = registrar;
         this.index = index;
         this.lookup = lookup;
@@ -220,7 +227,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             @NotNull Bijection<T, Holder<M>> holderConvert,
             @NotNull Map<Class<?>, CraftStrategy<T>> crafters
     ) {
-        return new MinecraftFeatureType<>(minecraftType, type, registry, false, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
+        return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.BUILTIN, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
     }
 
     private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> base(
@@ -234,7 +241,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             @NotNull Map<Class<?>, CraftStrategy<T>> crafters,
             @NotNull MinecraftFeatureType.UnitCrafter<T, U, M> unitCrafter
     ) {
-        return new MinecraftFeatureType<>(minecraftType, type, registry, false, registrar, holderIndex, lookup, holderConvert, null, crafters, unitCrafter);
+        return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.BUILTIN, registrar, holderIndex, lookup, holderConvert, null, crafters, unitCrafter);
     }
 
     private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> custom(
@@ -247,7 +254,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             @NotNull Bijection<T, Holder<M>> holderConvert,
             @NotNull Map<Class<?>, CraftStrategy<T>> crafters
     ) {
-        return new MinecraftFeatureType<>(minecraftType, type, registry, true, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
+        return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.CUSTOM, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
     }
 
     private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> direct(
@@ -259,7 +266,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             @NotNull Map<Class<?>, CraftStrategy<T>> crafters,
             @NotNull MinecraftFeatureType.UnitCrafter<T, U, M> unitCrafter
     ) {
-        return new MinecraftFeatureType<>(minecraftType, type, null, false, registrar, null, lookup, null, directConvert, crafters, unitCrafter);
+        return new MinecraftFeatureType<>(minecraftType, type, null, RegistryType.DIRECT, registrar, null, lookup, null, directConvert, crafters, unitCrafter);
     }
 
     public boolean isInstance(Feature<?, ?> feature) {
@@ -274,12 +281,16 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return minecraftType;
     }
 
-    public boolean customRegistry() {
-        return customRegistry;
+    public @NotNull RegistryType registryType() {
+        return registryType;
     }
 
     public @NotNull T register(NexoMinecraft<?, ?, ?, ?> nexo, Feature<?, ?> feature) {
-        return registrar.apply(nexo, type.cast(feature));
+        T registered = registrar.apply(nexo, type.cast(feature));
+        if (registryType == RegistryType.DIRECT) {
+            nexo.directRegistry.computeIfAbsent(type, ignored -> new ConcurrentHashMap<>()).put(registered.location(), registered);
+        }
+        return registered;
     }
 
     public @NotNull T index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<M> holder) {
@@ -291,6 +302,14 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
 
     public @Nullable T lookup(Location location) {
         return lookup.apply(location);
+    }
+
+    public @Nullable T lookup(NexoMinecraft<?, ?, ?, ?> nexo, Location location) {
+        if (registryType == RegistryType.DIRECT) {
+            Map<Location, Feature<?, ?>> registry = nexo.directRegistry.get(type);
+            return registry == null ? null : type.cast(registry.get(location));
+        }
+        return lookup(location);
     }
 
     public @NotNull M convert(T feature) {
