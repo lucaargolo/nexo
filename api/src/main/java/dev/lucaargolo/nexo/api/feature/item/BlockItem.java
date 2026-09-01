@@ -57,10 +57,10 @@ public class BlockItem extends ItemBase {
         }
 
         @Override
-        public void render(@NotNull Graphics3D graphics, @NotNull ItemUnit<?> unit) {
+        public void render(@NotNull ItemUnit<?> unit, @NotNull Graphics3D graphics) {
             BlockUnit<?> block = block(unit);
             if (block != null) {
-                delegate.render(graphics, block);
+                delegate.render(block, graphics);
             }
         }
 

@@ -12,6 +12,7 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.language.Language;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
@@ -33,9 +34,11 @@ import dev.lucaargolo.nexo.resource.MinecraftResourceType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -342,6 +345,11 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         return clazz.cast(unit);
     }
 
+    public MinecraftScreenUnit<?> screenToUnit(@NotNull Screen screen) {
+        ScreenBase feature = MinecraftFeatureType.SCREEN.convert(this, screen);
+        return Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), screen);
+    }
+
     public void tickWorld(@NotNull Level level) {
         WorldUnit<?> unit = this.levelToUnit(level);
         WorldBase world = unit.feature();
@@ -397,6 +405,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
             }
         };
     }
+
 
 
 }

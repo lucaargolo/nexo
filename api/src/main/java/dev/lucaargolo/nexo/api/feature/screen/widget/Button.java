@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
 
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 
@@ -19,8 +20,8 @@ public class Button extends Widget {
     private @NotNull Text text;
     private boolean hovered = false;
 
-    public Button(@NotNull ScreenBase parent, float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
-        super(parent, x, y, width, height);
+    public Button(float x, float y, float width, float height, @NotNull Text text, @NotNull Runnable action) {
+        super(x, y, width, height);
         this.text = text;
         this.action = action;
     }
@@ -34,8 +35,8 @@ public class Button extends Widget {
     }
 
     @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
-        this.hovered = contains(mouse.x, mouse.y);
+    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
+        this.hovered = contains(unit.mouse().x, unit.mouse().y);
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());
@@ -49,7 +50,7 @@ public class Button extends Widget {
     }
 
     @Override
-    public boolean inputPressed(@NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
         if (input.type() == Input.Type.MOUSE && this.hovered) {
             action.run();
             return true;

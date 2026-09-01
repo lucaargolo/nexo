@@ -47,7 +47,7 @@ public final class BlockTest {
     private static final Renderer<Graphics3D, BlockUnit<?>> DYNAMIC_RENDERER = new Renderer<>() {
 
         @Override
-        public void render(@NotNull Graphics3D graphics, @NotNull BlockUnit<?> unit) {
+        public void render(@NotNull BlockUnit<?> unit, @NotNull Graphics3D graphics) {
             float value = (System.currentTimeMillis() % 10000) / 10000.0f;
             int color = Color.HSBtoRGB(value, 1.0F, 1.0F);
             graphics.pushState();
@@ -251,7 +251,9 @@ public final class BlockTest {
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
                 block.withData(dynamicData, value -> value + "!");
-                entity.openScreen(new ScreenTest());
+                if (world.side().isClient() && !entity.openScreen(new ScreenTest())) {
+                    throw new IllegalStateException("Failed to create screen unit");
+                }
                 return Interaction.SUCCESS;
             }
         });

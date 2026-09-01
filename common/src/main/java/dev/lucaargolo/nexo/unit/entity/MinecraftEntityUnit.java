@@ -7,14 +7,13 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
-import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.mixin.AbstractHorseAccessor;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftEquipmentVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -56,8 +55,11 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
         if(dynamic && side().isServer()) {
             //TODO
         }else if(!dynamic && side().isClient()) {
-            //TODO
-            Minecraft.getInstance().setScreen(MinecraftFeatureType.SCREEN.convert(screen));
+            ScreenUnit<?> unit = nexo.unit(screen);
+            if (unit != null) {
+                unit.open();
+                return true;
+            }
         }
         return false;
     }

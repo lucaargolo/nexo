@@ -9,9 +9,9 @@ public interface StaticRenderer<G extends Graphics2D, U> extends Renderer<G, U> 
     @NotNull List<@NotNull DrawCall<G>> calls(@NotNull U unit);
 
     @Override
-    default void render(@NotNull G g, @NotNull U unit) {
+    default void render(@NotNull U unit, @NotNull G graphics) {
         for (DrawCall<G> call : calls(unit)) {
-            call.execute(g);
+            call.execute(graphics);
         }
     }
 }

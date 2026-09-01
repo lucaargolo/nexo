@@ -49,7 +49,7 @@ public final class EntityTest {
             private Material<Void> material;
 
             @Override
-            public void render(@NotNull Graphics3D graphics, @NotNull EntityUnit<?> unit) {
+            public void render(@NotNull EntityUnit<?> unit, @NotNull Graphics3D graphics) {
                 if (shader == null) {
                     shader = nexo.createShader(source);
                     shader.uniform(ShaderBuiltins.CHANNEL_0, Shader.SCENE_TEXTURE);

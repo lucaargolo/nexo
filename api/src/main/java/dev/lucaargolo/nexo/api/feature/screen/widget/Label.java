@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
 
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2f;
 
@@ -13,8 +14,8 @@ public class Label extends Widget {
 
     private @NotNull Text text;
 
-    public Label(@NotNull ScreenBase parent, float x, float y, @NotNull Text text) {
-        super(parent, x, y, 0.0F, 0.0F);
+    public Label(float x, float y, @NotNull Text text) {
+        super(x, y, 0.0F, 0.0F);
         this.text = text;
     }
 
@@ -34,7 +35,7 @@ public class Label extends Widget {
     }
 
     @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
+    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());

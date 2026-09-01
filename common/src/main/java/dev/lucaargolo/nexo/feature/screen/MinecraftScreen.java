@@ -10,13 +10,16 @@ import dev.lucaargolo.nexo.api.feature.screen.widget.Widget;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.input.GlfwKeyConversions;
 import dev.lucaargolo.nexo.render.DynamicMinecraftGraphics2D;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.LightTexture;
@@ -70,53 +73,37 @@ public final class MinecraftScreen extends ScreenBase {
     }
 
     @Override
-    public void build(float width, float height) {
+    public void build(@NotNull ScreenUnit<?> unit) {
         //TODO
     }
 
     @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
+    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
         //TODO
+    }
+
+    @Override
+    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean inputReleased(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean inputMove(@NotNull ScreenUnit<?> unit, @NotNull Input.Axis axis, float delta) {
+        //TODO
+        return false;
     }
 
     @Override
     public @NotNull Map<String, Material<?>> materials() {
         //TODO
         return Map.of();
-    }
-
-    @Override
-    public @NotNull List<@NotNull Widget> widgets() {
-        //TODO
-        return List.of();
-    }
-
-    @Override
-    public void addWidget(@NotNull Widget widget) {
-        //TODO
-    }
-
-    @Override
-    public void removeWidget(@NotNull Widget widget) {
-        //TODO
-    }
-
-    @Override
-    public boolean inputPressed(@NotNull Input input) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean inputReleased(@NotNull Input input) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean inputMove(@NotNull Input.Axis axis, float delta) {
-        //TODO
-        return false;
     }
 
     public static @Nullable ScreenBase lookup(@NotNull Location location) {
@@ -150,22 +137,15 @@ public final class MinecraftScreen extends ScreenBase {
         return screen;
     }
 
-    public static @NotNull ScreenBase index(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Screen screen) {
-        Location location = MinecraftScreen.location(nexo, screen);
-        SCREEN_MAP.put(location, screen);
-        return FEATURE_MAP.computeIfAbsent(location, key -> new MinecraftScreen(nexo, screen));
-    }
-
     public static @NotNull <M extends Screen> Screen craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Component, M> factory, @NotNull ScreenBase screen) {
         extender.override(Utils.At.AFTER_SUPER, "init", void.class, instance -> {
-            screen.build(instance.width, instance.height);
+            nexo.screenToUnit(instance).build(instance.width, instance.height);
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "render", void.class, GuiGraphics.class, int.class, int.class, float.class, (instance, graphics, mouseX, mouseY, partialTick) -> {
             DynamicMinecraftGraphics2D g = new DynamicMinecraftGraphics2D(nexo, graphics.pose(), graphics.bufferSource(), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
             try {
-                //TODO: Optimize and maybe get full value instead of integer?
-                screen.render(g, new Vector2f(mouseX, mouseY));
+                nexo.screenToUnit(instance).render(g);
             } catch (Throwable t) {
                 NexoMinecraft.LOGGER.error("Failed to render Nexo screen {}", screen.location(), t);
                 throw t;
@@ -175,31 +155,31 @@ public final class MinecraftScreen extends ScreenBase {
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "keyPressed", boolean.class, int.class, int.class, int.class, (instance, keyCode, scanCode, modifiers) -> {
-            return screen.inputPressed(Input.keyboard(GlfwKeyConversions.key(keyCode)));
+            return nexo.screenToUnit(instance).inputPressed(Input.keyboard(GlfwKeyConversions.key(keyCode)));
         });
         extender.override(Utils.At.AFTER_SUPER, "keyReleased", boolean.class, int.class, int.class, int.class, (instance, keyCode, scanCode, modifiers) -> {
-            return screen.inputReleased(Input.keyboard(GlfwKeyConversions.key(keyCode)));
+            return nexo.screenToUnit(instance).inputReleased(Input.keyboard(GlfwKeyConversions.key(keyCode)));
         });
         extender.override(Utils.At.AFTER_SUPER, "mouseClicked", boolean.class, double.class, double.class, int.class, (instance, mouseX, mouseY, button) -> {
-            return screen.inputPressed(Input.mouse(GlfwKeyConversions.mouse(button)));
+            return nexo.screenToUnit(instance).inputPressed(Input.mouse(GlfwKeyConversions.mouse(button)));
         });
         extender.override(Utils.At.AFTER_SUPER, "mouseReleased", boolean.class, double.class, double.class, int.class, (instance, mouseX, mouseY, button) -> {
-            return screen.inputReleased(Input.keyboard(GlfwKeyConversions.mouse(button)));
+            return nexo.screenToUnit(instance).inputReleased(Input.keyboard(GlfwKeyConversions.mouse(button)));
         });
         extender.override(Utils.At.AFTER_SUPER, "mouseDragged", boolean.class, double.class, double.class, int.class, double.class, double.class, (instance, mouseX, mouseY, button, dragX, dragY) -> {
-            if(screen.inputMove(Input.Axis.MOUSE_X, dragX.floatValue())) {
+            if(nexo.screenToUnit(instance).inputMove(Input.Axis.MOUSE_X, dragX.floatValue())) {
                 return true;
             }
-            return screen.inputMove(Input.Axis.MOUSE_Y, dragY.floatValue());
+            return nexo.screenToUnit(instance).inputMove(Input.Axis.MOUSE_Y, dragY.floatValue());
         });
         extender.override(Utils.At.AFTER_SUPER, "mouseScrolled", boolean.class, double.class, double.class, double.class, double.class, (instance, mouseX, mouseY, horizontalAmount, verticalAmount) -> {
-            return screen.inputMove(Input.Axis.SCROLL, verticalAmount.floatValue());
+            return nexo.screenToUnit(instance).inputMove(Input.Axis.SCROLL, verticalAmount.floatValue());
         });
         extender.override(Utils.At.AFTER_SUPER, "mouseMoved", void.class, double.class, double.class, (instance, mouseX, mouseY) -> {
             Vector2f previous = new Vector2f(); //TODO: Actually collect previous
             if (previous.x >= 0.0 && previous.y >= 0.0) {
-                if(!screen.inputMove(Input.Axis.MOUSE_X, (float) (mouseX - previous.x))) {
-                    screen.inputMove(Input.Axis.MOUSE_Y, (float) (mouseY - previous.y));
+                if(!nexo.screenToUnit(instance).inputMove(Input.Axis.MOUSE_X, (float) (mouseX - previous.x))) {
+                    nexo.screenToUnit(instance).inputMove(Input.Axis.MOUSE_Y, (float) (mouseY - previous.y));
                 }
             }
             return null;
@@ -210,14 +190,6 @@ public final class MinecraftScreen extends ScreenBase {
             return factory.apply(title);
         }
         return extender.instantiate(title);
-    }
-
-    public static @NotNull MenuType<?> menu(@NotNull ScreenBase feature) {
-        Holder<MenuType<?>> holder = MENU_HOLDER_MAP.get(feature.location());
-        if (holder == null) {
-            throw new IllegalStateException("No menu registered for server screen " + feature.location());
-        }
-        return holder.value();
     }
 
     private static Location location(NexoMinecraft<?, ?, ?, ?> nexo, Screen screen) {

@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.input;
 
-import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWGamepadState;
@@ -20,7 +20,7 @@ public final class GlfwGamepad {
             Input.Axis.GAMEPAD_RIGHT_TRIGGER
     };
 
-    private final @NotNull ScreenBase screen;
+    private final @NotNull ScreenUnit<?> unit;
 
     private final @NotNull GLFWGamepadState state = GLFWGamepadState.create();
     private final byte[] previousButtons = new byte[GLFW.GLFW_GAMEPAD_BUTTON_LAST + 1];
@@ -29,8 +29,8 @@ public final class GlfwGamepad {
     private int joystick = -1;
     private boolean polledOnce;
 
-    public GlfwGamepad(@NotNull ScreenBase screen) {
-        this.screen = screen;
+    public GlfwGamepad(@NotNull ScreenUnit<?> unit) {
+        this.unit = unit;
     }
 
     public void poll() {
@@ -55,9 +55,9 @@ public final class GlfwGamepad {
                 boolean pressed = buttons.get(i) == GLFW.GLFW_PRESS;
                 boolean previous = previousButtons[i] == GLFW.GLFW_PRESS;
                 if (pressed && !previous) {
-                    screen.inputPressed(Input.gamepad(GlfwKeyConversions.gamepad(i)));
+                    unit.inputPressed(Input.gamepad(GlfwKeyConversions.gamepad(i)));
                 } else if (!pressed && previous) {
-                    screen.inputReleased(Input.gamepad(GlfwKeyConversions.gamepad(i)));
+                    unit.inputReleased(Input.gamepad(GlfwKeyConversions.gamepad(i)));
                 }
             }
             int mappedAxisCount = Math.min(axisCount, AXIS_BY_INDEX.length);
@@ -65,7 +65,7 @@ public final class GlfwGamepad {
                 float value = axes.get(i);
                 float delta = value - previousAxes[i];
                 if (delta != 0.0F) {
-                    screen.inputMove(AXIS_BY_INDEX[i], delta);
+                    unit.inputMove(AXIS_BY_INDEX[i], delta);
                 }
             }
         }

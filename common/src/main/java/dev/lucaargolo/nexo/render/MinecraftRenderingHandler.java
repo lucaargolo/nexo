@@ -150,7 +150,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
             DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
             try {
-                renderer.render(graphics, nexo.stackToUnit(stack));
+                renderer.render(nexo.stackToUnit(stack), graphics);
             } finally {
                 graphics.finish();
             }
@@ -165,7 +165,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
                 DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, poseStack, bufferSource, packedLight, packedOverlay);
                 try {
-                    renderer.render(graphics, nexo.blockToUnit(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity));
+                    renderer.render(nexo.blockToUnit(blockEntity.getLevel(), blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity), graphics);
                 } finally {
                     graphics.finish();
                 }
@@ -184,15 +184,9 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                 @Override
                 public void render(@NotNull T pEntity, float pEntityYaw, float pPartialTick, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBufferSource, int pPackedLight) {
                     super.render(pEntity, pEntityYaw, pPartialTick, pPoseStack, pBufferSource, pPackedLight);
-                    DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(
-                            nexo,
-                            pPoseStack,
-                            pBufferSource,
-                            pPackedLight,
-                            OverlayTexture.NO_OVERLAY
-                    );
+                    DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, pPoseStack, pBufferSource, pPackedLight, OverlayTexture.NO_OVERLAY);
                     try {
-                        renderer.render(graphics, nexo.entityToUnit(pEntity));
+                        renderer.render(nexo.entityToUnit(pEntity), graphics);
                     } finally {
                         graphics.finish();
                     }

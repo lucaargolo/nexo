@@ -8,7 +8,7 @@ import java.util.Map;
 
 public interface Renderer<G extends Graphics2D, U> {
 
-    void render(@NotNull G g, @NotNull U u);
+    void render(@NotNull U u, @NotNull G g);
 
     @NotNull Map<String, Material<?>> materials();
 

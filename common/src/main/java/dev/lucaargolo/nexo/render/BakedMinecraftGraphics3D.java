@@ -49,17 +49,12 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
         this.textureGetter = textureGetter;
     }
 
-    public static <U> @NotNull BakedMinecraftGraphics3D bake(
-            @NotNull StaticRenderer<Graphics3D, U> renderer,
-            @NotNull U unit,
-            @NotNull Function<Material, TextureAtlasSprite> textureGetter,
-            @NotNull Matrix4f modelTransform
-    ) {
+    public static <U> @NotNull BakedMinecraftGraphics3D bake(@NotNull StaticRenderer<Graphics3D, U> renderer, @NotNull U unit, @NotNull Function<Material, TextureAtlasSprite> textureGetter, @NotNull Matrix4f modelTransform) {
         BakedMinecraftGraphics3D graphics = new BakedMinecraftGraphics3D(textureGetter);
         graphics.matrix.translate(0.5F, 0.5F, 0.5F)
                 .mul(modelTransform)
                 .translate(-0.5F, -0.5F, -0.5F);
-        renderer.render(graphics, unit);
+        renderer.render(unit, graphics);
         if (graphics.primitive != null) {
             throw new IllegalStateException("Renderer ended with an open " + graphics.primitive + " primitive");
         }
@@ -74,8 +69,7 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
             Direction direction = quad.direction;
             graphics.quadsByLayer.computeIfAbsent(layer, ignored -> new ArrayList<>()).add(quad.quad());
             graphics.quadsByDirection.computeIfAbsent(direction, ignored -> new ArrayList<>()).add(quad.quad());
-            graphics.quadsByLayerAndDirection.computeIfAbsent(layer, ignored -> new HashMap<>())
-                    .computeIfAbsent(direction, ignored -> new ArrayList<>()).add(quad.quad());
+            graphics.quadsByLayerAndDirection.computeIfAbsent(layer, ignored -> new HashMap<>()).computeIfAbsent(direction, ignored -> new ArrayList<>()).add(quad.quad());
         }
         return graphics;
     }

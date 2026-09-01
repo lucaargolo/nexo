@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.api.render.util.BlendMode;
 import dev.lucaargolo.nexo.api.render.util.CullMode;
 import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexLayout;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -299,30 +300,28 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public void build(float width, float height) {
-        super.build(width, height);
-
-        contentScale = Math.clamp(Math.min(((int) width - 40) / DESIGN_WIDTH, ((int) height - 95) / DESIGN_HEIGHT), 0, 1);
-        cellX = ((int) width - DESIGN_WIDTH * contentScale) / 2;
+    public void build(@NotNull ScreenUnit<?> unit) {
+        contentScale = Math.clamp(Math.min((unit.width() - 40) / DESIGN_WIDTH, (unit.height() - 95) / DESIGN_HEIGHT), 0, 1);
+        cellX = (unit.width() - DESIGN_WIDTH * contentScale) / 2;
         int headerHeight = 40;
         int blockHeight = 35 + DESIGN_HEIGHT * contentScale + 10 + 20 + 84;
-        cellY = headerHeight + Math.max(0, ((int) height - headerHeight - blockHeight) / 2);
+        cellY = headerHeight + Math.max(0, (unit.height() - headerHeight - blockHeight) / 2);
         int cellWidth = DESIGN_WIDTH * contentScale;
 
-        addWidget(new Label(this, 10.0F, 10.0F, Text.translatable("screen.nexo_test.test_screen")));
-        mouseLabel = new Label(this, 10.0F, 19.0F, Text.literal(""));
-        addWidget(mouseLabel);
+        unit.addWidget(new Label(10.0F, 10.0F, Text.translatable("screen.nexo_test.test_screen")));
+        mouseLabel = new Label(10.0F, 19.0F, Text.literal(""));
+        unit.addWidget(mouseLabel);
         int buttonY = cellY + 35 + DESIGN_HEIGHT * contentScale + 10;
-        addWidget(new Button(this, cellX, buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previous));
-        addWidget(new Button(this, cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::next));
+        unit.addWidget(new Button(cellX, buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previous));
+        unit.addWidget(new Button(cellX + Math.max(85, cellWidth - 80), buttonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::next));
         int textureButtonY = buttonY + 42;
-        textureLabel = new Label(this, cellX, textureButtonY - 14.0F, Text.literal(""));
-        addWidget(textureLabel);
-        addWidget(new Button(this, cellX, textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previousTexture));
-        addWidget(new Button(this, cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::nextTexture));
+        textureLabel = new Label(cellX, textureButtonY - 14.0F, Text.literal(""));
+        unit.addWidget(textureLabel);
+        unit.addWidget(new Button(cellX, textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.previous"), this::previousTexture));
+        unit.addWidget(new Button(cellX + Math.max(85, cellWidth - 80), textureButtonY, 80.0F, 20.0F, Text.translatable("screen.nexo_test.next"), this::nextTexture));
         int fontButtonY = textureButtonY + 42;
-        fontButton = new Button(this, cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
-        addWidget(fontButton);
+        fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
+        unit.addWidget(fontButton);
         updateTextureLabel();
     }
 
@@ -363,28 +362,26 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public void render(@NotNull Graphics2D graphics, @NotNull Vector2f mouse) {
+    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
         graphics.bindMaterial(UI_MATERIAL);
         graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
-        graphics.fillRect(0.0F, 0.0F, width(), height());
+        graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
 
         graphics.color(1F, 1F, 1F, 1.0F);
         graphics.drawText(RICH_TEXT, 10, 50);
         graphics.drawText(LOCALIZED_TEXT, 10, 70);
 
         graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
-        graphics.fillRoundedRect(mouse.x - 4.0F, mouse.y - 4.0F, 8.0F, 8.0F, 2.0F);
+        graphics.fillRoundedRect(unit.mouse().x - 4.0F, unit.mouse().y - 4.0F, 8.0F, 8.0F, 2.0F);
 
         ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
         TextureOption texture = TEXTURES.get(textureIndex);
 
         mouseLabel.text(Text.translatable(
                 "screen.nexo_test.mouse",
-                Text.literal(Float.toString(mouse.x)),
-                Text.literal(Float.toString(mouse.y))
+                Text.literal(Float.toString(unit.mouse().x)),
+                Text.literal(Float.toString(unit.mouse().y))
         ));
-
-        super.render(graphics, mouse);
 
         graphics.pushState();
         graphics.pushMatrix();
@@ -417,7 +414,7 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public boolean inputPressed(@NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
         if (input.type() == Input.Type.KEYBOARD) {
             if (input.key() == Input.Key.LEFT) {
                 previous();
@@ -428,11 +425,11 @@ public class ScreenTest extends SimpleScreen {
                 return true;
             }
         }
-        return super.inputPressed(input);
+        return false;
     }
 
     @Override
-    public boolean inputMove(@NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<?> unit, @NotNull Input.Axis axis, float delta) {
         if (axis == Input.Axis.SCROLL) {
             if (delta > 0.0F) {
                 previous();
@@ -440,7 +437,7 @@ public class ScreenTest extends SimpleScreen {
                 next();
             }
         }
-        return super.inputMove(axis, delta);
+        return false;
     }
 
     private static void fillTriangle(

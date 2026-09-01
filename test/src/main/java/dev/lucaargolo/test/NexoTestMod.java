@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
@@ -55,6 +56,10 @@ public class NexoTestMod {
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_translucent"));
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
         ScreenBase testScreen = ScreenTest.register(nexo);
+        ScreenUnit<?> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
+        if (testScreenUnit.feature() != testScreen) {
+            throw new IllegalStateException("Screen unit did not retain its registered feature");
+        }
         BlockTest.register(nexo, category);
         PacketTest.register(nexo, category, testScreen);
         WorldTest.register(nexo);
