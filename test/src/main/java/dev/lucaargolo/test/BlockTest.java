@@ -18,8 +18,8 @@ import dev.lucaargolo.nexo.api.render.Transform;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
-import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -29,13 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
-import java.awt.Color;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;

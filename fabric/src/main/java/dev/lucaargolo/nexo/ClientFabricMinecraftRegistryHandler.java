@@ -1,17 +1,9 @@
 package dev.lucaargolo.nexo;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.Level;
-
-import java.lang.reflect.Method;
-import java.util.function.BiFunction;
 
 public class ClientFabricMinecraftRegistryHandler extends FabricMinecraftRegistryHandler {
 

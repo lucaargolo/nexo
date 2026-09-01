@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.api.feature.world;
 
-import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.DataInitializer;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.TickerProvider;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;

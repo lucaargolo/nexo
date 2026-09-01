@@ -1,10 +1,9 @@
 package dev.lucaargolo.nexo.api.feature;
 
 import dev.lucaargolo.nexo.api.unit.Unit;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
-
-import org.jetbrains.annotations.NotNull;
 
 public interface Vault<U extends Unit<?, ?>> extends Collection<U> {
 

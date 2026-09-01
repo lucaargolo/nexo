@@ -17,7 +17,6 @@ import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2f;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,18 +1,22 @@
 package dev.lucaargolo.nexo.render;
+
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat.Mode;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.render.util.*;
-import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.render.font.MinecraftText;
 import dev.lucaargolo.nexo.render.shader.MinecraftShader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.MutableComponent;
@@ -21,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+
 import java.util.ArrayDeque;
 
 public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoCloseable {

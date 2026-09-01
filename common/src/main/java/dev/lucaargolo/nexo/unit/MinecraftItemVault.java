@@ -8,11 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 abstract class MinecraftItemVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 

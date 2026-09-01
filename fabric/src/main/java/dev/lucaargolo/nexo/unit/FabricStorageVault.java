@@ -15,11 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.AbstractCollection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Set;
+import java.util.*;
 
 public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 

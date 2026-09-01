@@ -1,13 +1,10 @@
 package dev.lucaargolo.nexo.api.feature.screen.widget;
 
-import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Text;
-
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import org.jetbrains.annotations.NotNull;
-import org.joml.Vector2f;
 
 public class Button extends Widget {
 
