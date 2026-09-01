@@ -161,7 +161,7 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
     }
 
     @Override
-    public @NotNull Vector3f cameraPosition() {
+    public @NotNull Vector3f camera() {
         throw unsupported("camera coordinates while baking a model");
     }
 

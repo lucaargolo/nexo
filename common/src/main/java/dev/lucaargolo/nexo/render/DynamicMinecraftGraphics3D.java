@@ -31,7 +31,7 @@ public final class DynamicMinecraftGraphics3D extends DynamicMinecraftGraphics2D
     }
 
     @Override
-    public @NotNull Vector3f cameraPosition() {
+    public @NotNull Vector3f camera() {
         return new Matrix4f(poses.last().pose()).invert().transformPosition(new Vector3f());
     }
 

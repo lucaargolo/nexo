@@ -65,7 +65,7 @@ public final class EntityTest {
                 graphics.pushState();
                 graphics.pushMatrix();
                 graphics.translate(0.0F, 1.8F, 0.0F);
-                Vector3f camera = graphics.cameraPosition();
+                Vector3f camera = graphics.camera();
                 if (camera.lengthSquared() > 1.0E-6F) {
                     camera.normalize();
                 } else {
