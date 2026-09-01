@@ -30,9 +30,6 @@ import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.feature.world.MinecraftBiome;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
-import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
-import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
-import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.gui.screens.Screen;
@@ -104,7 +101,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftBlock::lookup,
             MinecraftBlock.CONVERT,
             Map.of(Block.class, CraftStrategy.extensible(Block.class, Block.class, BlockBehaviour.Properties.class, MinecraftBlock::craft)),
-            (nexo, feature, block) -> Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(nexo, MinecraftBlockUnit.class, nexo, feature, feature.role(), null, null, block.defaultBlockState(), null, null)
+            (nexo, feature, block) -> nexo.stateToUnit(block.defaultBlockState())
     );
 
     public static final MinecraftFeatureType<ItemBase, ItemUnit<?>, Item> ITEM = MinecraftFeatureType.base(
@@ -128,7 +125,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftItemCategory::lookup,
             MinecraftItemCategory.CONVERT,
             Map.of(CreativeModeTab.class, CraftStrategy.direct(CreativeModeTab.class, MinecraftItemCategory::craft)),
-            (nexo, feature, tab) -> Utils.<MinecraftItemCategoryUnit<?, ?>>loadPlatformClass(nexo, MinecraftItemCategoryUnit.class, nexo, feature, feature.role(), tab)
+            (nexo, feature, tab) -> nexo.tabToUnit(tab)
     );
 
     public static final MinecraftFeatureType<EntityBase, EntityUnit<?>, EntityType<?>> ENTITY = MinecraftFeatureType.base(
@@ -171,7 +168,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             MinecraftScreen::lookup,
             MinecraftScreen.CONVERT,
             Map.of(Screen.class, CraftStrategy.extensible(Screen.class, Screen.class, Component.class, MinecraftScreen::craft)),
-            (nexo, feature, screen) -> Utils.<MinecraftScreenUnit<?>>loadPlatformClass(nexo, MinecraftScreenUnit.class, nexo, feature, feature.role(), screen)
+            (nexo, feature, screen) -> nexo.screenToUnit(screen)
     );
 
     private final @NotNull Class<M> minecraftType;

@@ -17,8 +17,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -40,7 +40,7 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     protected final @Nullable BlockEntity entity;
     protected final @Nullable Direction direction;
 
-    protected @NotNull BlockState state;
+    protected final @NotNull BlockState state;
 
     public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);

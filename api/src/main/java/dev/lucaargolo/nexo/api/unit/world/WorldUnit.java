@@ -1,17 +1,17 @@
 package dev.lucaargolo.nexo.api.unit.world;
 
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.world.WorldBase;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.feature.DataProvider;
 import dev.lucaargolo.nexo.api.feature.SideProvider;
+import dev.lucaargolo.nexo.api.feature.world.WorldBase;
+import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class WorldUnit<C extends Role> extends Unit<WorldBase, C> implements SideProvider, DataProvider {
+public abstract class WorldUnit<C extends Role> extends Unit<WorldBase, C> implements SideProvider, DataProvider<WorldUnit<C>> {
 
     protected WorldUnit(@NotNull Nexo nexo, @NotNull WorldBase feature, @Nullable C role) {
         super(nexo, feature, role);

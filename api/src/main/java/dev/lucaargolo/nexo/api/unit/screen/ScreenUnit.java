@@ -34,12 +34,13 @@ public abstract class ScreenUnit<C extends Role> extends Unit<ScreenBase, C> {
     public abstract void close();
 
     public void render(@NotNull Graphics2D graphics) {
+        feature.render(this, graphics);
         for (Widget widget : widgets) {
             widget.render(this, graphics);
         }
     }
 
-    public void build(float width, float height) {
+    public void build() {
         widgets.clear();
         feature.build(this);
     }
@@ -82,6 +83,5 @@ public abstract class ScreenUnit<C extends Role> extends Unit<ScreenBase, C> {
     public void removeWidget(@NotNull Widget widget) {
         widgets.remove(widget);
     }
-
 
 }

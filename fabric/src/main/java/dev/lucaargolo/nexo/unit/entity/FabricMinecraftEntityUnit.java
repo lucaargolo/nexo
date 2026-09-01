@@ -1,23 +1,20 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
+import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
-import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
-import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
 import dev.lucaargolo.nexo.unit.FabricStorageVault;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
@@ -68,8 +65,9 @@ public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends
     }
 
     @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> @NotNull EntityUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
         FabricAttachmentData.setData(this.nexo, this.entity, data, d);
+        return this;
     }
 
 

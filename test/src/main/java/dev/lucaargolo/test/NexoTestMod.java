@@ -4,19 +4,18 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
-import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
+import dev.lucaargolo.nexo.api.resource.Resource;
+import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
-import dev.lucaargolo.nexo.api.resource.Resource;
-import dev.lucaargolo.nexo.api.util.Side;
-import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +103,7 @@ public class NexoTestMod {
         if (!Boolean.TRUE.equals(campfireUnit.getData(lit)) || !Boolean.FALSE.equals(campfireUnit.getData(signalFire))) {
             throw new IllegalStateException("Campfire blockstate initial data mismatch");
         }
-        campfireUnit.setData(lit, Boolean.FALSE);
+        campfireUnit = campfireUnit.setData(lit, Boolean.FALSE);
         if (!Boolean.FALSE.equals(campfireUnit.getData(lit))) {
             throw new IllegalStateException("Campfire blockstate initial data write failed");
         }

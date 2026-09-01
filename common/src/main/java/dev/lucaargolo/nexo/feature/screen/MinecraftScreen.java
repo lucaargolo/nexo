@@ -1,25 +1,18 @@
 package dev.lucaargolo.nexo.feature.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.block.BlockBase;
-import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
-import dev.lucaargolo.nexo.api.render.*;
-import dev.lucaargolo.nexo.api.feature.screen.widget.Widget;
 import dev.lucaargolo.nexo.api.input.Input;
-import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
-import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.render.Graphics2D;
+import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.input.GlfwKeyConversions;
 import dev.lucaargolo.nexo.render.DynamicMinecraftGraphics2D;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
-import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -36,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -148,12 +140,13 @@ public final class MinecraftScreen extends ScreenBase {
 
     public static @NotNull <M extends Screen> Screen craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Component, M> factory, @NotNull ScreenBase screen) {
         extender.override(Utils.At.AFTER_SUPER, "init", void.class, instance -> {
-            nexo.screenToUnit(instance).build(instance.width, instance.height);
+            nexo.screenToUnit(instance).build();
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "render", void.class, GuiGraphics.class, int.class, int.class, float.class, (instance, graphics, mouseX, mouseY, partialTick) -> {
             DynamicMinecraftGraphics2D g = new DynamicMinecraftGraphics2D(nexo, graphics.pose(), graphics.bufferSource(), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
             try {
+                nexo.screenToUnit(instance).mouse().set(mouseX, mouseY);
                 nexo.screenToUnit(instance).render(g);
             } catch (Throwable t) {
                 NexoMinecraft.LOGGER.error("Failed to render Nexo screen {}", screen.location(), t);

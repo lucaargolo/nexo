@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
@@ -21,6 +22,7 @@ import dev.lucaargolo.nexo.api.render.shader.ShaderSource;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -29,10 +31,12 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
 import dev.lucaargolo.nexo.language.MinecraftLanguageHandler;
+import dev.lucaargolo.nexo.mixed.*;
 import dev.lucaargolo.nexo.render.MinecraftRenderingHandler;
 import dev.lucaargolo.nexo.resource.MinecraftResourceType;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
+import dev.lucaargolo.nexo.unit.item.MinecraftItemCategoryUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
@@ -50,6 +54,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -308,8 +313,6 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         return event.value();
     }
 
-    //TODO: Cache these
-
     public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
         return blockToUnit(null, null, state, null);
     }
@@ -323,32 +326,90 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
     }
 
     public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
+        MinecraftBlockUnit<?, ?> cached;
+        if (blockEntity != null) {
+            cached = ((BlockEntityMixed) blockEntity).nexo$getUnit();
+        } else {
+            cached = ((BlockStateMixed) state).nexo$getUnit();
+        }
+        if (cached != null) {
+            return cached;
+        }
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
-        return Utils.<MinecraftBlockUnit<?, ?>>loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
+        MinecraftBlockUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
+        if (blockEntity != null) {
+            ((BlockEntityMixed) blockEntity).nexo$setUnit(unit);
+        } else {
+            ((BlockStateMixed) state).nexo$setUnit(unit);
+        }
+        return unit;
     }
 
     public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
+        ItemStackMixed mixed = (ItemStackMixed) (Object) stack;
+        MinecraftItemUnit<?> cached = mixed.nexo$getUnit();
+        if (cached != null) {
+            return cached;
+        }
         ItemBase item = MinecraftFeatureType.ITEM.convert(this, stack.getItem());
-        return Utils.<MinecraftItemUnit<?>>loadPlatformClass(this, MinecraftItemUnit.class, this, item, item.role(), stack);
+        MinecraftItemUnit<?> unit = Utils.loadPlatformClass(this, MinecraftItemUnit.class, this, item, item.role(), stack);
+        mixed.nexo$setUnit(unit);
+        return unit;
     }
 
     public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
+        LevelMixed mixed = (LevelMixed) level;
+        MinecraftWorldUnit<?> cached = mixed.nexo$getUnit();
+        if (cached != null) {
+            return cached;
+        }
         ResourceKey<LevelStem> key = Registries.levelToLevelStem(level.dimension());
         Location location = NexoMinecraft.id(key.location());
         WorldBase world = MinecraftFeatureType.WORLD.lookup(location);
-        return Utils.<MinecraftWorldUnit<?>>loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
+        if (world == null) {
+            throw new IllegalStateException("Couldn't find world from level");
+        }
+        MinecraftWorldUnit<?> unit = Utils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
+        mixed.nexo$setUnit(unit);
+        return unit;
     }
 
     public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
+        EntityMixed mixed = (EntityMixed) entity;
+        MinecraftEntityUnit<?, ?, ?> cached = mixed.nexo$getUnit();
+        if (cached != null) {
+            Class<MinecraftEntityUnit<?, ?, E>> cachedClass = Nexo.type(MinecraftEntityUnit.class);
+            return cachedClass.cast(cached);
+        }
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this, entity.getType());
         MinecraftEntityUnit<?, ?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        mixed.nexo$setUnit(unit);
         Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
         return clazz.cast(unit);
     }
 
+    public ItemCategoryUnit<?> tabToUnit(CreativeModeTab tab) {
+        CreativeModeTabMixed mixed = (CreativeModeTabMixed) tab;
+        MinecraftItemCategoryUnit<?, ?> cached = mixed.nexo$getUnit();
+        if (cached != null) {
+            return cached;
+        }
+        ItemCategoryBase feature = MinecraftFeatureType.ITEM_CATEGORY.convert(this, tab);
+        MinecraftItemCategoryUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, feature, feature.role(), tab);
+        mixed.nexo$setUnit(unit);
+        return unit;
+    }
+
     public MinecraftScreenUnit<?> screenToUnit(@NotNull Screen screen) {
+        ScreenMixed mixed = (ScreenMixed) screen;
+        MinecraftScreenUnit<?> cached = mixed.nexo$getUnit();
+        if (cached != null) {
+            return cached;
+        }
         ScreenBase feature = MinecraftFeatureType.SCREEN.convert(this, screen);
-        return Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), screen);
+        MinecraftScreenUnit<?> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), screen);
+        mixed.nexo$setUnit(unit);
+        return unit;
     }
 
     public void tickWorld(@NotNull Level level) {

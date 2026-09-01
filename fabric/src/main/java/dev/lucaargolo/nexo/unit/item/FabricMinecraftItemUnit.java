@@ -9,15 +9,10 @@ import dev.lucaargolo.nexo.unit.FabricStorageVault;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class FabricMinecraftItemUnit<C extends Role> extends MinecraftItemUnit<C> {
 
@@ -27,33 +22,7 @@ public class FabricMinecraftItemUnit<C extends Role> extends MinecraftItemUnit<C
 
     @Override
     protected @Nullable Vault<ItemUnit<?>> itemVault() {
-        SingleSlotStorage<ItemVariant> mainSlot = new SingleStackStorage() {
-            @Override
-            protected @NotNull ItemStack getStack() {
-                return FabricMinecraftItemUnit.this.get();
-            }
-
-            @Override
-            protected void setStack(@NotNull ItemStack stack) {
-                FabricMinecraftItemUnit.this.setStack(stack);
-            }
-        };
-        ContainerItemContext context = new ContainerItemContext() {
-            @Override
-            public @NotNull SingleSlotStorage<ItemVariant> getMainSlot() {
-                return mainSlot;
-            }
-
-            @Override
-            public long insertOverflow(ItemVariant itemVariant, long maxAmount, TransactionContext transactionContext) {
-                return 0;
-            }
-
-            @Override
-            public @NotNull List<SingleSlotStorage<ItemVariant>> getAdditionalSlots() {
-                return List.of();
-            }
-        };
+        ContainerItemContext context = ContainerItemContext.withConstant(this.get());
         Storage<ItemVariant> storage = ItemStorage.ITEM.find(this.get(), context);
         return storage == null ? null : new FabricStorageVault(this.nexo, storage);
     }

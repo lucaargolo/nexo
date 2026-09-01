@@ -6,6 +6,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
@@ -63,8 +64,9 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
     }
 
     @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> @NotNull EntityUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
         NeoForgeAttachmentData.setData(this.nexo, this.entity, data, d);
+        return this;
     }
 
 

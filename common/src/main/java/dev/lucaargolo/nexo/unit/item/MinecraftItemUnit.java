@@ -24,7 +24,7 @@ import java.util.Set;
 public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> implements MinecraftUnit<ItemStack> {
 
     protected final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private @NotNull ItemStack stack;
+    private final @NotNull ItemStack stack;
 
     public MinecraftItemUnit(
             @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
@@ -62,10 +62,6 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
         return null;
     }
 
-    protected void setStack(@NotNull ItemStack stack) {
-        this.stack = stack;
-    }
-
     @Override
     public @NotNull ItemStack get() {
         return stack;
@@ -88,14 +84,16 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
         return stack.get(find(data));
     }
 
+    @NotNull
     @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D value) {
+    public <D> ItemUnit<C> setData(@NotNull DataBase<D> data, @Nullable D value) {
         DataComponentType<D> component = find(data);
         if (value == null) {
             stack.remove(component);
-            return;
+            return this;
         }
         stack.set(component, value);
+        return this;
     }
 
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {

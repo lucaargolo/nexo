@@ -1,11 +1,13 @@
 package dev.lucaargolo.nexo.unit.block;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
 import dev.lucaargolo.nexo.unit.FabricStorageVault;
@@ -83,15 +85,19 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
         }
     }
 
+    @NotNull
     @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> BlockUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
         if (data instanceof DataBase.Constrained<?> constrained && this.feature.initialData().contains(constrained)) {
-            this.state = this.setStateData(constrained, d);
+            BlockState state = this.setStateData(constrained, d);
             if (this.level != null && this.position != null) {
-                this.level.setBlockAndUpdate(this.position, this.state);
+                this.level.setBlockAndUpdate(this.position, state);
             }
+            Class<BlockUnit<C>> type = Nexo.type(this.getClass());
+            return type.cast(this.nexo.stateToUnit(state));
         } else if (this.entity != null) {
             FabricAttachmentData.setData(this.nexo, this.entity, data, d);
+            return this;
         } else if (data instanceof DataBase.Constrained<?>) {
             throw new IllegalArgumentException("Tried to set non-initial constrained data " + data + " to non-dynamic MinecraftBlockUnit");
         } else {

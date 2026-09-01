@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.NeoForgeAttachmentData;
 import net.minecraft.core.component.DataComponents;
@@ -36,9 +37,11 @@ public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoM
         return NeoForgeAttachmentData.getData(this.nexo, this.feature.initialData(), this.level, data);
     }
 
+    @NotNull
     @Override
-    public <D> void setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> WorldUnit<Role> setData(@NotNull DataBase<D> data, @Nullable D d) {
         NeoForgeAttachmentData.setData(this.nexo, this.level, data, d);
+        return this;
     }
 
 }
