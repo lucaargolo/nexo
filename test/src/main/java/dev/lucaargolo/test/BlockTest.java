@@ -115,6 +115,12 @@ public final class BlockTest {
             }
 
             @Override
+            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+                entity.openScreen(new InventoryScreenTest(block, entity));
+                return Interaction.SUCCESS;
+            }
+
+            @Override
             public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
                 return Map.of("inventory", unit -> new ChestVault<>(type, unit, chestInventory));
             }
