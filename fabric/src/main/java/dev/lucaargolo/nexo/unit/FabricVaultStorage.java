@@ -186,7 +186,9 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             return extracted;
         }
         long extractedTotal = 0;
-        for (Iterator<ItemUnit<?>> iterator = vault.iterator(); iterator.hasNext() && extractedTotal < maxAmount;) {
+        ListIterator<ItemUnit<?>> iterator = vault.listIterator();
+        while (iterator.hasNext() && extractedTotal < maxAmount) {
+            int logicalSlot = iterator.nextIndex();
             ItemUnit<?> item = iterator.next();
             if (!(item instanceof MinecraftItemUnit<?> minecraftItem) || !resource.matches(minecraftItem.get())) {
                 continue;
@@ -198,8 +200,8 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             int amount = (int) Math.min(Math.min(maxAmount - extractedTotal, source.getCount()), Integer.MAX_VALUE);
             this.ensureSnapshot(transaction);
             iterator.remove();
-            if (amount < source.getCount() && !vault.add(this.nexo.stackToUnit(source.copyWithCount(source.getCount() - amount)))) {
-                throw new IllegalStateException("Vault rejected residual item during extraction");
+            if (amount < source.getCount()) {
+                vault.set(logicalSlot, this.nexo.stackToUnit(source.copyWithCount(source.getCount() - amount)));
             }
             extractedTotal += amount;
         }
@@ -225,11 +227,9 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             } else if (vault instanceof MinecraftItemVault minecraftVault) {
                 snapshots.add(minecraftVault.snapshot());
             } else {
-                List<ItemStack> contents = new ArrayList<>();
+                List<ItemStack> contents = new ArrayList<>(vault.size());
                 for (ItemUnit<?> item : vault) {
-                    if (item instanceof MinecraftItemUnit<?> minecraftItem && !minecraftItem.get().isEmpty()) {
-                        contents.add(minecraftItem.get().copy());
-                    }
+                    contents.add(item instanceof MinecraftItemUnit<?> minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
                 }
                 snapshots.add(List.copyOf(contents));
             }
@@ -248,11 +248,11 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             if (vault instanceof MinecraftItemVault minecraftVault) {
                 minecraftVault.restore(state, false);
             } else {
-                List<ItemUnit<?>> restored = new ArrayList<>(state.size());
-                for (ItemStack stack : state) {
-                    restored.add(this.nexo.stackToUnit(stack.copy()));
+                vault.clear();
+                for (int slot = 0; slot < state.size(); slot++) {
+                    ItemStack stack = state.get(slot);
+                    vault.set(slot, stack.isEmpty() ? vault.defaultValue() : this.nexo.stackToUnit(stack.copy()));
                 }
-                vault.setContents(restored);
             }
         }
     }

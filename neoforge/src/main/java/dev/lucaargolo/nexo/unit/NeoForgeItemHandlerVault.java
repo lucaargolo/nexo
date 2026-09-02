@@ -13,14 +13,61 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
+public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull ItemUnit<?> defaultValue;
     final @NotNull IItemHandler handler;
 
     public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
         this.nexo = nexo;
+        this.defaultValue = MinecraftItemVault.emptyValue(nexo);
         this.handler = handler;
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> defaultValue() {
+        return this.defaultValue;
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> get(int slot) {
+        Objects.checkIndex(slot, this.handler.getSlots());
+        ItemStack stack = this.handler.getStackInSlot(slot);
+        return stack.isEmpty() ? this.defaultValue() : this.nexo.stackToUnit(stack.copy());
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> set(int slot, @NotNull ItemUnit<?> item) {
+        Objects.checkIndex(slot, this.handler.getSlots());
+        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+            throw new IllegalArgumentException("NeoForgeItemHandlerVault only accepts MinecraftItemUnit instances");
+        }
+        ItemStack stack = minecraftItem.get().copy();
+        if (!stack.isEmpty() && (!this.handler.isItemValid(slot, stack) || stack.getCount() > this.handler.getSlotLimit(slot))) {
+            throw new IllegalArgumentException("NeoForge item handler rejected item for slot " + slot);
+        }
+        ItemUnit<?> previous = this.get(slot);
+        ItemStack previousStack = this.handler.getStackInSlot(slot).copy();
+        if (!previousStack.isEmpty()) {
+            int remaining = previousStack.getCount();
+            while (remaining > 0) {
+                ItemStack extracted = this.handler.extractItem(slot, remaining, false);
+                if (extracted.isEmpty()) {
+                    throw new IllegalArgumentException("NeoForge item handler rejected item for slot " + slot);
+                }
+                remaining -= extracted.getCount();
+            }
+        }
+        ItemStack remaining = stack.isEmpty() ? ItemStack.EMPTY : this.handler.insertItem(slot, stack, false);
+        if (!remaining.isEmpty()) {
+            if (!previousStack.isEmpty()) {
+                this.handler.insertItem(slot, previousStack, false);
+            }
+            throw new IllegalArgumentException("NeoForge item handler rejected item for slot " + slot);
+        }
+        this.contentsChanged();
+        return previous;
     }
 
     public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable IItemHandler handler) {
@@ -52,13 +99,7 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
 
     @Override
     public int size() {
-        int size = 0;
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            if (!handler.getStackInSlot(slot).isEmpty()) {
-                size++;
-            }
-        }
-        return size;
+        return this.handler.getSlots();
     }
 
     @Override
@@ -121,6 +162,25 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
     }
 
     @Override
+    public @NotNull ItemUnit<?> remove(int slot) {
+        Objects.checkIndex(slot, this.handler.getSlots());
+        ItemUnit<?> previous = this.get(slot);
+        ItemStack stack = this.handler.getStackInSlot(slot);
+        if (!stack.isEmpty()) {
+            int remaining = stack.getCount();
+            while (remaining > 0) {
+                ItemStack extracted = this.handler.extractItem(slot, remaining, false);
+                if (extracted.isEmpty()) {
+                    throw new IllegalStateException("NeoForge item handler rejected vault indexed removal");
+                }
+                remaining -= extracted.getCount();
+            }
+            this.contentsChanged();
+        }
+        return previous;
+    }
+
+    @Override
     public void clear() {
         boolean changed = false;
         for (int slot = 0; slot < handler.getSlots(); slot++) {
@@ -137,44 +197,6 @@ public final class NeoForgeItemHandlerVault extends AbstractCollection<ItemUnit<
         if (changed) {
             this.contentsChanged();
         }
-    }
-
-    @Override
-    public @NotNull Iterator<ItemUnit<?>> iterator() {
-        return new Iterator<>() {
-            private int nextSlot;
-            private int currentSlot = -1;
-            private int currentAmount;
-
-            @Override
-            public boolean hasNext() {
-                while (nextSlot < handler.getSlots() && handler.getStackInSlot(nextSlot).isEmpty()) {
-                    nextSlot++;
-                }
-                return nextSlot < handler.getSlots();
-            }
-
-            @Override
-            public @NotNull ItemUnit<?> next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-                currentSlot = nextSlot++;
-                ItemStack stack = handler.getStackInSlot(currentSlot);
-                currentAmount = stack.getCount();
-                return nexo.stackToUnit(stack.copy());
-            }
-
-            @Override
-            public void remove() {
-                if (currentSlot < 0) {
-                    throw new IllegalStateException();
-                }
-                handler.extractItem(currentSlot, currentAmount, false);
-                NeoForgeItemHandlerVault.this.contentsChanged();
-                currentSlot = -1;
-            }
-        };
     }
 
 }

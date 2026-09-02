@@ -3,9 +3,13 @@ package dev.lucaargolo.nexo.api.feature;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
-public interface Vault<U extends Unit<?, ?>> extends Collection<U> {
+public interface Vault<U extends Unit<?, ?>> extends List<U> {
+
+    @NotNull U defaultValue();
 
     boolean isFull();
 
@@ -13,8 +17,14 @@ public interface Vault<U extends Unit<?, ?>> extends Collection<U> {
     }
 
     default void setContents(@NotNull Collection<? extends U> contents) {
+        List<? extends U> copy = new ArrayList<>(contents);
+        if (copy.size() > this.size()) {
+            throw new IllegalArgumentException("Vault contents exceed fixed size of " + this.size());
+        }
         this.clear();
-        this.addAll(contents);
+        for (int index = 0; index < copy.size(); index++) {
+            this.set(index, copy.get(index));
+        }
     }
 
     default boolean canAdd() {

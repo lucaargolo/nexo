@@ -13,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -87,6 +86,19 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         if (selected.item == null && selected.vault.isFull()) {
             return stack.copy();
         }
+        if (selected.logicalSlot >= 0) {
+            ItemStack current = selected.item == null ? ItemStack.EMPTY : selected.item.get();
+            int amount = Math.min(stack.getCount(), Math.max(0, this.getSlotLimit(slot) - current.getCount()));
+            if (amount <= 0) {
+                return stack.copy();
+            }
+            if (!simulate) {
+                ItemStack stored = stack.copyWithCount(current.getCount() + amount);
+                selected.vault.set(selected.logicalSlot, this.nexo.stackToUnit(stored));
+                this.refreshSlots();
+            }
+            return stack.copyWithCount(stack.getCount() - amount);
+        }
         List<ItemStack> before = simulate ? this.snapshot(selected.vault) : null;
         try {
             int stored = this.count(selected.vault, stack);
@@ -122,13 +134,15 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         if (selected.item == null || selected.item.get().isEmpty()) {
             return ItemStack.EMPTY;
         }
+        if (simulate) {
+            ItemStack source = selected.item.get();
+            int extracted = Math.min(Math.min(amount, source.getCount()), source.getMaxStackSize());
+            return source.copyWithCount(extracted);
+        }
         List<ItemStack> before = this.snapshot(selected.vault);
         try {
-            ItemStack result = this.extract(selected.vault, selected.item, amount);
-            if (simulate) {
-                this.restore(selected.vault, before);
-                this.refreshSlots();
-            } else if (!result.isEmpty()) {
+            ItemStack result = this.extract(selected.vault, selected.item, amount, selected.logicalSlot);
+            if (!result.isEmpty()) {
                 this.refreshSlots();
             }
             return result;
@@ -179,21 +193,19 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
     }
 
     private @NotNull List<ItemStack> snapshot(@NotNull Vault<ItemUnit<?>> vault) {
-        List<ItemStack> snapshot = new ArrayList<>();
+        List<ItemStack> snapshot = new ArrayList<>(vault.size());
         for (ItemUnit<?> item : vault) {
-            if (item instanceof MinecraftItemUnit<?> minecraftItem && !minecraftItem.get().isEmpty()) {
-                snapshot.add(minecraftItem.get().copy());
-            }
+            snapshot.add(item instanceof MinecraftItemUnit<?> minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
         }
         return snapshot;
     }
 
     private void restore(@NotNull Vault<ItemUnit<?>> vault, @NotNull List<ItemStack> snapshot) {
-        List<ItemUnit<?>> restored = new ArrayList<>(snapshot.size());
-        for (ItemStack stack : snapshot) {
-            restored.add(this.nexo.stackToUnit(stack.copy()));
+        vault.clear();
+        for (int index = 0; index < snapshot.size(); index++) {
+            ItemStack stack = snapshot.get(index);
+            vault.set(index, stack.isEmpty() ? vault.defaultValue() : this.nexo.stackToUnit(stack.copy()));
         }
-        vault.setContents(restored);
     }
 
     private @NotNull List<Slot> createSlots() {
@@ -202,25 +214,20 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
             if (vault instanceof NeoForgeItemHandlerVault handlerVault) {
                 IItemHandler handler = handlerVault.handler;
                 for (int physicalSlot = 0; physicalSlot < handler.getSlots(); physicalSlot++) {
-                    slots.add(new Slot(vault, handler, null, null, physicalSlot));
+                    slots.add(new Slot(vault, handler, null, null, physicalSlot, -1));
                 }
                 continue;
             }
             if (vault instanceof MinecraftItemVault minecraftVault) {
                 for (int physicalSlot = 0; physicalSlot < minecraftVault.slotCount(); physicalSlot++) {
-                    slots.add(new Slot(vault, null, minecraftVault, null, physicalSlot));
+                    slots.add(new Slot(vault, null, minecraftVault, null, physicalSlot, -1));
                 }
                 continue;
             }
-            boolean found = false;
-            for (ItemUnit<?> item : vault) {
-                if (item instanceof MinecraftItemUnit<?> minecraftItem && !minecraftItem.get().isEmpty()) {
-                    slots.add(new Slot(vault, null, null, minecraftItem, -1));
-                    found = true;
-                }
-            }
-            if (!found || !vault.isFull()) {
-                slots.add(new Slot(vault, null, null, null, -1));
+            for (int logicalSlot = 0; logicalSlot < vault.size(); logicalSlot++) {
+                ItemUnit<?> item = vault.get(logicalSlot);
+                MinecraftItemUnit<?> minecraftItem = item instanceof MinecraftItemUnit<?> candidate && !candidate.get().isEmpty() ? candidate : null;
+                slots.add(new Slot(vault, null, null, minecraftItem, -1, logicalSlot));
             }
         }
         return List.copyOf(slots);
@@ -237,22 +244,19 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         return this.slots.get(index);
     }
 
-    private @NotNull ItemStack extract(@NotNull Vault<ItemUnit<?>> vault, @NotNull MinecraftItemUnit<?> target, int amount) {
-        for (Iterator<ItemUnit<?>> iterator = vault.iterator(); iterator.hasNext();) {
-            ItemUnit<?> item = iterator.next();
-            if (!(item instanceof MinecraftItemUnit<?> minecraftItem) || !ItemStack.isSameItemSameComponents(minecraftItem.get(), target.get())) {
-                continue;
-            }
-            ItemStack source = minecraftItem.get();
-            int extracted = Math.min(Math.min(amount, source.getCount()), source.getMaxStackSize());
-            ItemStack result = source.copyWithCount(extracted);
-            iterator.remove();
-            if (extracted < source.getCount() && !vault.add(this.nexo.stackToUnit(source.copyWithCount(source.getCount() - extracted)))) {
-                throw new IllegalStateException("Vault rejected residual item during extraction");
-            }
-            return result;
+    private @NotNull ItemStack extract(@NotNull Vault<ItemUnit<?>> vault, @NotNull MinecraftItemUnit<?> target, int amount, int logicalSlot) {
+        ItemUnit<?> item = vault.get(logicalSlot);
+        if (!(item instanceof MinecraftItemUnit<?> minecraftItem) || !ItemStack.isSameItemSameComponents(minecraftItem.get(), target.get())) {
+            return ItemStack.EMPTY;
         }
-        return ItemStack.EMPTY;
+        ItemStack source = minecraftItem.get();
+        int extracted = Math.min(Math.min(amount, source.getCount()), source.getMaxStackSize());
+        ItemStack result = source.copyWithCount(extracted);
+        vault.remove(logicalSlot);
+        if (extracted < source.getCount()) {
+            vault.set(logicalSlot, this.nexo.stackToUnit(source.copyWithCount(source.getCount() - extracted)));
+        }
+        return result;
     }
 
     private record Slot(
@@ -260,7 +264,8 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
             @Nullable IItemHandler handler,
             @Nullable MinecraftItemVault physicalVault,
             @Nullable MinecraftItemUnit<?> item,
-            int physicalSlot
+            int physicalSlot,
+            int logicalSlot
     ) {
     }
 

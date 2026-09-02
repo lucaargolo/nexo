@@ -17,14 +17,64 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> implements Vault<ItemUnit<?>> {
+public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implements Vault<ItemUnit<?>> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull ItemUnit<?> defaultValue;
     final @NotNull Storage<ItemVariant> storage;
+    private final @Nullable SlottedStorage<ItemVariant> slottedStorage;
+    private final int slotCount;
 
     public FabricStorageVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
         this.nexo = nexo;
+        this.defaultValue = MinecraftItemVault.emptyValue(nexo);
         this.storage = storage;
+        Class<SlottedStorage<ItemVariant>> type = Nexo.type(SlottedStorage.class);
+        this.slottedStorage = storage instanceof SlottedStorage<?> ? type.cast(storage) : null;
+        this.slotCount = this.slottedStorage == null ? -1 : this.slottedStorage.getSlotCount();
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> defaultValue() {
+        return this.defaultValue;
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> get(int slot) {
+        Objects.checkIndex(slot, this.size());
+        StorageView<ItemVariant> view = this.view(slot);
+        if (view == null || view.isResourceBlank() || view.getAmount() <= 0) {
+            return this.defaultValue();
+        }
+        return this.nexo.stackToUnit(view.getResource().toStack((int) Math.min(Integer.MAX_VALUE, view.getAmount())));
+    }
+
+    @Override
+    public @NotNull ItemUnit<?> set(int slot, @NotNull ItemUnit<?> item) {
+        Objects.checkIndex(slot, this.size());
+        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+            throw new IllegalArgumentException("FabricStorageVault only accepts MinecraftItemUnit instances");
+        }
+        ItemUnit<?> previous = this.get(slot);
+        ItemStack stack = minecraftItem.get();
+        StorageView<ItemVariant> view = this.view(slot);
+        Storage<ItemVariant> target = this.slottedStorage == null ? this.storage : this.slottedStorage.getSlot(slot);
+        try (Transaction transaction = Transaction.openOuter()) {
+            if (view != null && !view.isResourceBlank() && view.getAmount() > 0) {
+                long amount = view.getAmount();
+                long extracted = view.extract(view.getResource(), amount, transaction);
+                if (extracted != amount) {
+                    throw new IllegalArgumentException("Fabric storage rejected item for slot " + slot);
+                }
+            }
+            long inserted = stack.isEmpty() ? 0 : target.insert(ItemVariant.of(stack), stack.getCount(), transaction);
+            if (inserted != stack.getCount() || (this.slottedStorage != null && !stack.isEmpty() && !this.matches(this.view(slot), stack))) {
+                throw new IllegalArgumentException("Fabric storage rejected item for slot " + slot);
+            }
+            transaction.commit();
+            this.contentsChanged();
+        }
+        return previous;
     }
 
     public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
@@ -46,28 +96,24 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
 
     @Override
     public boolean isFull() {
-        if (storage instanceof SlottedStorage<?> slotted) {
-            if (slotted.getSlotCount() == 0) {
+        if (this.slottedStorage != null) {
+            if (this.slottedStorage.getSlotCount() == 0) {
                 return true;
             }
-            for (int slot = 0; slot < slotted.getSlotCount(); slot++) {
-                StorageView<?> view = slotted.getSlot(slot);
-                if (view.getAmount() < view.getCapacity()) {
+            for (int slot = 0; slot < this.slottedStorage.getSlotCount(); slot++) {
+                StorageView<ItemVariant> view = this.slottedStorage.getSlot(slot);
+                if (view.isResourceBlank() || view.getAmount() <= 0 || view.getAmount() < view.getCapacity()) {
                     return false;
                 }
             }
             return true;
         }
-
         boolean hasView = false;
-        for (StorageView<ItemVariant> view : storage) {
-            if (view.isResourceBlank() || view.getAmount() <= 0) {
+        for (StorageView<ItemVariant> view : this.storage) {
+            if (view.isResourceBlank() || view.getAmount() <= 0 || view.getAmount() < view.getCapacity()) {
                 return false;
             }
             hasView = true;
-            if (view.getAmount() < view.getCapacity()) {
-                return false;
-            }
         }
         return hasView;
     }
@@ -84,8 +130,11 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
 
     @Override
     public int size() {
+        if (this.slotCount >= 0) {
+            return this.slotCount;
+        }
         int size = 0;
-        for (StorageView<ItemVariant> view : storage.nonEmptyViews()) {
+        for (StorageView<ItemVariant> view : this.storage.nonEmptyViews()) {
             size++;
         }
         return size;
@@ -129,6 +178,19 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
     }
 
     @Override
+    public void setContents(@NotNull Collection<? extends ItemUnit<?>> contents) {
+        if (this.slottedStorage != null) {
+            Vault.super.setContents(contents);
+            return;
+        }
+        List<? extends ItemUnit<?>> copy = new ArrayList<>(contents);
+        this.clear();
+        for (ItemUnit<?> item : copy) {
+            this.add(item);
+        }
+    }
+
+    @Override
     public boolean remove(Object object) {
         if (!(object instanceof MinecraftItemUnit<?> item)) {
             return false;
@@ -156,6 +218,25 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
     }
 
     @Override
+    public @NotNull ItemUnit<?> remove(int slot) {
+        Objects.checkIndex(slot, this.size());
+        ItemUnit<?> previous = this.get(slot);
+        StorageView<ItemVariant> view = this.view(slot);
+        if (view != null && !view.isResourceBlank() && view.getAmount() > 0) {
+            try (Transaction transaction = Transaction.openOuter()) {
+                long amount = view.getAmount();
+                long extracted = view.extract(view.getResource(), amount, transaction);
+                if (extracted != amount) {
+                    throw new IllegalStateException("Fabric transfer storage rejected vault indexed removal");
+                }
+                transaction.commit();
+                this.contentsChanged();
+            }
+        }
+        return previous;
+    }
+
+    @Override
     public void clear() {
         try (Transaction transaction = Transaction.openOuter()) {
             boolean changed = false;
@@ -171,44 +252,21 @@ public final class FabricStorageVault extends AbstractCollection<ItemUnit<?>> im
         }
     }
 
-    @Override
-    public @NotNull Iterator<ItemUnit<?>> iterator() {
-        Iterator<StorageView<ItemVariant>> iterator = storage.nonEmptyIterator();
-        return new Iterator<>() {
-            private StorageView<ItemVariant> current;
-            private long currentAmount;
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
+    private @Nullable StorageView<ItemVariant> view(int slot) {
+        if (this.slottedStorage != null) {
+            return this.slottedStorage.getSlot(slot);
+        }
+        int index = 0;
+        for (StorageView<ItemVariant> view : this.storage.nonEmptyViews()) {
+            if (index++ == slot) {
+                return view;
             }
+        }
+        return null;
+    }
 
-            @Override
-            public @NotNull ItemUnit<?> next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-                current = iterator.next();
-                currentAmount = current.getAmount();
-                return nexo.stackToUnit(current.getResource().toStack((int) Math.min(Integer.MAX_VALUE, currentAmount)));
-            }
-
-            @Override
-            public void remove() {
-                if (current == null) {
-                    throw new IllegalStateException();
-                }
-                try (Transaction transaction = Transaction.openOuter()) {
-                    long extracted = current.extract(current.getResource(), currentAmount, transaction);
-                    if (extracted != currentAmount) {
-                        throw new IllegalStateException("Fabric transfer storage rejected vault iterator removal");
-                    }
-                    transaction.commit();
-                    FabricStorageVault.this.contentsChanged();
-                }
-                current = null;
-            }
-        };
+    private boolean matches(@Nullable StorageView<ItemVariant> view, @NotNull ItemStack stack) {
+        return view != null && !view.isResourceBlank() && view.getAmount() == stack.getCount() && view.getResource().matches(stack);
     }
 
 }
