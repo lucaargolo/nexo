@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
@@ -14,12 +15,12 @@ import org.joml.Vector2f;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ScreenUnit<C extends Role> extends Unit<ScreenBase, C> {
+public abstract class ScreenUnit<C extends Role, D> extends Unit<ScreenBase<D>, C> {
 
     @NotNull
     private final CopyOnWriteArrayList<@NotNull Widget> widgets = new CopyOnWriteArrayList<>();
 
-    protected ScreenUnit(@NotNull Nexo nexo, @NotNull ScreenBase feature, @Nullable C role) {
+    protected ScreenUnit(@NotNull Nexo nexo, @NotNull ScreenBase<D> feature, @Nullable C role) {
         super(nexo, feature, role);
     }
 
@@ -29,9 +30,11 @@ public abstract class ScreenUnit<C extends Role> extends Unit<ScreenBase, C> {
 
     public abstract int height();
 
-    public abstract void open();
+    public abstract boolean open(@NotNull EntityUnit<?> entity, @NotNull D data);
 
-    public abstract void close();
+    public boolean open(@NotNull EntityUnit<?> entity) {
+        return open(entity, feature.data().initial());
+    }
 
     public void render(@NotNull Graphics2D graphics) {
         feature.render(this, graphics);

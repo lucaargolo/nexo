@@ -82,7 +82,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
     public record Tag(@NotNull Location location) {}
 
-    public static final class Type<T extends Feature<T, U>, U extends Unit<T, ?>> {
+    public static final class Type<T extends Feature<?, ?>, U extends Unit<?, ?>> {
 
         private static final @NotNull List<Type<?, ?>> ALL = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
         public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
         public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>("biome", BiomeBase.class);
-        public static final @NotNull Type<ScreenBase, ScreenUnit<?>> SCREEN = new Type<>("screen", ScreenBase.class, Nexo.type(ScreenUnit.class));
+        public static final @NotNull Type<ScreenBase<?>, ScreenUnit<?, ?>> SCREEN = new Type<>("screen", Nexo.type(ScreenBase.class), Nexo.type(ScreenUnit.class));
 
         private final @NotNull String identifier;
         private final @NotNull Class<T> featureType;
@@ -159,6 +159,11 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         public static @NotNull Feature.Type<Packet<?, ?>, Unit<Packet<?, ?>, ?>> packet() {
             Class<Type<Packet<?, ?>, Unit<Packet<?, ?>, ?>>> clazz = Nexo.type(Type.class);
             return clazz.cast(PACKET);
+        }
+
+        public static <D> @NotNull Feature.Type<ScreenBase<D>, ScreenUnit<?, D>> screen() {
+            Class<Feature.Type<ScreenBase<D>, ScreenUnit<?, D>>> clazz = Nexo.type(Type.class);
+            return clazz.cast(SCREEN);
         }
 
     }

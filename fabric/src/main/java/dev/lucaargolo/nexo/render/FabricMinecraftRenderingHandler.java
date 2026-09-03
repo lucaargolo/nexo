@@ -17,11 +17,15 @@ import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jetbrains.annotations.NotNull;
@@ -111,6 +115,11 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
         }
         EntityType<? extends Entity> type = MinecraftFeatureType.ENTITY.convert(entity);
         registerEntityRenderer(type, entity, EntityRendererRegistry::register);
+    }
+
+    @Override
+    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor) {
+        MenuScreens.register(type, constructor::create);
     }
 
 }

@@ -1,7 +1,5 @@
-package dev.lucaargolo.test;
+package dev.lucaargolo.test.feature;
 
-import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.feature.screen.SimpleScreen;
 import dev.lucaargolo.nexo.api.feature.screen.widget.Button;
 import dev.lucaargolo.nexo.api.feature.screen.widget.Label;
@@ -15,6 +13,7 @@ import dev.lucaargolo.nexo.api.render.util.PrimitiveType;
 import dev.lucaargolo.nexo.api.render.util.VertexLayout;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.test.NexoTestMod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class ScreenTest extends SimpleScreen {
+public class TestScreen extends SimpleScreen {
 
     private static final Material<Void> UI_MATERIAL = Material.untextured()
             .withBlendMode(BlendMode.ALPHA)
@@ -294,12 +293,12 @@ public class ScreenTest extends SimpleScreen {
     private int cellY;
     private int contentScale;
 
-    public ScreenTest() {
-        super(NexoTestMod.id("test_screen"));
+    public TestScreen(Location location) {
+        super(location);
     }
 
     @Override
-    public void build(@NotNull ScreenUnit<?> unit) {
+    public void build(@NotNull ScreenUnit<?, Text> unit) {
         contentScale = Math.clamp(Math.min((unit.width() - 40) / DESIGN_WIDTH, (unit.height() - 95) / DESIGN_HEIGHT), 0, 1);
         cellX = (unit.width() - DESIGN_WIDTH * contentScale) / 2;
         int headerHeight = 40;
@@ -322,10 +321,6 @@ public class ScreenTest extends SimpleScreen {
         fontButton = new Button(cellX, fontButtonY, 130.0F, 20.0F, Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())), this::toggleFont);
         unit.addWidget(fontButton);
         updateTextureLabel();
-    }
-
-    public static @NotNull ScreenBase register(@NotNull Nexo nexo) {
-        return nexo.registerFeature(new ScreenTest());
     }
 
     private void previous() {
@@ -361,7 +356,7 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<?, Text> unit, @NotNull Graphics2D graphics) {
         graphics.bindMaterial(UI_MATERIAL);
         graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
         graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
@@ -413,7 +408,7 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
         if (input.type() == Input.Type.KEYBOARD) {
             if (input.key() == Input.Key.LEFT) {
                 previous();
@@ -428,7 +423,7 @@ public class ScreenTest extends SimpleScreen {
     }
 
     @Override
-    public boolean inputMove(@NotNull ScreenUnit<?> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<?, Text> unit, @NotNull Input.Axis axis, float delta) {
         if (axis == Input.Axis.SCROLL) {
             if (delta > 0.0F) {
                 previous();

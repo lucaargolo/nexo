@@ -4,10 +4,12 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.Event;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Ticker;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.data.TextData;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -22,12 +24,14 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.language.MinecraftLanguageHandler;
 import dev.lucaargolo.nexo.mixed.UnitCacheMixed;
 import dev.lucaargolo.nexo.render.MinecraftRenderingHandler;
@@ -78,7 +82,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
-public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D extends NexoModDiscoveryHandler<N>, H extends MinecraftRegistryHandler<N>, R extends MinecraftRenderingHandler<N>> implements Nexo {
+public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M extends NexoModDiscoveryHandler<N>, H extends MinecraftRegistryHandler<N>, R extends MinecraftRenderingHandler<N>> implements Nexo {
 
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
@@ -88,7 +92,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
     private static final Map<Location, ResourceLocation> RL_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
 
-    protected final D discoveryHandler;
+    protected final M discoveryHandler;
     protected final H registryHandler;
     protected final R renderingHandler;
     protected final MinecraftLanguageHandler languageHandler;
@@ -109,13 +113,14 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         this.renderingHandler.init();
         this.registryHandler.beginFeatureRegistration();
         try {
+            this.registerFeature(TextData.TEXT);
             this.discoveryHandler.init();
         } finally {
             this.registryHandler.endFeatureRegistration();
         }
     }
 
-    public D getDiscoveryHandler() {
+    public M getDiscoveryHandler() {
         return discoveryHandler;
     }
 
@@ -224,7 +229,10 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
-                t.register(this, feature);
+                Feature<?, ?> registered = t.register(this, feature);
+                if (t.registryType() == MinecraftFeatureType.RegistryType.DIRECT) {
+                    this.emit(new FeatureRegisteredEvent(registered.location(), registered));
+                }
                 return feature;
             }
         }
@@ -385,14 +393,15 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         return unit;
     }
 
-    public MinecraftScreenUnit<?> screenToUnit(@NotNull Screen screen) {
+    public <D> ScreenUnit<?, D> screenToUnit(Screen screen, ScreenBase<D> feature) {
         UnitCacheMixed cache = (UnitCacheMixed) screen;
-        MinecraftScreenUnit<?> cached = (MinecraftScreenUnit<?>) cache.nexo$getUnit();
+        MinecraftScreenUnit<?, ?> cached = (MinecraftScreenUnit<?, ?>) cache.nexo$getUnit();
         if (cached != null) {
-            return cached;
+            Class<MinecraftScreenUnit<?, D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
+            return cachedClass.cast(cached);
         }
-        ScreenBase feature = MinecraftFeatureType.SCREEN.convert(this, screen);
-        MinecraftScreenUnit<?> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), screen);
+        MinecraftScreen.ScreenCrafter crafter = MinecraftFeatureType.SCREEN.convert(feature);
+        MinecraftScreenUnit<?, D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
         cache.nexo$setUnit(unit);
         return unit;
     }
@@ -422,14 +431,16 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
         return id(holder.unwrapKey().orElseThrow());
     }
 
-    public static <D> Codec<D> createCodec(DataBase<D> data) {
+    //TODO: Cache codec and cache packet codec
+
+    public static <D> Codec<D> codec(DataBase<D> data) {
         return Codec.STRING.xmap(
                 str -> data.deserialize(JsonParser.parseString(str)),
                 obj -> data.serialize(obj).toString()
         );
     }
 
-    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> createPacketCodec(DataBase<D> data) {
+    public static <D> StreamCodec<RegistryFriendlyByteBuf, D> packetCodec(DataBase<D> data) {
         return new StreamCodec<>() {
             @Override
             public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull D value) {
@@ -452,7 +463,5 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, D, H, R>, D exten
             }
         };
     }
-
-
 
 }

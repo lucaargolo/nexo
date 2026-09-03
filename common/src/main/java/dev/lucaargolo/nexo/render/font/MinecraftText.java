@@ -18,6 +18,15 @@ public final class MinecraftText {
     private MinecraftText() {
     }
 
+    public static @NotNull MutableComponent component(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Text text) {
+        MutableComponent component = Component.empty();
+        for(Text.Run run : runs(nexo, text)) {
+            component.append(component(run.text(), run.style()));
+        }
+        return component;
+    }
+
+
     public static @NotNull MutableComponent component(@NotNull String text, @NotNull Text.Style style) {
         return Component.literal(text).withStyle(minecraftStyle(style));
     }

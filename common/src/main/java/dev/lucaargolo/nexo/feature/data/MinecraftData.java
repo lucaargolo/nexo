@@ -149,11 +149,11 @@ public class MinecraftData<D> extends DataBase<D> {
     public static <T> DataComponentType<T> craft(NexoMinecraft<?, ?, ?, ?> nexo, DataBase<T> data) {
         DataComponentType.Builder<T> builder = DataComponentType.builder();
         if (data.persistent()) {
-            Codec<T> codec = NexoMinecraft.createCodec(data);
+            Codec<T> codec = NexoMinecraft.codec(data);
             builder.persistent(codec);
         }
         if (data.synced()) {
-            StreamCodec<RegistryFriendlyByteBuf, T> codec = NexoMinecraft.createPacketCodec(data);
+            StreamCodec<RegistryFriendlyByteBuf, T> codec = NexoMinecraft.packetCodec(data);
             builder.networkSynchronized(codec);
         }
         return builder.build();

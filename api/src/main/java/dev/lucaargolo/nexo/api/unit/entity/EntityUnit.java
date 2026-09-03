@@ -20,6 +20,4 @@ public abstract class EntityUnit<C extends Role> extends Unit<EntityBase, C> imp
 
     public abstract @Nullable WorldUnit<?> world();
 
-    public abstract boolean openScreen(@NotNull ScreenBase screen);
-
 }

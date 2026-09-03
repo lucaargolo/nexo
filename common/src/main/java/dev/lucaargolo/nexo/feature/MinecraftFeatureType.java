@@ -30,6 +30,7 @@ import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.feature.world.MinecraftBiome;
 import dev.lucaargolo.nexo.feature.world.MinecraftWorld;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.gui.screens.Screen;
@@ -38,10 +39,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
@@ -60,7 +61,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>, M> {
+public class MinecraftFeatureType<T extends Feature<?, ?>, U extends Unit<?, ?>, M> {
 
     public enum RegistryType {
         BUILTIN,
@@ -161,14 +162,17 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
             Map.of(Biome.class, CraftStrategy.direct(Biome.class, MinecraftBiome::craft))
     );
 
-    public static final MinecraftFeatureType<ScreenBase, ScreenUnit<?>, Screen> SCREEN = MinecraftFeatureType.direct(
-            Screen.class,
+    public static final MinecraftFeatureType<ScreenBase<?>, ScreenUnit<?, ?>, MinecraftScreen.ScreenCrafter> SCREEN = MinecraftFeatureType.<ScreenBase<?>, ScreenUnit<?, ?>, MinecraftScreen.ScreenCrafter>direct(
+            MinecraftScreen.ScreenCrafter.class,
             Feature.Type.SCREEN,
             MinecraftScreen::register,
             MinecraftScreen::lookup,
             MinecraftScreen.CONVERT,
-            Map.of(Screen.class, CraftStrategy.extensible(Screen.class, Screen.class, Component.class, MinecraftScreen::craft)),
-            (nexo, feature, screen) -> nexo.screenToUnit(screen)
+            Map.of(
+                    MinecraftScreen.ScreenCrafter.class, CraftStrategy.extensible(MinecraftScreen.ScreenCrafter.class, Screen.class, Nexo.<MinecraftScreen.ScreenParameters<?>>type(MinecraftScreen.ScreenParameters.class), MinecraftScreen::craftScreen),
+                    MinecraftScreen.MenuCrafter.class, CraftStrategy.extensible(Nexo.type(MinecraftScreen.MenuCrafter.class), AbstractContainerMenu.class, Nexo.<MinecraftScreen.MenuParameters<?>>type(MinecraftScreen.MenuParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.<Object, AbstractContainerMenu>craftMenu(nexo, extender, factory == null ? null : parameters -> factory.apply(parameters), feature))
+            ),
+            (nexo, feature, crafter) -> Utils.loadPlatformClass(nexo, Nexo.<ScreenUnit<?, ?>>type(MinecraftScreenUnit.class), nexo, feature, feature.role(), crafter)
     );
 
     private final @NotNull Class<M> minecraftType;
@@ -214,7 +218,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         TYPES.put(type, this);
     }
 
-    private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> base(
+    private static <T extends Feature<?, ?>, U extends Unit<?, ?>, M> MinecraftFeatureType<T, U, M> base(
             @NotNull Class<M> minecraftType,
             @NotNull Feature.Type<T, U> type,
             @NotNull ResourceKey<Registry<M>> registry,
@@ -227,7 +231,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.BUILTIN, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
     }
 
-    private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> base(
+    private static <T extends Feature<?, ?>, U extends Unit<?, ?>, M> MinecraftFeatureType<T, U, M> base(
             @NotNull Class<M> minecraftType,
             @NotNull Feature.Type<T, U> type,
             @NotNull ResourceKey<Registry<M>> registry,
@@ -241,7 +245,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.BUILTIN, registrar, holderIndex, lookup, holderConvert, null, crafters, unitCrafter);
     }
 
-    private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> custom(
+    private static <T extends Feature<?, ?>, U extends Unit<?, ?>, M> MinecraftFeatureType<T, U, M> custom(
             @NotNull Class<M> minecraftType,
             @NotNull Feature.Type<T, U> type,
             @NotNull ResourceKey<Registry<M>> registry,
@@ -254,7 +258,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return new MinecraftFeatureType<>(minecraftType, type, registry, RegistryType.CUSTOM, registrar, holderIndex, lookup, holderConvert, null, crafters, null);
     }
 
-    private static <T extends Feature<T, U>, U extends Unit<T, ?>, M> MinecraftFeatureType<T, U, M> direct(
+    private static <T extends Feature<?, ?>, U extends Unit<?, ?>, M> MinecraftFeatureType<T, U, M> direct(
             @NotNull Class<M> minecraftType,
             @NotNull Feature.Type<T, U> type,
             @NotNull BiFunction<NexoMinecraft<?, ?, ?, ?>, T, T> registrar,
@@ -360,7 +364,7 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return null;
     }
 
-    public static <T extends Feature<T, U>, U extends Unit<T, ?>> @NotNull MinecraftFeatureType<T, U, ?> of(Feature.Type<T, U> type) {
+    public static <T extends Feature<?, ?>, U extends Unit<?, ?>> @NotNull MinecraftFeatureType<T, U, ?> of(Feature.Type<T, U> type) {
         Class<MinecraftFeatureType<T, U, ?>> clazz = Nexo.type(MinecraftFeatureType.class);
         MinecraftFeatureType<?, ?, ?> featureType = TYPES.get(type);
         if (featureType == null) {
@@ -373,16 +377,14 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
         return TYPES.values();
     }
 
-
-
-    private interface CraftStrategy<T extends Feature<T, ?>> {
+    private interface CraftStrategy<T extends Feature<?, ?>> {
         @NotNull Object craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull T feature);
 
-        private static <T extends Feature<T, ?>, M> CraftStrategy<T> direct(Class<M> minecraftType, DirectCrafter<T, M> crafter) {
+        private static <T extends Feature<?, ?>, M> CraftStrategy<T> direct(Class<M> minecraftType, DirectCrafter<T, M> crafter) {
             return new DirectStrategy<>(minecraftType, crafter);
         }
 
-        private static <T extends Feature<T, ?>, M, E, P> CraftStrategy<T> extensible(Class<M> minecraftType, Class<E> extensionType, Class<P> parameterType, ExtensibleCrafter<T, M, E, P> crafter) {
+        private static <T extends Feature<?, ?>, M, E, P> CraftStrategy<T> extensible(Class<M> minecraftType, Class<E> extensionType, Class<P> parameterType, ExtensibleCrafter<T, M, E, P> crafter) {
             if (!Utils.isExtendable(extensionType)) {
                 throw new IllegalArgumentException(extensionType.getName() + " is not extendable");
             }
@@ -391,17 +393,17 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
 
     }
 
-    private record DirectStrategy<T extends Feature<T, ?>, M>(Class<M> minecraftType, DirectCrafter<T, M> crafter) implements CraftStrategy<T> {
+    private record DirectStrategy<T extends Feature<?, ?>, M>(Class<M> minecraftType, DirectCrafter<T, M> crafter) implements CraftStrategy<T> {
         @Override
         public @NotNull M craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull T feature) {
             return crafter.craft(nexo, feature);
         }
     }
 
-    private record ExtensibleStrategy<T extends Feature<T, ?>, M, E, P>(Class<M> minecraftType, Class<E> extensionType, Class<P> parameterType, ExtensibleCrafter<T, M, E, P> crafter) implements CraftStrategy<T> {
+    private record ExtensibleStrategy<T extends Feature<?, ?>, M, E, P>(Class<M> minecraftType, Class<E> extensionType, Class<P> parameterType, ExtensibleCrafter<T, M, E, P> crafter) implements CraftStrategy<T> {
         @Override
         public @NotNull M craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull T feature) {
-            MinecraftRoleType.Info<E, P> info = MinecraftRoleType.craft(nexo, feature);
+            MinecraftRoleType.Info<E, P> info = MinecraftRoleType.craft(nexo, feature, extensionType);
             if (info == null) {
                 info = new MinecraftRoleType.Info<>(Utils.extend(nexo, extensionType), null);
             }
@@ -411,17 +413,17 @@ public class MinecraftFeatureType<T extends Feature<T, U>, U extends Unit<T, ?>,
     }
 
     @FunctionalInterface
-    private interface DirectCrafter<T extends Feature<T, ?>, M> {
+    private interface DirectCrafter<T extends Feature<?, ?>, M> {
         @NotNull M craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull T feature);
     }
 
     @FunctionalInterface
-    private interface ExtensibleCrafter<T extends Feature<T, ?>, M, E, P> {
+    private interface ExtensibleCrafter<T extends Feature<?, ?>, M, E, P> {
         @NotNull M craft(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<E> extender, @Nullable Function<P, E> factory, @NotNull T feature);
     }
 
     @FunctionalInterface
-    private interface UnitCrafter<T extends Feature<T, U>, U extends Unit<T, ?>, M> {
+    private interface UnitCrafter<T extends Feature<?, ?>, U extends Unit<?, ?>, M> {
         @NotNull U craft(
                 @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
                 @NotNull T feature,

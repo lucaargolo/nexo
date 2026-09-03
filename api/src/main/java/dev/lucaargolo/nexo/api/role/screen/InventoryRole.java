@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.role.screen;
 
 import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 
@@ -10,23 +11,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public record InventoryRole(@NotNull Map<VaultProvider, Map<String, Config>> vaults) implements Role {
+public record InventoryRole(@NotNull Map<Location, Config> vaults) implements Role {
 
     public InventoryRole {
         Objects.requireNonNull(vaults, "vaults");
-        Map<VaultProvider, Map<String, Config>> copy = new LinkedHashMap<>(vaults.size());
-        for (Map.Entry<VaultProvider, Map<String, Config>> providerEntry : vaults.entrySet()) {
-            VaultProvider provider = Objects.requireNonNull(providerEntry.getKey(), "Vault provider");
-            Map<String, Config> configs = Objects.requireNonNull(providerEntry.getValue(), "Vault configurations");
-            Map<String, Config> configCopy = new LinkedHashMap<>(configs.size());
-            for (Map.Entry<String, Config> configEntry : configs.entrySet()) {
-                String key = Objects.requireNonNull(configEntry.getKey(), "Vault key");
-                Config config = Objects.requireNonNull(configEntry.getValue(), "Vault config");
-                configCopy.put(key, config);
-            }
-            copy.put(provider, Collections.unmodifiableMap(configCopy));
-        }
-        vaults = Collections.unmodifiableMap(copy);
+        vaults = Collections.unmodifiableMap(vaults);
     }
 
     public record Config(int slotWidth, int slotHeight, @NotNull SlotDistribution distribution) {

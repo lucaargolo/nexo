@@ -21,9 +21,13 @@ import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.render.atlas.MinecraftAtlasHandler;
 import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
 import dev.lucaargolo.nexo.render.shader.MinecraftShaderHandler;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -31,9 +35,14 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -116,7 +125,13 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                     }
                     this.registerEntityRenderer(entity);
                 }
-                case ScreenBase screen -> {
+                case ScreenBase<?> screen -> {
+                    if (MinecraftScreen.isDynamicScreen(screen)) {
+                        Class<MenuType<AbstractContainerMenu>> menuTypeClass = Nexo.type(MenuType.class);
+                        MenuType<AbstractContainerMenu> menuType = menuTypeClass.cast(MinecraftScreen.CONVERT_MENU.forward(screen).value());
+                        Class<AbstractContainerScreen<AbstractContainerMenu>> screenClass = Nexo.type(AbstractContainerScreen.class);
+                        this.registerMenuScreen(menuType, (AbstractContainerMenu menu, Inventory inventory, Component component) -> screenClass.cast(MinecraftScreen.CONVERT.forward(screen).craft(new MinecraftScreen.ScreenParameters<>(menu, inventory, component))));
+                    }
                     if (screen.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.SCREEN_ATLAS, screen.materials().values());
                     }
@@ -200,6 +215,8 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         }
     }
 
+    protected abstract <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor);
+
     private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {
             case BlockBase ignored -> "block/";
@@ -222,6 +239,13 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         };
 
         void render(ItemStack stack, ItemDisplayContext mode, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay);
+    }
+
+    @FunctionalInterface
+    protected interface ScreenConstructor<T extends AbstractContainerMenu, U extends Screen & MenuAccess<T>> {
+
+        U create(T menu, Inventory inventory, Component title);
+
     }
 
 }

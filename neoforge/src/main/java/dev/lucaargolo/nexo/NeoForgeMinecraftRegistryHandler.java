@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
 import dev.lucaargolo.nexo.util.DynamicRegistryView;
 import net.minecraft.core.Holder;
@@ -26,7 +27,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -142,11 +143,15 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends AbstractContainerMenu> MenuType<T> craftMenuType(MenuConstructor constructor) {
-        return IMenuTypeExtension.create((containerId, inventory, ignored) -> {
-            Class<T> type = Nexo.type(AbstractContainerMenu.class);
-            return type.cast(constructor.createMenu(containerId, inventory, inventory.player));
+    public <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<D> constructor, DataBase<D> data) {
+        StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
+        AtomicReference<MenuType<T>> menuType = new AtomicReference<>();
+        MenuType<T> type = IMenuTypeExtension.create((containerId, inventory, buf) -> {
+            Class<T> menuClass = Nexo.type(AbstractContainerMenu.class);
+            return menuClass.cast(constructor.craft(new MinecraftScreen.MenuParameters<>(Objects.requireNonNull(menuType.get()), containerId, codec.decode(buf))));
         });
+        menuType.set(type);
+        return type;
     }
 
     @Override
@@ -164,12 +169,12 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         ResourceLocation id = NexoMinecraft.rl(data.location());
         AttachmentType.Builder<D> builder = AttachmentType.builder(data::initial);
         if (data.persistent()) {
-            Codec<D> codec = NexoMinecraft.createCodec(data);
+            Codec<D> codec = NexoMinecraft.codec(data);
             builder.serialize(codec);
             builder.copyOnDeath();
         }
         if (data.synced()) {
-            StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.createPacketCodec(data);
+            StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
             builder.sync(codec);
         }
         DeferredRegister<AttachmentType<?>> deferredRegistry = getOrCreateDeferredRegister(NeoForgeRegistries.ATTACHMENT_TYPES, id.getNamespace());

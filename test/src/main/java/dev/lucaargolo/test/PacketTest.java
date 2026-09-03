@@ -31,7 +31,7 @@ public final class PacketTest {
     private PacketTest() {
     }
 
-    public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull ScreenBase testScreen) {
+    public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
         BlockPositionData blockPositionData = nexo.registerFeature(new BlockPositionData());
 
         BlockBase air = requireNonNull(nexo.getFeature(Feature.Type.BLOCK, Location.of("minecraft", "air")), "Missing minecraft:air feature");

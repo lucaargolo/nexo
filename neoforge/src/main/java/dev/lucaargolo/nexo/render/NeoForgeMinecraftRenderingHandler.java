@@ -13,6 +13,7 @@ import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -25,9 +26,12 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
@@ -40,6 +44,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler<NeoForgeNexoMinecraft> {
@@ -51,6 +56,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     private final List<ItemBase> itemsToRegister = new ArrayList<>();
     private final List<BlockBase> blocksToRegister = new ArrayList<>();
     private final List<EntityBase> entitiesToRegister = new ArrayList<>();
+    private final List<Consumer<RegisterMenuScreensEvent>> menuScreensToRegister = new ArrayList<>();
 
     public NeoForgeMinecraftRenderingHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -88,6 +94,11 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
             for (EntityBase base : entitiesToRegister) {
                 EntityType<? extends Entity> type = MinecraftFeatureType.ENTITY.convert(base);
                 this.registerEntityRenderer(type, base, event::registerEntityRenderer);
+            }
+        });
+        this.nexo.modBus().addListener(RegisterMenuScreensEvent.class, event -> {
+            for (Consumer<RegisterMenuScreensEvent> registration : menuScreensToRegister) {
+                registration.accept(event);
             }
         });
         this.nexo.modBus().addListener(ModelLoadingQueryEvent.class, event -> {
@@ -143,6 +154,11 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         entitiesToRegister.add(entity);
     }
 
+    @Override
+    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor) {
+        menuScreensToRegister.add(event -> event.register(type, constructor::create));
+    }
+
     private IClientItemExtensions createItemExtensions(NexoMinecraft<NeoForgeNexoMinecraft, ?, ?, ?> nexo, ItemBase base) {
         ItemRenderer renderer = createItemRenderer(nexo, base);
         Minecraft minecraft = Minecraft.getInstance();
@@ -151,12 +167,12 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         return new IClientItemExtensions() {
             @Override
             public @NotNull BlockEntityWithoutLevelRenderer getCustomRenderer() {
-                return new BlockEntityWithoutLevelRenderer(dispatcher, models) {
-                    @Override
-                    public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pDisplayContext, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
-                        renderer.render(pStack, pDisplayContext, pPoseStack, pBuffer, pPackedLight, pPackedOverlay);
-                    }
-                };
+            return new BlockEntityWithoutLevelRenderer(dispatcher, models) {
+                @Override
+                public void renderByItem(@NotNull ItemStack pStack, @NotNull ItemDisplayContext pDisplayContext, @NotNull PoseStack pPoseStack, @NotNull MultiBufferSource pBuffer, int pPackedLight, int pPackedOverlay) {
+                    renderer.render(pStack, pDisplayContext, pPoseStack, pBuffer, pPackedLight, pPackedOverlay);
+                }
+            };
             }
         };
     }

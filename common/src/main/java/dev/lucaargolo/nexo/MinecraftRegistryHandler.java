@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -16,7 +17,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +124,7 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
 
     public abstract CreativeModeTab craftCreativeTab(ItemCategoryBase category);
 
-    public abstract <T extends AbstractContainerMenu> MenuType<T> craftMenuType(MenuConstructor constructor);
+    public abstract <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<D> crafter, DataBase<D> data);
 
     protected abstract RegistryAccess getLocalRegistry();
 

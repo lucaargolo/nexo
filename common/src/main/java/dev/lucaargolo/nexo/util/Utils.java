@@ -243,6 +243,10 @@ public final class Utils {
             this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
         }
 
+        public Class<? extends T> type() {
+            return type;
+        }
+
         public synchronized <I> Extender<T> implement(@NotNull Class<I> interfaceType, @NotNull Function0<? super T, ? extends I> implementation) {
             ensureNotBuilt();
             Objects.requireNonNull(interfaceType, "interfaceType");

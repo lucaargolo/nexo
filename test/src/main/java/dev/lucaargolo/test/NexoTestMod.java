@@ -17,6 +17,8 @@ import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
+import dev.lucaargolo.test.feature.TestInventoryScreen;
+import dev.lucaargolo.test.feature.TestScreen;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,13 +56,33 @@ public class NexoTestMod {
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_webp"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_translucent"));
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
-        ScreenBase testScreen = ScreenTest.register(nexo);
-        ScreenUnit<?> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
+
+        AtomicBoolean directFeatureEventReceived = new AtomicBoolean();
+        Predicate<FeatureRegisteredEvent> directFeatureListener = event -> {
+            if (event.location().equals(NexoTestMod.id("test_screen"))) {
+                directFeatureEventReceived.set(true);
+            }
+            return true;
+        };
+        nexo.on(FeatureRegisteredEvent.class, directFeatureListener);
+        TestScreen testScreen = nexo.registerFeature(new TestScreen(NexoTestMod.id("test_screen")));
+        nexo.off(FeatureRegisteredEvent.class, directFeatureListener);
+        if (!directFeatureEventReceived.get()) {
+            throw new IllegalStateException("Direct feature registration did not emit FeatureRegisteredEvent");
+        }
+        ScreenUnit<?, ?> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
         if (testScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }
-        BlockTest.register(nexo, category);
-        PacketTest.register(nexo, category, testScreen);
+
+        TestInventoryScreen testInventoryScreen = nexo.registerFeature(new TestInventoryScreen(NexoTestMod.id("test_inventory_screen")));
+        ScreenUnit<?, ?> testInventoryScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test inventory screen unit");
+        if (testInventoryScreenUnit.feature() != testScreen) {
+            throw new IllegalStateException("Screen unit did not retain its registered feature");
+        }
+
+        BlockTest.register(nexo, category, testScreen, testInventoryScreen);
+        PacketTest.register(nexo, category);
         WorldTest.register(nexo);
         EntityTest.register(nexo);
 

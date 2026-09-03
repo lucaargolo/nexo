@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.api.feature.screen;
 
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.render.Renderer;
@@ -13,39 +14,47 @@ import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 
-public abstract class ScreenBase extends Feature<ScreenBase, ScreenUnit<?>> implements Renderer<Graphics2D, ScreenUnit<?>> {
+public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<?, D>> implements Renderer<Graphics2D, ScreenUnit<?, D>> {
 
-    public ScreenBase(@NotNull Location location) {
+    private final @NotNull DataBase<D> data;
+
+    public ScreenBase(@NotNull Location location, @NotNull DataBase<D> data) {
         super(location);
+        this.data = data;
     }
 
-    public ScreenBase(@NotNull Location location, @NotNull Supplier<Role> role) {
+    public ScreenBase(@NotNull Location location, @NotNull Supplier<Role> role, @NotNull DataBase<D> data) {
         super(location, role);
+        this.data = data;
     }
 
     @Override
-    public final @NotNull Type<ScreenBase, ScreenUnit<?>> type() {
-        return Type.SCREEN;
+    public final @NotNull Type<ScreenBase<D>, ScreenUnit<?, D>> type() {
+        return Type.screen();
     }
 
-    public void build(@NotNull ScreenUnit<?> unit) {
+    public final @NotNull DataBase<D> data() {
+        return data;
+    }
+
+    public void build(@NotNull ScreenUnit<?, D> unit) {
 
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics2D) {
+    public void render(@NotNull ScreenUnit<?, D> unit, @NotNull Graphics2D graphics2D) {
 
     }
 
-    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?, D> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputReleased(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputReleased(@NotNull ScreenUnit<?, D> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputMove(@NotNull ScreenUnit<?> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<?, D> unit, @NotNull Input.Axis axis, float delta) {
         return false;
     }
 

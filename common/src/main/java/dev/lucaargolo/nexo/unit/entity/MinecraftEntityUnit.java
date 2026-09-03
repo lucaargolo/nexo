@@ -50,21 +50,6 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
     }
 
     @Override
-    public boolean openScreen(@NotNull ScreenBase screen) {
-        boolean dynamic = MinecraftScreen.isDynamicScreen(screen);
-        if(dynamic && side().isServer()) {
-            //TODO
-        }else if(!dynamic && side().isClient()) {
-            ScreenUnit<?> unit = nexo.unit(screen);
-            if (unit != null) {
-                unit.open();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vaults(type);
