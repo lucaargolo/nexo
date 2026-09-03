@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends WorldUnit<Role> implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends WorldUnit implements MinecraftUnit<Level> {
 
     @NotNull
     protected final N nexo;
@@ -39,7 +39,7 @@ public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> ex
     }
 
     @Override
-    public @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos) {
+    public @Nullable BlockUnit getBlock(@NotNull Vector3i pos) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);
         if (state.isAir()) {
@@ -49,9 +49,9 @@ public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> ex
     }
 
     @Override
-    public void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block) {
+    public void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit block) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
-        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?, ?>) block).get());
+        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?>) block).get());
     }
 
 }

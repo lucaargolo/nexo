@@ -24,9 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<FabricNexoMinecraft, C, E> {
+public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<FabricNexoMinecraft, E> {
 
-    public FabricMinecraftEntityUnit(@NotNull FabricNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+    public FabricMinecraftEntityUnit(@NotNull FabricNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role, entity);
     }
 
@@ -36,12 +36,12 @@ public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         return FabricStorageVault.vaults(super.vaults(type), type, this.entityStorage());
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.KEY.equals(key)) {
             return super.vault(type, key);
         }
@@ -65,7 +65,7 @@ public class FabricMinecraftEntityUnit<C extends Role, E extends Entity> extends
     }
 
     @Override
-    public <D> @NotNull EntityUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> @NotNull EntityUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
         FabricAttachmentData.setData(this.nexo, this.entity, data, d);
         return this;
     }

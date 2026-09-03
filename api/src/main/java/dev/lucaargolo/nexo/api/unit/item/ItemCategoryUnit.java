@@ -9,16 +9,16 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
-public abstract class ItemCategoryUnit<C extends Role> extends Unit<ItemCategoryBase, C> {
+public abstract class ItemCategoryUnit extends Unit<ItemCategoryBase> {
 
-    protected ItemCategoryUnit(@NotNull Nexo nexo, @NotNull ItemCategoryBase feature, @Nullable C role) {
+    protected ItemCategoryUnit(@NotNull Nexo nexo, @NotNull ItemCategoryBase feature, @Nullable Role role) {
         super(nexo, feature, role);
     }
 
-    public abstract @NotNull Stream<ItemUnit<?>> stream();
+    public abstract @NotNull Stream<ItemUnit> stream();
 
-    public abstract void add(@NotNull ItemUnit<?> item);
+    public abstract void add(@NotNull ItemUnit item);
 
-    public abstract void remove(@NotNull ItemUnit<?> item);
+    public abstract void remove(@NotNull ItemUnit item);
 
 }

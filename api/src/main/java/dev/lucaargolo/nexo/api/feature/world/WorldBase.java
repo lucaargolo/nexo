@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class WorldBase extends Feature<WorldBase, WorldUnit<?>> implements TickerProvider<WorldUnit<?>>, DataInitializer {
+public abstract class WorldBase extends Feature<WorldBase, WorldUnit> implements TickerProvider<WorldUnit>, DataInitializer {
 
     public WorldBase(@NotNull Location location) {
         super(location);
@@ -21,7 +21,7 @@ public abstract class WorldBase extends Feature<WorldBase, WorldUnit<?>> impleme
     }
 
     @Override
-    public final @NotNull Type<WorldBase, WorldUnit<?>> type() {
+    public final @NotNull Type<WorldBase, WorldUnit> type() {
         return Type.WORLD;
     }
 }

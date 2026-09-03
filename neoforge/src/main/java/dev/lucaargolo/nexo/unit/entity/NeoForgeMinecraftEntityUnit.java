@@ -23,19 +23,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> extends MinecraftEntityUnit<NeoForgeNexoMinecraft, C, E> {
+public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<NeoForgeNexoMinecraft, E> {
 
-    public NeoForgeMinecraftEntityUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+    public NeoForgeMinecraftEntityUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role, entity);
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         return NeoForgeItemHandlerVault.vaults(super.vaults(type), type, this.itemHandler());
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.KEY.equals(key)) {
             return super.vault(type, key);
         }
@@ -64,7 +64,7 @@ public class NeoForgeMinecraftEntityUnit<C extends Role, E extends Entity> exten
     }
 
     @Override
-    public <D> @NotNull EntityUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> @NotNull EntityUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
         NeoForgeAttachmentData.setData(this.nexo, this.entity, data, d);
         return this;
     }

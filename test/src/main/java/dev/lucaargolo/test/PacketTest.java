@@ -35,15 +35,15 @@ public final class PacketTest {
         BlockPositionData blockPositionData = nexo.registerFeature(new BlockPositionData());
 
         BlockBase air = requireNonNull(nexo.getFeature(Feature.Type.BLOCK, Location.of("minecraft", "air")), "Missing minecraft:air feature");
-        BlockUnit<?> airUnit = requireNonNull(nexo.unit(air), "Missing minecraft:air unit");
+        BlockUnit airUnit = requireNonNull(nexo.unit(air), "Missing minecraft:air unit");
 
-        Class<EntityUnit<PlayerRole>> receiverType = Nexo.type(EntityUnit.class);
-        Packet<Vector3i, EntityUnit<PlayerRole>> packet = nexo.registerFeature(new Packet<>(NexoTestMod.id("break_block"), blockPositionData, receiverType) {
+        Class<EntityUnit> receiverType = Nexo.type(EntityUnit.class);
+        Packet<Vector3i, EntityUnit> packet = nexo.registerFeature(new Packet<>(NexoTestMod.id("break_block"), blockPositionData, receiverType) {
             @Override
-            public void handle(@NotNull EntityUnit<PlayerRole> receiver) {
-                WorldUnit<?> world = receiver.world();
+            public void handle(@NotNull EntityUnit receiver) {
+                WorldUnit world = receiver.world();
                 if (world != null) {
-                    BlockUnit<?> block = world.getBlock(value());
+                    BlockUnit block = world.getBlock(value());
                     if (block != null && block.feature().location().equals(NexoTestMod.id("packet_test_block"))) {
                         world.setBlock(value(), airUnit);
                     }
@@ -56,7 +56,7 @@ public final class PacketTest {
                 ModelResource.full(Location.of("minecraft", "block/bedrock"))
         ) {
             @Override
-            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+            public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
                 if (world.side().isClient()) {
                     nexo.sendPacket(PacketReceiver.server(), packet);
                 }

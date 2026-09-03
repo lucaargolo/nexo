@@ -5,7 +5,6 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -15,21 +14,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> implements Vault<V> {
+public final class TestChestVault<V extends Unit<?>> extends AbstractList<V> implements Vault<V> {
 
     private static final int CHEST_CAPACITY = 27;
 
     private final Class<V> type;
-    private final BlockUnit<?> block;
-    private final DataBase<List<ItemUnit<?>>> data;
-    private final List<@Nullable ItemUnit<?>> items;
+    private final BlockUnit block;
+    private final DataBase<List<ItemUnit>> data;
+    private final List<@Nullable ItemUnit> items;
     private final @NotNull V defaultValue;
 
-    public TestChestVault(@NotNull Class<V> type, @NotNull BlockUnit<?> block, @NotNull DataBase<List<ItemUnit<?>>> data) {
+    public TestChestVault(@NotNull Class<V> type, @NotNull BlockUnit block, @NotNull DataBase<List<ItemUnit>> data) {
         this.type = type;
         this.block = block;
         this.data = data;
-        List<ItemUnit<?>> stored = block.getData(data);
+        List<ItemUnit> stored = block.getData(data);
         this.items = new ArrayList<>(Collections.nCopies(CHEST_CAPACITY, null));
         if (stored != null) {
             if (stored.size() > CHEST_CAPACITY) {
@@ -41,11 +40,11 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
         }
         ItemBase item = new ItemBase(Location.of("nexo", "empty_vault_slot")) {
             @Override
-            public @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer() {
+            public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
                 return null;
             }
         };
-        ItemUnit<Role> fallback = new ItemUnit<>(block.nexo(), item, null) {
+        ItemUnit fallback = new ItemUnit(block.nexo(), item, null) {
             @Override
             public @NotNull List<@NotNull DataBase<?>> data() {
                 return List.of();
@@ -57,7 +56,7 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
             }
 
             @Override
-            public <D> @NotNull ItemUnit<Role> setData(@NotNull DataBase<D> data, @Nullable D value) {
+            public <D> @NotNull ItemUnit setData(@NotNull DataBase<D> data, @Nullable D value) {
                 return this;
             }
         };
@@ -72,17 +71,17 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
     @Override
     public @NotNull V get(int index) {
         Objects.checkIndex(index, this.items.size());
-        ItemUnit<?> item = this.items.get(index);
+        ItemUnit item = this.items.get(index);
         return item == null ? this.defaultValue : this.type.cast(item);
     }
 
     @Override
     public @NotNull V set(int index, @NotNull V unit) {
         Objects.checkIndex(index, this.items.size());
-        if (!(unit instanceof ItemUnit<?> item)) {
+        if (!(unit instanceof ItemUnit item)) {
             throw new IllegalArgumentException("ChestVault only accepts ItemUnit instances");
         }
-        ItemUnit<?> previous = this.items.set(index, item == this.defaultValue ? null : item);
+        ItemUnit previous = this.items.set(index, item == this.defaultValue ? null : item);
         this.contentsChanged();
         return previous == null ? this.defaultValue : this.type.cast(previous);
     }
@@ -97,7 +96,7 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
         if (this.isFull()) {
             return false;
         }
-        if (!(unit instanceof ItemUnit<?> item)) {
+        if (!(unit instanceof ItemUnit item)) {
             throw new IllegalArgumentException("ChestVault only accepts ItemUnit instances");
         }
         if (item == this.defaultValue) {
@@ -122,7 +121,7 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
         this.items.addAll(Collections.nCopies(CHEST_CAPACITY, null));
         int index = 0;
         for (V unit : contents) {
-            if (!(unit instanceof ItemUnit<?> item)) {
+            if (!(unit instanceof ItemUnit item)) {
                 throw new IllegalArgumentException("ChestVault only accepts ItemUnit instances");
             }
             this.items.set(index++, item == this.defaultValue ? null : item);
@@ -133,7 +132,7 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
     @Override
     public @NotNull V remove(int index) {
         Objects.checkIndex(index, this.items.size());
-        ItemUnit<?> previous = this.items.set(index, null);
+        ItemUnit previous = this.items.set(index, null);
         if (previous != null) {
             this.contentsChanged();
         }
@@ -147,8 +146,8 @@ public final class TestChestVault<V extends Unit<?, ?>> extends AbstractList<V> 
 
     @Override
     public void contentsChanged() {
-        List<ItemUnit<?>> contents = new ArrayList<>();
-        for (ItemUnit<?> item : this.items) {
+        List<ItemUnit> contents = new ArrayList<>();
+        for (ItemUnit item : this.items) {
             if (item != null) {
                 contents.add(item);
             }

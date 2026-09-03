@@ -20,10 +20,10 @@ import java.util.function.Function;
 public final class NeoForgeVaultItemHandler implements IItemHandler {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull List<Vault<ItemUnit<?>>> vaults;
+    private final @NotNull List<Vault<ItemUnit>> vaults;
     private @NotNull List<Slot> slots;
 
-    private NeoForgeVaultItemHandler(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit<?>>> vaults) {
+    private NeoForgeVaultItemHandler(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit>> vaults) {
         this.nexo = nexo;
         this.vaults = vaults;
         this.slots = this.createSlots();
@@ -31,13 +31,13 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
 
     public static @Nullable IItemHandler create(
             @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
-            @NotNull Unit<?, ?> unit,
-            @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit<?>>>> vaultFactories
+            @NotNull Unit<?> unit,
+            @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories
     ) {
-        List<Vault<ItemUnit<?>>> vaults = new ArrayList<>(vaultFactories.size());
-        Class<Function<Unit<?, ?>, ? extends @Nullable Vault<ItemUnit<?>>>> type = Nexo.type(Function.class);
-        for (Function<?, ? extends @Nullable Vault<ItemUnit<?>>> factory : vaultFactories.values()) {
-            @Nullable Vault<ItemUnit<?>> vault = type.cast(factory).apply(unit);
+        List<Vault<ItemUnit>> vaults = new ArrayList<>(vaultFactories.size());
+        Class<Function<Unit<?>, ? extends @Nullable Vault<ItemUnit>>> type = Nexo.type(Function.class);
+        for (Function<?, ? extends @Nullable Vault<ItemUnit>> factory : vaultFactories.values()) {
+            @Nullable Vault<ItemUnit> vault = type.cast(factory).apply(unit);
             if (vault != null) {
                 vaults.add(vault);
             }
@@ -182,25 +182,25 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         return selected.vault.canAdd() && !stack.isEmpty() && ItemStack.isSameItemSameComponents(selected.item.get(), stack);
     }
 
-    private int count(@NotNull Vault<ItemUnit<?>> vault, @NotNull ItemStack stack) {
+    private int count(@NotNull Vault<ItemUnit> vault, @NotNull ItemStack stack) {
         int count = 0;
-        for (ItemUnit<?> item : vault) {
-            if (item instanceof MinecraftItemUnit<?> minecraftItem && ItemStack.isSameItemSameComponents(minecraftItem.get(), stack)) {
+        for (ItemUnit item : vault) {
+            if (item instanceof MinecraftItemUnit minecraftItem && ItemStack.isSameItemSameComponents(minecraftItem.get(), stack)) {
                 count += minecraftItem.get().getCount();
             }
         }
         return count;
     }
 
-    private @NotNull List<ItemStack> snapshot(@NotNull Vault<ItemUnit<?>> vault) {
+    private @NotNull List<ItemStack> snapshot(@NotNull Vault<ItemUnit> vault) {
         List<ItemStack> snapshot = new ArrayList<>(vault.size());
-        for (ItemUnit<?> item : vault) {
-            snapshot.add(item instanceof MinecraftItemUnit<?> minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
+        for (ItemUnit item : vault) {
+            snapshot.add(item instanceof MinecraftItemUnit minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
         }
         return snapshot;
     }
 
-    private void restore(@NotNull Vault<ItemUnit<?>> vault, @NotNull List<ItemStack> snapshot) {
+    private void restore(@NotNull Vault<ItemUnit> vault, @NotNull List<ItemStack> snapshot) {
         vault.clear();
         for (int index = 0; index < snapshot.size(); index++) {
             ItemStack stack = snapshot.get(index);
@@ -210,7 +210,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
 
     private @NotNull List<Slot> createSlots() {
         List<Slot> slots = new ArrayList<>();
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (vault instanceof NeoForgeItemHandlerVault handlerVault) {
                 IItemHandler handler = handlerVault.handler;
                 for (int physicalSlot = 0; physicalSlot < handler.getSlots(); physicalSlot++) {
@@ -225,8 +225,8 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
                 continue;
             }
             for (int logicalSlot = 0; logicalSlot < vault.size(); logicalSlot++) {
-                ItemUnit<?> item = vault.get(logicalSlot);
-                MinecraftItemUnit<?> minecraftItem = item instanceof MinecraftItemUnit<?> candidate && !candidate.get().isEmpty() ? candidate : null;
+                ItemUnit item = vault.get(logicalSlot);
+                MinecraftItemUnit minecraftItem = item instanceof MinecraftItemUnit candidate && !candidate.get().isEmpty() ? candidate : null;
                 slots.add(new Slot(vault, null, null, minecraftItem, -1, logicalSlot));
             }
         }
@@ -244,9 +244,9 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         return this.slots.get(index);
     }
 
-    private @NotNull ItemStack extract(@NotNull Vault<ItemUnit<?>> vault, @NotNull MinecraftItemUnit<?> target, int amount, int logicalSlot) {
-        ItemUnit<?> item = vault.get(logicalSlot);
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem) || !ItemStack.isSameItemSameComponents(minecraftItem.get(), target.get())) {
+    private @NotNull ItemStack extract(@NotNull Vault<ItemUnit> vault, @NotNull MinecraftItemUnit target, int amount, int logicalSlot) {
+        ItemUnit item = vault.get(logicalSlot);
+        if (!(item instanceof MinecraftItemUnit minecraftItem) || !ItemStack.isSameItemSameComponents(minecraftItem.get(), target.get())) {
             return ItemStack.EMPTY;
         }
         ItemStack source = minecraftItem.get();
@@ -260,10 +260,10 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
     }
 
     private record Slot(
-            @NotNull Vault<ItemUnit<?>> vault,
+            @NotNull Vault<ItemUnit> vault,
             @Nullable IItemHandler handler,
             @Nullable MinecraftItemVault physicalVault,
-            @Nullable MinecraftItemUnit<?> item,
+            @Nullable MinecraftItemUnit item,
             int physicalSlot,
             int logicalSlot
     ) {

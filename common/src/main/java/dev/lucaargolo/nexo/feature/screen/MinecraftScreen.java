@@ -80,29 +80,29 @@ public final class MinecraftScreen extends ScreenBase<Text> {
     }
 
     @Override
-    public void build(@NotNull ScreenUnit<?, Text> unit) {
+    public void build(@NotNull ScreenUnit<Text> unit) {
         //TODO
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?, Text> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<Text> unit, @NotNull Graphics2D graphics) {
         //TODO
     }
 
     @Override
-    public boolean inputPressed(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean inputReleased(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<Text> unit, @NotNull Input input) {
         //TODO
         return false;
     }
 
     @Override
-    public boolean inputMove(@NotNull ScreenUnit<?, Text> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputReleased(@NotNull ScreenUnit<Text> unit, @NotNull Input input) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean inputMove(@NotNull ScreenUnit<Text> unit, @NotNull Input.Axis axis, float delta) {
         //TODO
         return false;
     }

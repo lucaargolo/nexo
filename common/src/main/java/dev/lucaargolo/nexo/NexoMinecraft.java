@@ -220,12 +220,12 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     }
 
     @Override
-    public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
+    public @Nullable <T extends Feature<T, U>, U extends Unit<T>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
         return MinecraftFeatureType.of(type).lookup(this, location);
     }
 
     @Override
-    public @NotNull <T extends Feature<T, U>, U extends Unit<T, ?>, F extends T> F registerFeature(@NotNull F feature) {
+    public @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature) {
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
@@ -240,7 +240,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     }
 
     @Override
-    public @Nullable <T extends Feature<T, U>, U extends Unit<T, ?>> U unit(@NotNull Feature<T, U> feature) {
+    public @Nullable <T extends Feature<T, U>, U extends Unit<T>> U unit(@NotNull Feature<T, U> feature) {
         return MinecraftFeatureType.of(feature.type()).base(this, feature);
     }
 
@@ -314,43 +314,43 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return event.value();
     }
 
-    public @NotNull BlockUnit<?> stateToUnit(@NotNull BlockState state) {
+    public @NotNull BlockUnit stateToUnit(@NotNull BlockState state) {
         return blockToUnit(null, null, state, null);
     }
 
-    public @NotNull BlockUnit<?> blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
+    public @NotNull BlockUnit blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
         return blockToUnit(level, pos, state, level.getBlockEntity(pos));
     }
 
-    public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
+    public @NotNull BlockUnit blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity) {
         return blockToUnit(level, pos, state, blockEntity, null);
     }
 
-    public @NotNull BlockUnit<?> blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
+    public @NotNull BlockUnit blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
         UnitCacheMixed cache = blockEntity != null ? (UnitCacheMixed) blockEntity : (UnitCacheMixed) state;
-        MinecraftBlockUnit<?, ?> cached = (MinecraftBlockUnit<?, ?>) cache.nexo$getUnit();
+        MinecraftBlockUnit<?> cached = (MinecraftBlockUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
-        MinecraftBlockUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
+        MinecraftBlockUnit<?> unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
         cache.nexo$setUnit(unit);
         return unit;
     }
 
-    public @NotNull ItemUnit<?> stackToUnit(@NotNull ItemStack stack) {
+    public @NotNull ItemUnit stackToUnit(@NotNull ItemStack stack) {
         UnitCacheMixed cache = (UnitCacheMixed) (Object) stack;
-        MinecraftItemUnit<?> cached = (MinecraftItemUnit<?>) cache.nexo$getUnit();
+        MinecraftItemUnit cached = (MinecraftItemUnit) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
         ItemBase item = MinecraftFeatureType.ITEM.convert(this, stack.getItem());
-        MinecraftItemUnit<?> unit = Utils.loadPlatformClass(this, MinecraftItemUnit.class, this, item, item.role(), stack);
+        MinecraftItemUnit unit = Utils.loadPlatformClass(this, MinecraftItemUnit.class, this, item, item.role(), stack);
         cache.nexo$setUnit(unit);
         return unit;
     }
 
-    public @NotNull WorldUnit<?> levelToUnit(@NotNull Level level) {
+    public @NotNull WorldUnit levelToUnit(@NotNull Level level) {
         UnitCacheMixed cache = (UnitCacheMixed) level;
         MinecraftWorldUnit<?> cached = (MinecraftWorldUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
@@ -367,49 +367,49 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return unit;
     }
 
-    public @NotNull <E extends Entity> MinecraftEntityUnit<?, ?, E> entityToUnit(@NotNull E entity) {
+    public @NotNull <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
         UnitCacheMixed cache = (UnitCacheMixed) entity;
-        MinecraftEntityUnit<?, ?, ?> cached = (MinecraftEntityUnit<?, ?, ?>) cache.nexo$getUnit();
+        MinecraftEntityUnit<?, ?> cached = (MinecraftEntityUnit<?, ?>) cache.nexo$getUnit();
         if (cached != null) {
-            Class<MinecraftEntityUnit<?, ?, E>> cachedClass = Nexo.type(MinecraftEntityUnit.class);
+            Class<MinecraftEntityUnit<?, E>> cachedClass = Nexo.type(MinecraftEntityUnit.class);
             return cachedClass.cast(cached);
         }
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this, entity.getType());
-        MinecraftEntityUnit<?, ?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        MinecraftEntityUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
         cache.nexo$setUnit(unit);
-        Class<MinecraftEntityUnit<?, ?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
+        Class<MinecraftEntityUnit<?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
         return clazz.cast(unit);
     }
 
-    public ItemCategoryUnit<?> tabToUnit(CreativeModeTab tab) {
+    public ItemCategoryUnit tabToUnit(CreativeModeTab tab) {
         UnitCacheMixed cache = (UnitCacheMixed) tab;
-        MinecraftItemCategoryUnit<?, ?> cached = (MinecraftItemCategoryUnit<?, ?>) cache.nexo$getUnit();
+        MinecraftItemCategoryUnit<?> cached = (MinecraftItemCategoryUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
         ItemCategoryBase feature = MinecraftFeatureType.ITEM_CATEGORY.convert(this, tab);
-        MinecraftItemCategoryUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, feature, feature.role(), tab);
+        MinecraftItemCategoryUnit<?> unit = Utils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, feature, feature.role(), tab);
         cache.nexo$setUnit(unit);
         return unit;
     }
 
-    public <D> ScreenUnit<?, D> screenToUnit(Screen screen, ScreenBase<D> feature) {
+    public <D> ScreenUnit<D> screenToUnit(Screen screen, ScreenBase<D> feature) {
         UnitCacheMixed cache = (UnitCacheMixed) screen;
-        MinecraftScreenUnit<?, ?> cached = (MinecraftScreenUnit<?, ?>) cache.nexo$getUnit();
+        MinecraftScreenUnit<?> cached = (MinecraftScreenUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
-            Class<MinecraftScreenUnit<?, D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
+            Class<MinecraftScreenUnit<D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
             return cachedClass.cast(cached);
         }
         MinecraftScreen.ScreenCrafter crafter = MinecraftFeatureType.SCREEN.convert(feature);
-        MinecraftScreenUnit<?, D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
+        MinecraftScreenUnit<D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
         cache.nexo$setUnit(unit);
         return unit;
     }
 
     public void tickWorld(@NotNull Level level) {
-        WorldUnit<?> unit = this.levelToUnit(level);
+        WorldUnit unit = this.levelToUnit(level);
         WorldBase world = unit.feature();
-        Ticker<WorldUnit<?>> ticker = world.ticker();
+        Ticker<WorldUnit> ticker = world.ticker();
         if (ticker != null) {
             ticker.tick(unit);
         }

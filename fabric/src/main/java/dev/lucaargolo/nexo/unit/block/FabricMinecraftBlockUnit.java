@@ -29,23 +29,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit<FabricNexoMinecraft, C>{
+public class FabricMinecraftBlockUnit extends MinecraftBlockUnit<FabricNexoMinecraft>{
 
-    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);
     }
 
-    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role, level, position, state, entity, direction);
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         return FabricStorageVault.vaults(super.vaults(type), type, this.transferStorage());
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.KEY.equals(key)) {
             return super.vault(type, key);
         }
@@ -87,13 +87,13 @@ public class FabricMinecraftBlockUnit<C extends Role> extends MinecraftBlockUnit
 
     @NotNull
     @Override
-    public <D> BlockUnit<C> setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> BlockUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
         if (data instanceof DataBase.Constrained<?> constrained && this.feature.initialData().contains(constrained)) {
             BlockState state = this.setStateData(constrained, d);
             if (this.level != null && this.position != null) {
                 this.level.setBlockAndUpdate(this.position, state);
             }
-            Class<BlockUnit<C>> type = Nexo.type(this.getClass());
+            Class<BlockUnit> type = Nexo.type(this.getClass());
             return type.cast(this.nexo.stateToUnit(state));
         } else if (this.entity != null) {
             FabricAttachmentData.setData(this.nexo, this.entity, data, d);

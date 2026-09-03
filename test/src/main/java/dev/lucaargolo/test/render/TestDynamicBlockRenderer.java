@@ -12,10 +12,10 @@ import org.joml.Vector3f;
 import java.awt.*;
 import java.util.Map;
 
-public class TestDynamicBlockRenderer implements Renderer<Graphics3D, BlockUnit<?>> {
+public class TestDynamicBlockRenderer implements Renderer<Graphics3D, BlockUnit> {
 
     @Override
-    public void render(@NotNull BlockUnit<?> unit, @NotNull Graphics3D graphics) {
+    public void render(@NotNull BlockUnit unit, @NotNull Graphics3D graphics) {
         float value = (System.currentTimeMillis() % 10000) / 10000.0f;
         int color = Color.HSBtoRGB(value, 1.0F, 1.0F);
         graphics.pushState();

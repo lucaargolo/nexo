@@ -22,18 +22,18 @@ import java.util.function.Function;
 public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultStorage.Snapshot> implements Storage<ItemVariant> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull List<Vault<ItemUnit<?>>> vaults;
+    private final @NotNull List<Vault<ItemUnit>> vaults;
 
-    private FabricVaultStorage(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit<?>>> vaults) {
+    private FabricVaultStorage(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit>> vaults) {
         this.nexo = nexo;
         this.vaults = vaults;
     }
 
-    public static @Nullable Storage<ItemVariant> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Unit<?, ?> unit, @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit<?>>>> vaultFactories) {
-        List<Vault<ItemUnit<?>>> vaults = new ArrayList<>(vaultFactories.size());
-        Class<Function<Unit<?, ?>, ? extends @Nullable Vault<ItemUnit<?>>>> type = Nexo.type(Function.class);
-        for (Function<?, ? extends @Nullable Vault<ItemUnit<?>>> factory : vaultFactories.values()) {
-            @Nullable Vault<ItemUnit<?>> vault = type.cast(factory).apply(unit);
+    public static @Nullable Storage<ItemVariant> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Unit<?> unit, @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories) {
+        List<Vault<ItemUnit>> vaults = new ArrayList<>(vaultFactories.size());
+        Class<Function<Unit<?>, ? extends @Nullable Vault<ItemUnit>>> type = Nexo.type(Function.class);
+        for (Function<?, ? extends @Nullable Vault<ItemUnit>> factory : vaultFactories.values()) {
+            @Nullable Vault<ItemUnit> vault = type.cast(factory).apply(unit);
             if (vault != null) {
                 vaults.add(vault);
             }
@@ -49,7 +49,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         }
         long remaining = maxAmount;
         long insertedTotal = 0;
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (!vault.canAdd()) {
                 continue;
             }
@@ -71,7 +71,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         }
         long remaining = maxAmount;
         long extractedTotal = 0;
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (!vault.canRemove()) {
                 continue;
             }
@@ -87,7 +87,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
 
     @Override
     public boolean supportsInsertion() {
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (vault.canAdd()) {
                 return true;
             }
@@ -97,7 +97,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
 
     @Override
     public boolean supportsExtraction() {
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (vault.canRemove()) {
                 return true;
             }
@@ -108,7 +108,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
     @Override
     public @NotNull Iterator<StorageView<ItemVariant>> iterator() {
         List<StorageView<ItemVariant>> views = new ArrayList<>();
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (vault instanceof FabricStorageVault transferVault) {
                 Iterator<StorageView<ItemVariant>> iterator = transferVault.storage.nonEmptyIterator();
                 while (iterator.hasNext()) {
@@ -121,8 +121,8 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
                     }
                 }
             } else {
-                for (ItemUnit<?> item : vault) {
-                    if (item instanceof MinecraftItemUnit<?> minecraftItem && !minecraftItem.get().isEmpty()) {
+                for (ItemUnit item : vault) {
+                    if (item instanceof MinecraftItemUnit minecraftItem && !minecraftItem.get().isEmpty()) {
                         views.add(new View(vault, minecraftItem));
                     }
                 }
@@ -131,7 +131,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         return Collections.unmodifiableList(views).iterator();
     }
 
-    private long insert(@NotNull Vault<ItemUnit<?>> vault, @NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
+    private long insert(@NotNull Vault<ItemUnit> vault, @NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
         if (vault instanceof FabricStorageVault transferVault) {
             return transferVault.storage.insert(resource, maxAmount, transaction);
         }
@@ -159,8 +159,8 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
     }
 
     private long extract(
-            @NotNull Vault<ItemUnit<?>> vault,
-            @Nullable MinecraftItemUnit<?> target,
+            @NotNull Vault<ItemUnit> vault,
+            @Nullable MinecraftItemUnit target,
             @NotNull ItemVariant resource,
             long maxAmount,
             @NotNull TransactionContext transaction,
@@ -186,11 +186,11 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             return extracted;
         }
         long extractedTotal = 0;
-        ListIterator<ItemUnit<?>> iterator = vault.listIterator();
+        ListIterator<ItemUnit> iterator = vault.listIterator();
         while (iterator.hasNext() && extractedTotal < maxAmount) {
             int logicalSlot = iterator.nextIndex();
-            ItemUnit<?> item = iterator.next();
-            if (!(item instanceof MinecraftItemUnit<?> minecraftItem) || !resource.matches(minecraftItem.get())) {
+            ItemUnit item = iterator.next();
+            if (!(item instanceof MinecraftItemUnit minecraftItem) || !resource.matches(minecraftItem.get())) {
                 continue;
             }
             if (target != null && minecraftItem != target && !ItemStack.isSameItemSameComponents(target.get(), minecraftItem.get())) {
@@ -208,10 +208,10 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         return extractedTotal;
     }
 
-    private long count(@NotNull Vault<ItemUnit<?>> vault, @NotNull ItemVariant resource) {
+    private long count(@NotNull Vault<ItemUnit> vault, @NotNull ItemVariant resource) {
         long count = 0;
-        for (ItemUnit<?> item : vault) {
-            if (item instanceof MinecraftItemUnit<?> minecraftItem && resource.matches(minecraftItem.get())) {
+        for (ItemUnit item : vault) {
+            if (item instanceof MinecraftItemUnit minecraftItem && resource.matches(minecraftItem.get())) {
                 count += minecraftItem.get().getCount();
             }
         }
@@ -221,15 +221,15 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
     @Override
     protected @NotNull Snapshot createSnapshot() {
         List<@Nullable List<ItemStack>> snapshots = new ArrayList<>(this.vaults.size());
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             if (vault instanceof FabricStorageVault) {
                 snapshots.add(null);
             } else if (vault instanceof MinecraftItemVault minecraftVault) {
                 snapshots.add(minecraftVault.snapshot());
             } else {
                 List<ItemStack> contents = new ArrayList<>(vault.size());
-                for (ItemUnit<?> item : vault) {
-                    contents.add(item instanceof MinecraftItemUnit<?> minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
+                for (ItemUnit item : vault) {
+                    contents.add(item instanceof MinecraftItemUnit minecraftItem ? minecraftItem.get().copy() : ItemStack.EMPTY);
                 }
                 snapshots.add(List.copyOf(contents));
             }
@@ -240,7 +240,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
     @Override
     protected void readSnapshot(@NotNull Snapshot snapshot) {
         for (int index = 0; index < this.vaults.size(); index++) {
-            Vault<ItemUnit<?>> vault = this.vaults.get(index);
+            Vault<ItemUnit> vault = this.vaults.get(index);
             @Nullable List<ItemStack> state = snapshot.vaults.get(index);
             if (state == null) {
                 continue;
@@ -259,7 +259,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
 
     @Override
     protected void onFinalCommit() {
-        for (Vault<ItemUnit<?>> vault : this.vaults) {
+        for (Vault<ItemUnit> vault : this.vaults) {
             vault.contentsChanged();
         }
     }
@@ -270,8 +270,8 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
 
     private final class View implements StorageView<ItemVariant> {
 
-        private final @Nullable Vault<ItemUnit<?>> vault;
-        private final @Nullable MinecraftItemUnit<?> item;
+        private final @Nullable Vault<ItemUnit> vault;
+        private final @Nullable MinecraftItemUnit item;
         private final @Nullable MinecraftItemVault physicalVault;
         private final int physicalSlot;
         private final @Nullable StorageView<ItemVariant> backingView;
@@ -284,7 +284,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             this.backingView = backingView;
         }
 
-        private View(@NotNull Vault<ItemUnit<?>> vault, @NotNull MinecraftItemVault physicalVault, int physicalSlot) {
+        private View(@NotNull Vault<ItemUnit> vault, @NotNull MinecraftItemVault physicalVault, int physicalSlot) {
             this.vault = vault;
             this.item = null;
             this.physicalVault = physicalVault;
@@ -292,7 +292,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
             this.backingView = null;
         }
 
-        private View(@NotNull Vault<ItemUnit<?>> vault, @NotNull MinecraftItemUnit<?> item) {
+        private View(@NotNull Vault<ItemUnit> vault, @NotNull MinecraftItemUnit item) {
             this.vault = vault;
             this.item = item;
             this.physicalVault = null;

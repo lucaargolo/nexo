@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>, ?>> {
+public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>> {
 
     public DataBase(@NotNull Location location) {
         super(location);
@@ -28,7 +28,7 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>,
     }
 
     @Override
-    public final @NotNull Type<DataBase<?>, Unit<DataBase<?>, ?>> type() {
+    public final @NotNull Type<DataBase<?>, Unit<DataBase<?>>> type() {
         return Type.data();
     }
 

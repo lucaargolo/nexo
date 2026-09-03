@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role> extends BlockUnit<C> implements MinecraftUnit<BlockState> {
+public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends BlockUnit implements MinecraftUnit<BlockState> {
 
     protected final @NotNull N nexo;
 
@@ -42,11 +42,11 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
 
     protected final @NotNull BlockState state;
 
-    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);
     }
 
-    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable C role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.level = level;
@@ -61,7 +61,7 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     }
 
     @Override
-    public @Nullable WorldUnit<?> world() {
+    public @Nullable WorldUnit world() {
         return this.level != null ? this.nexo.levelToUnit(this.level) : null;
     }
 
@@ -71,8 +71,8 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     }
 
     @Override
-    public void drop(@NotNull ItemUnit<?> item) {
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+    public void drop(@NotNull ItemUnit item) {
+        if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException("MinecraftBlockUnit only accepts MinecraftItemUnit instances");
         }
         if (this.level != null && this.position != null) {
@@ -84,7 +84,7 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vaults(type);
         }
@@ -92,7 +92,7 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>, C 
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vault(type, key);
         }

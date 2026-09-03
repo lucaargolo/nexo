@@ -17,22 +17,22 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FabricMinecraftScreenUnit<C extends Role, D> extends MinecraftScreenUnit<C, D> {
+public class FabricMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
 
-    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable C role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
+    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
         super(nexo, feature, role, crafter);
     }
 
-    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable C role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
+    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
         super(nexo, feature, role, crafter, screen);
     }
 
     @Override
-    public boolean open(@NotNull EntityUnit<?> entity, @NotNull D data) {
+    public boolean open(@NotNull EntityUnit entity, @NotNull D data) {
         boolean isDynamic = MinecraftScreen.isDynamicScreen(feature);
         if(isDynamic) {
             if(entity.side().isServer()) {
-                if(entity instanceof MinecraftEntityUnit<?,?,?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
+                if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
                     return player.openMenu(new ExtendedScreenHandlerFactory<>() {
                         @Override
                         public @NotNull AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {

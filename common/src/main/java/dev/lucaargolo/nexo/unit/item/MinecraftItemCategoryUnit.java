@@ -15,18 +15,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role> extends ItemCategoryUnit<Role> implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends ItemCategoryUnit implements MinecraftUnit<CreativeModeTab> {
 
     protected final @NotNull N nexo;
     protected final @NotNull CreativeModeTab tab;
 
-    protected final Set<ItemUnit<?>> addedItems = ConcurrentHashMap.newKeySet();
-    protected final Set<ItemUnit<?>> removedItems = ConcurrentHashMap.newKeySet();
+    protected final Set<ItemUnit> addedItems = ConcurrentHashMap.newKeySet();
+    protected final Set<ItemUnit> removedItems = ConcurrentHashMap.newKeySet();
 
     public MinecraftItemCategoryUnit(
             @NotNull N nexo,
             @NotNull ItemCategoryBase feature,
-            @Nullable C role,
+            @Nullable Role role,
             @NotNull CreativeModeTab tab
     ) {
         super(nexo, feature, role);
@@ -40,17 +40,17 @@ public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft<N, ?, ?,
     }
 
     @Override
-    public @NotNull Stream<ItemUnit<?>> stream() {
+    public @NotNull Stream<ItemUnit> stream() {
         return tab.getDisplayItems().stream().map(nexo::stackToUnit).filter(Objects::nonNull);
     }
 
     @Override
-    public void add(@NotNull ItemUnit<?> item) {
+    public void add(@NotNull ItemUnit item) {
         addedItems.add(item);
     }
 
     @Override
-    public void remove(@NotNull ItemUnit<?> item) {
+    public void remove(@NotNull ItemUnit item) {
         removedItems.add(item);
     }
 

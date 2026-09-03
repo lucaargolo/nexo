@@ -298,7 +298,7 @@ public class TestScreen extends SimpleScreen {
     }
 
     @Override
-    public void build(@NotNull ScreenUnit<?, Text> unit) {
+    public void build(@NotNull ScreenUnit<Text> unit) {
         contentScale = Math.clamp(Math.min((unit.width() - 40) / DESIGN_WIDTH, (unit.height() - 95) / DESIGN_HEIGHT), 0, 1);
         cellX = (unit.width() - DESIGN_WIDTH * contentScale) / 2;
         int headerHeight = 40;
@@ -356,7 +356,7 @@ public class TestScreen extends SimpleScreen {
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?, Text> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<Text> unit, @NotNull Graphics2D graphics) {
         graphics.bindMaterial(UI_MATERIAL);
         graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
         graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
@@ -408,7 +408,7 @@ public class TestScreen extends SimpleScreen {
     }
 
     @Override
-    public boolean inputPressed(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<Text> unit, @NotNull Input input) {
         if (input.type() == Input.Type.KEYBOARD) {
             if (input.key() == Input.Key.LEFT) {
                 previous();
@@ -423,7 +423,7 @@ public class TestScreen extends SimpleScreen {
     }
 
     @Override
-    public boolean inputMove(@NotNull ScreenUnit<?, Text> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<Text> unit, @NotNull Input.Axis axis, float delta) {
         if (axis == Input.Axis.SCROLL) {
             if (delta > 0.0F) {
                 previous();

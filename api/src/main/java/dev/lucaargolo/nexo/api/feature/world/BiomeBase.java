@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class BiomeBase extends Feature<BiomeBase, Unit<BiomeBase, ?>> {
+public abstract class BiomeBase extends Feature<BiomeBase, Unit<BiomeBase>> {
 
     public BiomeBase(@NotNull Location location) {
         super(location);
@@ -19,7 +19,7 @@ public abstract class BiomeBase extends Feature<BiomeBase, Unit<BiomeBase, ?>> {
     }
 
     @Override
-    public final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> type() {
+    public final @NotNull Type<BiomeBase, Unit<BiomeBase>> type() {
         return Type.BIOME;
     }
 }

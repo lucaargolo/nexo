@@ -25,7 +25,7 @@ public final class MinecraftContainerVault extends MinecraftItemVault {
         return type.isAssignableFrom(MinecraftItemUnit.class);
     }
 
-    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(
+    public static @Nullable <U extends Unit<?>> Vault<U> create(
             @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @Nullable Container container,
             @NotNull Class<U> type

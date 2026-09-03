@@ -13,10 +13,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> implements Vault<ItemUnit<?>> {
+public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull ItemUnit<?> defaultValue;
+    private final @NotNull ItemUnit defaultValue;
     final @NotNull IItemHandler handler;
 
     public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
@@ -26,28 +26,28 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
     }
 
     @Override
-    public @NotNull ItemUnit<?> defaultValue() {
+    public @NotNull ItemUnit defaultValue() {
         return this.defaultValue;
     }
 
     @Override
-    public @NotNull ItemUnit<?> get(int slot) {
+    public @NotNull ItemUnit get(int slot) {
         Objects.checkIndex(slot, this.handler.getSlots());
         ItemStack stack = this.handler.getStackInSlot(slot);
         return stack.isEmpty() ? this.defaultValue() : this.nexo.stackToUnit(stack.copy());
     }
 
     @Override
-    public @NotNull ItemUnit<?> set(int slot, @NotNull ItemUnit<?> item) {
+    public @NotNull ItemUnit set(int slot, @NotNull ItemUnit item) {
         Objects.checkIndex(slot, this.handler.getSlots());
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+        if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException("NeoForgeItemHandlerVault only accepts MinecraftItemUnit instances");
         }
         ItemStack stack = minecraftItem.get().copy();
         if (!stack.isEmpty() && (!this.handler.isItemValid(slot, stack) || stack.getCount() > this.handler.getSlotLimit(slot))) {
             throw new IllegalArgumentException("NeoForge item handler rejected item for slot " + slot);
         }
-        ItemUnit<?> previous = this.get(slot);
+        ItemUnit previous = this.get(slot);
         ItemStack previousStack = this.handler.getStackInSlot(slot).copy();
         if (!previousStack.isEmpty()) {
             int remaining = previousStack.getCount();
@@ -70,7 +70,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
         return previous;
     }
 
-    public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable IItemHandler handler) {
+    public static @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable IItemHandler handler) {
         if (handler == null || !MinecraftContainerVault.supports(type)) {
             return existing;
         }
@@ -79,7 +79,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
         return Set.copyOf(vaults);
     }
 
-    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
+    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
         if (handler == null || !MinecraftContainerVault.supports(type)) {
             return null;
         }
@@ -104,7 +104,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
 
     @Override
     public boolean contains(Object object) {
-        if (!(object instanceof MinecraftItemUnit<?> item)) {
+        if (!(object instanceof MinecraftItemUnit item)) {
             return false;
         }
         ItemStack target = item.get();
@@ -120,8 +120,8 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
     }
 
     @Override
-    public boolean add(@NotNull ItemUnit<?> item) {
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+    public boolean add(@NotNull ItemUnit item) {
+        if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException("NeoForgeItemHandlerVault only accepts MinecraftItemUnit instances");
         }
         ItemStack source = minecraftItem.get();
@@ -141,7 +141,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
 
     @Override
     public boolean remove(Object object) {
-        if (!(object instanceof MinecraftItemUnit<?> item)) {
+        if (!(object instanceof MinecraftItemUnit item)) {
             return false;
         }
         ItemStack target = item.get();
@@ -162,9 +162,9 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit<?>> im
     }
 
     @Override
-    public @NotNull ItemUnit<?> remove(int slot) {
+    public @NotNull ItemUnit remove(int slot) {
         Objects.checkIndex(slot, this.handler.getSlots());
-        ItemUnit<?> previous = this.get(slot);
+        ItemUnit previous = this.get(slot);
         ItemStack stack = this.handler.getStackInSlot(slot);
         if (!stack.isEmpty()) {
             int remaining = stack.getCount();

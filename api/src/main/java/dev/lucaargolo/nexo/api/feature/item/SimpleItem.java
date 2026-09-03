@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public class SimpleItem extends ItemBase {
 
     private final @Nullable ItemCategoryBase category;
-    private final @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer;
+    private final @Nullable Renderer<Graphics3D, ItemUnit> renderer;
 
     public SimpleItem(
             @NotNull Location location,
@@ -31,7 +31,7 @@ public class SimpleItem extends ItemBase {
     public SimpleItem(
             @NotNull Location location,
             @Nullable ItemCategoryBase category,
-            @NotNull Renderer<Graphics3D, ItemUnit<?>> renderer
+            @NotNull Renderer<Graphics3D, ItemUnit> renderer
     ) {
         super(location);
         this.category = category;
@@ -40,13 +40,13 @@ public class SimpleItem extends ItemBase {
 
     public SimpleItem(
             @NotNull Location location,
-            @NotNull Renderer<Graphics3D, ItemUnit<?>> renderer
+            @NotNull Renderer<Graphics3D, ItemUnit> renderer
     ) {
         this(location, null, renderer);
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
         return renderer;
     }
 

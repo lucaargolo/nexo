@@ -17,10 +17,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implements Vault<ItemUnit<?>> {
+public final class FabricStorageVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
-    private final @NotNull ItemUnit<?> defaultValue;
+    private final @NotNull ItemUnit defaultValue;
     final @NotNull Storage<ItemVariant> storage;
     private final @Nullable SlottedStorage<ItemVariant> slottedStorage;
     private final int slotCount;
@@ -35,12 +35,12 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
     }
 
     @Override
-    public @NotNull ItemUnit<?> defaultValue() {
+    public @NotNull ItemUnit defaultValue() {
         return this.defaultValue;
     }
 
     @Override
-    public @NotNull ItemUnit<?> get(int slot) {
+    public @NotNull ItemUnit get(int slot) {
         Objects.checkIndex(slot, this.size());
         StorageView<ItemVariant> view = this.view(slot);
         if (view == null || view.isResourceBlank() || view.getAmount() <= 0) {
@@ -50,12 +50,12 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
     }
 
     @Override
-    public @NotNull ItemUnit<?> set(int slot, @NotNull ItemUnit<?> item) {
+    public @NotNull ItemUnit set(int slot, @NotNull ItemUnit item) {
         Objects.checkIndex(slot, this.size());
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+        if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException("FabricStorageVault only accepts MinecraftItemUnit instances");
         }
-        ItemUnit<?> previous = this.get(slot);
+        ItemUnit previous = this.get(slot);
         ItemStack stack = minecraftItem.get();
         StorageView<ItemVariant> view = this.view(slot);
         Storage<ItemVariant> target = this.slottedStorage == null ? this.storage : this.slottedStorage.getSlot(slot);
@@ -77,7 +77,7 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
         return previous;
     }
 
-    public static @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
+    public static @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
         if (storage == null || !MinecraftContainerVault.supports(type)) {
             return existing;
         }
@@ -86,7 +86,7 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
         return Set.copyOf(vaults);
     }
 
-    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
+    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
         if (storage == null || !MinecraftContainerVault.supports(type)) {
             return null;
         }
@@ -142,7 +142,7 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
 
     @Override
     public boolean contains(Object object) {
-        if (!(object instanceof MinecraftItemUnit<?> item)) {
+        if (!(object instanceof MinecraftItemUnit item)) {
             return false;
         }
         ItemStack target = item.get();
@@ -158,8 +158,8 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
     }
 
     @Override
-    public boolean add(@NotNull ItemUnit<?> item) {
-        if (!(item instanceof MinecraftItemUnit<?> minecraftItem)) {
+    public boolean add(@NotNull ItemUnit item) {
+        if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException("FabricStorageVault only accepts MinecraftItemUnit instances");
         }
         ItemStack source = minecraftItem.get();
@@ -178,21 +178,21 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
     }
 
     @Override
-    public void setContents(@NotNull Collection<? extends ItemUnit<?>> contents) {
+    public void setContents(@NotNull Collection<? extends ItemUnit> contents) {
         if (this.slottedStorage != null) {
             Vault.super.setContents(contents);
             return;
         }
-        List<? extends ItemUnit<?>> copy = new ArrayList<>(contents);
+        List<? extends ItemUnit> copy = new ArrayList<>(contents);
         this.clear();
-        for (ItemUnit<?> item : copy) {
+        for (ItemUnit item : copy) {
             this.add(item);
         }
     }
 
     @Override
     public boolean remove(Object object) {
-        if (!(object instanceof MinecraftItemUnit<?> item)) {
+        if (!(object instanceof MinecraftItemUnit item)) {
             return false;
         }
         ItemStack target = item.get();
@@ -218,9 +218,9 @@ public final class FabricStorageVault extends AbstractList<ItemUnit<?>> implemen
     }
 
     @Override
-    public @NotNull ItemUnit<?> remove(int slot) {
+    public @NotNull ItemUnit remove(int slot) {
         Objects.checkIndex(slot, this.size());
-        ItemUnit<?> previous = this.get(slot);
+        ItemUnit previous = this.get(slot);
         StorageView<ItemVariant> view = this.view(slot);
         if (view != null && !view.isResourceBlank() && view.getAmount() > 0) {
             try (Transaction transaction = Transaction.openOuter()) {

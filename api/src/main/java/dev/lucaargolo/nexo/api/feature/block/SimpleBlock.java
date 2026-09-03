@@ -18,7 +18,7 @@ import org.joml.Vector3i;
 public class SimpleBlock extends BlockBase {
 
     private final @Nullable BlockItem item;
-    private final @Nullable StaticRenderer<Graphics3D, BlockUnit<?>> renderer;
+    private final @Nullable StaticRenderer<Graphics3D, BlockUnit> renderer;
 
     public SimpleBlock(@NotNull Location location, @Nullable ModelResource resource, @Nullable BlockItem item) {
         super(location);
@@ -31,7 +31,7 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    public @Nullable StaticRenderer<Graphics3D, BlockUnit<?>> renderer() {
+    public @Nullable StaticRenderer<Graphics3D, BlockUnit> renderer() {
         return this.renderer;
     }
 
@@ -41,7 +41,7 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
         return Interaction.PASS;
     }
 

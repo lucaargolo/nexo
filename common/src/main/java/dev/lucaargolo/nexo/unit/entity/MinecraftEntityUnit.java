@@ -26,14 +26,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C extends Role, E extends Entity> extends EntityUnit<C> implements MinecraftUnit<E> {
+public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
 
     @NotNull
     protected final N nexo;
     @NotNull
     protected final E entity;
 
-    public MinecraftEntityUnit(@NotNull N nexo, @NotNull EntityBase feature, @Nullable C role, @NotNull E entity) {
+    public MinecraftEntityUnit(@NotNull N nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.entity = entity;
@@ -45,12 +45,12 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
     }
 
     @Override
-    public @Nullable WorldUnit<?> world() {
+    public @Nullable WorldUnit world() {
         return nexo.levelToUnit(this.entity.level());
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vaults(type);
         }
@@ -67,7 +67,7 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, C
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vault(type, key);
         }

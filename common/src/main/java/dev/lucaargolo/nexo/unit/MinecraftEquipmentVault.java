@@ -30,7 +30,7 @@ public final class MinecraftEquipmentVault extends MinecraftItemVault {
         return type.isAssignableFrom(MinecraftItemUnit.class);
     }
 
-    public static @Nullable <U extends Unit<?, ?>> Vault<U> create(
+    public static @Nullable <U extends Unit<?>> Vault<U> create(
             @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @Nullable LivingEntity entity,
             @NotNull EquipmentSlot slot,

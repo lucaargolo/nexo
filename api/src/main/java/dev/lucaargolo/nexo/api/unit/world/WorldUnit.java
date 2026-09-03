@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class WorldUnit<C extends Role> extends Unit<WorldBase, C> implements SideProvider, DataProvider<WorldUnit<C>> {
+public abstract class WorldUnit extends Unit<WorldBase> implements SideProvider, DataProvider<WorldUnit> {
 
-    protected WorldUnit(@NotNull Nexo nexo, @NotNull WorldBase feature, @Nullable C role) {
+    protected WorldUnit(@NotNull Nexo nexo, @NotNull WorldBase feature, @Nullable Role role) {
         super(nexo, feature, role);
     }
 
-    public abstract @Nullable BlockUnit<?> getBlock(@NotNull Vector3i pos);
+    public abstract @Nullable BlockUnit getBlock(@NotNull Vector3i pos);
 
-    public abstract void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit<?> block);
+    public abstract void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit block);
 
 }

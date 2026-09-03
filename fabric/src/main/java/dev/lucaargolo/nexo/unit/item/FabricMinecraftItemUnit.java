@@ -14,14 +14,14 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FabricMinecraftItemUnit<C extends Role> extends MinecraftItemUnit<C> {
+public class FabricMinecraftItemUnit extends MinecraftItemUnit {
 
-    public FabricMinecraftItemUnit(@NotNull FabricNexoMinecraft nexo, @NotNull ItemBase feature, @Nullable C role, @NotNull ItemStack stack) {
+    public FabricMinecraftItemUnit(@NotNull FabricNexoMinecraft nexo, @NotNull ItemBase feature, @Nullable Role role, @NotNull ItemStack stack) {
         super(nexo, feature, role, stack);
     }
 
     @Override
-    protected @Nullable Vault<ItemUnit<?>> itemVault() {
+    protected @Nullable Vault<ItemUnit> itemVault() {
         ContainerItemContext context = ContainerItemContext.withConstant(this.get());
         Storage<ItemVariant> storage = ItemStorage.ITEM.find(this.get(), context);
         return storage == null ? null : new FabricStorageVault(this.nexo, storage);

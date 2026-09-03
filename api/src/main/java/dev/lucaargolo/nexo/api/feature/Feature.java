@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
+public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
     @NotNull
     private final Location location;
@@ -82,19 +82,19 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
 
     public record Tag(@NotNull Location location) {}
 
-    public static final class Type<T extends Feature<?, ?>, U extends Unit<?, ?>> {
+    public static final class Type<T extends Feature<?, ?>, U extends Unit<?>> {
 
         private static final @NotNull List<Type<?, ?>> ALL = new ArrayList<>();
 
         public static final @NotNull Type<?, ?> DATA = new Type<>("data", DataBase.class);
         public static final @NotNull Type<?, ?> PACKET = new Type<>("packet", Packet.class);
-        public static final @NotNull Type<BlockBase, BlockUnit<?>> BLOCK = new Type<>("block", BlockBase.class, Nexo.type(BlockUnit.class));
-        public static final @NotNull Type<ItemBase, ItemUnit<?>> ITEM = new Type<>("item", ItemBase.class, Nexo.type(ItemUnit.class));
-        public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> ITEM_CATEGORY = new Type<>("item_category", ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
-        public static final @NotNull Type<EntityBase, EntityUnit<?>> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
-        public static final @NotNull Type<WorldBase, WorldUnit<?>> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
-        public static final @NotNull Type<BiomeBase, Unit<BiomeBase, ?>> BIOME = new Type<>("biome", BiomeBase.class);
-        public static final @NotNull Type<ScreenBase<?>, ScreenUnit<?, ?>> SCREEN = new Type<>("screen", Nexo.type(ScreenBase.class), Nexo.type(ScreenUnit.class));
+        public static final @NotNull Type<BlockBase, BlockUnit> BLOCK = new Type<>("block", BlockBase.class, Nexo.type(BlockUnit.class));
+        public static final @NotNull Type<ItemBase, ItemUnit> ITEM = new Type<>("item", ItemBase.class, Nexo.type(ItemUnit.class));
+        public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit> ITEM_CATEGORY = new Type<>("item_category", ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
+        public static final @NotNull Type<EntityBase, EntityUnit> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
+        public static final @NotNull Type<WorldBase, WorldUnit> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
+        public static final @NotNull Type<BiomeBase, Unit<BiomeBase>> BIOME = new Type<>("biome", BiomeBase.class);
+        public static final @NotNull Type<ScreenBase<?>, ScreenUnit<?>> SCREEN = new Type<>("screen", Nexo.type(ScreenBase.class), Nexo.type(ScreenUnit.class));
 
         private final @NotNull String identifier;
         private final @NotNull Class<T> featureType;
@@ -120,7 +120,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
         }
 
         // Returns false for every unit when this feature type does not support units.
-        public boolean isInstance(@Nullable Unit<?, ?> unit) {
+        public boolean isInstance(@Nullable Unit<?> unit) {
             return unitType != null && unitType.isInstance(unit);
         }
 
@@ -128,7 +128,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
             return featureType.cast(feature);
         }
 
-        public @NotNull U cast(@NotNull Unit<?, ?> feature) {
+        public @NotNull U cast(@NotNull Unit<?> feature) {
             if (unitType == null) {
                 throw new IllegalStateException("Feature type " + this + " does not support units");
             }
@@ -151,18 +151,18 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T, ?>> {
             return ALL;
         }
 
-        public static @NotNull Feature.Type<DataBase<?>, Unit<DataBase<?>, ?>> data() {
-            Class<Type<DataBase<?>, Unit<DataBase<?>, ?>>> clazz = Nexo.type(Type.class);
+        public static @NotNull Feature.Type<DataBase<?>, Unit<DataBase<?>>> data() {
+            Class<Type<DataBase<?>, Unit<DataBase<?>>>> clazz = Nexo.type(Type.class);
             return clazz.cast(DATA);
         }
 
-        public static @NotNull Feature.Type<Packet<?, ?>, Unit<Packet<?, ?>, ?>> packet() {
-            Class<Type<Packet<?, ?>, Unit<Packet<?, ?>, ?>>> clazz = Nexo.type(Type.class);
+        public static @NotNull Feature.Type<Packet<?, ?>, Unit<Packet<?, ?>>> packet() {
+            Class<Type<Packet<?, ?>, Unit<Packet<?, ?>>>> clazz = Nexo.type(Type.class);
             return clazz.cast(PACKET);
         }
 
-        public static <D> @NotNull Feature.Type<ScreenBase<D>, ScreenUnit<?, D>> screen() {
-            Class<Feature.Type<ScreenBase<D>, ScreenUnit<?, D>>> clazz = Nexo.type(Type.class);
+        public static <D> @NotNull Feature.Type<ScreenBase<D>, ScreenUnit<D>> screen() {
+            Class<Feature.Type<ScreenBase<D>, ScreenUnit<D>>> clazz = Nexo.type(Type.class);
             return clazz.cast(SCREEN);
         }
 

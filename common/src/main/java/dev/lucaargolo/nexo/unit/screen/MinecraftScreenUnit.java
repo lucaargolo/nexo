@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
-public abstract class MinecraftScreenUnit<C extends Role, D> extends ScreenUnit<C, D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter> {
+public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter> {
 
     private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull MinecraftScreen.ScreenCrafter crafter;
@@ -24,14 +24,14 @@ public abstract class MinecraftScreenUnit<C extends Role, D> extends ScreenUnit<
     private final @NotNull Vector2f mouse = new Vector2f();
     private @Nullable Screen screen;
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable C role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.crafter = crafter;
         this.screen = null;
     }
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable C role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.crafter = crafter;
@@ -59,7 +59,7 @@ public abstract class MinecraftScreenUnit<C extends Role, D> extends ScreenUnit<
     }
 
     @Override
-    public boolean open(@NotNull EntityUnit<?> entity, @NotNull D data) {
+    public boolean open(@NotNull EntityUnit entity, @NotNull D data) {
         if(entity.side().isClient()) {
             this.screen = crafter.craft(new MinecraftScreen.ScreenParameters<>(null, null, Component.translatable(feature.languageKey())));
             Minecraft.getInstance().setScreen(this.screen);

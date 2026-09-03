@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo;
 import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
-import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupEvent;
@@ -50,8 +49,8 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, 
                 return;
             }
             Level level = event.getLevel();
-            BlockUnit<?> block = this.blockToUnit(level, event.getPos(), level.getBlockState(event.getPos()));
-            if (this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(event.getEntity()).withRole(PlayerRole.class))) == null) {
+            BlockUnit block = this.blockToUnit(level, event.getPos(), level.getBlockState(event.getPos()));
+            if (this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(event.getEntity()))) == null) {
                 event.setCanceled(true);
             }
         });
@@ -69,7 +68,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, 
     protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
         if (receiver == PacketReceiver.server()) {
             PacketDistributor.sendToServer(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?, ?, ?> unit && unit.get() instanceof ServerPlayer player) {
+        } else if (receiver instanceof MinecraftEntityUnit<?, ?> unit && unit.get() instanceof ServerPlayer player) {
             PacketDistributor.sendToPlayer(player, payload);
         } else {
             throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");

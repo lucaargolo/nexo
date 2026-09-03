@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public abstract class ItemCategoryBase extends Feature<ItemCategoryBase, ItemCategoryUnit<?>> {
+public abstract class ItemCategoryBase extends Feature<ItemCategoryBase, ItemCategoryUnit> {
 
     public ItemCategoryBase(@NotNull Location location) {
         super(location);
@@ -19,7 +19,7 @@ public abstract class ItemCategoryBase extends Feature<ItemCategoryBase, ItemCat
     }
 
     @Override
-    public final @NotNull Type<ItemCategoryBase, ItemCategoryUnit<?>> type() {
+    public final @NotNull Type<ItemCategoryBase, ItemCategoryUnit> type() {
         return Type.ITEM_CATEGORY;
     }
 

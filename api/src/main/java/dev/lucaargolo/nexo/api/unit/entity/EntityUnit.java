@@ -12,12 +12,12 @@ import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class EntityUnit<C extends Role> extends Unit<EntityBase, C> implements SideProvider, DataProvider<EntityUnit<C>>, PacketReceiver {
+public abstract class EntityUnit extends Unit<EntityBase> implements SideProvider, DataProvider<EntityUnit>, PacketReceiver {
 
-    protected EntityUnit(@NotNull Nexo nexo, @NotNull EntityBase feature, @Nullable C role) {
+    protected EntityUnit(@NotNull Nexo nexo, @NotNull EntityBase feature, @Nullable Role role) {
         super(nexo, feature, role);
     }
 
-    public abstract @Nullable WorldUnit<?> world();
+    public abstract @Nullable WorldUnit world();
 
 }

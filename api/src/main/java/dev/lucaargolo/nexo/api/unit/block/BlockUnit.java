@@ -11,15 +11,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class BlockUnit<C extends Role> extends Unit<BlockBase, C> implements DataProvider<BlockUnit<C>> {
+public abstract class BlockUnit extends Unit<BlockBase> implements DataProvider<BlockUnit> {
 
-    protected BlockUnit(@NotNull Nexo nexo, @NotNull BlockBase feature, @Nullable C role) {
+    protected BlockUnit(@NotNull Nexo nexo, @NotNull BlockBase feature, @Nullable Role role) {
         super(nexo, feature, role);
     }
 
-    public abstract @Nullable WorldUnit<?> world();
+    public abstract @Nullable WorldUnit world();
 
     public abstract @Nullable Vector3i position();
 
-    public abstract void drop(@NotNull ItemUnit<?> item);
+    public abstract void drop(@NotNull ItemUnit item);
 }

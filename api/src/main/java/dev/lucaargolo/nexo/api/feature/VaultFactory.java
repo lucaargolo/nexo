@@ -7,9 +7,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.function.Function;
 
-public interface VaultFactory<U extends Unit<?, ?>> {
+public interface VaultFactory<U extends Unit<?>> {
 
-    default <V extends Unit<?, ?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+    default <V extends Unit<?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
         return Map.of();
     }
 

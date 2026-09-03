@@ -14,7 +14,7 @@ import org.joml.Vector3f;
 
 import java.util.function.Supplier;
 
-public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<?, D>> implements Renderer<Graphics2D, ScreenUnit<?, D>> {
+public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<D>> implements Renderer<Graphics2D, ScreenUnit<D>> {
 
     private final @NotNull DataBase<D> data;
 
@@ -29,7 +29,7 @@ public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<?,
     }
 
     @Override
-    public final @NotNull Type<ScreenBase<D>, ScreenUnit<?, D>> type() {
+    public final @NotNull Type<ScreenBase<D>, ScreenUnit<D>> type() {
         return Type.screen();
     }
 
@@ -37,24 +37,24 @@ public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<?,
         return data;
     }
 
-    public void build(@NotNull ScreenUnit<?, D> unit) {
+    public void build(@NotNull ScreenUnit<D> unit) {
 
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?, D> unit, @NotNull Graphics2D graphics2D) {
+    public void render(@NotNull ScreenUnit<D> unit, @NotNull Graphics2D graphics2D) {
 
     }
 
-    public boolean inputPressed(@NotNull ScreenUnit<?, D> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<D> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputReleased(@NotNull ScreenUnit<?, D> unit, @NotNull Input input) {
+    public boolean inputReleased(@NotNull ScreenUnit<D> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputMove(@NotNull ScreenUnit<?, D> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<D> unit, @NotNull Input.Axis axis, float delta) {
         return false;
     }
 

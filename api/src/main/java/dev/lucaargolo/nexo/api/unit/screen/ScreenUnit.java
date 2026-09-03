@@ -15,12 +15,12 @@ import org.joml.Vector2f;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ScreenUnit<C extends Role, D> extends Unit<ScreenBase<D>, C> {
+public abstract class ScreenUnit<D> extends Unit<ScreenBase<D>> {
 
     @NotNull
     private final CopyOnWriteArrayList<@NotNull Widget> widgets = new CopyOnWriteArrayList<>();
 
-    protected ScreenUnit(@NotNull Nexo nexo, @NotNull ScreenBase<D> feature, @Nullable C role) {
+    protected ScreenUnit(@NotNull Nexo nexo, @NotNull ScreenBase<D> feature, @Nullable Role role) {
         super(nexo, feature, role);
     }
 
@@ -30,9 +30,9 @@ public abstract class ScreenUnit<C extends Role, D> extends Unit<ScreenBase<D>, 
 
     public abstract int height();
 
-    public abstract boolean open(@NotNull EntityUnit<?> entity, @NotNull D data);
+    public abstract boolean open(@NotNull EntityUnit entity, @NotNull D data);
 
-    public boolean open(@NotNull EntityUnit<?> entity) {
+    public boolean open(@NotNull EntityUnit entity) {
         return open(entity, feature.data().initial());
     }
 

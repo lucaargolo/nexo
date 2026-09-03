@@ -36,20 +36,20 @@ public final class EntityTest {
                 blackHoleRenderer(blackHoleSource)
         ) {
             @Override
-            public Ticker<EntityUnit<?>> ticker() {
+            public Ticker<EntityUnit> ticker() {
                 return unit -> { };
             }
         });
     }
 
-    private static @NotNull Renderer<Graphics3D, EntityUnit<?>> blackHoleRenderer(@NotNull ShaderSource source) {
+    private static @NotNull Renderer<Graphics3D, EntityUnit> blackHoleRenderer(@NotNull ShaderSource source) {
         return new Renderer<>() {
 
             private Shader shader;
             private Material<Void> material;
 
             @Override
-            public void render(@NotNull EntityUnit<?> unit, @NotNull Graphics3D graphics) {
+            public void render(@NotNull EntityUnit unit, @NotNull Graphics3D graphics) {
                 if (shader == null) {
                     shader = graphics.createShader(source);
                     shader.uniform(ShaderBuiltins.CHANNEL_0, Shader.SCENE_TEXTURE);

@@ -81,12 +81,12 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
             Feature<?, ?> feature = event.value();
             switch (feature) {
                 case BlockBase block -> {
-                    Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
+                    Renderer<Graphics3D, BlockUnit> renderer = block.renderer();
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer != null && renderer.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.BLOCK_ATLAS, renderer.materials().values());
                     }
-                    if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer) {
+                    if (renderer instanceof StaticRenderer<Graphics3D, BlockUnit> staticRenderer) {
                         this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
                                 BlockState.class,
@@ -100,12 +100,12 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                     }
                 }
                 case ItemBase item -> {
-                    Renderer<Graphics3D, ItemUnit<?>> renderer = item.renderer();
+                    Renderer<Graphics3D, ItemUnit> renderer = item.renderer();
                     ResourceLocation modelId = modelId(event.location(), feature);
                     if (renderer != null && renderer.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.BLOCK_ATLAS, renderer.materials().values());
                     }
-                    if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit<?>> staticRenderer) {
+                    if (renderer instanceof StaticRenderer<Graphics3D, ItemUnit> staticRenderer) {
                         this.collectModel(feature, modelId, () -> new NexoUnbakedModel<>(
                                 nexo,
                                 ItemStack.class,
@@ -119,7 +119,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                     }
                 }
                 case EntityBase entity -> {
-                    Renderer<Graphics3D, EntityUnit<?>> renderer = entity.renderer();
+                    Renderer<Graphics3D, EntityUnit> renderer = entity.renderer();
                     if (renderer != null && renderer.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.ENTITY_ATLAS, renderer.materials().values());
                     }
@@ -158,7 +158,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
     protected abstract void registerItemRenderer(ItemBase item);
 
     protected ItemRenderer createItemRenderer(NexoMinecraft<N, ?, ?, ?> nexo, ItemBase base) {
-        Renderer<Graphics3D, ItemUnit<?>> renderer = base.renderer();
+        Renderer<Graphics3D, ItemUnit> renderer = base.renderer();
         if (renderer == null) {
             return ItemRenderer.EMPTY;
         }
@@ -175,7 +175,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
     protected abstract void registerBlockRenderer(BlockBase block);
 
     protected <T extends BlockEntity> void registerBlockRenderer(BlockEntityType<T> type, BlockBase base, BiConsumer<BlockEntityType<T>, BlockEntityRendererProvider<T>> registrar) {
-        Renderer<Graphics3D, BlockUnit<?>> renderer = base.renderer();
+        Renderer<Graphics3D, BlockUnit> renderer = base.renderer();
         if (renderer != null) {
             registrar.accept(type, (context) -> (blockEntity, partialTick, poseStack, bufferSource, packedLight, packedOverlay) -> {
                 DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, poseStack, bufferSource, packedLight, packedOverlay);
@@ -191,7 +191,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
     protected abstract void registerEntityRenderer(EntityBase entity);
 
     protected <T extends Entity> void registerEntityRenderer(EntityType<T> type, EntityBase base, BiConsumer<EntityType<T>, EntityRendererProvider<T>> registrar) {
-        Renderer<Graphics3D, EntityUnit<?>> renderer = base.renderer();
+        Renderer<Graphics3D, EntityUnit> renderer = base.renderer();
         if (renderer == null) {
             registrar.accept(type, NoopRenderer::new);
         } else {

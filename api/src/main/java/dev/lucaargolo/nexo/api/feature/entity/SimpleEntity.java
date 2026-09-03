@@ -12,7 +12,7 @@ import java.util.function.Supplier;
 
 public class SimpleEntity extends EntityBase {
 
-    private final @Nullable Renderer<Graphics3D, EntityUnit<?>> renderer;
+    private final @Nullable Renderer<Graphics3D, EntityUnit> renderer;
 
     public SimpleEntity(@NotNull Location location) {
         super(location);
@@ -26,7 +26,7 @@ public class SimpleEntity extends EntityBase {
 
     public SimpleEntity(
             @NotNull Location location,
-            @NotNull Renderer<Graphics3D, EntityUnit<?>> renderer
+            @NotNull Renderer<Graphics3D, EntityUnit> renderer
     ) {
         super(location);
         this.renderer = renderer;
@@ -35,14 +35,14 @@ public class SimpleEntity extends EntityBase {
     public SimpleEntity(
             @NotNull Location location,
             @NotNull Supplier<Role> role,
-            @NotNull Renderer<Graphics3D, EntityUnit<?>> renderer
+            @NotNull Renderer<Graphics3D, EntityUnit> renderer
     ) {
         super(location, role);
         this.renderer = renderer;
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, EntityUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, EntityUnit> renderer() {
         return renderer;
     }
 }

@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet<?, ?>, Unit<Packet<?, ?>, ?>> {
+public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet<?, ?>, Unit<Packet<?, ?>>> {
 
     @NotNull
     private final DataBase<D> data;
@@ -27,7 +27,7 @@ public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet
     }
 
     @Override
-    public final @NotNull Type<Packet<?, ?>, Unit<Packet<?, ?>, ?>> type() {
+    public final @NotNull Type<Packet<?, ?>, Unit<Packet<?, ?>>> type() {
         return Type.packet();
     }
 

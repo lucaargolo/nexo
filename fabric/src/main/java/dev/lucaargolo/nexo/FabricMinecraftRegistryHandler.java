@@ -78,12 +78,12 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
-    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T, ?>, M> void registerVaults(
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(
             @NotNull MinecraftFeatureType<T, U, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
     ) {
-        Class<ItemUnit<?>> itemUnitType = Nexo.type(ItemUnit.class);
+        Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
         var vaultFactories = this.vaultFactories(feature, itemUnitType);
         if (vaultFactories.isEmpty()) {
             return;

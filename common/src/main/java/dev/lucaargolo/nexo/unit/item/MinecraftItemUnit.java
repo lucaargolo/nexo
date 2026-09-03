@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> implements MinecraftUnit<ItemStack> {
+public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUnit<ItemStack> {
 
     protected final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull ItemStack stack;
@@ -29,7 +29,7 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
     public MinecraftItemUnit(
             @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
             @NotNull ItemBase feature,
-            @Nullable C role,
+            @Nullable Role role,
             @NotNull ItemStack stack
     ) {
         super(nexo, feature, role);
@@ -38,7 +38,7 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
     }
 
     @Override
-    public @NotNull <U extends Unit<?, ?>> Set<String> vaults(@NotNull Class<U> type) {
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return super.vaults(type);
         }
@@ -46,11 +46,11 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
     }
 
     @Override
-    public @Nullable <U extends Unit<?, ?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
             return super.vault(type, key);
         }
-        Vault<ItemUnit<?>> vault = this.itemVault();
+        Vault<ItemUnit> vault = this.itemVault();
         if (vault == null) {
             return super.vault(type, key);
         }
@@ -58,7 +58,7 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
         return clazz.cast(vault);
     }
 
-    protected @Nullable Vault<ItemUnit<?>> itemVault() {
+    protected @Nullable Vault<ItemUnit> itemVault() {
         return null;
     }
 
@@ -86,7 +86,7 @@ public abstract class MinecraftItemUnit<C extends Role> extends ItemUnit<C> impl
 
     @NotNull
     @Override
-    public <D> ItemUnit<C> setData(@NotNull DataBase<D> data, @Nullable D value) {
+    public <D> ItemUnit setData(@NotNull DataBase<D> data, @Nullable D value) {
         DataComponentType<D> component = find(data);
         if (value == null) {
             stack.remove(component);

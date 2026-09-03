@@ -63,17 +63,17 @@ public final class MinecraftEntity extends EntityBase {
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, EntityUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, EntityUnit> renderer() {
         // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 
     @Override
-    public <V extends Unit<?, ?>> @NotNull Map<String, Function<EntityUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+    public <V extends Unit<?>> @NotNull Map<String, Function<EntityUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return Map.of();
         }
-        Map<String, Function<EntityUnit<?>, ? extends @Nullable Vault<V>>> vaults = new LinkedHashMap<>();
+        Map<String, Function<EntityUnit, ? extends @Nullable Vault<V>>> vaults = new LinkedHashMap<>();
         vaults.put(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             String key = MinecraftEquipmentVault.key(slot);

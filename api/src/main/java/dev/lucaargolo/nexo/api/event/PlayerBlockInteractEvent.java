@@ -1,14 +1,13 @@
 package dev.lucaargolo.nexo.api.event;
 
-import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import org.jetbrains.annotations.NotNull;
 
-public record PlayerBlockInteractEvent(@NotNull BlockUnit<?> block, @NotNull EntityUnit<PlayerRole> player) implements Event<BlockUnit<?>> {
+public record PlayerBlockInteractEvent(@NotNull BlockUnit block, @NotNull EntityUnit player) implements Event<BlockUnit> {
 
     @Override
-    public @NotNull BlockUnit<?> value() {
+    public @NotNull BlockUnit value() {
         return this.block;
     }
 

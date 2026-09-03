@@ -39,7 +39,7 @@ public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoM
 
     @NotNull
     @Override
-    public <D> WorldUnit<Role> setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> WorldUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
         NeoForgeAttachmentData.setData(this.nexo, this.level, data, d);
         return this;
     }

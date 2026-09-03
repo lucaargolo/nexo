@@ -14,7 +14,7 @@ import org.joml.Vector3i;
 
 import java.util.function.Supplier;
 
-public abstract class BlockBase extends Feature<BlockBase, BlockUnit<?>> implements ItemProvider, VaultFactory<BlockUnit<?>>, RendererProvider<Graphics3D, BlockUnit<?>>, TickerProvider<BlockUnit<?>>, DataInitializer {
+public abstract class BlockBase extends Feature<BlockBase, BlockUnit> implements ItemProvider, VaultFactory<BlockUnit>, RendererProvider<Graphics3D, BlockUnit>, TickerProvider<BlockUnit>, DataInitializer {
 
     public BlockBase(@NotNull Location location) {
         super(location);
@@ -25,13 +25,13 @@ public abstract class BlockBase extends Feature<BlockBase, BlockUnit<?>> impleme
     }
 
     @Override
-    public final @NotNull Type<BlockBase, BlockUnit<?>> type() {
+    public final @NotNull Type<BlockBase, BlockUnit> type() {
         return Type.BLOCK;
     }
 
-    public abstract @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos);
+    public abstract @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos);
 
-    public void onBreak(@NotNull BlockUnit<?> block) {
+    public void onBreak(@NotNull BlockUnit block) {
     }
 
 }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public interface Vault<U extends Unit<?, ?>> extends List<U> {
+public interface Vault<U extends Unit<?>> extends List<U> {
 
     @NotNull U defaultValue();
 

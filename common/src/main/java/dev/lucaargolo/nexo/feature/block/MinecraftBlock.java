@@ -125,13 +125,13 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, BlockUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, BlockUnit> renderer() {
         // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 
     @Override
-    public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+    public <V extends Unit<?>> @NotNull Map<String, Function<BlockUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return Map.of();
         }
@@ -145,10 +145,10 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
-        BlockState state = ((MinecraftBlockUnit<?, ?>) block).get();
+    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
+        BlockState state = ((MinecraftBlockUnit<?>) block).get();
         Level level = ((MinecraftWorldUnit<?>) world).get();
-        Player player = (Player) ((MinecraftEntityUnit<?, PlayerRole, ?>) entity).get();
+        Player player = (Player) ((MinecraftEntityUnit<?, ?>) entity).get();
         Vec3 position = new Vec3(pos.x() + 0.5, pos.y() + 0.5, pos.z() + 0.5);
         BlockHitResult hitResult = new BlockHitResult(position, Direction.UP, BlockPos.containing(position), true);
         InteractionResult result = state.useWithoutItem(level, player, hitResult);
@@ -210,9 +210,9 @@ public class MinecraftBlock extends BlockBase {
             return null;
         });
         extender.override(Utils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
-            BlockUnit<?> unit = nexo.blockToUnit(level, pos, state);
-            WorldUnit<?> world = nexo.levelToUnit(level);
-            Interaction interaction = block.onInteract(unit, world, nexo.entityToUnit(player).withRole(PlayerRole.class), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
+            BlockUnit unit = nexo.blockToUnit(level, pos, state);
+            WorldUnit world = nexo.levelToUnit(level);
+            Interaction interaction = block.onInteract(unit, world, nexo.entityToUnit(player), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
             return switch (interaction) {
                 case PASS -> InteractionResult.PASS;
                 case FAIL -> InteractionResult.FAIL;
@@ -241,7 +241,7 @@ public class MinecraftBlock extends BlockBase {
 
                 @Override
                 public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(@NotNull Level level, @NotNull BlockState state, @NotNull BlockEntityType<T> type) {
-                    Ticker<BlockUnit<?>> ticker = block.ticker();
+                    Ticker<BlockUnit> ticker = block.ticker();
                     if (ticker == null || type != blockEntityType()) {
                         return null;
                     }
@@ -270,7 +270,7 @@ public class MinecraftBlock extends BlockBase {
     }
 
     private static boolean isDynamicBlock(@NotNull BlockBase block) {
-        Renderer<Graphics3D, BlockUnit<?>> renderer = block.renderer();
+        Renderer<Graphics3D, BlockUnit> renderer = block.renderer();
         return block.ticker() != null
                 || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))
                 || block.initialData().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>))

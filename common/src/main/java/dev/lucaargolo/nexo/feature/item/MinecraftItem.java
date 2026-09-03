@@ -99,13 +99,13 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public @Nullable StaticRenderer<Graphics3D, ItemUnit<?>> renderer() {
+    public @Nullable StaticRenderer<Graphics3D, ItemUnit> renderer() {
         // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
     }
 
     @Override
-    public <V extends Unit<?, ?>> @NotNull Map<String, Function<ItemUnit<?>, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+    public <V extends Unit<?>> @NotNull Map<String, Function<ItemUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
         if (!MinecraftContainerVault.supports(type)) {
             return Map.of();
         }
@@ -156,7 +156,7 @@ public class MinecraftItem extends ItemBase {
 
     public static <M extends Item> Item craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
         extender.override(Utils.At.AFTER_SUPER, "inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, stack, level, entity, slotId, selected) -> {
-            Ticker<ItemUnit<?>> ticker = item.ticker();
+            Ticker<ItemUnit> ticker = item.ticker();
             if (ticker != null) {
                 ticker.tick(nexo.stackToUnit(stack));
             }

@@ -12,14 +12,14 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftItemUnit<C extends Role> extends MinecraftItemUnit<C> {
+public class NeoForgeMinecraftItemUnit extends MinecraftItemUnit {
 
-    public NeoForgeMinecraftItemUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull ItemBase feature, @Nullable C role, @NotNull ItemStack stack) {
+    public NeoForgeMinecraftItemUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull ItemBase feature, @Nullable Role role, @NotNull ItemStack stack) {
         super(nexo, feature, role, stack);
     }
 
     @Override
-    protected @Nullable Vault<ItemUnit<?>> itemVault() {
+    protected @Nullable Vault<ItemUnit> itemVault() {
         IItemHandler handler = Capabilities.ItemHandler.ITEM.getCapability(this.get(), null);
         return handler == null ? null : new NeoForgeItemHandlerVault(this.nexo, handler);
     }

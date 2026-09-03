@@ -38,7 +38,7 @@ public class FabricMinecraftWorldUnit extends MinecraftWorldUnit<FabricNexoMinec
 
     @NotNull
     @Override
-    public <D> WorldUnit<Role> setData(@NotNull DataBase<D> data, @Nullable D d) {
+    public <D> WorldUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
         FabricAttachmentData.setData(this.nexo, this.level, data, d);
         return this;
     }

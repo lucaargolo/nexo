@@ -64,13 +64,13 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
     public void endFeatureRegistration() {
     }
 
-    public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T, ?>, M> void registerVaults(
+    public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(
             @NotNull MinecraftFeatureType<T, U, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
     );
 
-    protected final <U extends Unit<?, ?>, V extends Unit<?, ?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaultFactories(
+    protected final <U extends Unit<?>, V extends Unit<?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaultFactories(
             @NotNull VaultFactory<U> feature,
             @NotNull Class<V> type
     ) {

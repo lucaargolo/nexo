@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo;
 import com.mojang.authlib.GameProfile;
 import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
-import dev.lucaargolo.nexo.api.role.entity.PlayerRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupCallback;
@@ -55,8 +54,8 @@ public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, Fabr
             if (hand != InteractionHand.MAIN_HAND) {
                 return InteractionResult.PASS;
             }
-            BlockUnit<?> block = this.blockToUnit(level, hitResult.getBlockPos(), level.getBlockState(hitResult.getBlockPos()));
-            return this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(player).withRole(PlayerRole.class))) == null ? InteractionResult.FAIL : InteractionResult.PASS;
+            BlockUnit block = this.blockToUnit(level, hitResult.getBlockPos(), level.getBlockState(hitResult.getBlockPos()));
+            return this.emit(new PlayerBlockInteractEvent(block, this.entityToUnit(player))) == null ? InteractionResult.FAIL : InteractionResult.PASS;
         });
         if (this.getSide() == Side.CLIENT) {
             ClientPlayNetworking.registerGlobalReceiver(MinecraftPacketPayload.TYPE, (payload, context) -> this.handleMinecraftPacket(payload, PacketReceiver.client()));
@@ -68,7 +67,7 @@ public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, Fabr
     protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
         if (receiver == PacketReceiver.server()) {
             ClientPlayNetworking.send(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?, ?, ?> unit && unit.get() instanceof ServerPlayer player) {
+        } else if (receiver instanceof MinecraftEntityUnit<?, ?> unit && unit.get() instanceof ServerPlayer player) {
             ServerPlayNetworking.send(player, payload);
         } else {
             throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");

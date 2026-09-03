@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.feature.world.BiomeBase;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
@@ -70,13 +71,13 @@ public class NexoTestMod {
         if (!directFeatureEventReceived.get()) {
             throw new IllegalStateException("Direct feature registration did not emit FeatureRegisteredEvent");
         }
-        ScreenUnit<?, ?> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
+        ScreenUnit<Text> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
         if (testScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }
 
         TestInventoryScreen testInventoryScreen = nexo.registerFeature(new TestInventoryScreen(NexoTestMod.id("test_inventory_screen")));
-        ScreenUnit<?, ?> testInventoryScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test inventory screen unit");
+        ScreenUnit<Text> testInventoryScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test inventory screen unit");
         if (testInventoryScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }
@@ -121,7 +122,7 @@ public class NexoTestMod {
         requireNonNull(lit, "Campfire lit state was not exposed as initial data");
         DataBase.Constrained<Boolean> signalFire = findConstrained(campfire.initialData(), "signal_fire");
         requireNonNull(signalFire, "Campfire signal_fire state was not exposed as initial data");
-        BlockUnit<?> campfireUnit = requireNonNull(nexo.unit(campfire), "Missing campfire unit");
+        BlockUnit campfireUnit = requireNonNull(nexo.unit(campfire), "Missing campfire unit");
         if (!Boolean.TRUE.equals(campfireUnit.getData(lit)) || !Boolean.FALSE.equals(campfireUnit.getData(signalFire))) {
             throw new IllegalStateException("Campfire blockstate initial data mismatch");
         }
@@ -135,14 +136,14 @@ public class NexoTestMod {
         );
         DataBase<Integer> maxStackSize = findData(apple.initialData(), "max_stack_size");
         requireNonNull(maxStackSize, "Apple max_stack_size component was not exposed as initial data");
-        ItemUnit<?> appleUnit = requireNonNull(nexo.unit(apple), "Missing apple unit");
+        ItemUnit appleUnit = requireNonNull(nexo.unit(apple), "Missing apple unit");
         if (!Integer.valueOf(64).equals(appleUnit.getData(maxStackSize))) {
             throw new IllegalStateException("Apple max_stack_size initial data mismatch");
         }
 
         // Right clicking a redstone lamp cycles its lit blockstate instead of the vanilla interaction.
         nexo.on(PlayerBlockInteractEvent.class, event -> {
-            BlockUnit<?> block = event.value();
+            BlockUnit block = event.value();
             if (!block.feature().location().equals(Location.of("minecraft", "redstone_lamp"))) {
                 return true;
             }

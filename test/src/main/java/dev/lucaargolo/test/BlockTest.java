@@ -40,7 +40,7 @@ import static java.util.Objects.requireNonNull;
 public final class BlockTest {
 
 
-    private static final Renderer<Graphics3D, BlockUnit<?>> DYNAMIC_RENDERER = new TestDynamicBlockRenderer();
+    private static final Renderer<Graphics3D, BlockUnit> DYNAMIC_RENDERER = new TestDynamicBlockRenderer();
     private static final BooleanData STATE = new BooleanData(NexoTestMod.id("test_state"), false);
 
     private BlockTest() {
@@ -64,13 +64,13 @@ public final class BlockTest {
 
     private static void registerChestBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull TestInventoryScreen screen) {
         ItemData chestData = nexo.registerFeature(new ItemData(NexoTestMod.id("test_chest_data"), nexo));
-        DataBase<List<ItemUnit<?>>> chestInventory = nexo.registerFeature(DataBase.list(chestData));
+        DataBase<List<ItemUnit>> chestInventory = nexo.registerFeature(DataBase.list(chestData));
         BlockBase chest = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_chest"), nexo.getResource(Resource.Type.MODEL, Location.of("minecraft", "block/barrel"))) {
             @Override
-            public void onBreak(@NotNull BlockUnit<?> block) {
-                List<ItemUnit<?>> items = block.getData(chestInventory);
+            public void onBreak(@NotNull BlockUnit block) {
+                List<ItemUnit> items = block.getData(chestInventory);
                 if (items != null) {
-                    for (ItemUnit<?> item : items) {
+                    for (ItemUnit item : items) {
                         block.drop(item);
                     }
                 }
@@ -82,13 +82,13 @@ public final class BlockTest {
             }
 
             @Override
-            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+            public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
                 requireNonNull(nexo.unit(screen)).open(entity);
                 return Interaction.SUCCESS;
             }
 
             @Override
-            public <V extends Unit<?, ?>> @NotNull Map<String, Function<BlockUnit<?>, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
+            public <V extends Unit<?>> @NotNull Map<String, Function<BlockUnit, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
                 return Map.of("inventory", unit -> new TestChestVault<>(type, unit, chestInventory));
             }
         });
@@ -111,7 +111,7 @@ public final class BlockTest {
             }
 
             @Override
-            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+            public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
                 world.setBlock(pos, block.withData(STATE, toggled -> !toggled));
                 return Interaction.SUCCESS;
             }
@@ -124,7 +124,7 @@ public final class BlockTest {
         nexo.registerFeature(dynamicData);
         BlockBase block = nexo.registerFeature(new BlockBase(NexoTestMod.id("dynamic_block")) {
             @Override
-            public Renderer<Graphics3D, BlockUnit<?>> renderer() {
+            public Renderer<Graphics3D, BlockUnit> renderer() {
                 return DYNAMIC_RENDERER;
             }
 
@@ -139,12 +139,12 @@ public final class BlockTest {
             }
 
             @Override
-            public Ticker<BlockUnit<?>> ticker() {
+            public Ticker<BlockUnit> ticker() {
                 return unit -> { };
             }
 
             @Override
-            public @NotNull Interaction onInteract(@NotNull BlockUnit<?> block, @NotNull WorldUnit<?> world, @NotNull EntityUnit<PlayerRole> entity, @NotNull Vector3i pos) {
+            public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
                 requireNonNull(nexo.unit(screen)).open(entity);
                 block.withData(dynamicData, value -> value + "!");
                 return Interaction.SUCCESS;
@@ -152,7 +152,7 @@ public final class BlockTest {
         });
         nexo.registerFeature(new BlockItem(block, category) {
             @Override
-            public Ticker<ItemUnit<?>> ticker() {
+            public Ticker<ItemUnit> ticker() {
                 return unit -> { };
             }
         });

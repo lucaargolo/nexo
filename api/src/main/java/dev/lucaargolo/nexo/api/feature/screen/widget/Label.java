@@ -32,7 +32,7 @@ public class Label extends Widget {
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?, ?> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
         graphics.pushState();
         graphics.pushMatrix();
         graphics.translate(x(), y());

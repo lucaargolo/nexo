@@ -16,7 +16,7 @@ import java.util.Map;
 public class BlockItem extends ItemBase {
 
     private final @Nullable ItemCategoryBase category;
-    private final @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer;
+    private final @Nullable Renderer<Graphics3D, ItemUnit> renderer;
 
     public BlockItem(
             @NotNull BlockBase block,
@@ -28,7 +28,7 @@ public class BlockItem extends ItemBase {
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer() {
+    public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
         return renderer;
     }
 
@@ -37,28 +37,28 @@ public class BlockItem extends ItemBase {
         return category;
     }
 
-    public static @Nullable Renderer<Graphics3D, ItemUnit<?>> renderer(@Nullable Renderer<Graphics3D, BlockUnit<?>> renderer) {
+    public static @Nullable Renderer<Graphics3D, ItemUnit> renderer(@Nullable Renderer<Graphics3D, BlockUnit> renderer) {
         if (renderer == null) {
             return null;
         }
         if (renderer instanceof StaticRenderer<?, ?>) {
-            StaticRenderer<Graphics3D, BlockUnit<?>> staticRenderer = (StaticRenderer<Graphics3D, BlockUnit<?>>) renderer;
+            StaticRenderer<Graphics3D, BlockUnit> staticRenderer = (StaticRenderer<Graphics3D, BlockUnit>) renderer;
             return new StaticBlockItemRenderer(staticRenderer);
         }
         return new BlockItemRenderer(renderer);
     }
 
-    private static class BlockItemRenderer implements Renderer<Graphics3D, ItemUnit<?>> {
+    private static class BlockItemRenderer implements Renderer<Graphics3D, ItemUnit> {
 
-        protected final @NotNull Renderer<Graphics3D, BlockUnit<?>> delegate;
+        protected final @NotNull Renderer<Graphics3D, BlockUnit> delegate;
 
-        private BlockItemRenderer(@NotNull Renderer<Graphics3D, BlockUnit<?>> delegate) {
+        private BlockItemRenderer(@NotNull Renderer<Graphics3D, BlockUnit> delegate) {
             this.delegate = delegate;
         }
 
         @Override
-        public void render(@NotNull ItemUnit<?> unit, @NotNull Graphics3D graphics) {
-            BlockUnit<?> block = block(unit);
+        public void render(@NotNull ItemUnit unit, @NotNull Graphics3D graphics) {
+            BlockUnit block = block(unit);
             if (block != null) {
                 delegate.render(block, graphics);
             }
@@ -84,24 +84,24 @@ public class BlockItem extends ItemBase {
             return delegate.shaded();
         }
 
-        protected static @Nullable BlockUnit<?> block(@NotNull ItemUnit<?> unit) {
+        protected static @Nullable BlockUnit block(@NotNull ItemUnit unit) {
             Role role = unit.role();
             return role instanceof BlockItemRole(BlockBase block) ? unit.nexo().unit(block) : null;
         }
     }
 
-    private static final class StaticBlockItemRenderer extends BlockItemRenderer implements StaticRenderer<Graphics3D, ItemUnit<?>> {
+    private static final class StaticBlockItemRenderer extends BlockItemRenderer implements StaticRenderer<Graphics3D, ItemUnit> {
 
-        private final @NotNull StaticRenderer<Graphics3D, BlockUnit<?>> staticDelegate;
+        private final @NotNull StaticRenderer<Graphics3D, BlockUnit> staticDelegate;
 
-        private StaticBlockItemRenderer(@NotNull StaticRenderer<Graphics3D, BlockUnit<?>> delegate) {
+        private StaticBlockItemRenderer(@NotNull StaticRenderer<Graphics3D, BlockUnit> delegate) {
             super(delegate);
             this.staticDelegate = delegate;
         }
 
         @Override
-        public @NotNull List<@NotNull DrawCall<Graphics3D>> calls(@NotNull ItemUnit<?> unit) {
-            BlockUnit<?> block = block(unit);
+        public @NotNull List<@NotNull DrawCall<Graphics3D>> calls(@NotNull ItemUnit unit) {
+            BlockUnit block = block(unit);
             return block != null ? staticDelegate.calls(block) : List.of();
         }
     }
