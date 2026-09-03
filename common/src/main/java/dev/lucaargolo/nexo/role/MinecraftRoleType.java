@@ -30,21 +30,21 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class MinecraftRoleType<R extends Role, F extends Feature<?, ?>, M, E, P> {
+public class MinecraftRoleType<F extends Feature<?, ?>, M, E, P> {
 
-    private static final Map<Feature.Type<?, ?>, List<MinecraftRoleType<?, ?, ?, ?, ?>>> TYPES = new HashMap<>();
+    private static final Map<Feature.Type<?, ?>, List<MinecraftRoleType<?, ?, ?, ?>>> TYPES = new HashMap<>();
 
-    public static final MinecraftRoleType<BlockItemRole, ItemBase, Item, Item, Item.Properties> BLOCK_ITEM = new MinecraftRoleType<>(Feature.Type.ITEM, Item.class, MinecraftBlockItemRole::craft, MinecraftBlockItemRole::uncraft);
-    public static final MinecraftRoleType<PlayerRole, EntityBase, EntityType<?>, Entity, MinecraftEntity.Parameters> PLAYER = new MinecraftRoleType<>(Feature.Type.ENTITY, Nexo.type(EntityType.class), MinecraftPlayerRole::craft, MinecraftPlayerRole::uncraft);
-    public static final MinecraftRoleType<InventoryRole, ScreenBase<?>, MinecraftScreen.ScreenCrafter, Screen, MinecraftScreen.ScreenParameters<?>> INVENTORY_SCREEN = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.ScreenCrafter.class), MinecraftInventoryRole::craftScreen, MinecraftInventoryRole::uncraftScreen);
-    public static final MinecraftRoleType<InventoryRole, ScreenBase<?>, MinecraftScreen.MenuCrafter<?>, AbstractContainerMenu, MinecraftScreen.MenuParameters<?>> INVENTORY_MENU = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.MenuCrafter.class), MinecraftInventoryRole::craftMenu, MinecraftInventoryRole::uncraftMenu);
+    public static final MinecraftRoleType<ItemBase, Item, Item, Item.Properties> BLOCK_ITEM = new MinecraftRoleType<>(Feature.Type.ITEM, Item.class, MinecraftBlockItemRole::craft, MinecraftBlockItemRole::uncraft);
+    public static final MinecraftRoleType<EntityBase, EntityType<?>, Entity, MinecraftEntity.Parameters> PLAYER = new MinecraftRoleType<>(Feature.Type.ENTITY, Nexo.type(EntityType.class), MinecraftPlayerRole::craft, MinecraftPlayerRole::uncraft);
+    public static final MinecraftRoleType<ScreenBase<?>, MinecraftScreen.ScreenCrafter, Screen, MinecraftScreen.ScreenParameters<?>> INVENTORY_SCREEN = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.ScreenCrafter.class), MinecraftInventoryRole::craftScreen, MinecraftInventoryRole::uncraftScreen);
+    public static final MinecraftRoleType<ScreenBase<?>, MinecraftScreen.MenuCrafter<?>, AbstractContainerMenu, MinecraftScreen.MenuParameters<?>> INVENTORY_MENU = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.MenuCrafter.class), MinecraftInventoryRole::craftMenu, MinecraftInventoryRole::uncraftMenu);
 
     private final Feature.Type<F, ?> type;
     private final Class<M> clazz;
     private final BiFunction<NexoMinecraft<?, ?, ?, ?>, F, Info<E, P>> craft;
-    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, M, R> uncraft;
+    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, M, Role> uncraft;
 
-    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft<?, ?, ?, ?>, F, Info<E, P>> craft, BiFunction<NexoMinecraft<?, ?, ?, ?>, M, R> uncraft) {
+    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft<?, ?, ?, ?>, F, Info<E, P>> craft, BiFunction<NexoMinecraft<?, ?, ?, ?>, M, Role> uncraft) {
         this.type = type;
         this.clazz = clazz;
         this.craft = craft;
@@ -59,7 +59,7 @@ public class MinecraftRoleType<R extends Role, F extends Feature<?, ?>, M, E, P>
         return null;
     }
 
-    private R innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, Object object) {
+    private Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, Object object) {
         if (this.clazz.isInstance(object)) {
             return this.uncraft.apply(nexo, this.clazz.cast(object));
         }
@@ -67,12 +67,12 @@ public class MinecraftRoleType<R extends Role, F extends Feature<?, ?>, M, E, P>
     }
 
     public static <F extends Feature<?, ?>, M, E, P> @Nullable Info<E, P> craft(NexoMinecraft<?, ?, ?, ?> nexo, F feature, Class<M> type) {
-        List<MinecraftRoleType<?, ?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
-        for (MinecraftRoleType<?, ?, ?, ?, ?> roleType : list) {
+        List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
+        for (MinecraftRoleType<?, ?, ?, ?> roleType : list) {
             Info<?, ?> optional = roleType.innerCraft(nexo, feature);
             if (optional != null) {
-                Class<MinecraftRoleType<?, F, M, E, P>> clazz = Nexo.type(MinecraftRoleType.class);
-                MinecraftRoleType<?, F, M, E, P> typedRoleType = clazz.cast(roleType);
+                Class<MinecraftRoleType<F, M, E, P>> clazz = Nexo.type(MinecraftRoleType.class);
+                MinecraftRoleType<F, M, E, P> typedRoleType = clazz.cast(roleType);
                 if(type.isAssignableFrom(optional.extender.type())) {
                     return typedRoleType.innerCraft(nexo, feature);
                 }
@@ -93,8 +93,8 @@ public class MinecraftRoleType<R extends Role, F extends Feature<?, ?>, M, E, P>
     }
 
     @Nullable
-    private static <F extends Feature<F, ?>, M> Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, M crafted, List<MinecraftRoleType<?, ?, ?, ?, ?>> list) {
-        for (MinecraftRoleType<?, ?, ?, ?, ?> roleType : list) {
+    private static <F extends Feature<F, ?>, M> Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, M crafted, List<MinecraftRoleType<?, ?, ?, ?>> list) {
+        for (MinecraftRoleType<?, ?, ?, ?> roleType : list) {
             Role role = roleType.innerUncraft(nexo, crafted);
             if (role != null) {
                 return role;
