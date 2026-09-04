@@ -15,16 +15,16 @@ import java.util.function.Supplier;
 
 public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>> {
 
-    public DataBase(@NotNull Location location) {
-        super(location);
+    public DataBase() {
+
     }
 
-    public DataBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public DataBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     public static <D> @NotNull ListData<D> list(@NotNull DataBase<D> data) {
-        return new ListData<>(data.location().withPathSuffix("_list"), data);
+        return new ListData<>(data);
     }
 
     @Override
@@ -61,8 +61,8 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>
      */
     public abstract static class Constrained<T extends Comparable<T>> extends DataBase<T> {
 
-        public Constrained(@NotNull Location location) {
-            super(location);
+        public Constrained() {
+            super();
         }
 
         public abstract @NotNull Class<T> valueClass();

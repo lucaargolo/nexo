@@ -24,7 +24,7 @@ public final class TestChestVault<V extends Unit<?>> extends AbstractList<V> imp
     private final List<@Nullable ItemUnit> items;
     private final @NotNull V defaultValue;
 
-    public TestChestVault(@NotNull Class<V> type, @NotNull BlockUnit block, @NotNull DataBase<List<ItemUnit>> data) {
+    public TestChestVault(@NotNull Class<V> type, @NotNull V initial, @NotNull BlockUnit block, @NotNull DataBase<List<ItemUnit>> data) {
         this.type = type;
         this.block = block;
         this.data = data;
@@ -38,29 +38,7 @@ public final class TestChestVault<V extends Unit<?>> extends AbstractList<V> imp
                 this.items.set(index, stored.get(index));
             }
         }
-        ItemBase item = new ItemBase(Location.of("nexo", "empty_vault_slot")) {
-            @Override
-            public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
-                return null;
-            }
-        };
-        ItemUnit fallback = new ItemUnit(block.nexo(), item, null) {
-            @Override
-            public @NotNull List<@NotNull DataBase<?>> data() {
-                return List.of();
-            }
-
-            @Override
-            public <D> @Nullable D getData(@NotNull DataBase<D> data) {
-                return null;
-            }
-
-            @Override
-            public <D> @NotNull ItemUnit setData(@NotNull DataBase<D> data, @Nullable D value) {
-                return this;
-            }
-        };
-        this.defaultValue = type.cast(fallback);
+        this.defaultValue = initial;
     }
 
     @Override

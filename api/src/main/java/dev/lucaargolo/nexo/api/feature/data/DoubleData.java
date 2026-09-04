@@ -12,8 +12,7 @@ public final class DoubleData extends DataBase<Double> {
     @NotNull
     private final Double initial;
 
-    public DoubleData(@NotNull Location location, @NotNull Double initial) {
-        super(location);
+    public DoubleData(@NotNull Double initial) {
         this.initial = initial;
     }
 

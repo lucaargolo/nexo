@@ -16,12 +16,12 @@ import java.util.function.Supplier;
 
 public abstract class BlockBase extends Feature<BlockBase, BlockUnit> implements ItemProvider, VaultFactory<BlockUnit>, RendererProvider<Graphics3D, BlockUnit>, TickerProvider<BlockUnit>, DataInitializer {
 
-    public BlockBase(@NotNull Location location) {
-        super(location);
+    public BlockBase() {
+
     }
 
-    public BlockBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public BlockBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

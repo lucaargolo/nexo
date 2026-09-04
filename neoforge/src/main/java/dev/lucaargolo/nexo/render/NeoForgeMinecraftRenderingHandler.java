@@ -155,8 +155,8 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     }
 
     @Override
-    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor) {
-        menuScreensToRegister.add(event -> event.register(type, constructor::create));
+    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, U> constructor) {
+        menuScreensToRegister.add(event -> event.register(type.get(), constructor::create));
     }
 
     private IClientItemExtensions createItemExtensions(NexoMinecraft<NeoForgeNexoMinecraft, ?, ?, ?> nexo, ItemBase base) {

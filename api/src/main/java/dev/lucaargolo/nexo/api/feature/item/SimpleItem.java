@@ -11,38 +11,24 @@ import org.jetbrains.annotations.Nullable;
 
 public class SimpleItem extends ItemBase {
 
-    private final @Nullable ItemCategoryBase category;
+
     private final @Nullable Renderer<Graphics3D, ItemUnit> renderer;
+    private final @Nullable ItemCategoryBase category;
 
     public SimpleItem(
-            @NotNull Location location,
             @Nullable ModelResource resource,
             @Nullable ItemCategoryBase category
     ) {
-        super(location);
-        this.category = category;
         this.renderer = resource != null ? new ModelRenderer<>(resource) : null;
-    }
-
-    public SimpleItem(@NotNull Location location, @Nullable ModelResource resource) {
-        this(location, resource, null);
-    }
-
-    public SimpleItem(
-            @NotNull Location location,
-            @Nullable ItemCategoryBase category,
-            @NotNull Renderer<Graphics3D, ItemUnit> renderer
-    ) {
-        super(location);
         this.category = category;
-        this.renderer = renderer;
     }
 
     public SimpleItem(
-            @NotNull Location location,
-            @NotNull Renderer<Graphics3D, ItemUnit> renderer
+            @NotNull Renderer<Graphics3D, ItemUnit> renderer,
+            @Nullable ItemCategoryBase category
     ) {
-        this(location, null, renderer);
+        this.renderer = renderer;
+        this.category = category;
     }
 
     @Override

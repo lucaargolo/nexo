@@ -53,7 +53,8 @@ public final class MinecraftEntity extends EntityBase {
     private final Holder<EntityType<?>> holder;
 
     private MinecraftEntity(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<EntityType<?>> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ENTITY, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.ENTITY, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
     }
 

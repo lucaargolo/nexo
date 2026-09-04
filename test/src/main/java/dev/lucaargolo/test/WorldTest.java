@@ -12,11 +12,11 @@ public final class WorldTest {
     }
 
     public static void register(@NotNull Nexo nexo) {
-        nexo.registerFeature(new SimpleWorld(NexoTestMod.id("test")) {
+        nexo.registerFeature(new SimpleWorld() {
             @Override
             public Ticker<WorldUnit> ticker() {
                 return unit -> { };
             }
-        });
+        }, NexoTestMod.id("test"));
     }
 }

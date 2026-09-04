@@ -39,7 +39,8 @@ public class MinecraftBiome extends BiomeBase {
     private final Holder<Biome> holder;
 
     private MinecraftBiome(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Biome> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.BIOME, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.BIOME, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
     }
 

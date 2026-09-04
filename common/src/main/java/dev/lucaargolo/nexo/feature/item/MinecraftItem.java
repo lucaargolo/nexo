@@ -65,7 +65,8 @@ public class MinecraftItem extends ItemBase {
     private final @NotNull List<@NotNull DataBase<?>> initialData;
 
     private MinecraftItem(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Item> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ITEM, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.ITEM, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
         this.holder = holder;
         Item item = holder.value();

@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleItemCategory extends ItemCategoryBase {
 
-    public SimpleItemCategory(@NotNull Location location) {
-        super(location);
+    public SimpleItemCategory() {
+
     }
 
 }

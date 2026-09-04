@@ -13,8 +13,7 @@ public final class StringData extends DataBase<String> {
     @NotNull
     private final String initial;
 
-    public StringData(@NotNull Location location, @NotNull String initial) {
-        super(location);
+    public StringData(@NotNull String initial) {
         this.initial = initial;
     }
 

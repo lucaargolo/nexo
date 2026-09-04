@@ -10,12 +10,12 @@ import java.util.function.Supplier;
 
 public abstract class BiomeBase extends Feature<BiomeBase, Unit<BiomeBase>> {
 
-    public BiomeBase(@NotNull Location location) {
-        super(location);
+    public BiomeBase() {
+
     }
 
-    public BiomeBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public BiomeBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

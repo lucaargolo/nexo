@@ -27,7 +27,7 @@ public final class FabricStorageVault extends AbstractList<ItemUnit> implements 
 
     public FabricStorageVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
         this.nexo = nexo;
-        this.defaultValue = MinecraftItemVault.emptyValue(nexo);
+        this.defaultValue = MinecraftItemUnit.empty(nexo);
         this.storage = storage;
         Class<SlottedStorage<ItemVariant>> type = Nexo.type(SlottedStorage.class);
         this.slottedStorage = storage instanceof SlottedStorage<?> ? type.cast(storage) : null;

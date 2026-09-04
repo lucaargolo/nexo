@@ -71,7 +71,8 @@ public final class MinecraftScreen extends ScreenBase<Text> {
     private final @NotNull Screen screen;
 
     private MinecraftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Screen screen) {
-        super(MinecraftScreen.location(nexo, screen), MinecraftRoleType.uncraft(nexo, Type.SCREEN, screen), TextData.TEXT);
+        super(MinecraftRoleType.uncraft(nexo, Type.SCREEN, screen), TextData.TEXT);
+        this.identify(nexo, nexo.getRegistryHandler().identity(location(nexo, screen)));
         this.screen = screen;
     }
 

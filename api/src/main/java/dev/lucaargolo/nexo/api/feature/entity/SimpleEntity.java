@@ -14,30 +14,18 @@ public class SimpleEntity extends EntityBase {
 
     private final @Nullable Renderer<Graphics3D, EntityUnit> renderer;
 
-    public SimpleEntity(@NotNull Location location) {
-        super(location);
-        this.renderer = null;
-    }
-
-    public SimpleEntity(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
-        this.renderer = null;
-    }
-
     public SimpleEntity(
-            @NotNull Location location,
-            @NotNull Renderer<Graphics3D, EntityUnit> renderer
+            @Nullable Renderer<Graphics3D, EntityUnit> renderer
     ) {
-        super(location);
+        super();
         this.renderer = renderer;
     }
 
     public SimpleEntity(
-            @NotNull Location location,
             @NotNull Supplier<Role> role,
-            @NotNull Renderer<Graphics3D, EntityUnit> renderer
+            @Nullable Renderer<Graphics3D, EntityUnit> renderer
     ) {
-        super(location, role);
+        super(role);
         this.renderer = renderer;
     }
 

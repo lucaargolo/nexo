@@ -10,12 +10,12 @@ import java.util.function.Supplier;
 
 public abstract class ItemCategoryBase extends Feature<ItemCategoryBase, ItemCategoryUnit> {
 
-    public ItemCategoryBase(@NotNull Location location) {
-        super(location);
+    public ItemCategoryBase() {
+
     }
 
-    public ItemCategoryBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public ItemCategoryBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

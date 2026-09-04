@@ -11,12 +11,12 @@ import java.util.function.Supplier;
 
 public abstract class EntityBase extends Feature<EntityBase, EntityUnit> implements VaultFactory<EntityUnit>, RendererProvider<Graphics3D, EntityUnit>, TickerProvider<EntityUnit>, DataInitializer {
 
-    public EntityBase(@NotNull Location location) {
-        super(location);
+    public EntityBase() {
+
     }
 
-    public EntityBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public EntityBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

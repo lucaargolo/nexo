@@ -75,6 +75,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -98,6 +99,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     protected final MinecraftLanguageHandler languageHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
+    private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
     public final Map<Feature.Type<?, ?>, Map<Location, Feature<?, ?>>> directRegistry = new ConcurrentHashMap<>();
 
     public NexoMinecraft() {
@@ -113,10 +115,13 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         this.renderingHandler.init();
         this.registryHandler.beginFeatureRegistration();
         try {
-            this.registerFeature(TextData.TEXT);
+            this.registerFeature(TextData.TEXT, Location.of(MOD_ID, "text"));
             this.discoveryHandler.init();
         } finally {
             this.registryHandler.endFeatureRegistration();
+            List<FeatureRegisteredEvent> events = List.copyOf(this.pendingFeatureEvents);
+            this.pendingFeatureEvents.clear();
+            events.forEach(this::emit);
         }
     }
 
@@ -220,18 +225,24 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     }
 
     @Override
+    public <T> boolean validateAuthority(@NotNull T authority) {
+        return authority == registryHandler;
+    }
+
+    @Override
     public @Nullable <T extends Feature<T, U>, U extends Unit<T>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location) {
         return MinecraftFeatureType.of(type).lookup(this, location);
     }
 
     @Override
-    public @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature) {
+    public @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature, @NotNull Location location) {
+        feature.identify(this, registryHandler.identity(location));
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
             MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
                 Feature<?, ?> registered = t.register(this, feature);
                 if (t.registryType() == MinecraftFeatureType.RegistryType.DIRECT) {
-                    this.emit(new FeatureRegisteredEvent(registered.location(), registered));
+                    this.pendingFeatureEvents.add(new FeatureRegisteredEvent(registered.location(), registered));
                 }
                 return feature;
             }

@@ -32,13 +32,13 @@ public final class PacketTest {
     }
 
     public static void register(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
-        BlockPositionData blockPositionData = nexo.registerFeature(new BlockPositionData());
+        BlockPositionData blockPositionData = nexo.registerFeature(new BlockPositionData(), NexoTestMod.id("block_position"));
 
         BlockBase air = requireNonNull(nexo.getFeature(Feature.Type.BLOCK, Location.of("minecraft", "air")), "Missing minecraft:air feature");
         BlockUnit airUnit = requireNonNull(nexo.unit(air), "Missing minecraft:air unit");
 
         Class<EntityUnit> receiverType = Nexo.type(EntityUnit.class);
-        Packet<Vector3i, EntityUnit> packet = nexo.registerFeature(new Packet<>(NexoTestMod.id("break_block"), blockPositionData, receiverType) {
+        Packet<Vector3i, EntityUnit> packet = nexo.registerFeature(new Packet<>(blockPositionData, receiverType) {
             @Override
             public void handle(@NotNull EntityUnit receiver) {
                 WorldUnit world = receiver.world();
@@ -49,10 +49,9 @@ public final class PacketTest {
                     }
                 }
             }
-        });
+        }, NexoTestMod.id("break_block"));
 
         BlockBase packetTestBlock = nexo.registerFeature(new SimpleBlock(
-                NexoTestMod.id("packet_test_block"),
                 ModelResource.full(Location.of("minecraft", "block/bedrock"))
         ) {
             @Override
@@ -62,8 +61,8 @@ public final class PacketTest {
                 }
                 return Interaction.SUCCESS;
             }
-        });
-        nexo.registerFeature(new BlockItem(packetTestBlock, category));
+        }, NexoTestMod.id("packet_test_block"));
+        nexo.registerFeature(new BlockItem(packetTestBlock, category), packetTestBlock.location());
     }
 
     private static final class BlockPositionData extends DataBase<Vector3i> {
@@ -72,7 +71,7 @@ public final class PacketTest {
         private final Vector3i initial;
 
         private BlockPositionData() {
-            super(NexoTestMod.id("block_position"));
+            super();
             this.initial = new Vector3i();
         }
 

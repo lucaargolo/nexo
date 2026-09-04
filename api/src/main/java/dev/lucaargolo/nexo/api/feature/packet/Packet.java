@@ -20,8 +20,7 @@ public abstract class Packet<D, R extends PacketReceiver> extends Feature<Packet
     @NotNull
     private final ThreadLocal<Deque<D>> receivedValues = ThreadLocal.withInitial(ArrayDeque::new);
 
-    protected Packet(@NotNull Location location, @NotNull DataBase<D> data, @NotNull Class<R> receiverType) {
-        super(location);
+    protected Packet(@NotNull DataBase<D> data, @NotNull Class<R> receiverType) {
         this.data = data;
         this.receiverType = receiverType;
     }

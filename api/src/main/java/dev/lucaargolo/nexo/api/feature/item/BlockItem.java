@@ -22,7 +22,7 @@ public class BlockItem extends ItemBase {
             @NotNull BlockBase block,
             @Nullable ItemCategoryBase category
     ) {
-        super(block.location(), () -> new BlockItemRole(block));
+        super(() -> new BlockItemRole(block));
         this.renderer = renderer(block.renderer());
         this.category = category;
     }

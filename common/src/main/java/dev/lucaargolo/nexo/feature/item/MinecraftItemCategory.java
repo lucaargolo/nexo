@@ -39,7 +39,8 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     private final Holder<CreativeModeTab> holder;
 
     private MinecraftItemCategory(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<CreativeModeTab> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.ITEM_CATEGORY, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.ITEM_CATEGORY, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
     }
 

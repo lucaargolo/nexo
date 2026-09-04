@@ -18,13 +18,12 @@ public abstract class ScreenBase<D> extends Feature<ScreenBase<D>, ScreenUnit<D>
 
     private final @NotNull DataBase<D> data;
 
-    public ScreenBase(@NotNull Location location, @NotNull DataBase<D> data) {
-        super(location);
+    public ScreenBase(@NotNull DataBase<D> data) {
         this.data = data;
     }
 
-    public ScreenBase(@NotNull Location location, @NotNull Supplier<Role> role, @NotNull DataBase<D> data) {
-        super(location, role);
+    public ScreenBase(@NotNull Supplier<Role> role, @NotNull DataBase<D> data) {
+        super(role);
         this.data = data;
     }
 

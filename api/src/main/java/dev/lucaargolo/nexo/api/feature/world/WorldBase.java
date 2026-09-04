@@ -12,12 +12,12 @@ import java.util.function.Supplier;
 
 public abstract class WorldBase extends Feature<WorldBase, WorldUnit> implements TickerProvider<WorldUnit>, DataInitializer {
 
-    public WorldBase(@NotNull Location location) {
-        super(location);
+    public WorldBase() {
+
     }
 
-    public WorldBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public WorldBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

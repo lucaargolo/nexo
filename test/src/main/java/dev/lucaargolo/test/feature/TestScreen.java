@@ -293,8 +293,8 @@ public class TestScreen extends SimpleScreen {
     private int cellY;
     private int contentScale;
 
-    public TestScreen(Location location) {
-        super(location);
+    public TestScreen() {
+        super();
     }
 
     @Override

@@ -12,12 +12,12 @@ import java.util.function.Supplier;
 
 public abstract class ItemBase extends Feature<ItemBase, ItemUnit> implements ItemProvider, VaultFactory<ItemUnit>, RendererProvider<Graphics3D, ItemUnit>, TickerProvider<ItemUnit>, DataInitializer {
 
-    public ItemBase(@NotNull Location location) {
-        super(location);
+    public ItemBase() {
+
     }
 
-    public ItemBase(@NotNull Location location, @NotNull Supplier<Role> role) {
-        super(location, role);
+    public ItemBase(@NotNull Supplier<Role> role) {
+        super(role);
     }
 
     @Override

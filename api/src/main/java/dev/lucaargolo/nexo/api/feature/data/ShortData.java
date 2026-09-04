@@ -12,8 +12,7 @@ public final class ShortData extends DataBase<Short> {
     @NotNull
     private final Short initial;
 
-    public ShortData(@NotNull Location location, @NotNull Short initial) {
-        super(location);
+    public ShortData(@NotNull Short initial) {
         this.initial = initial;
     }
 

@@ -32,14 +32,13 @@ public final class EntityTest {
         ShaderResource fragmentShader = requireNonNull(nexo.getResource(Resource.Type.SHADER, NexoTestMod.id("blackhole.fsh")), "Missing blackhole.fsh shader");
         ShaderSource blackHoleSource = new ShaderSource(vertexShader.source(), fragmentShader.source());
         nexo.registerFeature(new SimpleEntity(
-                NexoTestMod.id("test_entity"),
                 blackHoleRenderer(blackHoleSource)
         ) {
             @Override
             public Ticker<EntityUnit> ticker() {
                 return unit -> { };
             }
-        });
+        }, NexoTestMod.id("test_entity"));
     }
 
     private static @NotNull Renderer<Graphics3D, EntityUnit> blackHoleRenderer(@NotNull ShaderSource source) {

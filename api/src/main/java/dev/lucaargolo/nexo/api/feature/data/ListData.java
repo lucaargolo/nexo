@@ -13,8 +13,7 @@ public final class ListData<D> extends DataBase<List<D>> {
 
     private final @NotNull DataBase<D> data;
 
-    public ListData(@NotNull Location location, @NotNull DataBase<D> data) {
-        super(location);
+    public ListData(@NotNull DataBase<D> data) {
         this.data = data;
     }
 

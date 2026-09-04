@@ -17,8 +17,7 @@ public final class ItemData extends DataBase<ItemUnit> {
 
     private final @NotNull Nexo nexo;
 
-    public ItemData(@NotNull Location location, @NotNull Nexo nexo) {
-        super(location);
+    public ItemData(@NotNull Nexo nexo) {
         this.nexo = nexo;
     }
 

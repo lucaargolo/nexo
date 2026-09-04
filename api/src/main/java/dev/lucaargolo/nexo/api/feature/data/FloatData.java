@@ -12,8 +12,7 @@ public final class FloatData extends DataBase<Float> {
     @NotNull
     private final Float initial;
 
-    public FloatData(@NotNull Location location, @NotNull Float initial) {
-        super(location);
+    public FloatData(@NotNull Float initial) {
         this.initial = initial;
     }
 

@@ -10,8 +10,8 @@ import java.util.Map;
 
 public class SimpleScreen extends ScreenBase<Text> {
 
-    public SimpleScreen(@NotNull Location location) {
-        super(location, TextData.TEXT);
+    public SimpleScreen() {
+        super(TextData.TEXT);
     }
 
     @Override

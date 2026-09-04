@@ -26,9 +26,11 @@ public interface Nexo {
 
     byte @Nullable [] loadResource(@NotNull Location location);
 
+    <T> boolean validateAuthority(@NotNull T authority);
+
     @Nullable <T extends Feature<T, U>, U extends Unit<T>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location);
 
-    @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature);
+    @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature, @NotNull Location location);
 
     @Nullable <T extends Feature<T, U>, U extends Unit<T>> U unit(@NotNull Feature<T, U> feature);
 

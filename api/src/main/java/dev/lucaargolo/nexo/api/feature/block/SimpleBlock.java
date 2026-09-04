@@ -20,14 +20,14 @@ public class SimpleBlock extends BlockBase {
     private final @Nullable BlockItem item;
     private final @Nullable StaticRenderer<Graphics3D, BlockUnit> renderer;
 
-    public SimpleBlock(@NotNull Location location, @Nullable ModelResource resource, @Nullable BlockItem item) {
-        super(location);
+    public SimpleBlock(@Nullable ModelResource resource, @Nullable BlockItem item) {
+        super();
         this.item = item;
         this.renderer = resource != null ? new ModelRenderer<>(resource) : null;
     }
 
-    public SimpleBlock(@NotNull Location location, @Nullable ModelResource resource) {
-        this(location, resource, null);
+    public SimpleBlock(@Nullable ModelResource resource) {
+        this(resource, null);
     }
 
     @Override

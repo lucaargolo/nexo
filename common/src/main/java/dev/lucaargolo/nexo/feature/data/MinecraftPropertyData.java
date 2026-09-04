@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.feature.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -11,14 +12,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class MinecraftPropertyData<T extends Comparable<T>> extends DataBase.Constrained<T> {
 
     private final @NotNull Property<T> property;
     private final @NotNull T initial;
 
-    public MinecraftPropertyData(@NotNull Location location, @NotNull Property<T> property, @NotNull T initial) {
-        super(location);
+    public MinecraftPropertyData(@NotNull Property<T> property, @NotNull T initial) {
         this.property = property;
         this.initial = initial;
     }
@@ -73,6 +74,10 @@ public class MinecraftPropertyData<T extends Comparable<T>> extends DataBase.Con
     public @NotNull T deserialize(@NotNull JsonElement element) {
         String string = element.getAsString();
         return this.property.getValue(string).orElseThrow(() -> new IllegalArgumentException("Unknown value '" + string + "' for property " + this.property));
+    }
+
+    public static <T extends Comparable<T>> MinecraftPropertyData<T> of(@NotNull Property<T> property, @NotNull Function<Property<T>, T> provider) {
+        return new MinecraftPropertyData<T>(property, provider.apply(property));
     }
 
 }

@@ -2,12 +2,14 @@ package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
@@ -96,6 +98,14 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         return this;
     }
 
+    public static @NotNull ItemUnit empty(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
+        ItemBase item = nexo.getFeature(Feature.Type.ITEM, Location.of("minecraft", "air"));
+        if(item == null) {
+            throw new IllegalStateException("Couldn't find empty item");
+        }
+        return new MinecraftItemUnit(nexo, item, null, ItemStack.EMPTY) {};
+    }
+
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {
         if (data instanceof MinecraftData<D> minecraftData) {
             return minecraftData.component();
@@ -103,4 +113,5 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         Class<DataComponentType<D>> clazz = Nexo.type(DataComponentType.class);
         return clazz.cast(MinecraftFeatureType.DATA.convert(data));
     }
+
 }

@@ -97,15 +97,18 @@ public class MinecraftBlock extends BlockBase {
     private final @NotNull List<@NotNull DataBase<?>> initialData;
 
     private MinecraftBlock(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Block> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.BLOCK, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.BLOCK, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
         this.holder = holder;
         Block block = holder.value();
         BlockState defaultState = block.defaultBlockState();
-        Location location = NexoMinecraft.id(holder);
         List<@NotNull DataBase<?>> initialData = new ArrayList<>();
         for (Property<?> property : block.getStateDefinition().getProperties()) {
-            initialData.add(propertyData(location, defaultState, property));
+            Location location = NexoMinecraft.id(holder).withPath(l -> l.path() + "/" + property.getName());
+            MinecraftPropertyData<?> data = MinecraftPropertyData.of(property, defaultState::getValue);
+            nexo.registerFeature(data, location);
+            initialData.add(data);
         }
         this.initialData = List.copyOf(initialData);
     }
@@ -113,10 +116,6 @@ public class MinecraftBlock extends BlockBase {
     @Override
     public @NotNull List<@NotNull DataBase<?>> initialData() {
         return this.initialData;
-    }
-
-    private static <T extends Comparable<T>> @NotNull DataBase<?> propertyData(@NotNull Location location, @NotNull BlockState defaultState, @NotNull Property<T> property) {
-        return new MinecraftPropertyData<>(Location.of(location.namespace(), location.path() + "/" + property.getName()), property, defaultState.getValue(property));
     }
 
     @Override

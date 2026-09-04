@@ -12,8 +12,7 @@ public final class LongData extends DataBase<Long> {
     @NotNull
     private final Long initial;
 
-    public LongData(@NotNull Location location, @NotNull Long initial) {
-        super(location);
+    public LongData(@NotNull Long initial) {
         this.initial = initial;
     }
 

@@ -118,8 +118,8 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
     }
 
     @Override
-    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor) {
-        MenuScreens.register(type, constructor::create);
+    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, U> constructor) {
+        MenuScreens.register(type.get(), constructor::create);
     }
 
 }

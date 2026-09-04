@@ -12,8 +12,7 @@ public final class IntegerData extends DataBase<Integer> {
     @NotNull
     private final Integer initial;
 
-    public IntegerData(@NotNull Location location, @NotNull Integer initial) {
-        super(location);
+    public IntegerData(@NotNull Integer initial) {
         this.initial = initial;
     }
 

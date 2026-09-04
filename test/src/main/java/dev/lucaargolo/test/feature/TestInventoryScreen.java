@@ -17,8 +17,8 @@ public final class TestInventoryScreen extends ScreenBase<Text> {
     public static Location PLAYER_INVENTORY_KEY = NexoTestMod.id("player_inventory");
     public static Location CHEST_INVENTORY_KEY = NexoTestMod.id("chest_inventory");
 
-    public TestInventoryScreen(Location location) {
-        super(location, () -> new InventoryRole(Map.of(
+    public TestInventoryScreen() {
+        super(() -> new InventoryRole(Map.of(
                 CHEST_INVENTORY_KEY, new InventoryRole.Config(18, 18,
                         InventoryRole.Config.SlotDistribution.grid(9).margin(8, 18)
                 ),

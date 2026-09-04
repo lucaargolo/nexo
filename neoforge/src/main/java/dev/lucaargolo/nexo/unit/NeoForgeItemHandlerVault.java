@@ -21,7 +21,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> imple
 
     public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
         this.nexo = nexo;
-        this.defaultValue = MinecraftItemVault.emptyValue(nexo);
+        this.defaultValue = MinecraftItemUnit.empty(nexo);
         this.handler = handler;
     }
 

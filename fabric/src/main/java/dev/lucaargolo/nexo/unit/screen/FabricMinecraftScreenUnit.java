@@ -33,10 +33,11 @@ public class FabricMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
         if(isDynamic) {
             if(entity.side().isServer()) {
                 if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
+                    ExtendedScreenHandlerType<?, D> menuType = (ExtendedScreenHandlerType<?, D>) MinecraftScreen.CONVERT_MENU.forward(feature).value();
                     return player.openMenu(new ExtendedScreenHandlerFactory<>() {
                         @Override
                         public @NotNull AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-                            return ((ExtendedScreenHandlerType<?, D>) MinecraftScreen.CONVERT_MENU.forward(feature).value()).create(i, inventory, data);
+                            return menuType.create(i, inventory, data);
                         }
 
                         @Override

@@ -12,8 +12,7 @@ public final class ByteData extends DataBase<Byte> {
     @NotNull
     private final Byte initial;
 
-    public ByteData(@NotNull Location location, @NotNull Byte initial) {
-        super(location);
+    public ByteData(@NotNull Byte initial) {
         this.initial = initial;
     }
 

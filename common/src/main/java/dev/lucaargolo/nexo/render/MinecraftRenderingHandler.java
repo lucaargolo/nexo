@@ -127,8 +127,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                 }
                 case ScreenBase<?> screen -> {
                     if (MinecraftScreen.isDynamicScreen(screen)) {
-                        Class<MenuType<AbstractContainerMenu>> menuTypeClass = Nexo.type(MenuType.class);
-                        MenuType<AbstractContainerMenu> menuType = menuTypeClass.cast(MinecraftScreen.CONVERT_MENU.forward(screen).value());
+                        Supplier<MenuType<? extends AbstractContainerMenu>> menuType = () -> MinecraftScreen.CONVERT_MENU.forward(screen).value();
                         Class<AbstractContainerScreen<AbstractContainerMenu>> screenClass = Nexo.type(AbstractContainerScreen.class);
                         this.registerMenuScreen(menuType, (AbstractContainerMenu menu, Inventory inventory, Component component) -> screenClass.cast(MinecraftScreen.CONVERT.forward(screen).craft(new MinecraftScreen.ScreenParameters<>(menu, inventory, component))));
                     }
@@ -215,7 +214,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         }
     }
 
-    protected abstract <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(MenuType<? extends M> type, ScreenConstructor<M, U> constructor);
+    protected abstract <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, U> constructor);
 
     private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {

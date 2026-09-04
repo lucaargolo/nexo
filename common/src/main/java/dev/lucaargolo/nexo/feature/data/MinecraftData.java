@@ -47,7 +47,8 @@ public class MinecraftData<D> extends DataBase<D> {
     private final @NotNull Holder<?> holder;
 
     private MinecraftData(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<?> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.DATA, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.DATA, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
         this.holder = holder;
     }

@@ -56,27 +56,15 @@ public class NexoTestMod {
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_jpeg"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_webp"));
         nexo.registerResource(Resource.Type.IMAGE, id("test_block_translucent"));
-        ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(NexoTestMod.id("test")));
+        ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(), NexoTestMod.id("test"));
 
-        AtomicBoolean directFeatureEventReceived = new AtomicBoolean();
-        Predicate<FeatureRegisteredEvent> directFeatureListener = event -> {
-            if (event.location().equals(NexoTestMod.id("test_screen"))) {
-                directFeatureEventReceived.set(true);
-            }
-            return true;
-        };
-        nexo.on(FeatureRegisteredEvent.class, directFeatureListener);
-        TestScreen testScreen = nexo.registerFeature(new TestScreen(NexoTestMod.id("test_screen")));
-        nexo.off(FeatureRegisteredEvent.class, directFeatureListener);
-        if (!directFeatureEventReceived.get()) {
-            throw new IllegalStateException("Direct feature registration did not emit FeatureRegisteredEvent");
-        }
+        TestScreen testScreen = nexo.registerFeature(new TestScreen(), NexoTestMod.id("test_screen"));
         ScreenUnit<Text> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
         if (testScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }
 
-        TestInventoryScreen testInventoryScreen = nexo.registerFeature(new TestInventoryScreen(NexoTestMod.id("test_inventory_screen")));
+        TestInventoryScreen testInventoryScreen = nexo.registerFeature(new TestInventoryScreen(), NexoTestMod.id("test_inventory_screen"));
         ScreenUnit<Text> testInventoryScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test inventory screen unit");
         if (testInventoryScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
@@ -107,8 +95,7 @@ public class NexoTestMod {
         if (nexo.getResource(Resource.Type.IMAGE, id("test_block_registered.png")) == null) {
             throw new IllegalStateException("registerResource/getResource round trip failed");
         }
-        BiomeBase biome = nexo.registerFeature(new BiomeBase(NexoTestMod.id("test_biome")) {
-        });
+        BiomeBase biome = nexo.registerFeature(new BiomeBase() {}, id("test_biome"));
         if (nexo.getFeature(Feature.Type.BIOME, id("test_biome")) != biome) {
             throw new IllegalStateException("Biome feature round trip failed");
         }

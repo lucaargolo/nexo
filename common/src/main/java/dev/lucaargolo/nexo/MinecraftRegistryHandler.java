@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.minecraft.core.Holder;
@@ -30,7 +31,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
+public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, ?>> {
 
     private final Map<ResourceKey<?>, Registry<?>> customRegistries = new LinkedHashMap<>();
 
@@ -140,6 +141,34 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft> {
             return currentServer.registryAccess();
         }
         return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+    }
+
+    public Feature.Identity<MinecraftRegistryHandler<N>> identity(@NotNull Holder<?> holder) {
+        return new Identity(NexoMinecraft.id(holder));
+    }
+
+    public Feature.Identity<MinecraftRegistryHandler<N>> identity(@NotNull Location location) {
+        return new Identity(location);
+    }
+
+    public class Identity implements Feature.Identity<MinecraftRegistryHandler<N>> {
+
+        private final Location location;
+
+        public Identity(Location location) {
+            this.location = location;
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return this.location;
+        }
+
+        @Override
+        public @NotNull MinecraftRegistryHandler<N> authority() {
+            return MinecraftRegistryHandler.this;
+        }
+
     }
 
 }

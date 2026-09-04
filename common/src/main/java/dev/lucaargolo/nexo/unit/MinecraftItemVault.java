@@ -1,10 +1,9 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
-import dev.lucaargolo.nexo.api.render.Graphics3D;
-import dev.lucaargolo.nexo.api.render.Renderer;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
@@ -16,23 +15,12 @@ import java.util.*;
 
 abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
-    private static final @NotNull ItemBase EMPTY_FEATURE = new ItemBase(Location.of("nexo", "empty_vault_slot")) {
-        @Override
-        public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
-            return null;
-        }
-    };
-
     protected final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull ItemUnit defaultValue;
 
     MinecraftItemVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
         this.nexo = nexo;
-        this.defaultValue = emptyValue(nexo);
-    }
-
-    static @NotNull ItemUnit emptyValue(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
-        return new MinecraftItemUnit(nexo, EMPTY_FEATURE, null, ItemStack.EMPTY) {};
+        this.defaultValue = MinecraftItemUnit.empty(nexo);
     }
 
     abstract int slotCount();

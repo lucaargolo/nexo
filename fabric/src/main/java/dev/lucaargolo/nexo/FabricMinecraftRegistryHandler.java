@@ -65,42 +65,6 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
-    public void beginFeatureRegistration() {
-        featureRegistrationActive = true;
-    }
-
-    @Override
-    public void endFeatureRegistration() {
-        featureRegistrationActive = false;
-        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
-        pendingFeatureEvents.clear();
-        events.forEach(this.nexo()::emit);
-    }
-
-    @Override
-    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(
-            @NotNull MinecraftFeatureType<T, U, M> type,
-            @NotNull T feature,
-            @NotNull Supplier<M> minecraft
-    ) {
-        Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
-        var vaultFactories = this.vaultFactories(feature, itemUnitType);
-        if (vaultFactories.isEmpty()) {
-            return;
-        }
-        M value = minecraft.get();
-        if (type.minecraftType() == Block.class) {
-            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().blockToUnit(world, pos, state, blockEntity, direction), vaultFactories)), Block.class.cast(value));
-        } else if (type.minecraftType() == Item.class) {
-            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), Item.class.cast(value));
-        } else if (type.minecraftType() == EntityType.class) {
-            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories)), EntityType.class.cast(value));
-        } else {
-            throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
-        }
-    }
-
-    @Override
     public void init() {
         super.init();
         DynamicRegistrySetupCallback.EVENT.register(view -> {
@@ -111,9 +75,9 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
                 Class<MinecraftFeatureType<?, ?, Object>> featureTypeClass = Nexo.type(MinecraftFeatureType.class);
                 MinecraftFeatureType<?, ?, Object> typedType = featureTypeClass.cast(type);
                 view.registerEntryAdded(typedType.registry(), (raw, id, value) -> {
-                Holder.Reference<Object> holder = view.getOptional(typedType.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), typedType.index(this.nexo(), holder)));
-                dynamicHolders.put(holder.key(), holder);
+                    Holder.Reference<Object> holder = view.getOptional(typedType.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
+                    emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(id), typedType.index(this.nexo(), holder)));
+                    dynamicHolders.put(holder.key(), holder);
                 });
             });
             dynamicRegistrars.forEach((key, registrar) -> {
@@ -129,8 +93,36 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
+    protected RegistryAccess getLocalRegistry() {
+        return null;
+    }
+
+    @Override
+    public void beginFeatureRegistration() {
+        featureRegistrationActive = true;
+    }
+
+    @Override
+    public void endFeatureRegistration() {
+        featureRegistrationActive = false;
+        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
+        pendingFeatureEvents.clear();
+        events.forEach(this.nexo()::emit);
+    }
+
+    @Override
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         return Registry.registerForHolder(registry, id, feature.get());
+    }
+
+    @Override
+    public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
+        Component title = Component.translatable(category.languageKey());
+        return FabricItemGroup.builder().title(title).displayItems((parameters, output) -> {
+            MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
+                output.accept(MinecraftFeatureType.ITEM.convert(item));
+            });
+        }).build();
     }
 
     @Override
@@ -169,20 +161,6 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         attachmentDataMap.put(type, data);
     }
 
-    public CreativeModeTab craftCreativeTab(ItemCategoryBase category) {
-        Component title = Component.translatable(category.languageKey());
-        return FabricItemGroup.builder().title(title).displayItems((parameters, output) -> {
-            MinecraftItemCategory.ITEM_MAP.getOrDefault(category, List.of()).forEach(item -> {
-                output.accept(MinecraftFeatureType.ITEM.convert(item));
-            });
-        }).build();
-    }
-
-    @Override
-    protected RegistryAccess getLocalRegistry() {
-        return null;
-    }
-
     @Override
     protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
@@ -192,12 +170,32 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         });
     }
 
-    private void emitFeatureRegistered(FeatureRegisteredEvent event) {
-        if (featureRegistrationActive) {
-            pendingFeatureEvents.add(event);
-        } else {
-            this.nexo().emit(event);
+    @Override
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, U, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
+        Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
+        var vaultFactories = this.vaultFactories(feature, itemUnitType);
+        if (vaultFactories.isEmpty()) {
+            return;
         }
+        M value = minecraft.get();
+        if (type.minecraftType() == Block.class) {
+            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().blockToUnit(world, pos, state, blockEntity, direction), vaultFactories)), Block.class.cast(value));
+        } else if (type.minecraftType() == Item.class) {
+            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), Item.class.cast(value));
+        } else if (type.minecraftType() == EntityType.class) {
+            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> FabricVaultStorage.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories)), EntityType.class.cast(value));
+        } else {
+            throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
+        }
+    }
+
+    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
+        return clazz.cast(dataAttachmentMap.get(data));
+    }
+
+    public @Nullable DataBase<?> getAttachmentData(@NotNull AttachmentType<?> type) {
+        return attachmentDataMap.get(type);
     }
 
     private <T> @Nullable T createVaultCapability(@NotNull Object feature, @NotNull Supplier<T> creator) {
@@ -215,13 +213,13 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
         }
     }
 
-    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
-        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
-        return clazz.cast(dataAttachmentMap.get(data));
+    private void emitFeatureRegistered(FeatureRegisteredEvent event) {
+        if (featureRegistrationActive) {
+            pendingFeatureEvents.add(event);
+        } else {
+            this.nexo().emit(event);
+        }
     }
 
-    public @Nullable DataBase<?> getAttachmentData(@NotNull AttachmentType<?> type) {
-        return attachmentDataMap.get(type);
-    }
 
 }

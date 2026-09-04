@@ -25,32 +25,52 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 
 public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
-    @NotNull
-    private final Location location;
+    private static final @NotNull List<@NotNull Feature<?, ?>> INVALID = new CopyOnWriteArrayList<>();
+
     @NotNull
     private final Supplier<Role> role;
 
-    public Feature(@NotNull Location location) {
-        this(location, () -> null);
+    @Nullable
+    private Feature.Identity<?> identity = null;
+
+    public Feature(@NotNull Supplier<Role> role) {
+        this.role = role;
+        INVALID.add(this);
     }
 
-    public Feature(@NotNull Location location, @NotNull Supplier<Role> role) {
-        this.location = location;
-        this.role = role;
+    public Feature() {
+        this(() -> null);
+    }
+
+    public void identify(@NotNull Nexo nexo, @NotNull Feature.Identity<?> identity) {
+        if(this.identity == null) {
+            if(nexo.validateAuthority(identity.authority())) {
+                INVALID.remove(this);
+                this.identity = identity;
+            }else{
+                throw new IllegalStateException("Feature authority is not valid for current platform");
+            }
+        }else{
+            throw new IllegalStateException("Feature already has an identity");
+        }
     }
 
     public abstract @NotNull Type<T, U> type();
 
     public final @NotNull Location location() {
-        return location;
+        if(identity == null) {
+            throw new IllegalStateException("Feature has not been registered");
+        }
+        return identity.location();
     }
 
     public final @NotNull String languageKey() {
-        return type().identifier + "." + location.namespace() + "." + location.path().replace("/", ".");
+        return type().identifier + "." + location().namespace() + "." + location().path().replace("/", ".");
     }
 
     public @Nullable Role role() {
@@ -166,6 +186,20 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
             return clazz.cast(SCREEN);
         }
 
+    }
+
+    public interface Identity<T> {
+
+        @NotNull Location location();
+
+        @NotNull T authority();
+
+    }
+
+    private static void validateAll() {
+        if(!INVALID.isEmpty()) {
+            throw new IllegalStateException("Some features were not properly identified");
+        }
     }
 
 }

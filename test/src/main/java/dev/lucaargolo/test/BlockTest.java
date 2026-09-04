@@ -10,6 +10,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.data.ItemData;
 import dev.lucaargolo.nexo.api.feature.data.StringData;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.render.Renderer;
@@ -41,7 +42,7 @@ public final class BlockTest {
 
 
     private static final Renderer<Graphics3D, BlockUnit> DYNAMIC_RENDERER = new TestDynamicBlockRenderer();
-    private static final BooleanData STATE = new BooleanData(NexoTestMod.id("test_state"), false);
+    private static final BooleanData STATE = new BooleanData(false);
 
     private BlockTest() {
     }
@@ -63,9 +64,9 @@ public final class BlockTest {
     }
 
     private static void registerChestBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull TestInventoryScreen screen) {
-        ItemData chestData = nexo.registerFeature(new ItemData(NexoTestMod.id("test_chest_data"), nexo));
-        DataBase<List<ItemUnit>> chestInventory = nexo.registerFeature(DataBase.list(chestData));
-        BlockBase chest = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_chest"), nexo.getResource(Resource.Type.MODEL, Location.of("minecraft", "block/barrel"))) {
+        ItemData chestData = nexo.registerFeature(new ItemData(nexo), NexoTestMod.id("test_chest_data"));
+        DataBase<List<ItemUnit>> chestInventory = nexo.registerFeature(DataBase.list(chestData), NexoTestMod.id("test_chest_data_list"));
+        BlockBase chest = nexo.registerFeature(new SimpleBlock(nexo.getResource(Resource.Type.MODEL, Location.of("minecraft", "block/barrel"))) {
             @Override
             public void onBreak(@NotNull BlockUnit block) {
                 List<ItemUnit> items = block.getData(chestInventory);
@@ -89,22 +90,30 @@ public final class BlockTest {
 
             @Override
             public <V extends Unit<?>> @NotNull Map<String, Function<BlockUnit, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
-                return Map.of("inventory", unit -> new TestChestVault<>(type, unit, chestInventory));
+                if(type == ItemUnit.class) {
+                    ItemBase item = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
+                    ItemUnit empty = requireNonNull(nexo.unit(item));
+                    V initial = type.cast(empty);
+                    return Map.of("inventory", unit -> new TestChestVault<>(type, initial, unit, chestInventory));
+                }else{
+                    return Map.of();
+                }
             }
-        });
-        nexo.registerFeature(new BlockItem(chest, category));
+        }, NexoTestMod.id("test_chest"));
+        nexo.registerFeature(new BlockItem(chest, category), chest.location());
     }
 
 
 
     private static void registerModelBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull Location location, @NotNull ModelResource model) {
-        BlockBase block = nexo.registerFeature(new SimpleBlock(location, model));
-        nexo.registerFeature(new BlockItem(block, category));
+        BlockBase block = nexo.registerFeature(new SimpleBlock(model), location);
+        nexo.registerFeature(new BlockItem(block, category), block.location());
     }
 
     private static void registerStateBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category) {
         ModelResource model = requireNonNull(nexo.getResource(Resource.Type.MODEL, NexoTestMod.id("test_block.json")), "Missing test_block.json model");
-        BlockBase block = nexo.registerFeature(new SimpleBlock(NexoTestMod.id("test_state"), model) {
+        nexo.registerFeature(STATE, NexoTestMod.id("test_state"));
+        BlockBase block = nexo.registerFeature(new SimpleBlock(model) {
             @Override
             public @NotNull List<@NotNull DataBase<?>> initialData() {
                 return List.of(STATE);
@@ -115,14 +124,14 @@ public final class BlockTest {
                 world.setBlock(pos, block.withData(STATE, toggled -> !toggled));
                 return Interaction.SUCCESS;
             }
-        });
-        nexo.registerFeature(new BlockItem(block, category));
+        }, NexoTestMod.id("test_state"));
+        nexo.registerFeature(new BlockItem(block, category), block.location());
     }
 
     private static void registerDynamicBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull TestScreen screen) {
-        StringData dynamicData = new StringData(NexoTestMod.id("dynamic_block_data"), "initial");
-        nexo.registerFeature(dynamicData);
-        BlockBase block = nexo.registerFeature(new BlockBase(NexoTestMod.id("dynamic_block")) {
+        StringData dynamicData = new StringData("initial");
+        nexo.registerFeature(dynamicData, NexoTestMod.id("dynamic_block_data"));
+        BlockBase block = nexo.registerFeature(new BlockBase() {
             @Override
             public Renderer<Graphics3D, BlockUnit> renderer() {
                 return DYNAMIC_RENDERER;
@@ -149,13 +158,13 @@ public final class BlockTest {
                 block.withData(dynamicData, value -> value + "!");
                 return Interaction.SUCCESS;
             }
-        });
+        }, NexoTestMod.id("dynamic_block"));
         nexo.registerFeature(new BlockItem(block, category) {
             @Override
             public Ticker<ItemUnit> ticker() {
                 return unit -> { };
             }
-        });
+        }, block.location());
     }
 
 

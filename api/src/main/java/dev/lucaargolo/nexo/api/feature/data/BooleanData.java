@@ -15,8 +15,7 @@ public final class BooleanData extends DataBase.Constrained<Boolean> {
     @NotNull
     private final Boolean initial;
 
-    public BooleanData(@NotNull Location location, @NotNull Boolean initial) {
-        super(location);
+    public BooleanData(@NotNull Boolean initial) {
         this.initial = initial;
     }
 

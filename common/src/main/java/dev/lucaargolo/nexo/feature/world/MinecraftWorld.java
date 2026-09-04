@@ -47,7 +47,8 @@ public class MinecraftWorld extends WorldBase {
     private final Holder<LevelStem> holder;
 
     private MinecraftWorld(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<LevelStem> holder) {
-        super(NexoMinecraft.id(holder), MinecraftRoleType.uncraft(nexo, Type.WORLD, holder));
+        super(MinecraftRoleType.uncraft(nexo, Type.WORLD, holder));
+        this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
     }
 

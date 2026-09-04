@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit.screen;
 
+import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -32,10 +33,11 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
         if(isDynamic) {
             if(entity.side().isServer()) {
                 if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
+                    NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D> menuType = (NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D>) MinecraftScreen.CONVERT_MENU.forward(feature).value();
                     return player.openMenu(new MenuProvider() {
                         @Override
                         public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
-                            return MinecraftScreen.CONVERT_MENU.forward(feature).value().create(i, inventory);
+                            return menuType.create(i, inventory, data);
                         }
 
                         @Override
@@ -43,9 +45,7 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
                             //TODO
                             return Component.empty();
                         }
-                    }, buf -> {
-                        NexoMinecraft.packetCodec(feature.data()).encode(buf, data);
-                    }).isPresent();
+                    }, buf -> menuType.encode(buf, data)).isPresent();
                 }else{
                     throw new IllegalArgumentException("Minecraft dynamic screens can only be opened by minecraft server players");
                 }

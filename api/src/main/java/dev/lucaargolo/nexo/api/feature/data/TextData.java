@@ -12,13 +12,12 @@ import java.nio.charset.StandardCharsets;
 public final class TextData extends DataBase<Text> {
 
     @NotNull
-    public static final TextData TEXT = new TextData(Location.of("nexo", "text"), Text.literal(""));
+    public static final TextData TEXT = new TextData(Text.literal(""));
 
     @NotNull
     private final Text initial;
 
-    public TextData(@NotNull Location location, @NotNull Text initial) {
-        super(location);
+    public TextData(@NotNull Text initial) {
         this.initial = initial;
     }
 

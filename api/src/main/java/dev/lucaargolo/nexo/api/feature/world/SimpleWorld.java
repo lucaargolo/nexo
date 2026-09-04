@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class SimpleWorld extends WorldBase {
 
-    public SimpleWorld(@NotNull Location location) {
-        super(location);
+    public SimpleWorld() {
+
     }
 
 }
