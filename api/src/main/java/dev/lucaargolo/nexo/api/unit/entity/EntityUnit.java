@@ -5,7 +5,6 @@ import dev.lucaargolo.nexo.api.feature.DataProvider;
 import dev.lucaargolo.nexo.api.feature.SideProvider;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
-import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;

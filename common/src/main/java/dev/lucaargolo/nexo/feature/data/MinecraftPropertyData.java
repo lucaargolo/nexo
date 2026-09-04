@@ -2,9 +2,7 @@ package dev.lucaargolo.nexo.feature.data;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
-import dev.lucaargolo.nexo.api.util.Location;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.NotNull;
 

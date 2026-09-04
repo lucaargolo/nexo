@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.api.feature.data;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;

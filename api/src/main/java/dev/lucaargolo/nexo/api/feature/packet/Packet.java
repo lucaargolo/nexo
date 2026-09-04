@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.api.feature.packet;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
-import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 

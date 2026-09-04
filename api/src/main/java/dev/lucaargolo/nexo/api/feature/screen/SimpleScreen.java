@@ -3,7 +3,6 @@ package dev.lucaargolo.nexo.api.feature.screen;
 import dev.lucaargolo.nexo.api.feature.data.TextData;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Text;
-import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

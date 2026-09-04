@@ -11,7 +11,10 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.AbstractList;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 

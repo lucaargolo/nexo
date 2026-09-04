@@ -2,12 +2,10 @@ package dev.lucaargolo.nexo.unit.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
-import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
-import dev.lucaargolo.nexo.render.font.MinecraftText;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
