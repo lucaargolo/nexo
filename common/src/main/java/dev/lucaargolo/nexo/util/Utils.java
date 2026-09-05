@@ -282,7 +282,7 @@ public final class Utils {
             if (!isExtendable(type)) {
                 throw new IllegalArgumentException(type.getName() + " is not a subclassable class");
             }
-            this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
+            this.builder = new ByteBuddy().subclass(type, ConstructorStrategy.Default.IMITATE_SUPER_CLASS_OPENING);
         }
 
         public Class<? extends T> type() {
