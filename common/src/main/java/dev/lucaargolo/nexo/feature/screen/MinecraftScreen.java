@@ -30,7 +30,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector2f;
 
 import java.util.Locale;
 import java.util.Map;
@@ -132,22 +131,25 @@ public final class MinecraftScreen extends ScreenBase<Text> {
     }
 
     public static @NotNull <D, M extends AbstractContainerMenu> MinecraftScreen.MenuCrafter<D> craftMenu(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<MenuParameters<D>, M> factory, @NotNull ScreenBase<?> feature) {
-        extender.override(Utils.At.AFTER_SUPER, "quickMoveStack", ItemStack.class, Player.class, int.class, (menu, player, slot) -> {
-            return ItemStack.EMPTY;
-        });
-        extender.override(Utils.At.AFTER_SUPER, "stillValid", boolean.class, Player.class, (menu, player) -> {
-            return true;
-        });
+        // Supply defaults only for abstract menus; concrete roles retain their transfer and validity rules.
+        if (extender.isAbstract("quickMoveStack", ItemStack.class, Player.class, int.class)) {
+            extender.override("quickMoveStack", ItemStack.class, Player.class, int.class, (menu, superCall, player, slot) -> ItemStack.EMPTY);
+        }
+        if (extender.isAbstract("stillValid", boolean.class, Player.class)) {
+            extender.override("stillValid", boolean.class, Player.class, (menu, superCall, player) -> true);
+        }
         Function<MenuParameters<D>, M> menuFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.pType, parameters.id);
         return menuFactory::apply;
     }
 
     public static @NotNull <M extends Screen> MinecraftScreen.ScreenCrafter craftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<ScreenParameters<?>, M> factory, @NotNull ScreenBase<?> feature) {
-        extender.override(Utils.At.AFTER_SUPER, "init", void.class, screen -> {
+        extender.override("init", void.class, (screen, superCall) -> {
+            superCall.apply(screen);
             nexo.screenToUnit(screen, feature).build();
             return null;
         });
-        extender.override(Utils.At.AFTER_SUPER, "render", void.class, GuiGraphics.class, int.class, int.class, float.class, (screen, graphics, mouseX, mouseY, partialTick) -> {
+        extender.override("render", void.class, GuiGraphics.class, int.class, int.class, float.class, (screen, superCall, graphics, mouseX, mouseY, partialTick) -> {
+            superCall.apply(screen, graphics, mouseX, mouseY, partialTick);
             DynamicMinecraftGraphics2D g = new DynamicMinecraftGraphics2D(nexo, graphics.pose(), graphics.bufferSource(), LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
             try {
                 nexo.screenToUnit(screen, feature).mouse().set(mouseX, mouseY);
@@ -160,34 +162,33 @@ public final class MinecraftScreen extends ScreenBase<Text> {
             }
             return null;
         });
-        extender.override(Utils.At.AFTER_SUPER, "keyPressed", boolean.class, int.class, int.class, int.class, (screen, keyCode, scanCode, modifiers) -> {
-            return nexo.screenToUnit(screen, feature).inputPressed(Input.keyboard(GlfwKeyConversions.key(keyCode)));
+        extender.override("keyPressed", boolean.class, int.class, int.class, int.class, (screen, superCall, keyCode, scanCode, modifiers) -> {
+            boolean handled = superCall.apply(screen, keyCode, scanCode, modifiers);
+            return nexo.screenToUnit(screen, feature).inputPressed(Input.keyboard(GlfwKeyConversions.key(keyCode))) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "keyReleased", boolean.class, int.class, int.class, int.class, (screen, keyCode, scanCode, modifiers) -> {
-            return nexo.screenToUnit(screen, feature).inputReleased(Input.keyboard(GlfwKeyConversions.key(keyCode)));
+        extender.override("keyReleased", boolean.class, int.class, int.class, int.class, (screen, superCall, keyCode, scanCode, modifiers) -> {
+            boolean handled = superCall.apply(screen, keyCode, scanCode, modifiers);
+            return nexo.screenToUnit(screen, feature).inputReleased(Input.keyboard(GlfwKeyConversions.key(keyCode))) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "mouseClicked", boolean.class, double.class, double.class, int.class, (screen, mouseX, mouseY, button) -> {
-            return nexo.screenToUnit(screen, feature).inputPressed(Input.mouse(GlfwKeyConversions.mouse(button)));
+        extender.override("mouseClicked", boolean.class, double.class, double.class, int.class, (screen, superCall, mouseX, mouseY, button) -> {
+            boolean handled = superCall.apply(screen, mouseX, mouseY, button);
+            return nexo.screenToUnit(screen, feature).inputPressed(Input.mouse(GlfwKeyConversions.mouse(button))) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "mouseReleased", boolean.class, double.class, double.class, int.class, (screen, mouseX, mouseY, button) -> {
-            return nexo.screenToUnit(screen, feature).inputReleased(Input.keyboard(GlfwKeyConversions.mouse(button)));
+        extender.override("mouseReleased", boolean.class, double.class, double.class, int.class, (screen, superCall, mouseX, mouseY, button) -> {
+            boolean handled = superCall.apply(screen, mouseX, mouseY, button);
+            return nexo.screenToUnit(screen, feature).inputReleased(Input.mouse(GlfwKeyConversions.mouse(button))) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "mouseDragged", boolean.class, double.class, double.class, int.class, double.class, double.class, (screen, mouseX, mouseY, button, dragX, dragY) -> {
-            if(nexo.screenToUnit(screen, feature).inputMove(Input.Axis.MOUSE_X, dragX.floatValue())) {
-                return true;
-            }
-            return nexo.screenToUnit(screen, feature).inputMove(Input.Axis.MOUSE_Y, dragY.floatValue());
+        extender.override("mouseDragged", boolean.class, double.class, double.class, int.class, double.class, double.class, (screen, superCall, mouseX, mouseY, button, dragX, dragY) -> {
+            boolean handled = superCall.apply(screen, mouseX, mouseY, button, dragX, dragY);
+            return nexo.screenToUnit(screen, feature).handleMouseDragged(mouseX, mouseY, dragX, dragY) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "mouseScrolled", boolean.class, double.class, double.class, double.class, double.class, (screen, mouseX, mouseY, horizontalAmount, verticalAmount) -> {
-            return nexo.screenToUnit(screen, feature).inputMove(Input.Axis.SCROLL, verticalAmount.floatValue());
+        extender.override("mouseScrolled", boolean.class, double.class, double.class, double.class, double.class, (screen, superCall, mouseX, mouseY, horizontalAmount, verticalAmount) -> {
+            boolean handled = superCall.apply(screen, mouseX, mouseY, horizontalAmount, verticalAmount);
+            return nexo.screenToUnit(screen, feature).inputMove(Input.Axis.SCROLL, verticalAmount.floatValue()) || handled;
         });
-        extender.override(Utils.At.AFTER_SUPER, "mouseMoved", void.class, double.class, double.class, (screen, mouseX, mouseY) -> {
-            Vector2f previous = new Vector2f(); //TODO: Actually collect previous
-            if (previous.x >= 0.0 && previous.y >= 0.0) {
-                if(!nexo.screenToUnit(screen, feature).inputMove(Input.Axis.MOUSE_X, (float) (mouseX - previous.x))) {
-                    nexo.screenToUnit(screen, feature).inputMove(Input.Axis.MOUSE_Y, (float) (mouseY - previous.y));
-                }
-            }
+        extender.override("mouseMoved", void.class, double.class, double.class, (screen, superCall, mouseX, mouseY) -> {
+            superCall.apply(screen, mouseX, mouseY);
+            nexo.screenToUnit(screen, feature).handleMouseMoved(mouseX, mouseY);
             return null;
         });
         Function<ScreenParameters<?>, M> screenFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.title);

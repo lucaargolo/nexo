@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.unit.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
+import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
@@ -16,22 +17,21 @@ import org.joml.Vector2f;
 
 public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter> {
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
     private final @NotNull MinecraftScreen.ScreenCrafter crafter;
 
     private final @NotNull Vector2f mouse = new Vector2f();
+    private double previousMouseX = Double.NaN;
+    private double previousMouseY = Double.NaN;
     private @Nullable Screen screen;
 
     public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
         super(nexo, feature, role);
-        this.nexo = nexo;
         this.crafter = crafter;
         this.screen = null;
     }
 
     public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
         super(nexo, feature, role);
-        this.nexo = nexo;
         this.crafter = crafter;
         this.screen = screen;
     }
@@ -44,6 +44,13 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     @Override
     public @NotNull Vector2f mouse() {
         return mouse;
+    }
+
+    @Override
+    public void build() {
+        previousMouseX = Double.NaN;
+        previousMouseY = Double.NaN;
+        super.build();
     }
 
     @Override
@@ -66,6 +73,21 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
             //TODO: Send packet to client to open screen
             return false;
         }
+    }
+
+    public void handleMouseMoved(double mouseX, double mouseY) {
+        double deltaX = Double.isNaN(previousMouseX) ? 0.0 : mouseX - previousMouseX;
+        double deltaY = Double.isNaN(previousMouseY) ? 0.0 : mouseY - previousMouseY;
+        this.handleMouseDragged(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    public boolean handleMouseDragged(double mouseX, double mouseY, double deltaX, double deltaY) {
+        this.previousMouseX = mouseX;
+        this.previousMouseY = mouseY;
+        this.mouse.set((float) mouseX, (float) mouseY);
+        boolean handledX = deltaX != 0.0 && this.inputMove(Input.Axis.MOUSE_X, (float) deltaX);
+        boolean handledY = deltaY != 0.0 && this.inputMove(Input.Axis.MOUSE_Y, (float) deltaY);
+        return handledX || handledY;
     }
 
 }

@@ -24,7 +24,6 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -404,7 +403,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return unit;
     }
 
-    public <D> ScreenUnit<D> screenToUnit(Screen screen, ScreenBase<D> feature) {
+    public <D> @NotNull MinecraftScreenUnit<D> screenToUnit(@NotNull Screen screen, @NotNull ScreenBase<D> feature) {
         UnitCacheMixed cache = (UnitCacheMixed) screen;
         MinecraftScreenUnit<?> cached = (MinecraftScreenUnit<?>) cache.nexo$getUnit();
         if (cached != null) {

@@ -201,26 +201,29 @@ public class MinecraftBlock extends BlockBase {
             feature.registerDefaultState(state);
             return null;
         });
-        extender.override(Utils.At.AFTER_SUPER, "createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, builder) -> {
+        extender.override("createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, superCall, builder) -> {
+            superCall.apply(feature, builder);
             for (MinecraftDataProperty<?> property : dataProperties) {
                 builder.add(property);
             }
             return null;
         });
-        extender.override(Utils.At.AFTER_SUPER, "useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, state, level, pos, player, hitResult) -> {
+        extender.override("useWithoutItem", InteractionResult.class, BlockState.class, Level.class, BlockPos.class, Player.class, BlockHitResult.class, (feature, superCall, state, level, pos, player, hitResult) -> {
+            InteractionResult result = superCall.apply(feature, state, level, pos, player, hitResult);
             BlockUnit unit = nexo.blockToUnit(level, pos, state);
             WorldUnit world = nexo.levelToUnit(level);
             Interaction interaction = block.onInteract(unit, world, nexo.entityToUnit(player), new Vector3i(pos.getX(), pos.getY(), pos.getZ()));
             return switch (interaction) {
-                case PASS -> InteractionResult.PASS;
+                case PASS -> result;
                 case FAIL -> InteractionResult.FAIL;
                 case SUCCESS -> InteractionResult.SUCCESS;
             };
         });
-        extender.override(Utils.At.BEFORE_SUPER, "onRemove", void.class, BlockState.class, Level.class, BlockPos.class, BlockState.class, boolean.class, (feature, state, level, pos, newState, isMoving) -> {
+        extender.override("onRemove", void.class, BlockState.class, Level.class, BlockPos.class, BlockState.class, boolean.class, (feature, superCall, state, level, pos, newState, isMoving) -> {
             if (state.getBlock() != newState.getBlock() && !level.isClientSide) {
                 block.onBreak(nexo.blockToUnit(level, pos, state, level.getBlockEntity(pos)));
             }
+            superCall.apply(feature, state, level, pos, newState, isMoving);
             return null;
         });
         if (MinecraftBlock.isDynamicBlock(block)) {

@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.util;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.NexoException;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.modifier.Visibility;
@@ -9,6 +10,11 @@ import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.*;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
+import net.bytebuddy.implementation.bind.annotation.Argument;
+import net.bytebuddy.implementation.bind.annotation.Origin;
+import net.bytebuddy.implementation.bind.annotation.RuntimeType;
+import net.bytebuddy.implementation.bind.annotation.SuperMethodHandle;
+import net.bytebuddy.implementation.bind.annotation.This;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,13 +23,26 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandleProxies;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unused")
 public final class Utils {
+
+    // The generated class owns the cache, so handles cannot keep an unloaded mod class loader alive.
+    private static final @NotNull ClassValue<ConcurrentHashMap<Object, Object>> SUPER_FUNCTIONS = new ClassValue<>() {
+        @Override
+        protected @NotNull ConcurrentHashMap<Object, Object> computeValue(@NotNull Class<?> type) {
+            return new ConcurrentHashMap<>();
+        }
+    };
 
     private Utils() {}
 
@@ -222,6 +241,30 @@ public final class Utils {
         throw new IllegalArgumentException("Unsupported primitive type: " + type.getName());
     }
 
+    private static <F> @NotNull F asFunction(@NotNull Class<F> type, @Nullable MethodHandle superMethod, @NotNull Class<?> receiverType, @NotNull MethodType methodType) {
+        ConcurrentHashMap<Object, Object> functions = SUPER_FUNCTIONS.get(receiverType);
+        // Concrete handles distinguish methods with identical signatures. Empty targets may share by type;
+        // their receiver-inclusive arity also uniquely determines the FunctionN interface.
+        Object key = superMethod != null ? superMethod : methodType;
+        Object function = functions.get(key);
+        if (function == null) {
+            function = functions.computeIfAbsent(key, ignored -> MethodHandleProxies.asInterfaceInstance(type,
+                    superMethod != null ? superMethod : MethodHandles.empty(methodType)));
+        }
+        return type.cast(function);
+    }
+
+    /**
+     * Builds a subclass whose overrides receive an unbound superclass callback. Each callback may omit,
+     * repeat, or reorder superclass invocation and change its arguments or result. Supply the intercepted
+     * instance (or another compatible generated instance) explicitly when invoking the superclass callback.
+     * If no superclass or unambiguous interface default implementation exists, that callback returns the
+     * JVM default value: zero/false for primitives, null for references, and null for a boxed void result.
+     * Exceptions propagate unchanged. A non-void primitive override must not return null.
+     * Reference arguments may be null only where the intercepted method's own contract permits it.
+     * Superclass callbacks may be retained; they do not retain an instance, but retaining one can keep its
+     * generated class alive. Their reuse does not make the receiver or its methods thread-safe.
+     */
     public static final class Extender<T> {
 
         private final NexoMinecraft<?, ?, ?, ?> nexo;
@@ -230,8 +273,7 @@ public final class Utils {
         private final Set<Method> overrides = new LinkedHashSet<>();
 
         private DynamicType.Builder<? extends T> builder;
-        private Implementation.Composable constructor = SuperMethodCall.INSTANCE;
-        private boolean constructorCustomized;
+        private @Nullable Implementation.Composable initializer;
         private Class<? extends T> generatedClass;
 
         private Extender(NexoMinecraft<?, ?, ?, ?> nexo, Class<? extends T> type) {
@@ -245,6 +287,11 @@ public final class Utils {
 
         public Class<? extends T> type() {
             return type;
+        }
+
+        /** Returns whether the mapped method requires an implementation rather than overriding a concrete method. */
+        public boolean isAbstract(@NotNull String memberName, @NotNull Class<?> returnType, @NotNull Class<?> @NotNull ... parameterTypes) {
+            return Modifier.isAbstract(findMethod(type, memberName, returnType, parameterTypes).getModifiers());
         }
 
         public synchronized <I> Extender<T> implement(@NotNull Class<I> interfaceType, @NotNull Function0<? super T, ? extends I> implementation) {
@@ -283,8 +330,7 @@ public final class Utils {
                     .intercept(FieldAccessor.ofField(fieldName))
                     .implement(interfaceType)
                     .intercept(MethodDelegation.toField(fieldName));
-            constructor = constructor.andThen(initializerCall);
-            constructorCustomized = true;
+            initializer = initializer == null ? initializerCall : initializer.andThen(initializerCall);
             return this;
         }
 
@@ -296,62 +342,62 @@ public final class Utils {
                     .on(initializer, Function0.class)
                     .withThis()
                     .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
-            constructor = constructor.andThen(initializerCall);
-            constructorCustomized = true;
+            this.initializer = this.initializer == null ? initializerCall : this.initializer.andThen(initializerCall);
             return this;
         }
 
-        public <R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Function0<? super T, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[0], implementation, Function0.class);
+        public <R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Override0<? super T, R> implementation) {
+            return override(memberName, returnType, new Class<?>[0], implementation, Override0.class);
         }
 
-        public <P1, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Function1<? super T, ? super P1, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1}, implementation, Function1.class);
+        public <P1, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Override1<? super T, ? super P1, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1}, implementation, Override1.class);
         }
 
-        public <P1, P2, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2}, implementation, Function2.class);
+        public <P1, P2, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Override2<? super T, ? super P1, ? super P2, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2}, implementation, Override2.class);
         }
 
-        public <P1, P2, P3, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Function3<? super T, ? super P1, ? super P2, ? super P3, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3}, implementation, Function3.class);
+        public <P1, P2, P3, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Override3<? super T, ? super P1, ? super P2, ? super P3, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3}, implementation, Override3.class);
         }
 
-        public <P1, P2, P3, P4, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Function4<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4}, implementation, Function4.class);
+        public <P1, P2, P3, P4, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Override4<? super T, ? super P1, ? super P2, ? super P3, ? super P4, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4}, implementation, Override4.class);
         }
 
-        public <P1, P2, P3, P4, P5, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Function5<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5}, implementation, Function5.class);
+        public <P1, P2, P3, P4, P5, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Override5<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5}, implementation, Override5.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Function6<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6}, implementation, Function6.class);
+        public <P1, P2, P3, P4, P5, P6, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Override6<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6}, implementation, Override6.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Function7<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7}, implementation, Function7.class);
+        public <P1, P2, P3, P4, P5, P6, P7, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Override7<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7}, implementation, Override7.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Function8<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8}, implementation, Function8.class);
+        public <P1, P2, P3, P4, P5, P6, P7, P8, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Override8<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8}, implementation, Override8.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Function9<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9}, implementation, Function9.class);
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Override9<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9}, implementation, Override9.class);
         }
 
-        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> Extender<T> override(@NotNull Utils.At position, @NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Function10<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> implementation) {
-            return override(position, memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}, implementation, Function10.class);
+        public <P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<R> returnType, @NotNull Class<P1> p1, @NotNull Class<P2> p2, @NotNull Class<P3> p3, @NotNull Class<P4> p4, @NotNull Class<P5> p5, @NotNull Class<P6> p6, @NotNull Class<P7> p7, @NotNull Class<P8> p8, @NotNull Class<P9> p9, @NotNull Class<P10> p10, @NotNull Override10<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, R> implementation) {
+            return override(memberName, returnType, new Class<?>[]{p1, p2, p3, p4, p5, p6, p7, p8, p9, p10}, implementation, Override10.class);
         }
 
-        private <F> Extender<T> override(At position, String memberName, Class<?> returnType, Class<?>[] parameterTypes, F implementation, Class<? super F> functionType) {
+        private <F> @NotNull Extender<T> override(@NotNull String memberName, @NotNull Class<?> returnType, @NotNull Class<?> @NotNull [] parameterTypes, @NotNull F implementation, @NotNull Class<?> implementationType) {
             ensureNotBuilt();
-
+            Objects.requireNonNull(memberName, "memberName");
+            Objects.requireNonNull(returnType, "returnType");
+            Objects.requireNonNull(implementation, "implementation");
             for (Class<?> parameterType : parameterTypes) {
                 Objects.requireNonNull(parameterType, "parameterType");
             }
-
             Method method = findMethod(type, memberName, returnType, parameterTypes);
             int modifiers = method.getModifiers();
             if (Modifier.isPrivate(modifiers)) {
@@ -366,19 +412,9 @@ public final class Utils {
             if (!Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers) && !type.getPackageName().equals(method.getDeclaringClass().getPackageName())) {
                 throw new IllegalArgumentException("Cannot override package-private method " + method + " from " + type.getName());
             }
-            Method functionalMethod = functionType.getDeclaredMethods()[0];
-            Implementation.Composable implementationCall = MethodCall.invoke(functionalMethod)
-                    .on(implementation, functionType)
-                    .withThis()
-                    .withAllArguments()
-                    .withAssigner(Assigner.DEFAULT, Assigner.Typing.DYNAMIC);
-            if (!Modifier.isAbstract(modifiers)) {
-                if (position == At.AFTER_SUPER) {
-                    implementationCall = SuperMethodCall.INSTANCE.andThen(implementationCall);
-                } else if (position == At.BEFORE_SUPER) {
-                    implementationCall = implementationCall.andThen(SuperMethodCall.INSTANCE);
-                }
-            }
+            Implementation implementationCall = MethodDelegation.withDefaultConfiguration()
+                    .filter(ElementMatchers.named("intercept"))
+                    .to(implementation, implementationType);
             return register(method, implementationCall);
         }
 
@@ -388,8 +424,8 @@ public final class Utils {
             }
 
             try {
-                if (constructorCustomized) {
-                    builder = builder.constructor(ElementMatchers.any()).intercept(constructor);
+                if (initializer != null) {
+                    builder = builder.constructor(ElementMatchers.any()).intercept(SuperMethodCall.INSTANCE.andThen(initializer));
                 }
                 Class<? extends T> loaded = builder.make()
                         .load(type.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
@@ -485,22 +521,125 @@ public final class Utils {
         }
     }
 
-    public enum At {
-        REPLACE,
-        AFTER_SUPER,
-        BEFORE_SUPER
+    @FunctionalInterface public interface Function0<T, R> { @Nullable R apply(@NotNull T instance) throws Throwable; }
+    @FunctionalInterface public interface Function1<T, P1, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1) throws Throwable; }
+    @FunctionalInterface public interface Function2<T, P1, P2, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2) throws Throwable; }
+    @FunctionalInterface public interface Function3<T, P1, P2, P3, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3) throws Throwable; }
+    @FunctionalInterface public interface Function4<T, P1, P2, P3, P4, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4) throws Throwable; }
+    @FunctionalInterface public interface Function5<T, P1, P2, P3, P4, P5, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5) throws Throwable; }
+    @FunctionalInterface public interface Function6<T, P1, P2, P3, P4, P5, P6, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6) throws Throwable; }
+    @FunctionalInterface public interface Function7<T, P1, P2, P3, P4, P5, P6, P7, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7) throws Throwable; }
+    @FunctionalInterface public interface Function8<T, P1, P2, P3, P4, P5, P6, P7, P8, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8) throws Throwable; }
+    @FunctionalInterface public interface Function9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9) throws Throwable; }
+    @FunctionalInterface public interface Function10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9, @Nullable P10 p10) throws Throwable; }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override0<T, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function0<? super T, ? extends R> superCall) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function0.class), superMethod, instance.getClass(), methodType));
+        }
     }
 
-    @FunctionalInterface public interface Function0<T, R> { R apply(T instance) throws Throwable; }
-    @FunctionalInterface public interface Function1<T, P1, R> { R apply(T instance, P1 p1) throws Throwable; }
-    @FunctionalInterface public interface Function2<T, P1, P2, R> { R apply(T instance, P1 p1, P2 p2) throws Throwable; }
-    @FunctionalInterface public interface Function3<T, P1, P2, P3, R> { R apply(T instance, P1 p1, P2 p2, P3 p3) throws Throwable; }
-    @FunctionalInterface public interface Function4<T, P1, P2, P3, P4, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4) throws Throwable; }
-    @FunctionalInterface public interface Function5<T, P1, P2, P3, P4, P5, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) throws Throwable; }
-    @FunctionalInterface public interface Function6<T, P1, P2, P3, P4, P5, P6, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) throws Throwable; }
-    @FunctionalInterface public interface Function7<T, P1, P2, P3, P4, P5, P6, P7, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) throws Throwable; }
-    @FunctionalInterface public interface Function8<T, P1, P2, P3, P4, P5, P6, P7, P8, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) throws Throwable; }
-    @FunctionalInterface public interface Function9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9) throws Throwable; }
-    @FunctionalInterface public interface Function10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> { R apply(T instance, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10) throws Throwable; }
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override1<T, P1, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function1<? super T, ? super P1, ? extends R> superCall, @Nullable P1 p1) throws Throwable;
 
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function1.class), superMethod, instance.getClass(), methodType), p1);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override2<T, P1, P2, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function2.class), superMethod, instance.getClass(), methodType), p1, p2);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override3<T, P1, P2, P3, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function3<? super T, ? super P1, ? super P2, ? super P3, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function3.class), superMethod, instance.getClass(), methodType), p1, p2, p3);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override4<T, P1, P2, P3, P4, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function4<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function4.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override5<T, P1, P2, P3, P4, P5, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function5<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function5.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override6<T, P1, P2, P3, P4, P5, P6, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function6<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5, @Argument(5) @Nullable P6 p6) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function6.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5, p6);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override7<T, P1, P2, P3, P4, P5, P6, P7, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function7<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5, @Argument(5) @Nullable P6 p6, @Argument(6) @Nullable P7 p7) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function7.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5, p6, p7);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override8<T, P1, P2, P3, P4, P5, P6, P7, P8, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function8<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5, @Argument(5) @Nullable P6 p6, @Argument(6) @Nullable P7 p7, @Argument(7) @Nullable P8 p8) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function8.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5, p6, p7, p8);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function9<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5, @Argument(5) @Nullable P6 p6, @Argument(6) @Nullable P7 p7, @Argument(7) @Nullable P8 p8, @Argument(8) @Nullable P9 p9) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function9.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5, p6, p7, p8, p9);
+        }
+    }
+
+    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
+    @FunctionalInterface
+    public interface Override10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> {
+        @Nullable R apply(@NotNull T instance, @NotNull Function10<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9, @Nullable P10 p10) throws Throwable;
+
+        default @RuntimeType @Nullable R intercept(@This @NotNull T instance, @SuperMethodHandle(nullIfImpossible = true) @Nullable MethodHandle superMethod, @Origin @NotNull MethodType methodType, @Argument(0) @Nullable P1 p1, @Argument(1) @Nullable P2 p2, @Argument(2) @Nullable P3 p3, @Argument(3) @Nullable P4 p4, @Argument(4) @Nullable P5 p5, @Argument(5) @Nullable P6 p6, @Argument(6) @Nullable P7 p7, @Argument(7) @Nullable P8 p8, @Argument(8) @Nullable P9 p9, @Argument(9) @Nullable P10 p10) throws Throwable {
+            return apply(instance, asFunction(Nexo.type(Function10.class), superMethod, instance.getClass(), methodType), p1, p2, p3, p4, p5, p6, p7, p8, p9, p10);
+        }
+    }
 }

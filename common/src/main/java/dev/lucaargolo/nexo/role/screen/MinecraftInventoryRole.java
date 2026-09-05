@@ -20,7 +20,7 @@ public class MinecraftInventoryRole {
     public static MinecraftRoleType.Info<Screen, MinecraftScreen.ScreenParameters<?>> craftScreen(NexoMinecraft<?, ?, ?, ?> nexo, ScreenBase<?> base) {
         if (base.role() instanceof InventoryRole(@NotNull Map<Location, InventoryRole.Config> vaults)) {
             Utils.Extender<Screen> extender = Utils.extend(nexo, AbstractContainerScreen.class);
-            extender.override(Utils.At.REPLACE, "renderBg", void.class, GuiGraphics.class, float.class, int.class, int.class, (screen, graphics, partial, mouseX, mouseY) -> {
+            extender.override("renderBg", void.class, GuiGraphics.class, float.class, int.class, int.class, (screen, superCall, graphics, partial, mouseX, mouseY) -> {
                 return null;
             });
             return new MinecraftRoleType.Info<>(extender, parameters -> extender.instantiate(parameters.menu(), parameters.inventory(), parameters.title()));
@@ -35,7 +35,6 @@ public class MinecraftInventoryRole {
         }
         return null;
     }
-
 
     public static InventoryRole uncraftScreen(NexoMinecraft<?, ?, ?, ?> nexo, MinecraftScreen.ScreenCrafter screen) {
         //TODO

@@ -106,7 +106,8 @@ public final class MinecraftEntity extends EntityBase {
     }
 
     public static <M extends Entity> EntityType<?> craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
-        extender.override(Utils.At.AFTER_SUPER, "tick", void.class, feature -> {
+        extender.override("tick", void.class, (feature, superCall) -> {
+            superCall.apply(feature);
             if (entity.ticker() != null) {
                 entity.ticker().tick(nexo.entityToUnit(feature));
             }
