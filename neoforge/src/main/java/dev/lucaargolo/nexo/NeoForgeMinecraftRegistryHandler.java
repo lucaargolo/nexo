@@ -26,10 +26,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -238,35 +235,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
                 });
         Class<DeferredRegister<R>> clazz = Nexo.type(DeferredRegister.class);
         return clazz.cast(deferredRegister);
-    }
-
-    public static final class ExtendedMenuType<T extends AbstractContainerMenu, D> extends MenuType<T> {
-
-        private final MinecraftScreen.MenuCrafter<D> constructor;
-        private final StreamCodec<RegistryFriendlyByteBuf, D> codec;
-
-        public ExtendedMenuType(@NotNull MinecraftScreen.MenuCrafter<D> constructor, @NotNull StreamCodec<RegistryFriendlyByteBuf, D> codec) {
-            super((id, inventory) -> {
-                throw new UnsupportedOperationException("ExtendedMenuType requires opening data");
-            }, FeatureFlagSet.of());
-            this.constructor = constructor;
-            this.codec = codec;
-        }
-
-        @Override
-        public @NotNull T create(int id, @NotNull Inventory inventory, @NotNull RegistryFriendlyByteBuf buf) {
-            return create(id, inventory, this.codec.decode(buf));
-        }
-
-        public @NotNull T create(int id, @NotNull Inventory inventory, @NotNull D data) {
-            Class<T> menuClass = Nexo.type(AbstractContainerMenu.class);
-            return menuClass.cast(this.constructor.craft(new MinecraftScreen.MenuParameters<>(this, id, data)));
-        }
-
-        public void encode(@NotNull RegistryFriendlyByteBuf buf, @NotNull D data) {
-            this.codec.encode(buf, data);
-        }
-
     }
 
 }

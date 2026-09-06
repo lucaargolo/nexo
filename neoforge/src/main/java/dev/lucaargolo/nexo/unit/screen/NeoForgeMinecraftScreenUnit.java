@@ -33,7 +33,7 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
         if(isDynamic) {
             if(entity.side().isServer()) {
                 if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
-                    NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D> menuType = (NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D>) MinecraftScreen.CONVERT_MENU.forward(feature).value();
+                    NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D> menuType = (NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D>) MinecraftScreen.CONVERT.forward(feature).value();
                     return player.openMenu(new MenuProvider() {
                         @Override
                         public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {

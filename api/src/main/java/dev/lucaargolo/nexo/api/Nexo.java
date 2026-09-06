@@ -32,8 +32,6 @@ public interface Nexo {
 
     @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature, @NotNull Location location);
 
-    @Nullable <T extends Feature<T, U>, U extends Unit<T>> U unit(@NotNull Feature<T, U> feature);
-
     void sendPacket(@NotNull PacketReceiver receiver, @NotNull Packet<?, ?> packet);
 
     @Nullable <T extends Resource<T>> T getResource(@NotNull Resource.Type<T> type, @NotNull Location location);

@@ -19,27 +19,21 @@ import org.joml.Vector2f;
 public abstract class MinecraftScreenUnit<O extends Unit<?>, D> extends ScreenUnit<O, D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter<O, D>> {
 
     private final @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter;
-    private final @NotNull O owner;
-    private final @NotNull D data;
 
     private final @NotNull Vector2f mouse = new Vector2f();
     private double previousMouseX = Double.NaN;
     private double previousMouseY = Double.NaN;
     private @Nullable Screen screen;
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull O owner, @NotNull D data) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter) {
         super(nexo, feature, role);
         this.crafter = crafter;
-        this.owner = owner;
-        this.data = data;
         this.screen = null;
     }
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull O owner, @NotNull D data, @NotNull Screen screen) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull Screen screen) {
         super(nexo, feature, role);
         this.crafter = crafter;
-        this.owner = owner;
-        this.data = data;
         this.screen = screen;
     }
 

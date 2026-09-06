@@ -2,7 +2,6 @@ package dev.lucaargolo.nexo.api.feature.item;
 
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.render.*;
-import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -85,8 +84,7 @@ public class BlockItem extends ItemBase {
         }
 
         protected static @Nullable BlockUnit block(@NotNull ItemUnit unit) {
-            Role role = unit.role();
-            return role instanceof BlockItemRole(BlockBase block) ? unit.nexo().unit(block) : null;
+            return unit.role() instanceof BlockItemRole(BlockBase block) ? unit.nexo().unit(block) : null;
         }
     }
 

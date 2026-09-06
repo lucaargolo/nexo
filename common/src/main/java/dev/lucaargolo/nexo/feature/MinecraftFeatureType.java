@@ -42,7 +42,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
@@ -162,17 +161,47 @@ public class MinecraftFeatureType<T extends Feature<?, ?>, U extends Unit<?>, M>
             Map.of(Biome.class, CraftStrategy.direct(Biome.class, MinecraftBiome::craft))
     );
 
+    private static final Class<MinecraftScreen.ScreenParameters<?, ?>> SCREEN_PARAMETERS_CLASS = Nexo.type(MinecraftScreen.ScreenParameters.class);
+    private static final Class<MinecraftScreen.MenuParameters<?, ?>> MENU_PARAMETERS_CLASS = Nexo.type(MinecraftScreen.MenuParameters.class);
+
+    private static final Map<Location, MinecraftScreen.ScreenCrafter<?, ?>> SCREEN_CRAFTERS = new ConcurrentHashMap<>();
+
+    private static final CraftStrategy<ScreenBase<?>> SCREEN_CRAFTER_STRATEGY = CraftStrategy.extensible(
+            Nexo.type(MinecraftScreen.ScreenCrafter.class),
+            Screen.class,
+            SCREEN_PARAMETERS_CLASS,
+            MinecraftScreen::craftScreen
+    );
+
+    private static final CraftStrategy<ScreenBase<?>> SCREEN_CRAFTER_RECORDER = (nexo, feature) -> {
+        MinecraftScreen.ScreenCrafter<?, ?> crafter = (MinecraftScreen.ScreenCrafter<?, ?>) SCREEN_CRAFTER_STRATEGY.craft(nexo, feature);
+        SCREEN_CRAFTERS.put(feature.location(), crafter);
+        return crafter;
+    };
+
+    private static final Bijection<ScreenBase<?>, MinecraftScreen.ScreenCrafter<?, ?>> SCREEN_CONVERT = new Bijection<>() {
+        @Override
+        public MinecraftScreen.ScreenCrafter<?, ?> forward(ScreenBase<?> feature) {
+            return SCREEN_CRAFTERS.get(feature.location());
+        }
+
+        @Override
+        public ScreenBase<?> backward(MinecraftScreen.ScreenCrafter<?, ?> crafter) {
+            return MinecraftScreen.lookup(crafter.location());
+        }
+    };
+
     public static final MinecraftFeatureType<ScreenBase<?>, ScreenUnit<?, ?>, MinecraftScreen.ScreenCrafter<?, ?>> SCREEN = MinecraftFeatureType.direct(
             Nexo.type(MinecraftScreen.ScreenCrafter.class),
             Feature.Type.SCREEN,
             MinecraftScreen::register,
             MinecraftScreen::lookup,
-            MinecraftScreen.CONVERT,
+            SCREEN_CONVERT,
             Map.of(
-                    MinecraftScreen.ScreenCrafter.class, CraftStrategy.extensible(Nexo.<MinecraftScreen.ScreenCrafter<?, ?>>type(MinecraftScreen.ScreenCrafter.class), Screen.class, Nexo.<MinecraftScreen.ScreenParameters<?, ?>>type(MinecraftScreen.ScreenParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.craftScreen(nexo, extender, factory == null ? null : factory::apply, feature)),
-                    MinecraftScreen.MenuCrafter.class, CraftStrategy.extensible(Nexo.<MinecraftScreen.MenuCrafter<?, ?>>type(MinecraftScreen.MenuCrafter.class), AbstractContainerMenu.class, Nexo.<MinecraftScreen.MenuParameters<?, ?>>type(MinecraftScreen.MenuParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.craftMenu(nexo, extender, factory == null ? null : factory::apply, feature))
+                    MinecraftScreen.ScreenCrafter.class, SCREEN_CRAFTER_RECORDER,
+                    MinecraftScreen.MenuCrafter.class, CraftStrategy.extensible(MinecraftScreen.MenuCrafter.class, MinecraftScreen.ExtendedMenu.class, MENU_PARAMETERS_CLASS, MinecraftScreen::craftMenu)
             ),
-            (nexo, feature, crafter) -> Utils.loadPlatformClass(nexo, Nexo.<ScreenUnit<?, ?>>type(MinecraftScreenUnit.class), nexo, feature, feature.role(), crafter)
+            (nexo, feature, crafter) -> Utils.<MinecraftScreenUnit<?, ?>>loadPlatformClass(nexo, MinecraftScreenUnit.class, nexo, feature, feature.role(), crafter)
     );
 
     private final @NotNull Class<M> minecraftType;

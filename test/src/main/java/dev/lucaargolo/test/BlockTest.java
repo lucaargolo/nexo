@@ -14,12 +14,14 @@ import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
+import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Interaction;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -82,7 +84,8 @@ public final class BlockTest {
 
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
-                requireNonNull(nexo.unit(screen)).open(entity);
+                ScreenUnit<BlockUnit, Text> unit = Nexo.<ScreenUnit<BlockUnit, Text>>type(ScreenUnit.class).cast(requireNonNull(nexo.unit(screen), "Missing test inventory screen unit"));
+                unit.open(entity, block);
                 return Interaction.SUCCESS;
             }
 
@@ -152,7 +155,8 @@ public final class BlockTest {
 
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
-                requireNonNull(nexo.unit(screen)).open(entity);
+                ScreenUnit<BlockUnit, Text> unit = nexo.unit(screen);
+                unit.open(entity, block);
                 block.withData(dynamicData, value -> value + "!");
                 return Interaction.SUCCESS;
             }

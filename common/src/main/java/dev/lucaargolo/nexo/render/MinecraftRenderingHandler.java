@@ -26,9 +26,6 @@ import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.render.atlas.MinecraftAtlasHandler;
 import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
 import dev.lucaargolo.nexo.render.shader.MinecraftShaderHandler;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
@@ -36,13 +33,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -127,8 +120,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                 }
                 case ScreenBase<?> screen -> {
                     if (MinecraftScreen.isDynamicScreen(screen)) {
-                        Supplier<MenuType<? extends AbstractContainerMenu>> menuType = () -> MinecraftScreen.CONVERT_MENU.forward(screen).value();
-                        this.registerMenuScreen(menuType, MinecraftScreen.CONVERT.forward(screen));
+                        this.registerMenuScreen(() -> (MinecraftScreen.ExtendedMenuType<?, ?>) MinecraftScreen.CONVERT.forward(screen).value());
                     }
                     if (screen.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.SCREEN_ATLAS, screen.materials().values());
@@ -213,7 +205,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         }
     }
 
-    protected abstract <M extends AbstractContainerMenu, O extends Unit<?>, D> void registerMenuScreen(Supplier<MenuType<? extends M>> type, MinecraftScreen.ScreenCrafter<O, D> crafter);
+    protected abstract <O extends Unit<?>, D> void registerMenuScreen(Supplier<MinecraftScreen.ExtendedMenuType<O, D>> type);
 
     private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {
