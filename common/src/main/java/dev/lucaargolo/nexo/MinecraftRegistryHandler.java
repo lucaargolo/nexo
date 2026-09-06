@@ -125,7 +125,7 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
 
     public abstract CreativeModeTab craftCreativeTab(ItemCategoryBase category);
 
-    public abstract <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<D> crafter, DataBase<D> data);
+    public abstract <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<?, D> crafter, DataBase<D> data);
 
     protected abstract RegistryAccess getLocalRegistry();
 

@@ -32,7 +32,7 @@ public class Button extends Widget {
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<?, ?> unit, @NotNull Graphics2D graphics) {
         this.hovered = contains(unit.mouse().x, unit.mouse().y);
         graphics.pushState();
         graphics.pushMatrix();
@@ -47,7 +47,7 @@ public class Button extends Widget {
     }
 
     @Override
-    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?, ?> unit, @NotNull Input input) {
         if (input.type() == Input.Type.MOUSE && this.hovered) {
             action.run();
             return true;

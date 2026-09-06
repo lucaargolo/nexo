@@ -39,18 +39,18 @@ public abstract class Widget {
         return px >= x && px < x + width && py >= y && py < y + height;
     }
 
-    public void render(@NotNull ScreenUnit<?> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<?, ?> unit, @NotNull Graphics2D graphics) {
     }
 
-    public boolean inputPressed(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<?, ?> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputReleased(@NotNull ScreenUnit<?> unit, @NotNull Input input) {
+    public boolean inputReleased(@NotNull ScreenUnit<?, ?> unit, @NotNull Input input) {
         return false;
     }
 
-    public boolean inputMove(@NotNull ScreenUnit<?> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputMove(@NotNull ScreenUnit<?, ?> unit, @NotNull Input.Axis axis, float delta) {
         return false;
     }
 }

@@ -20,7 +20,7 @@ public final class GlfwGamepad {
             Input.Axis.GAMEPAD_RIGHT_TRIGGER
     };
 
-    private final @NotNull ScreenUnit<?> unit;
+    private final @NotNull ScreenUnit<?, ?> unit;
 
     private final @NotNull GLFWGamepadState state = GLFWGamepadState.create();
     private final byte[] previousButtons = new byte[GLFW.GLFW_GAMEPAD_BUTTON_LAST + 1];
@@ -29,7 +29,7 @@ public final class GlfwGamepad {
     private int joystick = -1;
     private boolean polledOnce;
 
-    public GlfwGamepad(@NotNull ScreenUnit<?> unit) {
+    public GlfwGamepad(@NotNull ScreenUnit<?, ?> unit) {
         this.unit = unit;
     }
 

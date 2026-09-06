@@ -162,17 +162,17 @@ public class MinecraftFeatureType<T extends Feature<?, ?>, U extends Unit<?>, M>
             Map.of(Biome.class, CraftStrategy.direct(Biome.class, MinecraftBiome::craft))
     );
 
-    public static final MinecraftFeatureType<ScreenBase<?>, ScreenUnit<?>, MinecraftScreen.ScreenCrafter> SCREEN = MinecraftFeatureType.<ScreenBase<?>, ScreenUnit<?>, MinecraftScreen.ScreenCrafter>direct(
-            MinecraftScreen.ScreenCrafter.class,
+    public static final MinecraftFeatureType<ScreenBase<?>, ScreenUnit<?, ?>, MinecraftScreen.ScreenCrafter<?, ?>> SCREEN = MinecraftFeatureType.direct(
+            Nexo.type(MinecraftScreen.ScreenCrafter.class),
             Feature.Type.SCREEN,
             MinecraftScreen::register,
             MinecraftScreen::lookup,
             MinecraftScreen.CONVERT,
             Map.of(
-                    MinecraftScreen.ScreenCrafter.class, CraftStrategy.extensible(MinecraftScreen.ScreenCrafter.class, Screen.class, Nexo.<MinecraftScreen.ScreenParameters<?>>type(MinecraftScreen.ScreenParameters.class), MinecraftScreen::craftScreen),
-                    MinecraftScreen.MenuCrafter.class, CraftStrategy.extensible(Nexo.type(MinecraftScreen.MenuCrafter.class), AbstractContainerMenu.class, Nexo.<MinecraftScreen.MenuParameters<?>>type(MinecraftScreen.MenuParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.<Object, AbstractContainerMenu>craftMenu(nexo, extender, factory == null ? null : parameters -> factory.apply(parameters), feature))
+                    MinecraftScreen.ScreenCrafter.class, CraftStrategy.extensible(Nexo.<MinecraftScreen.ScreenCrafter<?, ?>>type(MinecraftScreen.ScreenCrafter.class), Screen.class, Nexo.<MinecraftScreen.ScreenParameters<?, ?>>type(MinecraftScreen.ScreenParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.craftScreen(nexo, extender, factory == null ? null : factory::apply, feature)),
+                    MinecraftScreen.MenuCrafter.class, CraftStrategy.extensible(Nexo.<MinecraftScreen.MenuCrafter<?, ?>>type(MinecraftScreen.MenuCrafter.class), AbstractContainerMenu.class, Nexo.<MinecraftScreen.MenuParameters<?, ?>>type(MinecraftScreen.MenuParameters.class), (nexo, extender, factory, feature) -> MinecraftScreen.craftMenu(nexo, extender, factory == null ? null : factory::apply, feature))
             ),
-            (nexo, feature, crafter) -> Utils.loadPlatformClass(nexo, Nexo.<ScreenUnit<?>>type(MinecraftScreenUnit.class), nexo, feature, feature.role(), crafter)
+            (nexo, feature, crafter) -> Utils.loadPlatformClass(nexo, Nexo.<ScreenUnit<?, ?>>type(MinecraftScreenUnit.class), nexo, feature, feature.role(), crafter)
     );
 
     private final @NotNull Class<M> minecraftType;

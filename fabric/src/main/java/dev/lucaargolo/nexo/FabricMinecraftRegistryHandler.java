@@ -126,7 +126,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<Fab
     }
 
     @Override
-    public <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<D> constructor, DataBase<D> data) {
+    public <T extends AbstractContainerMenu, D> MenuType<T> craftMenuType(MinecraftScreen.MenuCrafter<?, D> constructor, DataBase<D> data) {
         StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
         AtomicReference<MenuType<T>> menuType = new AtomicReference<>();
         MenuType<T> type = new ExtendedScreenHandlerType<>((id, inventory, payload) -> {

@@ -16,6 +16,7 @@ import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -127,8 +128,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                 case ScreenBase<?> screen -> {
                     if (MinecraftScreen.isDynamicScreen(screen)) {
                         Supplier<MenuType<? extends AbstractContainerMenu>> menuType = () -> MinecraftScreen.CONVERT_MENU.forward(screen).value();
-                        Class<AbstractContainerScreen<AbstractContainerMenu>> screenClass = Nexo.type(AbstractContainerScreen.class);
-                        this.registerMenuScreen(menuType, (AbstractContainerMenu menu, Inventory inventory, Component component) -> screenClass.cast(MinecraftScreen.CONVERT.forward(screen).craft(new MinecraftScreen.ScreenParameters<>(menu, inventory, component))));
+                        this.registerMenuScreen(menuType, MinecraftScreen.CONVERT.forward(screen));
                     }
                     if (screen.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.SCREEN_ATLAS, screen.materials().values());
@@ -213,7 +213,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         }
     }
 
-    protected abstract <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, U> constructor);
+    protected abstract <M extends AbstractContainerMenu, O extends Unit<?>, D> void registerMenuScreen(Supplier<MenuType<? extends M>> type, MinecraftScreen.ScreenCrafter<O, D> crafter);
 
     private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {
@@ -237,13 +237,6 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         };
 
         void render(ItemStack stack, ItemDisplayContext mode, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay);
-    }
-
-    @FunctionalInterface
-    protected interface ScreenConstructor<T extends AbstractContainerMenu, U extends Screen & MenuAccess<T>> {
-
-        U create(T menu, Inventory inventory, Component title);
-
     }
 
 }

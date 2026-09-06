@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
@@ -15,29 +16,35 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
-public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter> {
+public abstract class MinecraftScreenUnit<O extends Unit<?>, D> extends ScreenUnit<O, D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter<O, D>> {
 
-    private final @NotNull MinecraftScreen.ScreenCrafter crafter;
+    private final @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter;
+    private final @NotNull O owner;
+    private final @NotNull D data;
 
     private final @NotNull Vector2f mouse = new Vector2f();
     private double previousMouseX = Double.NaN;
     private double previousMouseY = Double.NaN;
     private @Nullable Screen screen;
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull O owner, @NotNull D data) {
         super(nexo, feature, role);
         this.crafter = crafter;
+        this.owner = owner;
+        this.data = data;
         this.screen = null;
     }
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull O owner, @NotNull D data, @NotNull Screen screen) {
         super(nexo, feature, role);
         this.crafter = crafter;
+        this.owner = owner;
+        this.data = data;
         this.screen = screen;
     }
 
     @Override
-    public @NotNull MinecraftScreen.ScreenCrafter get() {
+    public @NotNull MinecraftScreen.ScreenCrafter<O, D> get() {
         return crafter;
     }
 
@@ -64,9 +71,9 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     }
 
     @Override
-    public boolean open(@NotNull EntityUnit entity, @NotNull D data) {
+    public boolean open(@NotNull EntityUnit entity, @NotNull O owner, @NotNull D data) {
         if(entity.side().isClient()) {
-            this.screen = crafter.craft(new MinecraftScreen.ScreenParameters<>(null, null, Component.translatable(feature.languageKey())));
+            this.screen = crafter.craft(new MinecraftScreen.ScreenParameters<>(null, null, Component.translatable(feature.languageKey()), owner, data));
             Minecraft.getInstance().setScreen(this.screen);
             return true;
         }else{

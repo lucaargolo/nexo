@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class MinecraftInventoryRole {
 
-    public static MinecraftRoleType.Info<Screen, MinecraftScreen.ScreenParameters<?>> craftScreen(NexoMinecraft<?, ?, ?, ?> nexo, ScreenBase<?> base) {
+    public static MinecraftRoleType.Info<Screen, MinecraftScreen.ScreenParameters<?, ?>> craftScreen(NexoMinecraft<?, ?, ?, ?> nexo, ScreenBase<?> base) {
         if (base.role() instanceof InventoryRole(@NotNull Map<Location, InventoryRole.Config> vaults)) {
             Utils.Extender<Screen> extender = Utils.extend(nexo, AbstractContainerScreen.class);
             extender.override("renderBg", void.class, GuiGraphics.class, float.class, int.class, int.class, (screen, superCall, graphics, partial, mouseX, mouseY) -> {
@@ -28,7 +28,7 @@ public class MinecraftInventoryRole {
         return null;
     }
 
-    public static MinecraftRoleType.Info<AbstractContainerMenu, MinecraftScreen.MenuParameters<?>> craftMenu(NexoMinecraft<?, ?, ?, ?> nexo, ScreenBase<?> base) {
+    public static MinecraftRoleType.Info<AbstractContainerMenu, MinecraftScreen.MenuParameters<?, ?>> craftMenu(NexoMinecraft<?, ?, ?, ?> nexo, ScreenBase<?> base) {
         if (base.role() instanceof InventoryRole(@NotNull Map<Location, InventoryRole.Config> vaults)) {
             Utils.Extender<AbstractContainerMenu> extender = Utils.extend(nexo, AbstractContainerMenu.class);
             return new MinecraftRoleType.Info<>(extender, parameters -> extender.instantiate(parameters.pType(), parameters.id()));
@@ -36,12 +36,12 @@ public class MinecraftInventoryRole {
         return null;
     }
 
-    public static InventoryRole uncraftScreen(NexoMinecraft<?, ?, ?, ?> nexo, MinecraftScreen.ScreenCrafter screen) {
+    public static InventoryRole uncraftScreen(NexoMinecraft<?, ?, ?, ?> nexo, MinecraftScreen.ScreenCrafter<?, ?> screen) {
         //TODO
         return null;
     }
 
-    public static InventoryRole uncraftMenu(NexoMinecraft<?, ?, ?, ?> nexo, MinecraftScreen.MenuCrafter<?> menu) {
+    public static InventoryRole uncraftMenu(NexoMinecraft<?, ?, ?, ?> nexo, MinecraftScreen.MenuCrafter<?, ?> menu) {
         //TODO
         return null;
     }

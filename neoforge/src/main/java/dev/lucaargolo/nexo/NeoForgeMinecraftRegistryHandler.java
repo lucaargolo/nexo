@@ -119,7 +119,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends AbstractContainerMenu, D> ExtendedMenuType<T, D> craftMenuType(MinecraftScreen.MenuCrafter<D> constructor, DataBase<D> data) {
+    public <T extends AbstractContainerMenu, D> ExtendedMenuType<T, D> craftMenuType(MinecraftScreen.MenuCrafter<?, D> constructor, DataBase<D> data) {
         return new ExtendedMenuType<>(constructor, NexoMinecraft.packetCodec(data));
     }
 

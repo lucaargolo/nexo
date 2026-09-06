@@ -5,11 +5,13 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.AtlasStitchedCallback;
 import dev.lucaargolo.nexo.event.InjectOnAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
@@ -118,8 +120,11 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
     }
 
     @Override
-    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, U> constructor) {
-        MenuScreens.register(type.get(), constructor::create);
+    protected <M extends AbstractContainerMenu, O extends Unit<?>, D> void registerMenuScreen(Supplier<MenuType<? extends M>> type, MinecraftScreen.ScreenCrafter<O, D> crafter) {
+        MenuScreens.register(type.get(), (menu, inventory, component) -> {
+            MinecraftScreen.ScreenParameters<O, D> parameters = new MinecraftScreen.ScreenParameters<>(menu, inventory, component, owner, data);
+            return crafter.craft(parameters);
+        });
     }
 
 }

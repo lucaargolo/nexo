@@ -403,15 +403,15 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return unit;
     }
 
-    public <D> @NotNull MinecraftScreenUnit<D> screenToUnit(@NotNull Screen screen, @NotNull ScreenBase<D> feature) {
+    public <D> @NotNull MinecraftScreenUnit<?, D> screenToUnit(@NotNull Screen screen, @NotNull ScreenBase<D> feature) {
         UnitCacheMixed cache = (UnitCacheMixed) screen;
-        MinecraftScreenUnit<?> cached = (MinecraftScreenUnit<?>) cache.nexo$getUnit();
+        MinecraftScreenUnit<?, ?> cached = (MinecraftScreenUnit<?, ?>) cache.nexo$getUnit();
         if (cached != null) {
-            Class<MinecraftScreenUnit<D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
+            Class<MinecraftScreenUnit<?, D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
             return cachedClass.cast(cached);
         }
-        MinecraftScreen.ScreenCrafter crafter = MinecraftFeatureType.SCREEN.convert(feature);
-        MinecraftScreenUnit<D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
+        MinecraftScreen.ScreenCrafter<?, ?> crafter = MinecraftFeatureType.SCREEN.convert(feature);
+        MinecraftScreenUnit<?, D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
         cache.nexo$setUnit(unit);
         return unit;
     }
