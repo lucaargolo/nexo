@@ -15,7 +15,6 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.input.GlfwKeyConversions;
 import dev.lucaargolo.nexo.render.DynamicMinecraftGraphics2D;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
-import dev.lucaargolo.nexo.util.Bijection;
 import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -27,7 +26,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
@@ -42,19 +40,9 @@ import java.util.function.Function;
 public final class MinecraftScreen extends ScreenBase<Text> {
 
     private static final Map<Location, ScreenBase<?>> FEATURE_MAP = new ConcurrentHashMap<>();
-    private static final Map<Location, Holder<MenuType<?>>> HOLDER_MAP = new ConcurrentHashMap<>();
 
-    public static Bijection<ScreenBase<?>, Holder<MenuType<?>>> CONVERT = new Bijection<>() {
-        @Override
-        public Holder<MenuType<?>> forward(ScreenBase<?> feature) {
-            return HOLDER_MAP.get(feature.location());
-        }
-
-        @Override
-        public ScreenBase<?> backward(Holder<MenuType<?>> holder) {
-            return FEATURE_MAP.get(NexoMinecraft.id(holder));
-        }
-    };
+    public static final Map<Location, ScreenCrafter<?>> CRAFTER_MAP = new ConcurrentHashMap<>();
+    public static final Map<Location, Holder<MenuType<?>>> MENU_HOLDER_MAP = new ConcurrentHashMap<>();
 
     private final @NotNull Screen screen;
 
@@ -69,29 +57,29 @@ public final class MinecraftScreen extends ScreenBase<Text> {
     }
 
     @Override
-    public void build(@NotNull ScreenUnit<?, Text> unit) {
+    public void build(@NotNull ScreenUnit<Text> unit) {
         //TODO
     }
 
     @Override
-    public void render(@NotNull ScreenUnit<?, Text> unit, @NotNull Graphics2D graphics) {
+    public void render(@NotNull ScreenUnit<Text> unit, @NotNull Graphics2D graphics) {
         //TODO
     }
 
     @Override
-    public boolean inputPressed(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean inputReleased(@NotNull ScreenUnit<?, Text> unit, @NotNull Input input) {
+    public boolean inputPressed(@NotNull ScreenUnit<Text> unit, @NotNull Input input) {
         //TODO
         return false;
     }
 
     @Override
-    public boolean inputMove(@NotNull ScreenUnit<?, Text> unit, @NotNull Input.Axis axis, float delta) {
+    public boolean inputReleased(@NotNull ScreenUnit<Text> unit, @NotNull Input input) {
+        //TODO
+        return false;
+    }
+
+    @Override
+    public boolean inputMove(@NotNull ScreenUnit<Text> unit, @NotNull Input.Axis axis, float delta) {
         //TODO
         return false;
     }
@@ -106,21 +94,22 @@ public final class MinecraftScreen extends ScreenBase<Text> {
         return FEATURE_MAP.get(location);
     }
 
-    public static <O extends Unit<?>, D> @NotNull ScreenBase<D> register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> screen) {
+    public static <D> @NotNull ScreenBase<D> register(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> screen) {
+        ScreenCrafter<?> screenCrafter = MinecraftFeatureType.SCREEN.craft(nexo, screen).get();
         FEATURE_MAP.put(screen.location(), screen);
+        CRAFTER_MAP.put(screen.location(), screenCrafter);
         if (MinecraftScreen.isDynamicScreen(screen)) {
-            Class<MenuCrafter<O, D>> menuCrafterType = Nexo.type(MenuCrafter.class);
-            MenuCrafter<?, ?> menuCrafter = MinecraftFeatureType.SCREEN.craft(nexo, MenuCrafter.class, screen).get();
-            Class<ScreenCrafter<O, D>> screenCrafterType = Nexo.type(ScreenCrafter.class);
-            ScreenCrafter<?, ?> screenCrafter = MinecraftFeatureType.SCREEN.craft(nexo, screen).get();
-            ExtendedMenuType<?, ?> menuType = new MinecraftScreen.ExtendedMenuType<>(menuCrafterType.cast(menuCrafter), screenCrafterType.cast(screenCrafter));
+            Class<ScreenCrafter<D>> screenCrafterType = Nexo.type(ScreenCrafter.class);
+            Class<MenuCrafter<D>> menuCrafterType = Nexo.type(MenuCrafter.class);
+            MenuCrafter<?> menuCrafter = MinecraftFeatureType.SCREEN.craft(nexo, MenuCrafter.class, screen).get();
+            MenuType<?> menuType = nexo.getRegistryHandler().craftMenuType(screen, menuCrafterType.cast(menuCrafter), screenCrafterType.cast(screenCrafter)).type();
             Holder<MenuType<?>> menuHolder = nexo.getRegistryHandler().registerBuiltinFeature(BuiltInRegistries.MENU, NexoMinecraft.rl(screen.location()), () -> menuType);
-            HOLDER_MAP.put(screen.location(), menuHolder);
+            MENU_HOLDER_MAP.put(screen.location(), menuHolder);
         }
         return screen;
     }
 
-    public static @NotNull <M extends ExtendedMenu<?, ?>> MinecraftScreen.MenuCrafter<?, ?> craftMenu(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<MenuParameters<?, ?>, M> factory, @NotNull ScreenBase<?> feature) {
+    public static @NotNull <M extends ExtendedMenu<?>> MinecraftScreen.MenuCrafter<?> craftMenu(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<MenuParameters<?>, M> factory, @NotNull ScreenBase<?> feature) {
         // Supply defaults only for abstract menus; concrete roles retain their transfer and validity rules.
         if (extender.isAbstract("quickMoveStack", ItemStack.class, Player.class, int.class)) {
             extender.override("quickMoveStack", ItemStack.class, Player.class, int.class, (menu, superCall, player, slot) -> ItemStack.EMPTY);
@@ -128,21 +117,15 @@ public final class MinecraftScreen extends ScreenBase<Text> {
         if (extender.isAbstract("stillValid", boolean.class, Player.class)) {
             extender.override("stillValid", boolean.class, Player.class, (menu, superCall, player) -> true);
         }
-        Function<MenuParameters<?, ?>, M> menuFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.pType, parameters.id);
+        Function<MenuParameters<?>, M> menuFactory = factory != null ? factory : extender::instantiate;
         return menuCrafter(menuFactory);
     }
 
-    @SuppressWarnings("unchecked")
-    private static <O extends Unit<?>, D, M extends ExtendedMenu<?, ?>> MinecraftScreen.MenuCrafter<O, D> menuCrafter(@NotNull Function<MenuParameters<?, ?>, M> menuFactory) {
-        return new MenuCrafter<>() {
-            @Override
-            public @NotNull ExtendedMenu<O, D> craft(MenuParameters<O, D> parameters) {
-                return (ExtendedMenu<O, D>) menuFactory.apply(parameters);
-            }
-        };
+    private static <M extends ExtendedMenu<?>> MinecraftScreen.MenuCrafter<?> menuCrafter(@NotNull Function<MenuParameters<?>, M> menuFactory) {
+        return parameters -> (ExtendedMenu<Object>) menuFactory.apply(parameters);
     }
 
-    public static @NotNull <M extends Screen> MinecraftScreen.ScreenCrafter<?, ?> craftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<ScreenParameters<?, ?>, M> factory, @NotNull ScreenBase<?> feature) {
+    public static @NotNull <M extends Screen> MinecraftScreen.ScreenCrafter<?> craftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<ScreenParameters<?>, M> factory, @NotNull ScreenBase<?> feature) {
         extender.override("init", void.class, (screen, superCall) -> {
             superCall.apply(screen);
             nexo.screenToUnit(screen, feature).build();
@@ -191,22 +174,12 @@ public final class MinecraftScreen extends ScreenBase<Text> {
             nexo.screenToUnit(screen, feature).handleMouseMoved(mouseX, mouseY);
             return null;
         });
-        Function<ScreenParameters<?, ?>, M> screenFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.title);
+        Function<ScreenParameters<?>, M> screenFactory = factory != null ? factory : parameters -> extender.instantiate(parameters.title);
         return screenCrafter(screenFactory, feature);
     }
 
-    private static <O extends Unit<?>, D, M extends Screen> MinecraftScreen.ScreenCrafter<O, D> screenCrafter(@NotNull Function<ScreenParameters<?, ?>, M> screenFactory, @NotNull ScreenBase<?> feature) {
-        return new ScreenCrafter<>() {
-            @Override
-            public @NotNull Screen craft(ScreenParameters<O, D> parameters) {
-                return screenFactory.apply(parameters);
-            }
-
-            @Override
-            public @NotNull Location location() {
-                return feature.location();
-            }
-        };
+    private static <D, M extends Screen> MinecraftScreen.ScreenCrafter<D> screenCrafter(@NotNull Function<ScreenParameters<?>, M> screenFactory, @NotNull ScreenBase<D> feature) {
+        return screenFactory::apply;
     }
 
     private static Location location(NexoMinecraft<?, ?, ?, ?> nexo, Screen screen) {
@@ -225,74 +198,63 @@ public final class MinecraftScreen extends ScreenBase<Text> {
         return base.role() != null;
     }
 
-    public record ScreenParameters<O extends Unit<?>, D>(@Nullable AbstractContainerMenu menu, @Nullable Inventory inventory, @NotNull Component title, @NotNull O owner, @NotNull D data) {
+    public record ScreenParameters<D>(@Nullable AbstractContainerMenu menu, @Nullable Inventory inventory, @NotNull Component title, @NotNull D data) {
 
     }
 
-    public interface ScreenCrafter<O extends Unit<?>, D> {
-        @NotNull Screen craft(ScreenParameters<O, D> parameters);
-
-        @NotNull Location location();
+    public interface ScreenCrafter<D> {
+        @NotNull Screen craft(ScreenParameters<D> parameters);
     }
 
-    public record MenuParameters<O extends Unit<?>, D>(@NotNull MenuType<?> pType, int id, @NotNull Inventory inventory, @NotNull O owner, @NotNull D data) {
-
-    }
-
-    public interface MenuCrafter<O extends Unit<?>, D> {
-
-        @NotNull ExtendedMenu<O, D> craft(MenuParameters<O, D> parameters);
+    public record MenuParameters<D>(@NotNull MenuType<?> type, int id, @NotNull Inventory inventory, @NotNull D data, @Nullable Unit<?> owner) {
 
     }
 
-    public static final class ExtendedMenuType<O extends Unit<?>, D> extends MenuType<ExtendedMenu<O, D>> {
+    public interface MenuCrafter<D> {
 
-        private final MenuCrafter<O, D> menuCrafter;
-        private final ScreenCrafter<O, D> screenCrafter;
+        @NotNull ExtendedMenu<D> craft(MenuParameters<D> parameters);
 
-        public ExtendedMenuType(@NotNull MenuCrafter<O, D> menuCrafter, ScreenCrafter<O, D> screenCrafter) {
-            super((id, inventory) -> {
-                throw new UnsupportedOperationException("ExtendedMenuType requires opening data");
-            }, FeatureFlagSet.of());
-            this.menuCrafter = menuCrafter;
-            this.screenCrafter = screenCrafter;
-        }
-
-        public @NotNull ExtendedMenu<O, D> craftMenu(int id, @NotNull Inventory inventory, @NotNull O owner, @NotNull D data) {
-            return this.menuCrafter.craft(new MenuParameters<>(this, id, inventory, owner, data));
-        }
-
-        public @NotNull AbstractContainerScreen<ExtendedMenu<O, D>> craftScreen(@NotNull ExtendedMenu<O, D> menu, @NotNull Inventory inventory, @NotNull Component title) {
-            Class<AbstractContainerScreen<ExtendedMenu<O, D>>> screenType = Nexo.type(AbstractContainerScreen.class);
-            Screen screen = this.screenCrafter.craft(new ScreenParameters<>(menu, inventory, title, menu.owner, menu.data));
-            return screenType.cast(screen);
-        }
     }
 
-    public static abstract class ExtendedMenu<O extends Unit<?>, D> extends AbstractContainerMenu {
+    public interface ExtendedMenuType<D> {
 
-        private final Inventory inventory;
-        private final O owner;
-        private final D data;
+        @NotNull MenuType<?> type();
 
-        protected ExtendedMenu(@Nullable ExtendedMenuType<O, D> type, int id, Inventory inventory, O owner, D data) {
+        @NotNull ExtendedMenu<D> craftMenu(int id, @NotNull Inventory inventory, @NotNull D data, @Nullable Unit<?> owner);
+
+        @NotNull AbstractContainerScreen<ExtendedMenu<D>> craftScreen(@NotNull ExtendedMenu<D> menu, @NotNull Inventory inventory, @NotNull Component title);
+
+    }
+
+    public static abstract class ExtendedMenu<D> extends AbstractContainerMenu {
+
+        @NotNull private final Inventory inventory;
+        @NotNull private final D data;
+        @Nullable private final Unit<?> owner;
+
+        protected ExtendedMenu(@NotNull MenuType<?> type, int id, @NotNull Inventory inventory, @NotNull D data, @Nullable Unit<?> owner) {
             super(type, id);
             this.inventory = inventory;
             this.owner = owner;
             this.data = data;
         }
 
+        protected ExtendedMenu(@NotNull MenuParameters<D> parameters) {
+            this(parameters.type, parameters.id, parameters.inventory, parameters.data, parameters.owner);
+        }
+
         public Inventory inventory() {
             return inventory;
         }
 
-        public O owner() {
+        public Unit<?> owner() {
             return owner;
         }
 
         public D data() {
             return data;
         }
+        
     }
 
 }

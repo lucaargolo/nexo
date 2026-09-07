@@ -84,7 +84,7 @@ public final class BlockTest {
 
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
-                ScreenUnit<BlockUnit, Text> unit = Nexo.<ScreenUnit<BlockUnit, Text>>type(ScreenUnit.class).cast(requireNonNull(nexo.unit(screen), "Missing test inventory screen unit"));
+                ScreenUnit<Text> unit = requireNonNull(nexo.unit(screen), "Missing test inventory screen unit");
                 unit.open(entity, block);
                 return Interaction.SUCCESS;
             }
@@ -155,7 +155,7 @@ public final class BlockTest {
 
             @Override
             public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
-                ScreenUnit<BlockUnit, Text> unit = nexo.unit(screen);
+                ScreenUnit<Text> unit = nexo.unit(screen);
                 unit.open(entity, block);
                 block.withData(dynamicData, value -> value + "!");
                 return Interaction.SUCCESS;

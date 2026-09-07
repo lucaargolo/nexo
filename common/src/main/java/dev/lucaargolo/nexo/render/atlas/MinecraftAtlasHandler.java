@@ -84,7 +84,6 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
         return CompletableFuture.allOf(reloads.toArray(CompletableFuture[]::new));
     }
 
-    @SuppressWarnings("unchecked")
     public void register(Location atlas, Material<?> material) {
         Pair<Location, ?> textureData = material.texture();
         if (textureData == null) {

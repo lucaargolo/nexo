@@ -16,29 +16,29 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
 
-public abstract class MinecraftScreenUnit<O extends Unit<?>, D> extends ScreenUnit<O, D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter<O, D>> {
+public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter<D>> {
 
-    private final @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter;
+    private final @Nullable MinecraftScreen.ScreenCrafter<D> crafter;
 
     private final @NotNull Vector2f mouse = new Vector2f();
     private double previousMouseX = Double.NaN;
     private double previousMouseY = Double.NaN;
     private @Nullable Screen screen;
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
         super(nexo, feature, role);
         this.crafter = crafter;
         this.screen = null;
     }
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<O, D> crafter, @NotNull Screen screen) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
         super(nexo, feature, role);
-        this.crafter = crafter;
+        this.crafter = null;
         this.screen = screen;
     }
 
     @Override
-    public @NotNull MinecraftScreen.ScreenCrafter<O, D> get() {
+    public @Nullable MinecraftScreen.ScreenCrafter<D> get() {
         return crafter;
     }
 
@@ -65,9 +65,14 @@ public abstract class MinecraftScreenUnit<O extends Unit<?>, D> extends ScreenUn
     }
 
     @Override
-    public boolean open(@NotNull EntityUnit entity, @NotNull O owner, @NotNull D data) {
+    public boolean open(@NotNull EntityUnit entity, @NotNull D data, @Nullable Unit<?> owner) {
         if(entity.side().isClient()) {
-            this.screen = crafter.craft(new MinecraftScreen.ScreenParameters<>(null, null, Component.translatable(feature.languageKey()), owner, data));
+            if(this.screen == null) {
+                if(this.crafter == null) {
+                    throw new IllegalStateException("Screen and ScreenCrafter are both null");
+                }
+                this.screen = crafter.craft(new MinecraftScreen.ScreenParameters<>(null, null, Component.translatable(feature.languageKey()), data));
+            }
             Minecraft.getInstance().setScreen(this.screen);
             return true;
         }else{

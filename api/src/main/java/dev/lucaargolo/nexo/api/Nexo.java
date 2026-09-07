@@ -2,11 +2,17 @@ package dev.lucaargolo.nexo.api;
 
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.language.Language;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +32,7 @@ public interface Nexo {
 
     byte @Nullable [] loadResource(@NotNull Location location);
 
-    <T> boolean validateAuthority(@NotNull T authority);
+    <T> boolean validate(@NotNull T authority);
 
     @Nullable <T extends Feature<T, U>, U extends Unit<T>> T getFeature(@NotNull Feature.Type<T, U> type, @NotNull Location location);
 
@@ -49,6 +55,12 @@ public interface Nexo {
     <E extends Event<T>, T> void off(@NotNull Class<E> eventType, @NotNull Predicate<E> listener);
 
     @Nullable <E extends Event<T>, T> T emit(@NotNull E event);
+
+    @NotNull BlockUnit unit(@NotNull BlockBase block);
+
+    @NotNull ItemUnit unit(@NotNull ItemBase item);
+
+    @NotNull <D> ScreenUnit<D> unit(@NotNull ScreenBase<D> screen);
 
     @SuppressWarnings("unchecked")
     static <T> @NotNull Class<T> type(@NotNull Class<?> type) {

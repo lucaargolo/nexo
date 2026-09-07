@@ -49,7 +49,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
     public void identify(@NotNull Nexo nexo, @NotNull Feature.Identity<?> identity) {
         if(this.identity == null) {
-            if(nexo.validateAuthority(identity.authority())) {
+            if(nexo.validate(identity.authority())) {
                 INVALID.remove(this);
                 this.identity = identity;
             }else{
@@ -114,7 +114,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
         public static final @NotNull Type<EntityBase, EntityUnit> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));
         public static final @NotNull Type<WorldBase, WorldUnit> WORLD = new Type<>("world", WorldBase.class, Nexo.type(WorldUnit.class));
         public static final @NotNull Type<BiomeBase, Unit<BiomeBase>> BIOME = new Type<>("biome", BiomeBase.class);
-        public static final @NotNull Type<ScreenBase<?>, ScreenUnit<?, ?>> SCREEN = new Type<>("screen", Nexo.type(ScreenBase.class), Nexo.type(ScreenUnit.class));
+        public static final @NotNull Type<ScreenBase<?>, ScreenUnit<?>> SCREEN = new Type<>("screen", Nexo.type(ScreenBase.class), Nexo.type(ScreenUnit.class));
 
         private final @NotNull String identifier;
         private final @NotNull Class<T> featureType;
@@ -181,8 +181,8 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
             return clazz.cast(PACKET);
         }
 
-        public static <D> @NotNull Feature.Type<ScreenBase<D>, ScreenUnit<?, D>> screen() {
-            Class<Feature.Type<ScreenBase<D>, ScreenUnit<?, D>>> clazz = Nexo.type(Type.class);
+        public static <D> @NotNull Feature.Type<ScreenBase<D>, ScreenUnit<D>> screen() {
+            Class<Feature.Type<ScreenBase<D>, ScreenUnit<D>>> clazz = Nexo.type(Type.class);
             return clazz.cast(SCREEN);
         }
 
@@ -196,7 +196,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
     }
 
-    private static void validateAll() {
+    public static void validateAll() {
         if(!INVALID.isEmpty()) {
             throw new IllegalStateException("Some features were not properly identified");
         }

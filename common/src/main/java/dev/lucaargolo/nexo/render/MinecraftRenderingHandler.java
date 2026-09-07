@@ -36,6 +36,7 @@ import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -120,7 +121,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
                 }
                 case ScreenBase<?> screen -> {
                     if (MinecraftScreen.isDynamicScreen(screen)) {
-                        this.registerMenuScreen(() -> (MinecraftScreen.ExtendedMenuType<?, ?>) MinecraftScreen.CONVERT.forward(screen).value());
+                        this.registerMenuScreen(() -> (MenuType<MinecraftScreen.ExtendedMenu<Object>> & MinecraftScreen.ExtendedMenuType<Object>) MinecraftScreen.MENU_HOLDER_MAP.get(event.location()).value());
                     }
                     if (screen.resolved()) {
                         this.registerMaterials(nexo, MinecraftAtlasHandler.SCREEN_ATLAS, screen.materials().values());
@@ -205,7 +206,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
         }
     }
 
-    protected abstract <O extends Unit<?>, D> void registerMenuScreen(Supplier<MinecraftScreen.ExtendedMenuType<O, D>> type);
+    protected abstract <D, T extends MenuType<MinecraftScreen.ExtendedMenu<D>> & MinecraftScreen.ExtendedMenuType<D>> void registerMenuScreen(Supplier<T> type);
 
     private static ResourceLocation modelId(Location location, Feature<?, ?> feature) {
         String prefix = switch (feature) {

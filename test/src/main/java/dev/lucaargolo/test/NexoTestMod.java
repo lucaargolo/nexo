@@ -58,13 +58,13 @@ public class NexoTestMod {
         ItemCategoryBase category = nexo.registerFeature(new SimpleItemCategory(), NexoTestMod.id("test"));
 
         TestScreen testScreen = nexo.registerFeature(new TestScreen(), NexoTestMod.id("test_screen"));
-        ScreenUnit<?, Text> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
+        ScreenUnit<Text> testScreenUnit = requireNonNull(nexo.unit(testScreen), "Missing test screen unit");
         if (testScreenUnit.feature() != testScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }
 
         TestInventoryScreen testInventoryScreen = nexo.registerFeature(new TestInventoryScreen(), NexoTestMod.id("test_inventory_screen"));
-        ScreenUnit<?, Text> testInventoryScreenUnit = requireNonNull(nexo.unit(testInventoryScreen), "Missing test inventory screen unit");
+        ScreenUnit<Text> testInventoryScreenUnit = requireNonNull(nexo.unit(testInventoryScreen), "Missing test inventory screen unit");
         if (testInventoryScreenUnit.feature() != testInventoryScreen) {
             throw new IllegalStateException("Screen unit did not retain its registered feature");
         }

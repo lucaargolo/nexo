@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
@@ -16,6 +17,8 @@ import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
 import dev.lucaargolo.nexo.util.DynamicRegistryView;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -26,7 +29,10 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -36,6 +42,7 @@ import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.IContainerFactory;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.callback.AddCallback;
@@ -49,11 +56,12 @@ import java.util.function.Supplier;
 public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<NeoForgeNexoMinecraft> {
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
+
     private final Map<DataBase<?>, Holder<AttachmentType<?>>> dataAttachmentMap = new LinkedHashMap<>();
-    private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
+
     private final List<Consumer<RegisterCapabilitiesEvent>> inventoryRegistrars = new ArrayList<>();
     private final ThreadLocal<Set<Object>> activeVaultFeatures = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
-    private boolean featureRegistrationActive;
+
 
     public NeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -87,19 +95,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public void beginFeatureRegistration() {
-        featureRegistrationActive = true;
-    }
-
-    @Override
-    public void endFeatureRegistration() {
-        featureRegistrationActive = false;
-        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
-        pendingFeatureEvents.clear();
-        events.forEach(this.nexo()::emit);
-    }
-
-    @Override
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
         DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
         return deferredRegistry.register(id.getPath(), feature);
@@ -116,8 +111,40 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends AbstractContainerMenu, D> ExtendedMenuType<T, D> craftMenuType(MinecraftScreen.MenuCrafter<?, D> constructor, DataBase<D> data) {
-        return new ExtendedMenuType<>(constructor, NexoMinecraft.packetCodec(data));
+    public <D> MinecraftScreen.ExtendedMenuType<D> craftMenuType(@NotNull ScreenBase<D> screen, @NotNull MinecraftScreen.MenuCrafter<D> menuCrafter, @NotNull MinecraftScreen.ScreenCrafter<D> screenCrafter) {
+        return new ExtendedMenuTypeImpl<>(screen, menuCrafter, screenCrafter);
+    }
+
+    private static final class ExtendedMenuTypeImpl<D> extends MenuType<AbstractContainerMenu> implements MinecraftScreen.ExtendedMenuType<D> {
+
+        private final MinecraftScreen.MenuCrafter<D> menuCrafter;
+        private final MinecraftScreen.ScreenCrafter<D> screenCrafter;
+
+        public ExtendedMenuTypeImpl(@NotNull ScreenBase<D> screen, MinecraftScreen.MenuCrafter<D> menuCrafter, MinecraftScreen.ScreenCrafter<D> screenCrafter) {
+            super((IContainerFactory<AbstractContainerMenu>) (id, inventory, buf) -> {
+                return menuCrafter.craft(new MinecraftScreen.MenuParameters<>(MinecraftScreen.MENU_HOLDER_MAP.get(screen.location()).value(), id, inventory, NexoMinecraft.packetCodec(screen.data()).decode(buf), null));
+            }, FeatureFlags.VANILLA_SET);
+            this.menuCrafter = menuCrafter;
+            this.screenCrafter = screenCrafter;
+        }
+
+        @Override
+        public @NotNull MenuType<?> type() {
+            return this;
+        }
+
+        @Override
+        public @NotNull MinecraftScreen.ExtendedMenu<D> craftMenu(int id, @NotNull Inventory inventory, @NotNull D data, @Nullable Unit<?> owner) {
+            return this.menuCrafter.craft(new MinecraftScreen.MenuParameters<>(this, id, inventory, data, owner));
+        }
+
+        @Override
+        public @NotNull AbstractContainerScreen<MinecraftScreen.ExtendedMenu<D>> craftScreen(@NotNull MinecraftScreen.ExtendedMenu<D> menu, @NotNull Inventory inventory, @NotNull Component title) {
+            Class<AbstractContainerScreen<MinecraftScreen.ExtendedMenu<D>>> screenType = Nexo.type(AbstractContainerScreen.class);
+            Screen screen = this.screenCrafter.craft(new MinecraftScreen.ScreenParameters<>(menu, inventory, title, menu.data()));
+            return screenType.cast(screen);
+        }
+
     }
 
     @Override
@@ -149,7 +176,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type) {
+    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
         RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
             Consumer<Holder<M>> consumer = (holder) -> {
                 emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
@@ -161,7 +188,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         });
     }
 
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, ?, M> type) {
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, M> type) {
         view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
             Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
             emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
@@ -170,7 +197,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     }
 
     @Override
-    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, U, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
         Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
         var vaultFactories = this.vaultFactories(feature, itemUnitType);
         if (vaultFactories.isEmpty()) {
@@ -214,14 +241,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
             if (active.isEmpty()) {
                 this.activeVaultFeatures.remove();
             }
-        }
-    }
-
-    private void emitFeatureRegistered(FeatureRegisteredEvent event) {
-        if (featureRegistrationActive) {
-            pendingFeatureEvents.add(event);
-        } else {
-            this.nexo().emit(event);
         }
     }
 

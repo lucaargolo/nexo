@@ -2,8 +2,10 @@ package dev.lucaargolo.nexo.unit.screen;
 
 import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
@@ -19,25 +21,26 @@ import org.jetbrains.annotations.Nullable;
 
 public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
 
-    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter) {
+    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
         super(nexo, feature, role, crafter);
     }
 
-    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter crafter, @NotNull Screen screen) {
-        super(nexo, feature, role, crafter, screen);
+    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
+        super(nexo, feature, role, screen);
     }
 
     @Override
-    public boolean open(@NotNull EntityUnit entity, @NotNull D data) {
+    public boolean open(@NotNull EntityUnit entity, @NotNull D data, @Nullable Unit<?> owner) {
         boolean isDynamic = MinecraftScreen.isDynamicScreen(feature);
         if(isDynamic) {
             if(entity.side().isServer()) {
                 if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
-                    NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D> menuType = (NeoForgeMinecraftRegistryHandler.ExtendedMenuType<?, D>) MinecraftScreen.CONVERT.forward(feature).value();
+                    Class<MinecraftScreen.ExtendedMenuType<D>> type = Nexo.type(MinecraftScreen.ExtendedMenuType.class);
+                    MinecraftScreen.ExtendedMenuType<D> menuType = type.cast(MinecraftScreen.MENU_HOLDER_MAP.get(feature.location()).value());
                     return player.openMenu(new MenuProvider() {
                         @Override
                         public @NotNull AbstractContainerMenu createMenu(int i, @NotNull Inventory inventory, @NotNull Player player) {
-                            return menuType.create(i, inventory, data);
+                            return menuType.craftMenu(i, inventory, data, owner);
                         }
 
                         @Override
@@ -45,7 +48,7 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
                             //TODO
                             return Component.empty();
                         }
-                    }, buf -> menuType.encode(buf, data)).isPresent();
+                    }, buf -> NexoMinecraft.packetCodec(feature.data()).encode(buf, data)).isPresent();
                 }else{
                     throw new IllegalArgumentException("Minecraft dynamic screens can only be opened by minecraft server players");
                 }
@@ -54,7 +57,7 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
                 return false;
             }
         }else{
-            return super.open(entity, data);
+            return super.open(entity, data, owner);
         }
     }
 

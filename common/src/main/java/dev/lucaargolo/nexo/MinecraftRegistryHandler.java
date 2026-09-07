@@ -1,14 +1,17 @@
 package dev.lucaargolo.nexo;
 
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
+import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -16,14 +19,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -34,6 +35,9 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
 
     protected final Map<ResourceKey<?>, Consumer<Registry<?>>> dynamicRegistrars = new LinkedHashMap<>();
     protected final Map<ResourceKey<?>, Holder<?>> dynamicHolders = new LinkedHashMap<>();
+
+    private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
+    private boolean featureRegistrationActive = false;
 
     private final N nexo;
 
@@ -46,7 +50,7 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
     }
 
     public void init() {
-        for (MinecraftFeatureType<?, ?, ?> type : MinecraftFeatureType.all()) {
+        for (MinecraftFeatureType<?, ?> type : MinecraftFeatureType.all()) {
             if (type.registryType() == MinecraftFeatureType.RegistryType.CUSTOM) {
                 this.getOrCreateRegistry(type.registry());
             }
@@ -57,13 +61,26 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
     }
 
     public void beginFeatureRegistration() {
+        featureRegistrationActive = true;
     }
 
     public void endFeatureRegistration() {
+        featureRegistrationActive = false;
+        List<FeatureRegisteredEvent> events = List.copyOf(pendingFeatureEvents);
+        pendingFeatureEvents.clear();
+        events.forEach(this.nexo()::emit);
+    }
+
+    protected void emitFeatureRegistered(FeatureRegisteredEvent event) {
+        if (featureRegistrationActive) {
+            pendingFeatureEvents.add(event);
+        } else {
+            this.nexo().emit(event);
+        }
     }
 
     public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(
-            @NotNull MinecraftFeatureType<T, U, M> type,
+            @NotNull MinecraftFeatureType<T, M> type,
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
     );
@@ -122,9 +139,11 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
 
     public abstract CreativeModeTab craftCreativeTab(ItemCategoryBase category);
 
+    public abstract <D> MinecraftScreen.ExtendedMenuType<D> craftMenuType(@NotNull ScreenBase<D> screen, @NotNull MinecraftScreen.MenuCrafter<D> menuCrafter, @NotNull MinecraftScreen.ScreenCrafter<D> screenCrafter);
+
     protected abstract RegistryAccess getLocalRegistry();
 
-    protected abstract <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, ?, M> type);
+    protected abstract <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type);
 
     public final RegistryAccess getRegistry() {
         RegistryAccess localRegistry = getLocalRegistry();

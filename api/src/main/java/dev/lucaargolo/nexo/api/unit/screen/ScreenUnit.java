@@ -15,7 +15,7 @@ import org.joml.Vector2f;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class ScreenUnit<O extends Unit<?>, D> extends Unit<ScreenBase<D>> {
+public abstract class ScreenUnit<D> extends Unit<ScreenBase<D>> {
 
     @NotNull
     private final CopyOnWriteArrayList<@NotNull Widget> widgets = new CopyOnWriteArrayList<>();
@@ -30,10 +30,18 @@ public abstract class ScreenUnit<O extends Unit<?>, D> extends Unit<ScreenBase<D
 
     public abstract int height();
 
-    public abstract boolean open(@NotNull EntityUnit entity, @NotNull O owner, @NotNull D data);
+    public abstract boolean open(@NotNull EntityUnit entity, @NotNull D data, @Nullable Unit<?> owner);
 
-    public boolean open(@NotNull EntityUnit entity, @NotNull O owner) {
-        return open(entity, owner, feature.data().initial());
+    public boolean open(@NotNull EntityUnit entity, @NotNull D data) {
+        return open(entity, data, null);
+    }
+
+    public boolean open(@NotNull EntityUnit entity, @Nullable Unit<?> owner) {
+        return open(entity, feature.data().initial(), owner);
+    }
+
+    public boolean open(@NotNull EntityUnit entity) {
+        return open(entity, feature.data().initial(), null);
     }
 
     public void render(@NotNull Graphics2D graphics) {

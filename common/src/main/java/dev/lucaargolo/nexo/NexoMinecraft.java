@@ -24,6 +24,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
+import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -110,6 +111,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
 
     protected final void init() {
         this.registerResource(Resource.Type.FONT, Graphics2D.DEFAULT_FONT);
+
         this.registryHandler.init();
         this.renderingHandler.init();
         this.registryHandler.beginFeatureRegistration();
@@ -122,6 +124,8 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
             this.pendingFeatureEvents.clear();
             events.forEach(this::emit);
         }
+
+        Feature.validateAll();
     }
 
     public M getDiscoveryHandler() {
@@ -224,7 +228,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     }
 
     @Override
-    public <T> boolean validateAuthority(@NotNull T authority) {
+    public <T> boolean validate(@NotNull T authority) {
         return authority == registryHandler;
     }
 
@@ -237,7 +241,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     public @NotNull <T extends Feature<T, U>, U extends Unit<T>, F extends T> F registerFeature(@NotNull F feature, @NotNull Location location) {
         feature.identify(this, registryHandler.identity(location));
         for (Feature.Type<?, ?> type : Feature.Type.values()) {
-            MinecraftFeatureType<?, ?, ?> t = MinecraftFeatureType.of(type);
+            MinecraftFeatureType<?, ?> t = MinecraftFeatureType.of(type);
             if (t.isInstance(feature)) {
                 Feature<?, ?> registered = t.register(this, feature);
                 if (t.registryType() == MinecraftFeatureType.RegistryType.DIRECT) {
@@ -247,11 +251,6 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
             }
         }
         throw new IllegalStateException(String.format("Cannot register %s", feature.getClass()));
-    }
-
-    @Override
-    public @Nullable <T extends Feature<T, U>, U extends Unit<T>> U unit(@NotNull Feature<T, U> feature) {
-        return MinecraftFeatureType.of(feature.type()).base(this, feature);
     }
 
     @Override
@@ -324,6 +323,22 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return event.value();
     }
 
+    @Override
+    public @NotNull BlockUnit unit(@NotNull BlockBase block) {
+        return stateToUnit(MinecraftFeatureType.BLOCK.convert(block).defaultBlockState());
+    }
+
+    @Override
+    public @NotNull ItemUnit unit(@NotNull ItemBase item) {
+        return stackToUnit(MinecraftFeatureType.ITEM.convert(item).getDefaultInstance());
+    }
+
+    @Override
+    public @NotNull <D> ScreenUnit<D> unit(@NotNull ScreenBase<D> screen) {
+        MinecraftScreen.ScreenCrafter<?> crafter = MinecraftScreen.CRAFTER_MAP.get(screen.location());
+        return Utils.<MinecraftScreenUnit<D>>loadPlatformClass(this, MinecraftScreenUnit.class, this, screen, screen.role(), crafter);
+    }
+
     public @NotNull BlockUnit stateToUnit(@NotNull BlockState state) {
         return blockToUnit(null, null, state, null);
     }
@@ -391,7 +406,7 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return clazz.cast(unit);
     }
 
-    public ItemCategoryUnit tabToUnit(CreativeModeTab tab) {
+    public @NotNull ItemCategoryUnit tabToUnit(CreativeModeTab tab) {
         UnitCacheMixed cache = (UnitCacheMixed) tab;
         MinecraftItemCategoryUnit<?> cached = (MinecraftItemCategoryUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
@@ -403,15 +418,14 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         return unit;
     }
 
-    public <D> @NotNull MinecraftScreenUnit<?, D> screenToUnit(@NotNull Screen screen, @NotNull ScreenBase<D> feature) {
+    public <D> @NotNull MinecraftScreenUnit<D> screenToUnit(@NotNull Screen screen, @NotNull ScreenBase<D> feature) {
         UnitCacheMixed cache = (UnitCacheMixed) screen;
-        MinecraftScreenUnit<?, ?> cached = (MinecraftScreenUnit<?, ?>) cache.nexo$getUnit();
+        MinecraftScreenUnit<?> cached = (MinecraftScreenUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
-            Class<MinecraftScreenUnit<?, D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
+            Class<MinecraftScreenUnit<D>> cachedClass = Nexo.type(MinecraftScreenUnit.class);
             return cachedClass.cast(cached);
         }
-        MinecraftScreen.ScreenCrafter<?, ?> crafter = MinecraftFeatureType.SCREEN.convert(feature);
-        MinecraftScreenUnit<?, D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), crafter, screen);
+        MinecraftScreenUnit<D> unit = Utils.loadPlatformClass(this, MinecraftScreenUnit.class, this, feature, feature.role(), screen);
         cache.nexo$setUnit(unit);
         return unit;
     }

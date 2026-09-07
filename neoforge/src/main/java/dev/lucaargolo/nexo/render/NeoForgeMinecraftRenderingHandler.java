@@ -7,13 +7,14 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.event.AtlasStitchedEvent;
 import dev.lucaargolo.nexo.event.InjectOnAtlasStitchEvent;
 import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -23,7 +24,6 @@ import net.minecraft.client.resources.model.UnbakedModel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -151,8 +151,8 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     }
 
     @Override
-    protected <M extends AbstractContainerMenu, U extends AbstractContainerScreen<M>> void registerMenuScreen(Supplier<MenuType<? extends M>> type, ScreenConstructor<M, O, D, U> constructor) {
-        menuScreensToRegister.add(event -> event.register(type.get(), constructor::create));
+    protected <D, T extends MenuType<MinecraftScreen.ExtendedMenu<D>> & MinecraftScreen.ExtendedMenuType<D>> void registerMenuScreen(Supplier<T> supplier) {
+        menuScreensToRegister.add(event -> event.register(supplier.get(), supplier.get()::craftScreen));
     }
 
     private IClientItemExtensions createItemExtensions(NexoMinecraft<NeoForgeNexoMinecraft, ?, ?, ?> nexo, ItemBase base) {

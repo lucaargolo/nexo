@@ -25,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +118,7 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<F
     }
 
     @Override
-    protected <O extends Unit<?>, D> void registerMenuScreen(Supplier<MinecraftScreen.ExtendedMenuType<O, D>> supplier) {
+    protected <D, T extends MenuType<MinecraftScreen.ExtendedMenu<D>> & MinecraftScreen.ExtendedMenuType<D>> void registerMenuScreen(Supplier<T> supplier) {
         MenuScreens.register(supplier.get(), supplier.get()::craftScreen);
     }
 

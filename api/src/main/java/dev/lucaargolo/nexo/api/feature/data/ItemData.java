@@ -67,9 +67,6 @@ public final class ItemData extends DataBase<ItemUnit> {
             throw new IllegalArgumentException("Unknown item feature in item data: " + serialized.getAsJsonPrimitive("item").getAsString());
         }
         ItemUnit item = this.nexo.unit(feature);
-        if (item == null) {
-            throw new IllegalArgumentException("Cannot create item unit for item data: " + feature.location());
-        }
         JsonObject data = serialized.getAsJsonObject("data");
         for (var entry : data.entrySet()) {
             DataBase<?> itemData = this.nexo.getFeature(Feature.Type.data(), Location.parse(entry.getKey()));
