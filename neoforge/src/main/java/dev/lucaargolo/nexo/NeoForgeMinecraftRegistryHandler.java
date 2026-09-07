@@ -204,11 +204,12 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
             return;
         }
         if (type.minecraftType() == Block.class) {
-            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories)), Block.class.cast(minecraft.get())));
+            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories)), (Block) minecraft.get()));
         } else if (type.minecraftType() == Item.class) {
-            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), Item.class.cast(minecraft.get())));
+            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), (Item) minecraft.get()));
         } else if (type.minecraftType() == EntityType.class) {
-            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, EntityType.class.cast(minecraft.get()), (entity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories))));
+            EntityType<?> entityType = Nexo.<EntityType<?>>type(EntityType.class).cast(minecraft.get());
+            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, entityType, (entity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories))));
         } else {
             throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
         }

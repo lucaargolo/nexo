@@ -226,18 +226,22 @@ public final class Utils {
         return 5;
     }
 
-    @SuppressWarnings("UnnecessaryBoxing")
     private static Object convertPrimitive(Class<?> type, Object parameter) {
         if (type == boolean.class || type == char.class && parameter instanceof Character) return parameter;
-        if (type == char.class) return Character.valueOf((char) ((Number) parameter).intValue());
+        if (type == char.class) return (char) ((Number) parameter).intValue();
 
-        Number number = parameter instanceof Character character ? Integer.valueOf(character) : (Number) parameter;
-        if (type == byte.class) return Byte.valueOf(number.byteValue());
-        if (type == short.class) return Short.valueOf(number.shortValue());
-        if (type == int.class) return Integer.valueOf(number.intValue());
-        if (type == long.class) return Long.valueOf(number.longValue());
-        if (type == float.class) return Float.valueOf(number.floatValue());
-        if (type == double.class) return Double.valueOf(number.doubleValue());
+        Number number;
+        if (parameter instanceof Character character) {
+            number = (int) character;
+        } else {
+            number = (Number) parameter;
+        }
+        if (type == byte.class) return number.byteValue();
+        if (type == short.class) return number.shortValue();
+        if (type == int.class) return number.intValue();
+        if (type == long.class) return number.longValue();
+        if (type == float.class) return number.floatValue();
+        if (type == double.class) return number.doubleValue();
         throw new IllegalArgumentException("Unsupported primitive type: " + type.getName());
     }
 
@@ -254,17 +258,6 @@ public final class Utils {
         return type.cast(function);
     }
 
-    /**
-     * Builds a subclass whose overrides receive an unbound superclass callback. Each callback may omit,
-     * repeat, or reorder superclass invocation and change its arguments or result. Supply the intercepted
-     * instance (or another compatible generated instance) explicitly when invoking the superclass callback.
-     * If no superclass or unambiguous interface default implementation exists, that callback returns the
-     * JVM default value: zero/false for primitives, null for references, and null for a boxed void result.
-     * Exceptions propagate unchanged. A non-void primitive override must not return null.
-     * Reference arguments may be null only where the intercepted method's own contract permits it.
-     * Superclass callbacks may be retained; they do not retain an instance, but retaining one can keep its
-     * generated class alive. Their reuse does not make the receiver or its methods thread-safe.
-     */
     public static final class Extender<T> {
 
         private final NexoMinecraft<?, ?, ?, ?> nexo;
@@ -533,7 +526,6 @@ public final class Utils {
     @FunctionalInterface public interface Function9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9) throws Throwable; }
     @FunctionalInterface public interface Function10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> { @Nullable R apply(@NotNull T instance, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9, @Nullable P10 p10) throws Throwable; }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override0<T, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function0<? super T, ? extends R> superCall) throws Throwable;
@@ -543,7 +535,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override1<T, P1, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function1<? super T, ? super P1, ? extends R> superCall, @Nullable P1 p1) throws Throwable;
@@ -553,7 +544,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override2<T, P1, P2, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function2<? super T, ? super P1, ? super P2, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2) throws Throwable;
@@ -563,7 +553,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override3<T, P1, P2, P3, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function3<? super T, ? super P1, ? super P2, ? super P3, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3) throws Throwable;
@@ -573,7 +562,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override4<T, P1, P2, P3, P4, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function4<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4) throws Throwable;
@@ -583,7 +571,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override5<T, P1, P2, P3, P4, P5, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function5<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5) throws Throwable;
@@ -593,7 +580,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override6<T, P1, P2, P3, P4, P5, P6, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function6<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6) throws Throwable;
@@ -603,7 +589,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override7<T, P1, P2, P3, P4, P5, P6, P7, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function7<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7) throws Throwable;
@@ -613,7 +598,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override8<T, P1, P2, P3, P4, P5, P6, P7, P8, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function8<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8) throws Throwable;
@@ -623,7 +607,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override9<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function9<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9) throws Throwable;
@@ -633,7 +616,6 @@ public final class Utils {
         }
     }
 
-    /** Around-method callback; superclass invocation and lifetime follow the contract of {@link Extender}. */
     @FunctionalInterface
     public interface Override10<T, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, R> {
         @Nullable R apply(@NotNull T instance, @NotNull Function10<? super T, ? super P1, ? super P2, ? super P3, ? super P4, ? super P5, ? super P6, ? super P7, ? super P8, ? super P9, ? super P10, ? extends R> superCall, @Nullable P1 p1, @Nullable P2 p2, @Nullable P3 p3, @Nullable P4 p4, @Nullable P5 p5, @Nullable P6 p6, @Nullable P7 p7, @Nullable P8 p8, @Nullable P9 p9, @Nullable P10 p10) throws Throwable;

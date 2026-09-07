@@ -25,10 +25,10 @@ public abstract class LanguageResource extends Resource<LanguageResource> {
         super(location);
         this.locale = Objects.requireNonNull(locale, "locale");
         this.entries = new LinkedHashMap<>(Objects.requireNonNull(entries, "entries"));
-        this.entries.forEach((key, value) -> {
-            validateKey(key);
-            Objects.requireNonNull(value, "value");
-        });
+        for (Map.Entry<String, String> entry : this.entries.entrySet()) {
+            validateKey(entry.getKey(), location);
+            Objects.requireNonNull(entry.getValue(), "value");
+        }
     }
 
     @Override
@@ -49,13 +49,13 @@ public abstract class LanguageResource extends Resource<LanguageResource> {
     }
     public final void entry(@NotNull String key, @NotNull String value) {
         Objects.requireNonNull(key, "key");
-        validateKey(key);
+        validateKey(key, location());
         entries.put(key, Objects.requireNonNull(value, "value"));
     }
 
-    private void validateKey(@NotNull String key) {
+    private static void validateKey(@NotNull String key, @NotNull Location location) {
         String[] parts = key.split("\\.", -1);
-        if (parts.length < 3 || !parts[1].equals(location().namespace())) {
+        if (parts.length < 3 || !parts[1].equals(location.namespace())) {
             throw new IllegalArgumentException("Invalid Nexo translation key: " + key);
         }
         for (String part : parts) {

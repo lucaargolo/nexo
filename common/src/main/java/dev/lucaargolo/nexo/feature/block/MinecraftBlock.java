@@ -201,7 +201,7 @@ public class MinecraftBlock extends BlockBase {
             feature.registerDefaultState(state);
             return null;
         });
-        extender.override("createBlockStateDefinition", void.class, StateDefinition.Builder.class, (feature, superCall, builder) -> {
+        extender.override("createBlockStateDefinition", void.class, Nexo.<StateDefinition.Builder<Block, BlockState>>type(StateDefinition.Builder.class), (feature, superCall, builder) -> {
             superCall.apply(feature, builder);
             for (MinecraftDataProperty<?> property : dataProperties) {
                 builder.add(property);

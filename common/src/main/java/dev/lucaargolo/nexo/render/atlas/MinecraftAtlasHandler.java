@@ -35,8 +35,8 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
     public static final Location ENTITY_ATLAS = Location.of("nexo", "textures/atlas/entity.png");
     public static final Location SCREEN_ATLAS = Location.of("minecraft", "textures/atlas/gui.png");
 
-    private final Map<Location, List<Material<Location>>> atlasRegistry = new ConcurrentHashMap<>();
-    private final Map<Location, List<Material<byte[]>>> atlasEmbeddedRegistry = new ConcurrentHashMap<>();
+    private final Map<Location, List<Material<?>>> atlasRegistry = new ConcurrentHashMap<>();
+    private final Map<Location, List<Material<?>>> atlasEmbeddedRegistry = new ConcurrentHashMap<>();
     private final Map<Location, Location> atlasLookup = new LinkedHashMap<>();
 
     private final Map<Location, NativeImage> imagesToRegister = new LinkedHashMap<>();
@@ -91,9 +91,9 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
         }
         Object data = textureData.right();
         if (data instanceof Location) {
-            atlasRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<Location>) material);
+            atlasRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add(material);
         } else if (data instanceof byte[]) {
-            atlasEmbeddedRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add((Material<byte[]>) material);
+            atlasEmbeddedRegistry.computeIfAbsent(atlas, k -> new CopyOnWriteArrayList<>()).add(material);
         }
     }
 
@@ -113,9 +113,9 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
     public @NotNull List<SpriteContents> getSpriteContents(@NotNull Location atlas) {
         List<SpriteContents> list = new ArrayList<>();
 
-        for (Material<Location> material : atlasRegistry.getOrDefault(atlas, List.of())) {
-            Pair<Location, Location> texture = material.texture();
-            if (texture == null) {
+        for (Material<?> material : atlasRegistry.getOrDefault(atlas, List.of())) {
+            Pair<Location, ?> texture = material.texture();
+            if (texture == null || !(texture.right() instanceof Location)) {
                 continue;
             }
             Location location = texture.left();
@@ -135,13 +135,13 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
             }
         }
 
-        for (Material<byte[]> material : atlasEmbeddedRegistry.getOrDefault(atlas, List.of())) {
-            Pair<Location, byte[]> texture = material.texture();
-            if (texture == null) {
+        for (Material<?> material : atlasEmbeddedRegistry.getOrDefault(atlas, List.of())) {
+            Pair<Location, ?> texture = material.texture();
+            if (texture == null || !(texture.right() instanceof byte[] data)) {
                 continue;
             }
             ResourceLocation id = NexoMinecraft.rl(texture.left().withoutExtension());
-            try (InputStream in = new ByteArrayInputStream(texture.right())) {
+            try (InputStream in = new ByteArrayInputStream(data)) {
                 NativeImage image = NativeImage.read(in);
                 classify(material, image);
                 FrameSize dimensions = new FrameSize(image.getWidth(), image.getHeight());

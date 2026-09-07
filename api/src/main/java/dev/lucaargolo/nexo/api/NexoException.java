@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class NexoException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public NexoException(@NotNull String message) {
         super(message);
     }

@@ -122,7 +122,7 @@ public final class MinecraftScreen extends ScreenBase<Text> {
     }
 
     private static <M extends ExtendedMenu<?>> MinecraftScreen.MenuCrafter<?> menuCrafter(@NotNull Function<MenuParameters<?>, M> menuFactory) {
-        return parameters -> (ExtendedMenu<Object>) menuFactory.apply(parameters);
+        return parameters -> Nexo.<ExtendedMenu<Object>>type(ExtendedMenu.class).cast(menuFactory.apply(parameters));
     }
 
     public static @NotNull <M extends Screen> MinecraftScreen.ScreenCrafter<?> craftScreen(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<ScreenParameters<?>, M> factory, @NotNull ScreenBase<?> feature) {
