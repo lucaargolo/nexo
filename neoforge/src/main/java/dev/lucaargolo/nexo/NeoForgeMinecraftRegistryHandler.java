@@ -53,7 +53,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     private final Map<Registry<?>, Map<String, DeferredRegister<?>>> deferredRegistries = new HashMap<>();
 
@@ -70,7 +70,8 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
     @Override
     public void init() {
         super.init();
-        this.nexo().modBus().addListener(RegisterCapabilitiesEvent.class, event -> {
+        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo();
+        nexo.modBus().addListener(RegisterCapabilitiesEvent.class, event -> {
             this.inventoryRegistrars.forEach(registrar -> registrar.accept(event));
         });
         NeoForge.EVENT_BUS.addListener(DynamicRegistrySetupEvent.class, event -> {
@@ -152,7 +153,8 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
         DeferredRegister<T> deferredRegistry = DeferredRegister.create(registryKey, NexoMinecraft.MOD_ID);
         Registry<T> registry = deferredRegistry.makeRegistry(builder -> {
         });
-        deferredRegistry.register(this.nexo().modBus());
+        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo();
+        deferredRegistry.register(nexo.modBus());
         deferredRegistries.computeIfAbsent(registry, key -> new HashMap<>()).put(NexoMinecraft.MOD_ID, deferredRegistry);
         return registry;
     }
@@ -250,7 +252,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler<N
                 .computeIfAbsent(registry, r -> new HashMap<>())
                 .computeIfAbsent(namespace, n -> {
                     DeferredRegister<R> r = DeferredRegister.create(registry, namespace);
-                    r.register(this.nexo().modBus());
+                    r.register(((NeoForgeNexoMinecraft) this.nexo()).modBus());
                     return r;
                 });
         Class<DeferredRegister<R>> clazz = Nexo.type(DeferredRegister.class);

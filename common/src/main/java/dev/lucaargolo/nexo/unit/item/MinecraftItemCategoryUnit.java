@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends ItemCategoryUnit implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft> extends ItemCategoryUnit implements MinecraftUnit<CreativeModeTab> {
 
     protected final @NotNull N nexo;
     protected final @NotNull CreativeModeTab tab;

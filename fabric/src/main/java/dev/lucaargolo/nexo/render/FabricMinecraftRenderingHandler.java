@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler<FabricNexoMinecraft> {
+public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler {
 
     private final Map<Block, ResourceLocation> blockToModel = new HashMap<>();
     private final Map<ResourceLocation, UnbakedModel> unbakedModels = new HashMap<>();

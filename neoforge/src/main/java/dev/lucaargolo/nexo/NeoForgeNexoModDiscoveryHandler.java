@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
-public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<NeoForgeNexoMinecraft> {
+public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler {
 
     public NeoForgeNexoModDiscoveryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -46,8 +46,9 @@ public class NeoForgeNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Neo
             }
         }
 
-        init(jars, dirs, this.nexo.getLanguageHandler()::load);
-        this.nexo.modBus().addListener(this::onLoadComplete);
+        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo;
+        init(jars, dirs, nexo.getLanguageHandler()::load);
+        nexo.modBus().addListener(this::onLoadComplete);
     }
 
     private void onLoadComplete(FMLLoadCompleteEvent event) {

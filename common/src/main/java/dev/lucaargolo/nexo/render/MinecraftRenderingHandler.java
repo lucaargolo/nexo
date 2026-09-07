@@ -49,14 +49,14 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?, ?>> {
+public abstract class MinecraftRenderingHandler {
 
-    protected final N nexo;
+    protected final NexoMinecraft nexo;
 
     protected final MinecraftAtlasHandler atlasHandler;
     protected final MinecraftShaderHandler shaderHandler;
 
-    public MinecraftRenderingHandler(N nexo) {
+    public MinecraftRenderingHandler(NexoMinecraft nexo) {
         this.nexo = nexo;
         this.atlasHandler = new MinecraftAtlasHandler(nexo);
         this.shaderHandler = new MinecraftShaderHandler();
@@ -148,7 +148,7 @@ public abstract class MinecraftRenderingHandler<N extends NexoMinecraft<N, ?, ?,
 
     protected abstract void registerItemRenderer(ItemBase item);
 
-    protected ItemRenderer createItemRenderer(NexoMinecraft<N, ?, ?, ?> nexo, ItemBase base) {
+    protected ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
         Renderer<Graphics3D, ItemUnit> renderer = base.renderer();
         if (renderer == null) {
             return ItemRenderer.EMPTY;

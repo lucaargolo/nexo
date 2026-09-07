@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public abstract class NexoModDiscoveryHandler<N extends Nexo> {
+public abstract class NexoModDiscoveryHandler {
 
     private static final String MOD_JSON = "nexo.mod.json";
 
@@ -31,9 +31,9 @@ public abstract class NexoModDiscoveryHandler<N extends Nexo> {
 
     protected final Map<String, Nexo.Mod> mods = new ConcurrentHashMap<>();
 
-    protected final N nexo;
+    protected final Nexo nexo;
 
-    public NexoModDiscoveryHandler(N nexo) {
+    public NexoModDiscoveryHandler(Nexo nexo) {
         this.nexo = nexo;
     }
 

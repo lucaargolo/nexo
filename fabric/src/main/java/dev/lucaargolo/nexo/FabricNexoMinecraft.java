@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class FabricNexoMinecraft extends NexoMinecraft<FabricNexoMinecraft, FabricNexoModDiscoveryHandler, FabricMinecraftRegistryHandler, FabricMinecraftRenderingHandler> implements ModInitializer {
+public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer {
 
     @Nullable
     private MinecraftServer currentServer;

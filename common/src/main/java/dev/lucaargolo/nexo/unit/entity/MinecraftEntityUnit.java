@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class MinecraftEntityUnit<N extends NexoMinecraft<N, ?, ?, ?>, E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
+public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
 
     @NotNull
     protected final N nexo;

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-public abstract class MinecraftWorldUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends WorldUnit implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit<N extends NexoMinecraft> extends WorldUnit implements MinecraftUnit<Level> {
 
     @NotNull
     protected final N nexo;

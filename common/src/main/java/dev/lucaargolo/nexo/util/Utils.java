@@ -46,7 +46,7 @@ public final class Utils {
 
     private Utils() {}
 
-    public static <T> Extender<T> extend(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<? extends T> type) {
+    public static <T> Extender<T> extend(@NotNull NexoMinecraft nexo, @NotNull Class<? extends T> type) {
         return new Extender<>(nexo, type);
     }
     
@@ -71,11 +71,11 @@ public final class Utils {
         }
     }
 
-    public static <T> T loadPlatformClass(NexoMinecraft<?, ?, ?, ?> nexo, Class<? super T> clazz, Object... parameters) {
+    public static <T> T loadPlatformClass(NexoMinecraft nexo, Class<? super T> clazz, Object... parameters) {
         return loadPlatformClass(nexo, null, clazz, parameters);
     }
 
-    public static <T> T loadPlatformClass(NexoMinecraft<?, ?, ?, ?> nexo, String mod, Class<? super T> clazz, Object... parameters) {
+    public static <T> T loadPlatformClass(NexoMinecraft nexo, String mod, Class<? super T> clazz, Object... parameters) {
         String originalName = clazz.getName();
 
         String commonClassPrefix = mod == null ? nexo.getPlatform() : nexo.isModLoaded(mod) ? nexo.getPlatform() : "Empty";
@@ -260,7 +260,7 @@ public final class Utils {
 
     public static final class Extender<T> {
 
-        private final NexoMinecraft<?, ?, ?, ?> nexo;
+        private final NexoMinecraft nexo;
         private final Class<? extends T> type;
         private final Set<Class<?>> interfaces = new LinkedHashSet<>();
         private final Set<Method> overrides = new LinkedHashSet<>();
@@ -269,7 +269,7 @@ public final class Utils {
         private @Nullable Implementation.Composable initializer;
         private Class<? extends T> generatedClass;
 
-        private Extender(NexoMinecraft<?, ?, ?, ?> nexo, Class<? extends T> type) {
+        private Extender(NexoMinecraft nexo, Class<? extends T> type) {
             this.nexo = nexo;
             this.type = type;
             if (!isExtendable(type)) {

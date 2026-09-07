@@ -54,7 +54,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
-public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler<FabricNexoMinecraft> {
+public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     public static final EntityApiLookup<Storage<ItemVariant>, Void> ENTITY_ITEM_STORAGE = EntityApiLookup.get(ResourceLocation.fromNamespaceAndPath(NexoMinecraft.MOD_ID, "entity_item_storage"), Storage.asClass(), Void.class);
 

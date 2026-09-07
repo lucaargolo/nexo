@@ -52,7 +52,7 @@ public final class MinecraftEntity extends EntityBase {
     @NotNull
     private final Holder<EntityType<?>> holder;
 
-    private MinecraftEntity(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<EntityType<?>> holder) {
+    private MinecraftEntity(@NotNull NexoMinecraft nexo, @NotNull Holder<EntityType<?>> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.ENTITY, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
@@ -87,7 +87,7 @@ public final class MinecraftEntity extends EntityBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static EntityBase register(NexoMinecraft<?, ?, ?, ?> nexo, EntityBase entity) {
+    public static EntityBase register(NexoMinecraft nexo, EntityBase entity) {
         EntityBase registered = FEATURE_MAP.get(entity.location());
         if (registered != null) {
             return registered;
@@ -99,13 +99,13 @@ public final class MinecraftEntity extends EntityBase {
         return entity;
     }
 
-    public static EntityBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<EntityType<?>> holder) {
+    public static EntityBase index(NexoMinecraft nexo, Holder<EntityType<?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftEntity(nexo, holder));
     }
 
-    public static <M extends Entity> EntityType<?> craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
+    public static <M extends Entity> EntityType<?> craft(NexoMinecraft nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Parameters, M> factory, EntityBase entity) {
         extender.override("tick", void.class, (feature, superCall) -> {
             superCall.apply(feature);
             if (entity.ticker() != null) {

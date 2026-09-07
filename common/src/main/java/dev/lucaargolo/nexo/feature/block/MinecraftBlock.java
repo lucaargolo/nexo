@@ -89,13 +89,13 @@ public class MinecraftBlock extends BlockBase {
     };
 
     @NotNull
-    private final NexoMinecraft<?, ?, ?, ?> nexo;
+    private final NexoMinecraft nexo;
     @NotNull
     private final Holder<Block> holder;
 
     private final @NotNull List<@NotNull DataBase<?>> initialData;
 
-    private MinecraftBlock(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Block> holder) {
+    private MinecraftBlock(@NotNull NexoMinecraft nexo, @NotNull Holder<Block> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.BLOCK, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
@@ -161,7 +161,7 @@ public class MinecraftBlock extends BlockBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static BlockBase register(NexoMinecraft<?, ?, ?, ?> nexo, BlockBase block) {
+    public static BlockBase register(NexoMinecraft nexo, BlockBase block) {
         BlockBase registered = FEATURE_MAP.get(block.location());
         if (registered != null) {
             return registered;
@@ -180,13 +180,13 @@ public class MinecraftBlock extends BlockBase {
         return block;
     }
 
-    public static BlockBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<Block> holder) {
+    public static BlockBase index(NexoMinecraft nexo, Holder<Block> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftBlock(nexo, holder));
     }
 
-    public static <M extends Block> Block craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
+    public static <M extends Block> Block craft(NexoMinecraft nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<BlockBehaviour.Properties, M> factory, BlockBase block) {
         @Nullable List<MinecraftDataProperty<?>> dataProperties = new ArrayList<>();
         for (DataBase<?> data : block.initialData()) {
             if (data instanceof DataBase.Constrained<?> constrained) {

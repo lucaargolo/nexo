@@ -41,9 +41,9 @@ public final class MinecraftAtlasHandler implements PreparableReloadListener {
 
     private final Map<Location, NativeImage> imagesToRegister = new LinkedHashMap<>();
 
-    private final NexoMinecraft<?, ?, ?, ?> nexo;
+    private final NexoMinecraft nexo;
 
-    public MinecraftAtlasHandler(NexoMinecraft<?, ?, ?, ?> nexo) {
+    public MinecraftAtlasHandler(NexoMinecraft nexo) {
         this.nexo = nexo;
     }
 

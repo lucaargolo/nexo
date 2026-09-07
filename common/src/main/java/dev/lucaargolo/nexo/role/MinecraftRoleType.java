@@ -38,10 +38,10 @@ public class MinecraftRoleType<F extends Feature<?, ?>, M, E, P> {
 
     private final Feature.Type<F, ?> type;
     private final Class<M> clazz;
-    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, F, Info<E, P>> craft;
-    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, M, Role> uncraft;
+    private final BiFunction<NexoMinecraft, F, Info<E, P>> craft;
+    private final BiFunction<NexoMinecraft, M, Role> uncraft;
 
-    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft<?, ?, ?, ?>, F, Info<E, P>> craft, BiFunction<NexoMinecraft<?, ?, ?, ?>, M, Role> uncraft) {
+    public MinecraftRoleType(Feature.Type<F, ?> type, Class<M> clazz, BiFunction<NexoMinecraft, F, Info<E, P>> craft, BiFunction<NexoMinecraft, M, Role> uncraft) {
         this.type = type;
         this.clazz = clazz;
         this.craft = craft;
@@ -49,21 +49,21 @@ public class MinecraftRoleType<F extends Feature<?, ?>, M, E, P> {
         TYPES.computeIfAbsent(type, t -> new ArrayList<>()).add(this);
     }
 
-    private Info<E, P> innerCraft(NexoMinecraft<?, ?, ?, ?> nexo, Feature<?, ?> feature) {
+    private Info<E, P> innerCraft(NexoMinecraft nexo, Feature<?, ?> feature) {
         if (this.type.isInstance(feature)) {
             return this.craft.apply(nexo, this.type.cast(feature));
         }
         return null;
     }
 
-    private Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, Object object) {
+    private Role innerUncraft(NexoMinecraft nexo, Object object) {
         if (this.clazz.isInstance(object)) {
             return this.uncraft.apply(nexo, this.clazz.cast(object));
         }
         return null;
     }
 
-    public static <F extends Feature<?, ?>, M, E, P> @Nullable Info<E, P> craft(NexoMinecraft<?, ?, ?, ?> nexo, F feature, Class<M> type) {
+    public static <F extends Feature<?, ?>, M, E, P> @Nullable Info<E, P> craft(NexoMinecraft nexo, F feature, Class<M> type) {
         List<MinecraftRoleType<?, ?, ?, ?>> list = TYPES.getOrDefault(feature.type(), List.of());
         for (MinecraftRoleType<?, ?, ?, ?> roleType : list) {
             Info<?, ?> optional = roleType.innerCraft(nexo, feature);
@@ -78,19 +78,19 @@ public class MinecraftRoleType<F extends Feature<?, ?>, M, E, P> {
         return null;
     }
 
-    public static <F extends Feature<?, ?>, M> Supplier<Role> uncraft(NexoMinecraft<?, ?, ?, ?> nexo, Feature.Type<F, ?> type, Holder<M> holder) {
+    public static <F extends Feature<?, ?>, M> Supplier<Role> uncraft(NexoMinecraft nexo, Feature.Type<F, ?> type, Holder<M> holder) {
         return () -> {
             M crafted = holder.value();
             return innerUncraft(nexo, crafted, TYPES.getOrDefault(type, List.of()));
         };
     }
 
-    public static <F extends Feature<?, ?>, M> Supplier<Role> uncraft(NexoMinecraft<?, ?, ?, ?> nexo, Feature.Type<F, ?> type, M crafted) {
+    public static <F extends Feature<?, ?>, M> Supplier<Role> uncraft(NexoMinecraft nexo, Feature.Type<F, ?> type, M crafted) {
         return () -> innerUncraft(nexo, crafted, TYPES.getOrDefault(type, List.of()));
     }
 
     @Nullable
-    private static <F extends Feature<F, ?>, M> Role innerUncraft(NexoMinecraft<?, ?, ?, ?> nexo, M crafted, List<MinecraftRoleType<?, ?, ?, ?>> list) {
+    private static <F extends Feature<F, ?>, M> Role innerUncraft(NexoMinecraft nexo, M crafted, List<MinecraftRoleType<?, ?, ?, ?>> list) {
         for (MinecraftRoleType<?, ?, ?, ?> roleType : list) {
             Role role = roleType.innerUncraft(nexo, crafted);
             if (role != null) {

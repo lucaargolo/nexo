@@ -21,15 +21,15 @@ import java.util.function.Function;
 
 public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultStorage.Snapshot> implements Storage<ItemVariant> {
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull List<Vault<ItemUnit>> vaults;
 
-    private FabricVaultStorage(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit>> vaults) {
+    private FabricVaultStorage(@NotNull NexoMinecraft nexo, @NotNull List<Vault<ItemUnit>> vaults) {
         this.nexo = nexo;
         this.vaults = vaults;
     }
 
-    public static @Nullable Storage<ItemVariant> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Unit<?> unit, @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories) {
+    public static @Nullable Storage<ItemVariant> create(@NotNull NexoMinecraft nexo, @NotNull Unit<?> unit, @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories) {
         List<Vault<ItemUnit>> vaults = new ArrayList<>(vaultFactories.size());
         Class<Function<Unit<?>, ? extends @Nullable Vault<ItemUnit>>> type = Nexo.type(Function.class);
         for (Function<?, ? extends @Nullable Vault<ItemUnit>> factory : vaultFactories.values()) {

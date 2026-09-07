@@ -16,7 +16,7 @@ public final class MinecraftContainerVault extends MinecraftItemVault {
 
     private final @NotNull Container container;
 
-    private MinecraftContainerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Container container) {
+    private MinecraftContainerVault(@NotNull NexoMinecraft nexo, @NotNull Container container) {
         super(nexo);
         this.container = container;
     }
@@ -26,7 +26,7 @@ public final class MinecraftContainerVault extends MinecraftItemVault {
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @Nullable Container container,
             @NotNull Class<U> type
     ) {

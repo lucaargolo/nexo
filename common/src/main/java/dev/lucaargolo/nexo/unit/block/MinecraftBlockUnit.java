@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class MinecraftBlockUnit<N extends NexoMinecraft<N, ?, ?, ?>> extends BlockUnit implements MinecraftUnit<BlockState> {
+public abstract class MinecraftBlockUnit<N extends NexoMinecraft> extends BlockUnit implements MinecraftUnit<BlockState> {
 
     protected final @NotNull N nexo;
 

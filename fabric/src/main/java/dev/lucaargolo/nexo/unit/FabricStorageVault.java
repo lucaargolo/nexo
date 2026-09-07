@@ -19,13 +19,13 @@ import java.util.*;
 
 public final class FabricStorageVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemUnit defaultValue;
     final @NotNull Storage<ItemVariant> storage;
     private final @Nullable SlottedStorage<ItemVariant> slottedStorage;
     private final int slotCount;
 
-    public FabricStorageVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Storage<ItemVariant> storage) {
+    public FabricStorageVault(@NotNull NexoMinecraft nexo, @NotNull Storage<ItemVariant> storage) {
         this.nexo = nexo;
         this.defaultValue = MinecraftItemUnit.empty(nexo);
         this.storage = storage;
@@ -86,7 +86,7 @@ public final class FabricStorageVault extends AbstractList<ItemUnit> implements 
         return Set.copyOf(vaults);
     }
 
-    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
+    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable Storage<ItemVariant> storage) {
         if (storage == null || !MinecraftContainerVault.supports(type)) {
             return null;
         }

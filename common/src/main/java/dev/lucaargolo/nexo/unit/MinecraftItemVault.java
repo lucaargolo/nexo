@@ -15,10 +15,10 @@ import java.util.Objects;
 
 abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
-    protected final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    protected final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemUnit defaultValue;
 
-    MinecraftItemVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
+    MinecraftItemVault(@NotNull NexoMinecraft nexo) {
         this.nexo = nexo;
         this.defaultValue = MinecraftItemUnit.empty(nexo);
     }

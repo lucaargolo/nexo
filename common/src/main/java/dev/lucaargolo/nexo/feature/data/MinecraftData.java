@@ -43,10 +43,10 @@ public class MinecraftData<D> extends DataBase<D> {
         }
     };
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull Holder<?> holder;
 
-    private MinecraftData(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<?> holder) {
+    private MinecraftData(@NotNull NexoMinecraft nexo, @NotNull Holder<?> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.DATA, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
@@ -113,7 +113,7 @@ public class MinecraftData<D> extends DataBase<D> {
 
         private final @NotNull D initial;
 
-        public Initial(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<?> holder, @NotNull D initial) {
+        public Initial(@NotNull NexoMinecraft nexo, @NotNull Holder<?> holder, @NotNull D initial) {
             super(nexo, holder);
             this.initial = initial;
         }
@@ -129,7 +129,7 @@ public class MinecraftData<D> extends DataBase<D> {
         return FEATURE_MAP.get(location);
     }
 
-    public static DataBase<?> register(NexoMinecraft<?, ?, ?, ?> nexo, DataBase<?> data) {
+    public static DataBase<?> register(NexoMinecraft nexo, DataBase<?> data) {
         DataBase<?> registered = FEATURE_MAP.get(data.location());
         if (registered != null) {
             return registered;
@@ -141,13 +141,13 @@ public class MinecraftData<D> extends DataBase<D> {
         return data;
     }
 
-    public static DataBase<?> index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<DataComponentType<?>> holder) {
+    public static DataBase<?> index(NexoMinecraft nexo, Holder<DataComponentType<?>> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftData<>(nexo, holder));
     }
 
-    public static <T> DataComponentType<T> craft(NexoMinecraft<?, ?, ?, ?> nexo, DataBase<T> data) {
+    public static <T> DataComponentType<T> craft(NexoMinecraft nexo, DataBase<T> data) {
         DataComponentType.Builder<T> builder = DataComponentType.builder();
         if (data.persistent()) {
             Codec<T> codec = NexoMinecraft.codec(data);

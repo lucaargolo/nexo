@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit;
 
+import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
@@ -25,7 +26,7 @@ public final class FabricAttachmentData {
         Map<AttachmentType<?>, ?> attachments = ((AttachmentTargetImpl) target).fabric_getAttachments();
         if (attachments != null) {
             for (AttachmentType<?> type : attachments.keySet()) {
-                DataBase<?> data = nexo.getRegistryHandler().getAttachmentData(type);
+                DataBase<?> data = ((FabricMinecraftRegistryHandler) nexo.getRegistryHandler()).getAttachmentData(type);
                 if (data != null) {
                     list.add(data);
                     if (attachmentTag != null) {
@@ -45,12 +46,12 @@ public final class FabricAttachmentData {
     }
 
     public static @Nullable <D> D getData(@NotNull FabricNexoMinecraft nexo, @NotNull List<@NotNull DataBase<?>> initialData, @NotNull AttachmentTarget target, @NotNull DataBase<D> data) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
+        AttachmentType<D> type = ((FabricMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         return initialData.contains(data) ? target.getAttachedOrCreate(type) : target.getAttached(type);
     }
 
     public static <D> void setData(@NotNull FabricNexoMinecraft nexo, @NotNull AttachmentTarget target, @NotNull DataBase<D> data, @Nullable D value) {
-        AttachmentType<D> type = nexo.getRegistryHandler().getDataAttachment(data);
+        AttachmentType<D> type = ((FabricMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         target.setAttached(type, value);
     }
 

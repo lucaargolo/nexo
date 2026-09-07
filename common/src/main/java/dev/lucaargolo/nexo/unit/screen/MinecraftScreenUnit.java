@@ -25,13 +25,13 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     private double previousMouseY = Double.NaN;
     private @Nullable Screen screen;
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
         super(nexo, feature, role);
         this.crafter = crafter;
         this.screen = null;
     }
 
-    public MinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
+    public MinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
         super(nexo, feature, role);
         this.crafter = null;
         this.screen = screen;

@@ -19,18 +19,18 @@ import java.util.function.Function;
 
 public final class NeoForgeVaultItemHandler implements IItemHandler {
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull List<Vault<ItemUnit>> vaults;
     private @NotNull List<Slot> slots;
 
-    private NeoForgeVaultItemHandler(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Vault<ItemUnit>> vaults) {
+    private NeoForgeVaultItemHandler(@NotNull NexoMinecraft nexo, @NotNull List<Vault<ItemUnit>> vaults) {
         this.nexo = nexo;
         this.vaults = vaults;
         this.slots = this.createSlots();
     }
 
     public static @Nullable IItemHandler create(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull Unit<?> unit,
             @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories
     ) {

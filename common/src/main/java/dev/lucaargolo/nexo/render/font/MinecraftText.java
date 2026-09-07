@@ -18,7 +18,7 @@ public final class MinecraftText {
     private MinecraftText() {
     }
 
-    public static @NotNull MutableComponent component(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Text text) {
+    public static @NotNull MutableComponent component(@NotNull NexoMinecraft nexo, @NotNull Text text) {
         MutableComponent component = Component.empty();
         for(Text.Run run : runs(nexo, text)) {
             component.append(component(run.text(), run.style()));
@@ -31,7 +31,7 @@ public final class MinecraftText {
         return Component.literal(text).withStyle(minecraftStyle(style));
     }
 
-    public static @NotNull List<Text.Run> runs(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Text text) {
+    public static @NotNull List<Text.Run> runs(@NotNull NexoMinecraft nexo, @NotNull Text text) {
         if (!text.isTranslatable()) {
             return text.runs();
         }
@@ -47,7 +47,7 @@ public final class MinecraftText {
         return List.copyOf(result);
     }
 
-    private static void appendRunsWithTextArguments(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull List<Text.Run> output, @NotNull String source, @NotNull Text.Style style, @NotNull List<Text> arguments) {
+    private static void appendRunsWithTextArguments(@NotNull NexoMinecraft nexo, @NotNull List<Text.Run> output, @NotNull String source, @NotNull Text.Style style, @NotNull List<Text> arguments) {
         int cursor = 0;
         int literalStart = 0;
         while (cursor < source.length()) {

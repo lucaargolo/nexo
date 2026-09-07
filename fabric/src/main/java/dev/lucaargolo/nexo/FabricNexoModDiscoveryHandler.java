@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<FabricNexoMinecraft> {
+public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler {
 
     public FabricNexoModDiscoveryHandler(FabricNexoMinecraft nexo) {
         super(nexo);
@@ -57,7 +57,8 @@ public class FabricNexoModDiscoveryHandler extends NexoModDiscoveryHandler<Fabri
             }
         }
 
-        init(jars, dirs, this.nexo.getLanguageHandler()::load);
+        FabricNexoMinecraft nexo = (FabricNexoMinecraft) this.nexo;
+        init(jars, dirs, nexo.getLanguageHandler()::load);
         registerNexoMods();
     }
 

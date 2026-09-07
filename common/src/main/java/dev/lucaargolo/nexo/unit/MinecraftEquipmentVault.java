@@ -16,7 +16,7 @@ public final class MinecraftEquipmentVault extends MinecraftItemVault {
     private final @NotNull LivingEntity entity;
     private final @NotNull EquipmentSlot slot;
 
-    private MinecraftEquipmentVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
+    private MinecraftEquipmentVault(@NotNull NexoMinecraft nexo, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
         super(nexo);
         this.entity = entity;
         this.slot = slot;
@@ -31,7 +31,7 @@ public final class MinecraftEquipmentVault extends MinecraftItemVault {
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @Nullable LivingEntity entity,
             @NotNull EquipmentSlot slot,
             @NotNull Class<U> type

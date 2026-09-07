@@ -25,11 +25,11 @@ import java.util.Set;
 
 public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUnit<ItemStack> {
 
-    protected final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    protected final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemStack stack;
 
     public MinecraftItemUnit(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull ItemBase feature,
             @Nullable Role role,
             @NotNull ItemStack stack
@@ -98,7 +98,7 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         return this;
     }
 
-    public static @NotNull ItemUnit empty(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
+    public static @NotNull ItemUnit empty(@NotNull NexoMinecraft nexo) {
         ItemBase item = nexo.getFeature(Feature.Type.ITEM, Location.of("minecraft", "air"));
         if(item == null) {
             throw new IllegalStateException("Couldn't find empty item");

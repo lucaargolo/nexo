@@ -46,7 +46,7 @@ public class MinecraftWorld extends WorldBase {
     @NotNull
     private final Holder<LevelStem> holder;
 
-    private MinecraftWorld(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<LevelStem> holder) {
+    private MinecraftWorld(@NotNull NexoMinecraft nexo, @NotNull Holder<LevelStem> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.WORLD, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
@@ -61,7 +61,7 @@ public class MinecraftWorld extends WorldBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static WorldBase register(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
+    public static WorldBase register(NexoMinecraft nexo, WorldBase world) {
         WorldBase registered = FEATURE_MAP.get(world.location());
         if (registered != null) {
             return registered;
@@ -73,13 +73,13 @@ public class MinecraftWorld extends WorldBase {
         return world;
     }
 
-    public static WorldBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<LevelStem> holder) {
+    public static WorldBase index(NexoMinecraft nexo, Holder<LevelStem> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftWorld(nexo, holder));
     }
 
-    public static DimensionType craftType(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
+    public static DimensionType craftType(NexoMinecraft nexo, WorldBase world) {
         return new DimensionType(
                 OptionalLong.empty(),
                 true,
@@ -99,7 +99,7 @@ public class MinecraftWorld extends WorldBase {
         );
     }
 
-    public static LevelStem craftStem(NexoMinecraft<?, ?, ?, ?> nexo, WorldBase world) {
+    public static LevelStem craftStem(NexoMinecraft nexo, WorldBase world) {
         ResourceLocation id = NexoMinecraft.rl(world.location());
         ResourceKey<DimensionType> key = ResourceKey.create(Registries.DIMENSION_TYPE, id);
         Holder<DimensionType> type = nexo.getRegistryHandler().getDynamicFeature(key);

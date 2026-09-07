@@ -18,11 +18,11 @@ import java.util.Set;
 
 public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemUnit defaultValue;
     final @NotNull IItemHandler handler;
 
-    public NeoForgeItemHandlerVault(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull IItemHandler handler) {
+    public NeoForgeItemHandlerVault(@NotNull NexoMinecraft nexo, @NotNull IItemHandler handler) {
         this.nexo = nexo;
         this.defaultValue = MinecraftItemUnit.empty(nexo);
         this.handler = handler;
@@ -82,7 +82,7 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> imple
         return Set.copyOf(vaults);
     }
 
-    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
+    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
         if (handler == null || !MinecraftContainerVault.supports(type)) {
             return null;
         }

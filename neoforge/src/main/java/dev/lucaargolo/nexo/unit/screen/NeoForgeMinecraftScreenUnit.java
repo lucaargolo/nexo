@@ -21,11 +21,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
 
-    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
+    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
         super(nexo, feature, role, crafter);
     }
 
-    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
+    public NeoForgeMinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
         super(nexo, feature, role, screen);
     }
 

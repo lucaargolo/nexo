@@ -26,7 +26,7 @@ public final class MinecraftLanguageResource extends LanguageResource {
         super(location, locale, entries);
     }
 
-    public static @Nullable LanguageResource lookup(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Location location) {
+    public static @Nullable LanguageResource lookup(@NotNull NexoMinecraft nexo, @NotNull Location location) {
         LanguageResource registered = RESOURCE_MAP.get(location);
         if (registered != null) {
             return registered;
@@ -44,7 +44,7 @@ public final class MinecraftLanguageResource extends LanguageResource {
     }
 
     public static @NotNull LanguageResource register(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull Location location
     ) {
         LanguageResource resource = lookup(nexo, location);
@@ -55,7 +55,7 @@ public final class MinecraftLanguageResource extends LanguageResource {
     }
 
     public static @NotNull LanguageResource register(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull Location location,
             byte @NotNull [] data
     ) {
@@ -63,7 +63,7 @@ public final class MinecraftLanguageResource extends LanguageResource {
     }
 
     private static @NotNull LanguageResource register(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull LanguageResource resource
     ) {
         RESOURCE_MAP.put(resource.location(), resource);

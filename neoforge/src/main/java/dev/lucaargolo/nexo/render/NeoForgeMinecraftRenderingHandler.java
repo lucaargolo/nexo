@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler {
 
     private final Map<ResourceLocation, Supplier<UnbakedModel>> customModels = new ConcurrentHashMap<>();
     private final Map<ResourceLocation, Supplier<UnbakedModel>> blockModels = new ConcurrentHashMap<>();
@@ -61,6 +61,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     @Override
     public void init() {
         super.init();
+        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo;
         NeoForge.EVENT_BUS.addListener(RenderLevelStageEvent.class, event -> {
             if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_SKY) {
                 shaderHandler.beginFrame();
@@ -70,19 +71,19 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
             }
         });
         NeoForge.EVENT_BUS.addListener(GameShuttingDownEvent.class, event -> shaderHandler.close());
-        this.nexo.modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
+        nexo.modBus().addListener(ModelEvent.RegisterAdditional.class, event -> {
             for (ResourceLocation modelId : itemModels) {
                 event.register(new ModelResourceLocation(modelId, ModelResourceLocation.STANDALONE_VARIANT));
             }
         });
-        this.nexo.modBus().addListener(RegisterClientExtensionsEvent.class, event -> {
+        nexo.modBus().addListener(RegisterClientExtensionsEvent.class, event -> {
             for (ItemBase base : itemsToRegister) {
                 Item item = MinecraftFeatureType.ITEM.convert(base);
                 IClientItemExtensions extensions = createItemExtensions(this.nexo, base);
                 event.registerItem(extensions, item);
             }
         });
-        this.nexo.modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
+        nexo.modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
             for (BlockBase base : blocksToRegister) {
                 BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(base).value();
                 this.registerBlockRenderer(type, base, event::registerBlockEntityRenderer);
@@ -92,12 +93,12 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 this.registerEntityRenderer(type, base, event::registerEntityRenderer);
             }
         });
-        this.nexo.modBus().addListener(RegisterMenuScreensEvent.class, event -> {
+        nexo.modBus().addListener(RegisterMenuScreensEvent.class, event -> {
             for (Consumer<RegisterMenuScreensEvent> registration : menuScreensToRegister) {
                 registration.accept(event);
             }
         });
-        this.nexo.modBus().addListener(ModelLoadingQueryEvent.class, event -> {
+        nexo.modBus().addListener(ModelLoadingQueryEvent.class, event -> {
             UnbakedModel model;
             Supplier<UnbakedModel> supplier = customModels.get(event.id());
             if (supplier != null) {
@@ -110,13 +111,13 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 if (model != null) { event.setResult(model); return; }
             }
         });
-        this.nexo.modBus().addListener(InjectOnAtlasStitchEvent.class, event -> {
+        nexo.modBus().addListener(InjectOnAtlasStitchEvent.class, event -> {
             event.injected().addAll(this.atlasHandler.getSpriteContents(event.atlas()));
         });
-        this.nexo.modBus().addListener(AtlasStitchedEvent.class, event -> {
+        nexo.modBus().addListener(AtlasStitchedEvent.class, event -> {
             this.atlasHandler.onAtlasStitched(event.atlas(), event.preparations());
         });
-        this.nexo.modBus().addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(atlasHandler));
+        nexo.modBus().addListener(RegisterClientReloadListenersEvent.class, event -> event.registerReloadListener(atlasHandler));
     }
 
     @Override
@@ -155,7 +156,7 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
         menuScreensToRegister.add(event -> event.register(supplier.get(), supplier.get()::craftScreen));
     }
 
-    private IClientItemExtensions createItemExtensions(NexoMinecraft<NeoForgeNexoMinecraft, ?, ?, ?> nexo, ItemBase base) {
+    private IClientItemExtensions createItemExtensions(NexoMinecraft nexo, ItemBase base) {
         ItemRenderer renderer = createItemRenderer(nexo, base);
         Minecraft minecraft = Minecraft.getInstance();
         BlockEntityRenderDispatcher dispatcher = minecraft.getBlockEntityRenderDispatcher();

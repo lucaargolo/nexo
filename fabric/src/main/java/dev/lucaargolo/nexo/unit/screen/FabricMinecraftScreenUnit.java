@@ -23,11 +23,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class FabricMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
 
-    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
+    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull MinecraftScreen.ScreenCrafter<D> crafter) {
         super(nexo, feature, role, crafter);
     }
 
-    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
+    public FabricMinecraftScreenUnit(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> feature, @Nullable Role role, @NotNull Screen screen) {
         super(nexo, feature, role, screen);
     }
 

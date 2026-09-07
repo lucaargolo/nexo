@@ -13,7 +13,7 @@ import org.joml.Vector3f;
 
 public final class DynamicMinecraftGraphics3D extends DynamicMinecraftGraphics2D implements MinecraftGraphics3D {
 
-    public DynamicMinecraftGraphics3D(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull PoseStack poses, @NotNull MultiBufferSource buffers, int packedLight, int packedOverlay) {
+    public DynamicMinecraftGraphics3D(@NotNull NexoMinecraft nexo, @NotNull PoseStack poses, @NotNull MultiBufferSource buffers, int packedLight, int packedOverlay) {
         super(nexo, poses, buffers, packedLight, packedOverlay);
     }
 

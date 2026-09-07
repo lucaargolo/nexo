@@ -38,7 +38,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
     @NotNull
     private final Holder<CreativeModeTab> holder;
 
-    private MinecraftItemCategory(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<CreativeModeTab> holder) {
+    private MinecraftItemCategory(@NotNull NexoMinecraft nexo, @NotNull Holder<CreativeModeTab> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.ITEM_CATEGORY, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.holder = holder;
@@ -53,7 +53,7 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemCategoryBase register(NexoMinecraft<?, ?, ?, ?> nexo, ItemCategoryBase category) {
+    public static ItemCategoryBase register(NexoMinecraft nexo, ItemCategoryBase category) {
         ItemCategoryBase registered = FEATURE_MAP.get(category.location());
         if (registered != null) {
             return registered;
@@ -64,13 +64,13 @@ public class MinecraftItemCategory extends ItemCategoryBase {
         return category;
     }
 
-    public static ItemCategoryBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<CreativeModeTab> holder) {
+    public static ItemCategoryBase index(NexoMinecraft nexo, Holder<CreativeModeTab> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItemCategory(nexo, holder));
     }
 
-    public static CreativeModeTab craft(NexoMinecraft<?, ?, ?, ?> nexo, ItemCategoryBase category) {
+    public static CreativeModeTab craft(NexoMinecraft nexo, ItemCategoryBase category) {
         return nexo.getRegistryHandler().craftCreativeTab(category);
     }
 

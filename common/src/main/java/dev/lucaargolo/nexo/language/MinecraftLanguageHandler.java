@@ -22,12 +22,12 @@ public final class MinecraftLanguageHandler implements Language {
             "languages/%s.json"
     );
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull Map<Location, LanguageResource> registered = new LinkedHashMap<>();
     private volatile @NotNull String locale = DEFAULT_LOCALE;
     private volatile @NotNull Map<String, String> entries = Map.of();
 
-    public MinecraftLanguageHandler(@NotNull NexoMinecraft<?, ?, ?, ?> nexo) {
+    public MinecraftLanguageHandler(@NotNull NexoMinecraft nexo) {
         this.nexo = nexo;
     }
 

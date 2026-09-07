@@ -56,7 +56,7 @@ public class MinecraftItem extends ItemBase {
         }
     };
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull Holder<Item> holder;
 
     private boolean computedCategory;
@@ -64,7 +64,7 @@ public class MinecraftItem extends ItemBase {
 
     private final @NotNull List<@NotNull DataBase<?>> initialData;
 
-    private MinecraftItem(@NotNull NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Holder<Item> holder) {
+    private MinecraftItem(@NotNull NexoMinecraft nexo, @NotNull Holder<Item> holder) {
         super(MinecraftRoleType.uncraft(nexo, Type.ITEM, holder));
         this.identify(nexo, nexo.getRegistryHandler().identity(holder));
         this.nexo = nexo;
@@ -134,7 +134,7 @@ public class MinecraftItem extends ItemBase {
         return FEATURE_MAP.get(location);
     }
 
-    public static ItemBase register(NexoMinecraft<?, ?, ?, ?> nexo, ItemBase item) {
+    public static ItemBase register(NexoMinecraft nexo, ItemBase item) {
         ItemBase registered = FEATURE_MAP.get(item.location());
         if (registered != null) {
             return registered;
@@ -149,13 +149,13 @@ public class MinecraftItem extends ItemBase {
         return item;
     }
 
-    public static ItemBase index(NexoMinecraft<?, ?, ?, ?> nexo, Holder<Item> holder) {
+    public static ItemBase index(NexoMinecraft nexo, Holder<Item> holder) {
         Location location = NexoMinecraft.id(holder);
         HOLDER_MAP.put(location, holder);
         return FEATURE_MAP.computeIfAbsent(location, l -> new MinecraftItem(nexo, holder));
     }
 
-    public static <M extends Item> Item craft(NexoMinecraft<?, ?, ?, ?> nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
+    public static <M extends Item> Item craft(NexoMinecraft nexo, @NotNull Utils.Extender<M> extender, @Nullable Function<Item.Properties, M> factory, ItemBase item) {
         extender.override("inventoryTick", void.class, ItemStack.class, Level.class, Entity.class, int.class, boolean.class, (feature, superCall, stack, level, entity, slotId, selected) -> {
             superCall.apply(feature, stack, level, entity, slotId, selected);
             Ticker<ItemUnit> ticker = item.ticker();

@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 @Mod(NexoMinecraft.MOD_ID)
-public class NeoForgeNexoMinecraft extends NexoMinecraft<NeoForgeNexoMinecraft, NeoForgeNexoModDiscoveryHandler, NeoForgeMinecraftRegistryHandler, NeoForgeMinecraftRenderingHandler> {
+public class NeoForgeNexoMinecraft extends NexoMinecraft {
 
     private final IEventBus modBus;
 

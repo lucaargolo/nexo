@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, ?>> {
+public abstract class MinecraftRegistryHandler {
 
     private final Map<ResourceKey<?>, Registry<?>> customRegistries = new LinkedHashMap<>();
 
@@ -39,13 +39,13 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
     private final List<FeatureRegisteredEvent> pendingFeatureEvents = new ArrayList<>();
     private boolean featureRegistrationActive = false;
 
-    private final N nexo;
+    private final NexoMinecraft nexo;
 
-    public MinecraftRegistryHandler(N nexo) {
+    public MinecraftRegistryHandler(NexoMinecraft nexo) {
         this.nexo = nexo;
     }
 
-    public N nexo() {
+    public NexoMinecraft nexo() {
         return nexo;
     }
 
@@ -157,15 +157,15 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
         return RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
     }
 
-    public Feature.Identity<MinecraftRegistryHandler<N>> identity(@NotNull Holder<?> holder) {
+    public Feature.Identity<MinecraftRegistryHandler> identity(@NotNull Holder<?> holder) {
         return new Identity(NexoMinecraft.id(holder));
     }
 
-    public Feature.Identity<MinecraftRegistryHandler<N>> identity(@NotNull Location location) {
+    public Feature.Identity<MinecraftRegistryHandler> identity(@NotNull Location location) {
         return new Identity(location);
     }
 
-    public class Identity implements Feature.Identity<MinecraftRegistryHandler<N>> {
+    public class Identity implements Feature.Identity<MinecraftRegistryHandler> {
 
         private final Location location;
 
@@ -179,7 +179,7 @@ public abstract class MinecraftRegistryHandler<N extends NexoMinecraft<?, ?, ?, 
         }
 
         @Override
-        public @NotNull MinecraftRegistryHandler<N> authority() {
+        public @NotNull MinecraftRegistryHandler authority() {
             return MinecraftRegistryHandler.this;
         }
 

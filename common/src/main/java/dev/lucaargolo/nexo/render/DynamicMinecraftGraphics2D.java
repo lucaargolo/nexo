@@ -38,7 +38,7 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
     private @Nullable PrimitiveType primitive;
     private @Nullable VertexLayout format;
 
-    private final @NotNull NexoMinecraft<?, ?, ?, ?> nexo;
+    private final @NotNull NexoMinecraft nexo;
 
     protected final @NotNull PoseStack poses;
     private final @NotNull MultiBufferSource buffers;
@@ -55,7 +55,7 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
     private boolean finished;
 
     public DynamicMinecraftGraphics2D(
-            @NotNull NexoMinecraft<?, ?, ?, ?> nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull PoseStack poses,
             @NotNull MultiBufferSource buffers,
             int packedLight,

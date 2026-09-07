@@ -60,14 +60,14 @@ public class MinecraftResourceType<T extends Resource<T>> {
             MinecraftLanguageResource::register
     );
 
-    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, Location, T> lookup;
-    private final BiFunction<NexoMinecraft<?, ?, ?, ?>, Location, T> registrar;
-    private final TriFunction<NexoMinecraft<?, ?, ?, ?>, Location, byte[], T> dataRegistrar;
+    private final BiFunction<NexoMinecraft, Location, T> lookup;
+    private final BiFunction<NexoMinecraft, Location, T> registrar;
+    private final TriFunction<NexoMinecraft, Location, byte[], T> dataRegistrar;
 
     private MinecraftResourceType(
             Resource.Type<T> type,
-            BiFunction<NexoMinecraft<?, ?, ?, ?>, Location, T> lookup,
-            TriFunction<NexoMinecraft<?, ?, ?, ?>, Location, byte[], T> registrar
+            BiFunction<NexoMinecraft, Location, T> lookup,
+            TriFunction<NexoMinecraft, Location, byte[], T> registrar
     ) {
         this.lookup = lookup;
         this.registrar = (nexo, location) -> {
@@ -83,9 +83,9 @@ public class MinecraftResourceType<T extends Resource<T>> {
 
     private MinecraftResourceType(
             Resource.Type<T> type,
-            BiFunction<NexoMinecraft<?, ?, ?, ?>, Location, T> lookup,
-            BiFunction<NexoMinecraft<?, ?, ?, ?>, Location, T> registrar,
-            TriFunction<NexoMinecraft<?, ?, ?, ?>, Location, byte[], T> dataRegistrar
+            BiFunction<NexoMinecraft, Location, T> lookup,
+            BiFunction<NexoMinecraft, Location, T> registrar,
+            TriFunction<NexoMinecraft, Location, byte[], T> dataRegistrar
     ) {
         this.lookup = lookup;
         this.registrar = registrar;
@@ -94,17 +94,17 @@ public class MinecraftResourceType<T extends Resource<T>> {
     }
 
     @Nullable
-    public T lookup(NexoMinecraft<?, ?, ?, ?> nexo, Location location) {
+    public T lookup(NexoMinecraft nexo, Location location) {
         return lookup.apply(nexo, location);
     }
 
     @NotNull
-    public T register(NexoMinecraft<?, ?, ?, ?> nexo, Location location) {
+    public T register(NexoMinecraft nexo, Location location) {
         return registrar.apply(nexo, location);
     }
 
     @NotNull
-    public T register(NexoMinecraft<?, ?, ?, ?> nexo, Location location, byte[] data) {
+    public T register(NexoMinecraft nexo, Location location, byte[] data) {
         return dataRegistrar.apply(nexo, location, data);
     }
 

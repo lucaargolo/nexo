@@ -83,7 +83,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
-public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M extends NexoModDiscoveryHandler<N>, H extends MinecraftRegistryHandler<N>, R extends MinecraftRenderingHandler<N>> implements Nexo {
+public abstract class NexoMinecraft implements Nexo {
 
     public static final String MOD_ID = "nexo";
     public static final Logger LOGGER = LoggerFactory.getLogger("Nexo");
@@ -93,9 +93,9 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
     private static final Map<Location, ResourceLocation> RL_CACHE = new ConcurrentHashMap<>();
     private static final Map<ResourceLocation, Location> ID_CACHE = new ConcurrentHashMap<>();
 
-    protected final M discoveryHandler;
-    protected final H registryHandler;
-    protected final R renderingHandler;
+    protected final NexoModDiscoveryHandler discoveryHandler;
+    protected final MinecraftRegistryHandler registryHandler;
+    protected final MinecraftRenderingHandler renderingHandler;
     protected final MinecraftLanguageHandler languageHandler;
 
     private final Map<Class<?>, Map<Event.Priority, CopyOnWriteArrayList<Predicate<?>>>> listeners = new ConcurrentHashMap<>();
@@ -128,15 +128,15 @@ public abstract class NexoMinecraft<N extends NexoMinecraft<N, M, H, R>, M exten
         Feature.validateAll();
     }
 
-    public M getDiscoveryHandler() {
+    public NexoModDiscoveryHandler getDiscoveryHandler() {
         return discoveryHandler;
     }
 
-    public H getRegistryHandler() {
+    public MinecraftRegistryHandler getRegistryHandler() {
         return registryHandler;
     }
 
-    public R getRenderingHandler() {
+    public MinecraftRenderingHandler getRenderingHandler() {
         return renderingHandler;
     }
 
