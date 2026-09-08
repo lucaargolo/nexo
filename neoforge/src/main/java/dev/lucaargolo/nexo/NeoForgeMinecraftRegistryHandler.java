@@ -16,6 +16,7 @@ import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.DynamicRegistryView;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -113,7 +114,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     @Override
     public <D> MinecraftScreen.ExtendedMenuType<D> craftMenuType(@NotNull ScreenBase<D> screen, @NotNull MinecraftScreen.MenuCrafter<D> menuCrafter, @NotNull MinecraftScreen.ScreenCrafter<D> screenCrafter) {
-        return new ExtendedMenuTypeImpl<>(screen, menuCrafter, screenCrafter);
+        return new ExtendedMenuTypeImpl<>(this.nexo(), screen, menuCrafter, screenCrafter);
     }
 
     private static final class ExtendedMenuTypeImpl<D> extends MenuType<AbstractContainerMenu> implements MinecraftScreen.ExtendedMenuType<D> {
@@ -121,9 +122,11 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
         private final MinecraftScreen.MenuCrafter<D> menuCrafter;
         private final MinecraftScreen.ScreenCrafter<D> screenCrafter;
 
-        public ExtendedMenuTypeImpl(@NotNull ScreenBase<D> screen, MinecraftScreen.MenuCrafter<D> menuCrafter, MinecraftScreen.ScreenCrafter<D> screenCrafter) {
+        public ExtendedMenuTypeImpl(@NotNull NexoMinecraft nexo, @NotNull ScreenBase<D> screen, MinecraftScreen.MenuCrafter<D> menuCrafter, MinecraftScreen.ScreenCrafter<D> screenCrafter) {
             super((IContainerFactory<AbstractContainerMenu>) (id, inventory, buf) -> {
-                return menuCrafter.craft(new MinecraftScreen.MenuParameters<>(MinecraftScreen.MENU_HOLDER_MAP.get(screen.location()).value(), id, inventory, NexoMinecraft.packetCodec(screen.data()).decode(buf), null));
+                D data = NexoMinecraft.packetCodec(screen.data()).decode(buf);
+                Unit<?> owner = MinecraftScreenUnit.decodeOwner(nexo, buf, inventory.player.level());
+                return menuCrafter.craft(new MinecraftScreen.MenuParameters<>(MinecraftScreen.MENU_HOLDER_MAP.get(screen.location()).value(), id, inventory, data, owner));
             }, FeatureFlags.VANILLA_SET);
             this.menuCrafter = menuCrafter;
             this.screenCrafter = screenCrafter;
