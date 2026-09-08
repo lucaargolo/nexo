@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -91,20 +92,16 @@ public final class BlockTest {
             }
 
             @Override
-            public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
-                return type == ItemUnit.class ? Set.of("inventory") : Set.of();
-            }
-
-            @Override
-            public <V extends Unit<?>> @Nullable Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-                if (type != ItemUnit.class || !"inventory".equals(key)) {
-                    return null;
+            public @NotNull <U extends Unit<?>> Map<String, Function<BlockUnit, Vault<U>>> vaults(@NotNull Class<U> type) {
+                if (type != ItemUnit.class) {
+                    return Map.of();
                 }
                 ItemBase item = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
                 ItemUnit empty = requireNonNull(nexo.unit(item));
-                V initial = type.cast(empty);
-                return unit -> new TestChestVault<>(type, initial, unit, chestInventory);
+                U initial = type.cast(empty);
+                return Map.of("inventory", unit -> new TestChestVault<>(type, initial, unit, chestInventory));
             }
+
         }, NexoTestMod.id("test_chest"));
         nexo.registerFeature(new BlockItem(chest, category), chest.location());
     }
@@ -166,15 +163,6 @@ public final class BlockTest {
                 return Interaction.SUCCESS;
             }
 
-            @Override
-            public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
-                return Set.of();
-            }
-
-            @Override
-            public @Nullable <V extends Unit<?>> Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-                return null;
-            }
         }, NexoTestMod.id("dynamic_block"));
         nexo.registerFeature(new BlockItem(block, category) {
             @Override

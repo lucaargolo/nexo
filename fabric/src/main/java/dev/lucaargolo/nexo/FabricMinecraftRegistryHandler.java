@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
@@ -10,12 +11,13 @@ import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.FabricVaultStorage;
+import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
+import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -45,6 +47,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
@@ -120,15 +123,35 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
         return new ExtendedMenuTypeImpl<>(screen, menuCrafter, screenCrafter);
     }
 
-    private static final class ExtendedMenuTypeImpl<D> extends ExtendedScreenHandlerType<AbstractContainerMenu, D> implements MinecraftScreen.ExtendedMenuType<D> {
+    private final class ExtendedMenuTypeImpl<D> extends ExtendedScreenHandlerType<AbstractContainerMenu, Pair<D, byte[]>> implements MinecraftScreen.ExtendedMenuType<D> {
 
         private final MinecraftScreen.MenuCrafter<D> menuCrafter;
         private final MinecraftScreen.ScreenCrafter<D> screenCrafter;
 
         public ExtendedMenuTypeImpl(@NotNull ScreenBase<D> screen, MinecraftScreen.MenuCrafter<D> menuCrafter, MinecraftScreen.ScreenCrafter<D> screenCrafter) {
-            super((id, inventory, data) -> {
-                return menuCrafter.craft(new MinecraftScreen.MenuParameters<>(MinecraftScreen.MENU_HOLDER_MAP.get(screen.location()).value(), id, inventory, data, null));
-            }, NexoMinecraft.packetCodec(screen.data()));
+            super((id, inventory, pair) -> {
+                Level level = inventory.player.level();
+                RegistryFriendlyByteBuf ownerBuffer = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(pair.getSecond()), level.registryAccess());
+                Unit<?> owner;
+                try {
+                    owner = MinecraftScreenUnit.decodeOwner(nexo(), ownerBuffer, level);
+                } finally {
+                    ownerBuffer.release();
+                }
+                return menuCrafter.craft(new MinecraftScreen.MenuParameters<>(MinecraftScreen.MENU_HOLDER_MAP.get(screen.location()).value(), id, inventory, pair.getFirst(), owner));
+            }, new StreamCodec<>() {
+                @Override
+                public void encode(RegistryFriendlyByteBuf buf, Pair<D, byte[]> pair) {
+                    NexoMinecraft.packetCodec(screen.data()).encode(buf, pair.getFirst());
+                    buf.writeByteArray(pair.getSecond());
+                }
+
+                @Override
+                public @NotNull Pair<D, byte[]> decode(RegistryFriendlyByteBuf buf) {
+                    D data = NexoMinecraft.packetCodec(screen.data()).decode(buf);
+                    return Pair.of(data, buf.readByteArray());
+                }
+            });
             this.menuCrafter = menuCrafter;
             this.screenCrafter = screenCrafter;
         }

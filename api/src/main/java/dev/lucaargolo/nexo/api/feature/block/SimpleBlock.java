@@ -45,16 +45,6 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <V extends Unit<?>> Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        return null;
-    }
-
-    @Override
     public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
         return Interaction.PASS;
     }

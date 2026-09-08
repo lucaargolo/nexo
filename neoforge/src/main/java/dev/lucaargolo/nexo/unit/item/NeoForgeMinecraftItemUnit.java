@@ -19,7 +19,7 @@ public class NeoForgeMinecraftItemUnit extends MinecraftItemUnit {
     }
 
     @Override
-    protected @Nullable Vault<ItemUnit> itemVault() {
+    protected @Nullable Vault<ItemUnit> vault() {
         IItemHandler handler = Capabilities.ItemHandler.ITEM.getCapability(this.get(), null);
         return handler == null ? null : new NeoForgeItemHandlerVault(this.nexo, handler);
     }

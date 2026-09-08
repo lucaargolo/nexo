@@ -21,7 +21,7 @@ public class FabricMinecraftItemUnit extends MinecraftItemUnit {
     }
 
     @Override
-    protected @Nullable Vault<ItemUnit> itemVault() {
+    protected @Nullable Vault<ItemUnit> vault() {
         ContainerItemContext context = ContainerItemContext.withConstant(this.get());
         Storage<ItemVariant> storage = ItemStorage.ITEM.find(this.get(), context);
         return storage == null ? null : new FabricStorageVault(this.nexo, storage);

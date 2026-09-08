@@ -1,11 +1,13 @@
 package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.mixin.AbstractHorseAccessor;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
@@ -48,35 +50,37 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return Set.of();
-        }
-        Set<String> vaults = new HashSet<>();
-        if (this.container() != null) {
-            vaults.add(MinecraftContainerVault.KEY);
-        }
-        if (this.entity instanceof LivingEntity) {
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                vaults.add(MinecraftEquipmentVault.key(slot));
+        if(type == ItemUnit.class) {
+            Set<String> vaults = new HashSet<>();
+            if (this.container() != null) {
+                vaults.add("inventory");
             }
+            if (this.entity instanceof LivingEntity) {
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    vaults.add(slot.getSerializedName());
+                }
+            }
+            return Set.copyOf(vaults);
         }
-        return Set.copyOf(vaults);
+        return Set.of();
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return null;
-        }
-        if (this.entity instanceof LivingEntity livingEntity) {
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                if (MinecraftEquipmentVault.key(slot).equals(key)) {
-                    return MinecraftEquipmentVault.create(this.nexo, livingEntity, slot, type);
+        Class<Vault<U>> vaultType = Nexo.type(Vault.class);
+        if(type == ItemUnit.class) {
+            if(key.equals("inventory")) {
+                return this.container() != null ? vaultType.cast(MinecraftContainerVault.create(this.nexo, this.container())) : null;
+            }
+            if (this.entity instanceof LivingEntity livingEntity) {
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (key.equals(slot.getSerializedName())) {
+                        return vaultType.cast(MinecraftEquipmentVault.create(this.nexo, livingEntity, slot));
+                    }
                 }
             }
         }
-        Container container = this.container();
-        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : null;
+        return null;
     }
 
     private @Nullable Container container() {

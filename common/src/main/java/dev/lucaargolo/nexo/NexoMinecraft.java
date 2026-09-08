@@ -343,6 +343,10 @@ public abstract class NexoMinecraft implements Nexo {
         return blockToUnit(null, null, state, null);
     }
 
+    public @NotNull BlockUnit blockToUnit(@NotNull Level level, @NotNull BlockPos pos) {
+        return blockToUnit(level, pos, level.getBlockState(pos), level.getBlockEntity(pos));
+    }
+
     public @NotNull BlockUnit blockToUnit(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state) {
         return blockToUnit(level, pos, state, level.getBlockEntity(pos));
     }

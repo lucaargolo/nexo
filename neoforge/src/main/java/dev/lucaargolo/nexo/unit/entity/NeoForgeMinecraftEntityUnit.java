@@ -9,7 +9,6 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
-import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.NeoForgeAttachmentData;
 import dev.lucaargolo.nexo.unit.NeoForgeItemHandlerVault;
 import net.minecraft.core.component.DataComponents;
@@ -36,7 +35,7 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!MinecraftContainerVault.KEY.equals(key)) {
+        if (!"inventory".equals(key)) {
             return super.vault(type, key);
         }
         Vault<U> vault = NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());

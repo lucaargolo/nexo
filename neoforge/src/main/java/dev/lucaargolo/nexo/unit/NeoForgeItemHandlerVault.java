@@ -74,16 +74,16 @@ public final class NeoForgeItemHandlerVault extends AbstractList<ItemUnit> imple
     }
 
     public static @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Set<String> existing, @NotNull Class<U> type, @Nullable IItemHandler handler) {
-        if (handler == null || !MinecraftContainerVault.supports(type)) {
+        if (handler == null || type != ItemUnit.class) {
             return existing;
         }
         Set<String> vaults = new HashSet<>(existing);
-        vaults.add(MinecraftContainerVault.KEY);
+        vaults.add("inventory");
         return Set.copyOf(vaults);
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable IItemHandler handler) {
-        if (handler == null || !MinecraftContainerVault.supports(type)) {
+        if (handler == null || type != ItemUnit.class) {
             return null;
         }
         Class<Vault<U>> clazz = Nexo.type(Vault.class);

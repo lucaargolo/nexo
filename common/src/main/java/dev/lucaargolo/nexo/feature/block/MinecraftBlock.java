@@ -3,14 +3,12 @@ package dev.lucaargolo.nexo.feature.block;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Ticker;
-import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -20,7 +18,6 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.data.MinecraftPropertyData;
 import dev.lucaargolo.nexo.role.MinecraftRoleType;
-import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import dev.lucaargolo.nexo.unit.world.MinecraftWorldUnit;
@@ -53,7 +50,6 @@ import org.joml.Vector3i;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -127,19 +123,6 @@ public class MinecraftBlock extends BlockBase {
     public @Nullable Renderer<Graphics3D, BlockUnit> renderer() {
         // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
         return null;
-    }
-
-    @Override
-    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
-        return MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
-    }
-
-    @Override
-    public <V extends Unit<?>> @Nullable Function<BlockUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
-            return null;
-        }
-        return unit -> unit.vault(type, key);
     }
 
     @Override

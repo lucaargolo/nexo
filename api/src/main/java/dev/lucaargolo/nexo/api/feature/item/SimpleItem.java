@@ -45,14 +45,4 @@ public class SimpleItem extends ItemBase {
         return category;
     }
 
-    @Override
-    public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <V extends Unit<?>> Function<ItemUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        return null;
-    }
-
 }

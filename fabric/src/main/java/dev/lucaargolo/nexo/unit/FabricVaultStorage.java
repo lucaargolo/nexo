@@ -115,7 +115,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
                     views.add(new View(iterator.next()));
                 }
             } else if (vault instanceof MinecraftItemVault minecraftVault) {
-                for (int slot = 0; slot < minecraftVault.slotCount(); slot++) {
+                for (int slot = 0; slot < minecraftVault.size(); slot++) {
                     if (!minecraftVault.getItem(slot).isEmpty()) {
                         views.add(new View(vault, minecraftVault, slot));
                     }
@@ -139,7 +139,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         ItemStack stack = resource.toStack(amount);
         if (vault instanceof MinecraftItemVault minecraftVault) {
             long inserted = 0;
-            for (int slot = 0; slot < minecraftVault.slotCount() && inserted < amount; slot++) {
+            for (int slot = 0; slot < minecraftVault.size() && inserted < amount; slot++) {
                 ItemStack request = stack.copyWithCount(amount - (int) inserted);
                 ItemStack simulated = minecraftVault.insertItem(slot, request, true, false);
                 int possible = request.getCount() - simulated.getCount();
@@ -172,7 +172,7 @@ public final class FabricVaultStorage extends SnapshotParticipant<FabricVaultSto
         if (vault instanceof MinecraftItemVault minecraftVault) {
             long extracted = 0;
             int firstSlot = physicalSlot == null ? 0 : physicalSlot;
-            int lastSlot = physicalSlot == null ? minecraftVault.slotCount() : physicalSlot + 1;
+            int lastSlot = physicalSlot == null ? minecraftVault.size() : physicalSlot + 1;
             for (int slot = firstSlot; slot < lastSlot && extracted < maxAmount; slot++) {
                 ItemStack current = minecraftVault.getItem(slot);
                 if (current.isEmpty() || !resource.matches(current)) {

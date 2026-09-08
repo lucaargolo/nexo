@@ -34,7 +34,7 @@ public class MinecraftRoleType<F extends Feature<?, ?>, M, E, P> {
     public static final MinecraftRoleType<ItemBase, Item, Item, Item.Properties> BLOCK_ITEM = new MinecraftRoleType<>(Feature.Type.ITEM, Item.class, MinecraftBlockItemRole::craft, MinecraftBlockItemRole::uncraft);
     public static final MinecraftRoleType<EntityBase, EntityType<?>, Entity, MinecraftEntity.Parameters> PLAYER = new MinecraftRoleType<>(Feature.Type.ENTITY, Nexo.type(EntityType.class), MinecraftPlayerRole::craft, MinecraftPlayerRole::uncraft);
     public static final MinecraftRoleType<ScreenBase<?>, MinecraftScreen.ScreenCrafter<?>, Screen, MinecraftScreen.ScreenParameters<?>> INVENTORY_SCREEN = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.ScreenCrafter.class), MinecraftInventoryRole::craftScreen, MinecraftInventoryRole::uncraftScreen);
-    public static final MinecraftRoleType<ScreenBase<?>, MinecraftScreen.MenuCrafter<?>, AbstractContainerMenu, MinecraftScreen.MenuParameters<?>> INVENTORY_MENU = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.MenuCrafter.class), MinecraftInventoryRole::craftMenu, MinecraftInventoryRole::uncraftMenu);
+    public static final MinecraftRoleType<ScreenBase<?>, MinecraftScreen.MenuCrafter<?>, MinecraftScreen.ExtendedMenu<?>, MinecraftScreen.MenuParameters<?>> INVENTORY_MENU = new MinecraftRoleType<>(Feature.Type.SCREEN, Nexo.type(MinecraftScreen.MenuCrafter.class), MinecraftInventoryRole::craftMenu, MinecraftInventoryRole::uncraftMenu);
 
     private final Feature.Type<F, ?> type;
     private final Class<M> clazz;

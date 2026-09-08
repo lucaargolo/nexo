@@ -107,19 +107,6 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
-        return MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
-    }
-
-    @Override
-    public <V extends Unit<?>> @Nullable Function<ItemUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
-            return null;
-        }
-        return unit -> unit.vault(type, key);
-    }
-
-    @Override
     public @Nullable ItemCategoryBase category() {
         if (!this.computedCategory) {
             this.computedCategory = true;

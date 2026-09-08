@@ -84,16 +84,11 @@ public abstract class MinecraftRegistryHandler {
             @NotNull Supplier<M> minecraft
     );
 
-    protected final <U extends Unit<?>, V extends Unit<?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaultFactories(
+    protected final <U extends Unit<?>, V extends Unit<?>> @NotNull Map<String, Function<U, Vault<V>>> vaultFactories(
             @NotNull VaultFactory<U> feature,
             @NotNull Class<V> type
     ) {
-        Map<String, Function<U, ? extends @Nullable Vault<V>>> factories = new LinkedHashMap<>();
-        for (String key : feature.vaults(type)) {
-            Objects.requireNonNull(key, "Vault key");
-            Function<U, Vault<V>> factory = Objects.requireNonNull(feature.vault(type, key), "Vault factory");
-            factories.put(key, factory);
-        }
+        Map<String, Function<U, Vault<V>>> factories = feature.vaults(type);
         return Collections.unmodifiableMap(factories);
     }
 

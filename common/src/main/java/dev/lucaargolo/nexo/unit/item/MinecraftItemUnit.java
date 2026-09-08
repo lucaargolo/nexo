@@ -41,26 +41,27 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return Set.of();
+        if(type == ItemUnit.class) {
+            if (this.vault() != null) {
+                return Set.of("inventory");
+            }
         }
-        return this.itemVault() != null ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+        return Set.of();
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
-            return null;
+        Class<Vault<U>> vaultType = Nexo.type(Vault.class);
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return this.vault() != null ? vaultType.cast(this.vault()) : null;
+            }
         }
-        Vault<ItemUnit> vault = this.itemVault();
-        if (vault == null) {
-            return null;
-        }
-        Class<Vault<U>> clazz = Nexo.type(Vault.class);
-        return clazz.cast(vault);
+        return null;
     }
 
-    protected @Nullable Vault<ItemUnit> itemVault() {
+
+    protected @Nullable Vault<ItemUnit> vault() {
         return null;
     }
 

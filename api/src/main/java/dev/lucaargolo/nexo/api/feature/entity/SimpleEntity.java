@@ -38,13 +38,4 @@ public class SimpleEntity extends EntityBase {
         return renderer;
     }
 
-    @Override
-    public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <V extends Unit<?>> Function<EntityUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        return null;
-    }
 }

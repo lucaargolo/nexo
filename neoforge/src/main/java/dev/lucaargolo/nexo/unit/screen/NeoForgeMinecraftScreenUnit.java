@@ -48,7 +48,10 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
                             //TODO
                             return Component.empty();
                         }
-                    }, buf -> NexoMinecraft.packetCodec(feature.data()).encode(buf, data)).isPresent();
+                    }, buf -> {
+                        NexoMinecraft.packetCodec(feature.data()).encode(buf, data);
+                        MinecraftScreenUnit.encodeOwner(buf, owner);
+                    }).isPresent();
                 }else{
                     throw new IllegalArgumentException("Minecraft dynamic screens can only be opened by minecraft server players");
                 }

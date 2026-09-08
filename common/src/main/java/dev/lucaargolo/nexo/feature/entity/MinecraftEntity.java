@@ -69,35 +69,6 @@ public final class MinecraftEntity extends EntityBase {
         return null;
     }
 
-    @Override
-    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return Set.of();
-        }
-        Set<String> factories = new LinkedHashSet<>();
-        factories.add(MinecraftContainerVault.KEY);
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            factories.add(MinecraftEquipmentVault.key(slot));
-        }
-        return Collections.unmodifiableSet(factories);
-    }
-
-    @Override
-    public <V extends Unit<?>> @Nullable Function<EntityUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return null;
-        }
-        if (MinecraftContainerVault.KEY.equals(key)) {
-            return unit -> unit.vault(type, key);
-        }
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            if (MinecraftEquipmentVault.key(slot).equals(key)) {
-                return unit -> unit.vault(type, key);
-            }
-        }
-        return null;
-    }
-
     public static EntityBase lookup(Location location) {
         return FEATURE_MAP.get(location);
     }

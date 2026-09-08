@@ -219,7 +219,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
                 continue;
             }
             if (vault instanceof MinecraftItemVault minecraftVault) {
-                for (int physicalSlot = 0; physicalSlot < minecraftVault.slotCount(); physicalSlot++) {
+                for (int physicalSlot = 0; physicalSlot < minecraftVault.size(); physicalSlot++) {
                     slots.add(new Slot(vault, null, minecraftVault, null, physicalSlot, -1));
                 }
                 continue;

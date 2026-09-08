@@ -13,25 +13,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
+public abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vault<ItemUnit> {
 
     protected final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemUnit defaultValue;
 
-    MinecraftItemVault(@NotNull NexoMinecraft nexo) {
+    protected MinecraftItemVault(@NotNull NexoMinecraft nexo) {
         this.nexo = nexo;
         this.defaultValue = MinecraftItemUnit.empty(nexo);
     }
 
-    abstract int slotCount();
+    public abstract @NotNull ItemStack getItem(int slot);
 
-    abstract @NotNull ItemStack getItem(int slot);
+    public abstract void setItem(int slot, @NotNull ItemStack stack);
 
-    abstract void setItem(int slot, @NotNull ItemStack stack);
+    public abstract boolean isItemValid(int slot, @NotNull ItemStack stack);
 
-    abstract boolean isItemValid(int slot, @NotNull ItemStack stack);
-
-    abstract int slotLimit(int slot);
+    public abstract int slotLimit(int slot);
 
     @Override
     public final @NotNull ItemUnit defaultValue() {
@@ -40,14 +38,14 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
 
     @Override
     public final @NotNull ItemUnit get(int slot) {
-        Objects.checkIndex(slot, this.slotCount());
+        Objects.checkIndex(slot, this.size());
         ItemStack stack = this.getItem(slot);
         return stack.isEmpty() ? this.defaultValue() : this.nexo.stackToUnit(stack);
     }
 
     @Override
     public final @NotNull ItemUnit set(int slot, @NotNull ItemUnit item) {
-        Objects.checkIndex(slot, this.slotCount());
+        Objects.checkIndex(slot, this.size());
         if (!(item instanceof MinecraftItemUnit minecraftItem)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
@@ -63,7 +61,7 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
 
     @Override
     public final boolean isFull() {
-        for (int slot = 0; slot < this.slotCount(); slot++) {
+        for (int slot = 0; slot < this.size(); slot++) {
             if (this.getItem(slot).isEmpty()) {
                 return false;
             }
@@ -72,16 +70,11 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
     }
 
     @Override
-    public final int size() {
-        return this.slotCount();
-    }
-
-    @Override
     public final boolean contains(@Nullable Object object) {
         if (!(object instanceof MinecraftItemUnit item) || item.get().isEmpty()) {
             return false;
         }
-        for (int slot = 0; slot < this.slotCount(); slot++) {
+        for (int slot = 0; slot < this.size(); slot++) {
             if (ItemStack.matches(this.getItem(slot), item.get())) {
                 return true;
             }
@@ -99,14 +92,14 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
             return false;
         }
         int remaining = source.getCount();
-        for (int slot = 0; slot < this.slotCount() && remaining > 0; slot++) {
+        for (int slot = 0; slot < this.size() && remaining > 0; slot++) {
             ItemStack current = this.getItem(slot);
             if (current.isEmpty() || !ItemStack.isSameItemSameComponents(current, source)) {
                 continue;
             }
             remaining = this.insertItem(slot, source.copyWithCount(remaining), false, false).getCount();
         }
-        for (int slot = 0; slot < this.slotCount() && remaining > 0; slot++) {
+        for (int slot = 0; slot < this.size() && remaining > 0; slot++) {
             if (!this.getItem(slot).isEmpty()) {
                 continue;
             }
@@ -124,7 +117,7 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
         if (!(object instanceof MinecraftItemUnit item) || item.get().isEmpty()) {
             return false;
         }
-        for (int slot = 0; slot < this.slotCount(); slot++) {
+        for (int slot = 0; slot < this.size(); slot++) {
             if (ItemStack.matches(this.getItem(slot), item.get())) {
                 this.setItem(slot, ItemStack.EMPTY);
                 this.contentsChanged();
@@ -136,7 +129,7 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
 
     @Override
     public final @NotNull ItemUnit remove(int slot) {
-        Objects.checkIndex(slot, this.slotCount());
+        Objects.checkIndex(slot, this.size());
         ItemUnit previous = this.get(slot);
         if (!this.getItem(slot).isEmpty()) {
             this.setItem(slot, ItemStack.EMPTY);
@@ -148,7 +141,7 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
     @Override
     public final void clear() {
         boolean changed = false;
-        for (int slot = 0; slot < this.slotCount(); slot++) {
+        for (int slot = 0; slot < this.size(); slot++) {
             if (!this.getItem(slot).isEmpty()) {
                 this.setItem(slot, ItemStack.EMPTY);
                 changed = true;
@@ -159,11 +152,11 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
         }
     }
 
-    @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
+    public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
         return this.insertItem(slot, stack, simulate, true);
     }
 
-    @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate, boolean notify) {
+    public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate, boolean notify) {
         if (stack.isEmpty() || !this.isItemValid(slot, stack)) {
             return stack.copy();
         }
@@ -172,7 +165,7 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
         if (!current.isEmpty() && !ItemStack.isSameItemSameComponents(current, stack)) {
             return stack.copy();
         }
-        int amount = Math.min(stack.getCount(), Math.max(0, limit - current.getCount()));
+        int amount = Math.clamp(limit - current.getCount(), 0, stack.getCount());
         if (amount == 0) {
             return stack.copy();
         }
@@ -185,11 +178,11 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
         return stack.copyWithCount(stack.getCount() - amount);
     }
 
-    @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
+    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
         return this.extractItem(slot, amount, simulate, true);
     }
 
-    @NotNull ItemStack extractItem(int slot, int amount, boolean simulate, boolean notify) {
+    public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate, boolean notify) {
         if (amount <= 0) {
             return ItemStack.EMPTY;
         }
@@ -208,16 +201,16 @@ abstract class MinecraftItemVault extends AbstractList<ItemUnit> implements Vaul
         return result;
     }
 
-    @NotNull List<ItemStack> snapshot() {
-        List<ItemStack> snapshot = new ArrayList<>(this.slotCount());
-        for (int slot = 0; slot < this.slotCount(); slot++) {
+    public @NotNull List<ItemStack> snapshot() {
+        List<ItemStack> snapshot = new ArrayList<>(this.size());
+        for (int slot = 0; slot < this.size(); slot++) {
             snapshot.add(this.getItem(slot).copy());
         }
         return snapshot;
     }
 
-    void restore(@NotNull List<ItemStack> snapshot, boolean notify) {
-        if (snapshot.size() != this.slotCount()) {
+    public void restore(@NotNull List<ItemStack> snapshot, boolean notify) {
+        if (snapshot.size() != this.size()) {
             throw new IllegalArgumentException("Vault size changed while restoring " + this.getClass().getSimpleName());
         }
         for (int slot = 0; slot < snapshot.size(); slot++) {

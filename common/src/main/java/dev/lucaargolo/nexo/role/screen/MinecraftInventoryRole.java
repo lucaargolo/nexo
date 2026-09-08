@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.role.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.screen.InventoryRole;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -13,12 +14,13 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 public class MinecraftInventoryRole {
 
     public static MinecraftRoleType.Info<Screen, MinecraftScreen.ScreenParameters<?>> craftScreen(NexoMinecraft nexo, ScreenBase<?> base) {
-        if (base.role() instanceof InventoryRole(@NotNull Map<Location, InventoryRole.Config> vaults)) {
+        if (base.role() instanceof InventoryRole(@NotNull List<InventoryRole.Config> configs)) {
             Utils.Extender<Screen> extender = Utils.extend(nexo, AbstractContainerScreen.class);
             extender.override("renderBg", void.class, GuiGraphics.class, float.class, int.class, int.class, (screen, superCall, graphics, partial, mouseX, mouseY) -> {
                 return null;
@@ -28,10 +30,10 @@ public class MinecraftInventoryRole {
         return null;
     }
 
-    public static MinecraftRoleType.Info<AbstractContainerMenu, MinecraftScreen.MenuParameters<?>> craftMenu(NexoMinecraft nexo, ScreenBase<?> base) {
-        if (base.role() instanceof InventoryRole(@NotNull Map<Location, InventoryRole.Config> vaults)) {
-            Utils.Extender<AbstractContainerMenu> extender = Utils.extend(nexo, AbstractContainerMenu.class);
-            return new MinecraftRoleType.Info<>(extender, parameters -> extender.instantiate(parameters.type(), parameters.id()));
+    public static MinecraftRoleType.Info<MinecraftScreen.ExtendedMenu<?>, MinecraftScreen.MenuParameters<?>> craftMenu(NexoMinecraft nexo, ScreenBase<?> base) {
+        if (base.role() instanceof InventoryRole(@NotNull List<InventoryRole.Config> configs)) {
+            Utils.Extender<MinecraftScreen.ExtendedMenu<?>> extender = Utils.extend(nexo, Nexo.type(MinecraftScreen.ExtendedMenu.class));
+            return new MinecraftRoleType.Info<>(extender, extender::instantiate);
         }
         return null;
     }

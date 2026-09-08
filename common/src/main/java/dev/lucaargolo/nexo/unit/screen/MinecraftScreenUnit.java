@@ -10,12 +10,19 @@ import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
+import dev.lucaargolo.nexo.unit.block.MinecraftBlockUnit;
+import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
+import org.joml.Vector3i;
 
 import java.util.Set;
 
@@ -107,6 +114,38 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
         boolean handledX = deltaX != 0.0 && this.inputMove(Input.Axis.MOUSE_X, (float) deltaX);
         boolean handledY = deltaY != 0.0 && this.inputMove(Input.Axis.MOUSE_Y, (float) deltaY);
         return handledX || handledY;
+    }
+
+    public static void encodeOwner(@NotNull RegistryFriendlyByteBuf buf, @Nullable Unit<?> owner) {
+        if(owner instanceof MinecraftBlockUnit<?> block) {
+            Vector3i position = block.position();
+            if(position != null) {
+                buf.writeEnum(OwnerType.BLOCK);
+                buf.writeLong(BlockPos.asLong(position.x, position.y, position.z));
+            }
+        }else if(owner instanceof MinecraftEntityUnit<?,?> entity) {
+            buf.writeEnum(OwnerType.ENTITY);
+            buf.writeVarInt(entity.get().getId());
+        }
+        buf.writeEnum(OwnerType.NULL);
+    }
+
+    public static @Nullable Unit<?> decodeOwner(@NotNull NexoMinecraft nexo, @NotNull RegistryFriendlyByteBuf buf, @NotNull Level level) {
+        OwnerType type = buf.readEnum(OwnerType.class);
+        return switch (type) {
+            case BLOCK -> nexo.blockToUnit(level, buf.readBlockPos());
+            case ENTITY -> {
+                Entity entity = level.getEntity(buf.readVarInt());
+                yield entity != null ? nexo.entityToUnit(entity) : null;
+            }
+            default -> null;
+        };
+    }
+
+    private enum OwnerType {
+        NULL,
+        BLOCK,
+        ENTITY
     }
 
 }
