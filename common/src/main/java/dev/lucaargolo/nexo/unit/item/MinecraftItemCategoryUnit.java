@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
@@ -52,6 +54,16 @@ public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft> extends
     @Override
     public void remove(@NotNull ItemUnit item) {
         removedItems.add(item);
+    }
+
+    @Override
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        return null;
     }
 
 

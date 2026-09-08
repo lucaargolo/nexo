@@ -1,10 +1,13 @@
 package dev.lucaargolo.nexo.api.feature.block;
 
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.item.BlockItem;
+import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -13,19 +16,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
+import java.util.Set;
+import java.util.function.Function;
+
 public class SimpleBlock extends BlockBase {
 
-    private final @Nullable BlockItem item;
     private final @Nullable StaticRenderer<Graphics3D, BlockUnit> renderer;
 
-    public SimpleBlock(@Nullable ModelResource resource, @Nullable BlockItem item) {
-        super();
-        this.item = item;
+    private boolean computedItem = false;
+    private @Nullable ItemBase item = null;
+
+    public SimpleBlock(@Nullable ModelResource resource) {
         this.renderer = resource != null ? new ModelRenderer<>(resource) : null;
     }
 
-    public SimpleBlock(@Nullable ModelResource resource) {
-        this(resource, null);
+    @Override
+    public @Nullable ItemBase item() {
+        if(!this.computedItem) {
+            this.computedItem = true;
+            this.item = this.nexo().getFeature(Type.ITEM, this.location());
+        }
+        return this.item;
     }
 
     @Override
@@ -34,8 +45,13 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
-    public @Nullable BlockItem item() {
-        return item;
+    public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <V extends Unit<?>> Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+        return null;
     }
 
     @Override

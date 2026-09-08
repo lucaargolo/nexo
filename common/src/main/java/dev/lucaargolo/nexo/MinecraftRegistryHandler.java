@@ -19,7 +19,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -89,11 +88,12 @@ public abstract class MinecraftRegistryHandler {
             @NotNull VaultFactory<U> feature,
             @NotNull Class<V> type
     ) {
-        Map<String, Function<U, ? extends @Nullable Vault<V>>> factories = new LinkedHashMap<>(feature.vaults(type));
-        factories.forEach((key, factory) -> {
+        Map<String, Function<U, ? extends @Nullable Vault<V>>> factories = new LinkedHashMap<>();
+        for (String key : feature.vaults(type)) {
             Objects.requireNonNull(key, "Vault key");
-            Objects.requireNonNull(factory, "Vault factory");
-        });
+            Function<U, Vault<V>> factory = Objects.requireNonNull(feature.vault(type, key), "Vault factory");
+            factories.put(key, factory);
+        }
         return Collections.unmodifiableMap(factories);
     }
 
@@ -174,13 +174,18 @@ public abstract class MinecraftRegistryHandler {
         }
 
         @Override
-        public @NotNull Location location() {
-            return this.location;
+        public @NotNull Nexo nexo() {
+            return MinecraftRegistryHandler.this.nexo;
         }
 
         @Override
         public @NotNull MinecraftRegistryHandler authority() {
             return MinecraftRegistryHandler.this;
+        }
+
+        @Override
+        public @NotNull Location location() {
+            return this.location;
         }
 
     }

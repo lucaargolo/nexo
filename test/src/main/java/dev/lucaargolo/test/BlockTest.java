@@ -30,10 +30,11 @@ import dev.lucaargolo.test.feature.TestScreen;
 import dev.lucaargolo.test.render.TestDynamicBlockRenderer;
 import dev.lucaargolo.test.util.TestChestVault;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
@@ -90,15 +91,19 @@ public final class BlockTest {
             }
 
             @Override
-            public <V extends Unit<?>> @NotNull Map<String, Function<BlockUnit, ? extends Vault<V>>> vaults(@NotNull Class<V> type) {
-                if(type == ItemUnit.class) {
-                    ItemBase item = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
-                    ItemUnit empty = requireNonNull(nexo.unit(item));
-                    V initial = type.cast(empty);
-                    return Map.of("inventory", unit -> new TestChestVault<>(type, initial, unit, chestInventory));
-                }else{
-                    return Map.of();
+            public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
+                return type == ItemUnit.class ? Set.of("inventory") : Set.of();
+            }
+
+            @Override
+            public <V extends Unit<?>> @Nullable Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+                if (type != ItemUnit.class || !"inventory".equals(key)) {
+                    return null;
                 }
+                ItemBase item = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
+                ItemUnit empty = requireNonNull(nexo.unit(item));
+                V initial = type.cast(empty);
+                return unit -> new TestChestVault<>(type, initial, unit, chestInventory);
             }
         }, NexoTestMod.id("test_chest"));
         nexo.registerFeature(new BlockItem(chest, category), chest.location());
@@ -159,6 +164,16 @@ public final class BlockTest {
                 unit.open(entity, block);
                 block.withData(dynamicData, value -> value + "!");
                 return Interaction.SUCCESS;
+            }
+
+            @Override
+            public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
+                return Set.of();
+            }
+
+            @Override
+            public @Nullable <V extends Unit<?>> Function<BlockUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+                return null;
             }
         }, NexoTestMod.id("dynamic_block"));
         nexo.registerFeature(new BlockItem(block, category) {

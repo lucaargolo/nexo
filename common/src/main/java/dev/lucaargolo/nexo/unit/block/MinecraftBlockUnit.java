@@ -86,18 +86,18 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft> extends BlockU
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
-            return super.vaults(type);
+            return Set.of();
         }
-        return this.container() != null ? Set.of(MinecraftContainerVault.KEY) : super.vaults(type);
+        return this.container() != null ? Set.of(MinecraftContainerVault.KEY) : Set.of();
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.supports(type)) {
-            return super.vault(type, key);
+            return null;
         }
         Container container = this.container();
-        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : super.vault(type, key);
+        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : null;
     }
 
     private @Nullable Container container() {

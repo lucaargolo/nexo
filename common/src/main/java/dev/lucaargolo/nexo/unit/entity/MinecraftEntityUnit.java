@@ -49,9 +49,9 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if (!MinecraftContainerVault.supports(type)) {
-            return super.vaults(type);
+            return Set.of();
         }
-        Set<String> vaults = new HashSet<>(super.vaults(type));
+        Set<String> vaults = new HashSet<>();
         if (this.container() != null) {
             vaults.add(MinecraftContainerVault.KEY);
         }
@@ -66,7 +66,7 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if (!MinecraftContainerVault.supports(type)) {
-            return super.vault(type, key);
+            return null;
         }
         if (this.entity instanceof LivingEntity livingEntity) {
             for (EquipmentSlot slot : EquipmentSlot.values()) {
@@ -76,7 +76,7 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
             }
         }
         Container container = this.container();
-        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : super.vault(type, key);
+        return MinecraftContainerVault.KEY.equals(key) && container != null ? MinecraftContainerVault.create(this.nexo, container, type) : null;
     }
 
     private @Nullable Container container() {

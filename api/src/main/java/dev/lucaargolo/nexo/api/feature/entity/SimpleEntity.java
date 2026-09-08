@@ -1,12 +1,17 @@
 package dev.lucaargolo.nexo.api.feature.entity;
 
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class SimpleEntity extends EntityBase {
@@ -31,5 +36,15 @@ public class SimpleEntity extends EntityBase {
     @Override
     public @Nullable Renderer<Graphics3D, EntityUnit> renderer() {
         return renderer;
+    }
+
+    @Override
+    public @NotNull <V extends Unit<?>> Set<String> vaults(@NotNull Class<V> type) {
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <V extends Unit<?>> Function<EntityUnit, Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+        return null;
     }
 }

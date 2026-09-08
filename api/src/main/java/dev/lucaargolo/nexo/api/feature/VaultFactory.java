@@ -4,13 +4,13 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
-public interface VaultFactory<U extends Unit<?>> {
+public interface VaultFactory<V extends Unit<?>> {
 
-    default <V extends Unit<?>> @NotNull Map<String, Function<U, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
-        return Map.of();
-    }
+    @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type);
+
+    @Nullable <U extends Unit<?>> Function<V, Vault<U>> vault(@NotNull Class<U> type, @NotNull String key);
 
 }

@@ -34,6 +34,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -52,7 +53,7 @@ import org.joml.Vector3i;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -129,17 +130,22 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public <V extends Unit<?>> @NotNull Map<String, Function<BlockUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return Map.of();
+    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
+        return MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+    }
+
+    @Override
+    public <V extends Unit<?>> @Nullable Function<BlockUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
+            return null;
         }
-        return Map.of(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+        return unit -> unit.vault(type, key);
     }
 
     @Override
     public @Nullable ItemBase item() {
         Item item = this.holder.value().asItem();
-        return MinecraftFeatureType.ITEM.convert(nexo, item);
+        return item != Items.AIR ? MinecraftFeatureType.ITEM.convert(nexo, item) : null;
     }
 
     @Override

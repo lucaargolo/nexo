@@ -62,6 +62,13 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
     public abstract @NotNull Type<T, U> type();
 
+    public final @NotNull Nexo nexo() {
+        if(identity == null) {
+            throw new IllegalStateException("Feature has not been registered");
+        }
+        return identity.nexo();
+    }
+
     public final @NotNull Location location() {
         if(identity == null) {
             throw new IllegalStateException("Feature has not been registered");
@@ -190,9 +197,11 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
 
     public interface Identity<T> {
 
-        @NotNull Location location();
+        @NotNull Nexo nexo();
 
         @NotNull T authority();
+
+        @NotNull Location location();
 
     }
 

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -106,11 +107,16 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public <V extends Unit<?>> @NotNull Map<String, Function<ItemUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
-        if (!MinecraftContainerVault.supports(type)) {
-            return Map.of();
+    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
+        return MinecraftContainerVault.supports(type) ? Set.of(MinecraftContainerVault.KEY) : Set.of();
+    }
+
+    @Override
+    public <V extends Unit<?>> @Nullable Function<ItemUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+        if (!MinecraftContainerVault.supports(type) || !MinecraftContainerVault.KEY.equals(key)) {
+            return null;
         }
-        return Map.of(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+        return unit -> unit.vault(type, key);
     }
 
     @Override

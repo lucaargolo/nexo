@@ -26,9 +26,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
@@ -70,17 +70,32 @@ public final class MinecraftEntity extends EntityBase {
     }
 
     @Override
-    public <V extends Unit<?>> @NotNull Map<String, Function<EntityUnit, ? extends @Nullable Vault<V>>> vaults(@NotNull Class<V> type) {
+    public <V extends Unit<?>> @NotNull Set<String> vaults(@NotNull Class<V> type) {
         if (!MinecraftContainerVault.supports(type)) {
-            return Map.of();
+            return Set.of();
         }
-        Map<String, Function<EntityUnit, ? extends @Nullable Vault<V>>> vaults = new LinkedHashMap<>();
-        vaults.put(MinecraftContainerVault.KEY, unit -> unit.vault(type, MinecraftContainerVault.KEY));
+        Set<String> factories = new LinkedHashSet<>();
+        factories.add(MinecraftContainerVault.KEY);
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            String key = MinecraftEquipmentVault.key(slot);
-            vaults.put(key, unit -> unit.vault(type, key));
+            factories.add(MinecraftEquipmentVault.key(slot));
         }
-        return Collections.unmodifiableMap(vaults);
+        return Collections.unmodifiableSet(factories);
+    }
+
+    @Override
+    public <V extends Unit<?>> @Nullable Function<EntityUnit, @Nullable Vault<V>> vault(@NotNull Class<V> type, @NotNull String key) {
+        if (!MinecraftContainerVault.supports(type)) {
+            return null;
+        }
+        if (MinecraftContainerVault.KEY.equals(key)) {
+            return unit -> unit.vault(type, key);
+        }
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (MinecraftEquipmentVault.key(slot).equals(key)) {
+                return unit -> unit.vault(type, key);
+            }
+        }
+        return null;
     }
 
     public static EntityBase lookup(Location location) {

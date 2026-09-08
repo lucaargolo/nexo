@@ -8,12 +8,8 @@ import java.util.Set;
 
 public interface VaultProvider {
 
-    default @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return Set.of();
-    }
+    @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type);
 
-    default @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        return null;
-    }
+    @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key);
 
 }

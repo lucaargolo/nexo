@@ -1,8 +1,10 @@
 package dev.lucaargolo.nexo.unit.world;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
 import dev.lucaargolo.nexo.api.util.Side;
@@ -14,6 +16,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
+
+import java.util.Set;
 
 public abstract class MinecraftWorldUnit<N extends NexoMinecraft> extends WorldUnit implements MinecraftUnit<Level> {
 
@@ -36,6 +40,16 @@ public abstract class MinecraftWorldUnit<N extends NexoMinecraft> extends WorldU
     @Override
     public @NotNull Side side() {
         return this.level.isClientSide ? Side.CLIENT : Side.SERVER;
+    }
+
+    @Override
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        return null;
     }
 
     @Override

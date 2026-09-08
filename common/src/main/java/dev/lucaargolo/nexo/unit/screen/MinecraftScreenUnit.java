@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.unit.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.input.Input;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -15,6 +16,8 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2f;
+
+import java.util.Set;
 
 public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements MinecraftUnit<MinecraftScreen.ScreenCrafter<D>> {
 
@@ -62,6 +65,16 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     @Override
     public int height() {
         return this.screen != null ? this.screen.height : 0;
+    }
+
+    @Override
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        return null;
     }
 
     @Override
