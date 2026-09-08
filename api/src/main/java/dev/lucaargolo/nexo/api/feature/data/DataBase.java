@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>> {
@@ -20,10 +21,6 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>
 
     public DataBase(@NotNull Supplier<Role> role) {
         super(role);
-    }
-
-    public static <D> @NotNull ListData<D> list(@NotNull DataBase<D> data) {
-        return new ListData<>(data);
     }
 
     @Override
@@ -86,5 +83,23 @@ public abstract class DataBase<T> extends Feature<DataBase<?>, Unit<DataBase<?>>
         }
 
     }
+
+    public static <D> @NotNull ListData<D> list(@NotNull DataBase<D> data) {
+        return new ListData<>(data);
+    }
+
+    public static <D> @NotNull SetData<D> set(@NotNull DataBase<D> data) {
+        return new SetData<>(data);
+    }
+
+    public static <D> @NotNull ArrayData<D> array(@NotNull DataBase<D> data, @NotNull IntFunction<D[]> factory) {
+        return new ArrayData<>(data, factory);
+    }
+
+    public static <D> @NotNull ArrayData<D> array(@NotNull DataBase<D> data, @NotNull Class<D> componentType) {
+        return new ArrayData<>(data, componentType);
+    }
+
+
 
 }
