@@ -60,6 +60,8 @@ public interface Nexo {
 
     @NotNull ItemUnit unit(@NotNull ItemBase item);
 
+    @NotNull ItemUnit unit(@NotNull ItemBase item, int amount);
+
     @NotNull <D> ScreenUnit<D> unit(@NotNull ScreenBase<D> screen);
 
     @SuppressWarnings("unchecked")

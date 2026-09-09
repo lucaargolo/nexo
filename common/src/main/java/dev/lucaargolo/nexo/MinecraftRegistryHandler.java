@@ -9,6 +9,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
@@ -90,6 +91,21 @@ public abstract class MinecraftRegistryHandler {
     ) {
         Map<String, Function<U, Vault<V>>> factories = feature.vaults(type);
         return Collections.unmodifiableMap(factories);
+    }
+
+    protected final @NotNull List<Vault<ItemUnit>> createVaults(
+            @NotNull Unit<?> unit,
+            @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories
+    ) {
+        List<Vault<ItemUnit>> vaults = new ArrayList<>(vaultFactories.size());
+        Class<Function<Unit<?>, ? extends @Nullable Vault<ItemUnit>>> type = Nexo.type(Function.class);
+        for (Function<?, ? extends @Nullable Vault<ItemUnit>> factory : vaultFactories.values()) {
+            @Nullable Vault<ItemUnit> vault = type.cast(factory).apply(unit);
+            if (vault != null) {
+                vaults.add(vault);
+            }
+        }
+        return List.copyOf(vaults);
     }
 
     public abstract <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature);

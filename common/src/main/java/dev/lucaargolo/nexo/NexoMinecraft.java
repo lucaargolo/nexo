@@ -334,6 +334,16 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     @Override
+    public @NotNull ItemUnit unit(@NotNull ItemBase item, int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Item amount must not be negative");
+        }
+        ItemStack stack = MinecraftFeatureType.ITEM.convert(item).getDefaultInstance();
+        stack.setCount(amount);
+        return stackToUnit(stack);
+    }
+
+    @Override
     public @NotNull <D> ScreenUnit<D> unit(@NotNull ScreenBase<D> screen) {
         MinecraftScreen.ScreenCrafter<?> crafter = MinecraftScreen.CRAFTER_MAP.get(screen.location());
         return Utils.<MinecraftScreenUnit<D>>loadPlatformClass(this, MinecraftScreenUnit.class, this, screen, screen.role(), crafter);
@@ -357,12 +367,12 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull BlockUnit blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
         UnitCacheMixed cache = blockEntity != null ? (UnitCacheMixed) blockEntity : (UnitCacheMixed) state;
-        MinecraftBlockUnit<?> cached = (MinecraftBlockUnit<?>) cache.nexo$getUnit();
+        MinecraftBlockUnit cached = (MinecraftBlockUnit) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
-        MinecraftBlockUnit<?> unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
+        MinecraftBlockUnit unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
         cache.nexo$setUnit(unit);
         return unit;
     }
@@ -381,7 +391,7 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull WorldUnit levelToUnit(@NotNull Level level) {
         UnitCacheMixed cache = (UnitCacheMixed) level;
-        MinecraftWorldUnit<?> cached = (MinecraftWorldUnit<?>) cache.nexo$getUnit();
+        MinecraftWorldUnit cached = (MinecraftWorldUnit) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
@@ -391,7 +401,7 @@ public abstract class NexoMinecraft implements Nexo {
         if (world == null) {
             throw new IllegalStateException("Couldn't find world from level");
         }
-        MinecraftWorldUnit<?> unit = Utils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
+        MinecraftWorldUnit unit = Utils.loadPlatformClass(this, MinecraftWorldUnit.class, this, world, world.role(), level);
         cache.nexo$setUnit(unit);
         return unit;
     }
@@ -412,12 +422,12 @@ public abstract class NexoMinecraft implements Nexo {
 
     public @NotNull ItemCategoryUnit tabToUnit(CreativeModeTab tab) {
         UnitCacheMixed cache = (UnitCacheMixed) tab;
-        MinecraftItemCategoryUnit<?> cached = (MinecraftItemCategoryUnit<?>) cache.nexo$getUnit();
+        MinecraftItemCategoryUnit cached = (MinecraftItemCategoryUnit) cache.nexo$getUnit();
         if (cached != null) {
             return cached;
         }
         ItemCategoryBase feature = MinecraftFeatureType.ITEM_CATEGORY.convert(this, tab);
-        MinecraftItemCategoryUnit<?> unit = Utils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, feature, feature.role(), tab);
+        MinecraftItemCategoryUnit unit = Utils.loadPlatformClass(this, MinecraftItemCategoryUnit.class, this, feature, feature.role(), tab);
         cache.nexo$setUnit(unit);
         return unit;
     }

@@ -8,7 +8,6 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupEvent;
 import dev.lucaargolo.nexo.event.LanguageReloadEvent;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
-import dev.lucaargolo.nexo.render.NeoForgeMinecraftRenderingHandler;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;

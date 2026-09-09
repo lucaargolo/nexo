@@ -1,13 +1,10 @@
 package dev.lucaargolo.nexo.api.feature.block;
 
-import dev.lucaargolo.nexo.api.feature.Vault;
-import dev.lucaargolo.nexo.api.feature.item.BlockItem;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
@@ -15,9 +12,6 @@ import dev.lucaargolo.nexo.api.util.Interaction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
-
-import java.util.Set;
-import java.util.function.Function;
 
 public class SimpleBlock extends BlockBase {
 

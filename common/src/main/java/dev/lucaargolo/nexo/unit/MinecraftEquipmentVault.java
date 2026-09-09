@@ -10,17 +10,26 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public final class MinecraftEquipmentVault extends MinecraftItemVault {
+import java.util.Objects;
 
+public final class MinecraftEquipmentVault implements Vault<ItemUnit> {
+
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull LivingEntity entity;
     private final @NotNull EquipmentSlot slot;
+    private final @NotNull ItemUnit empty;
 
-    private MinecraftEquipmentVault(@NotNull NexoMinecraft nexo, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
-        super(nexo);
+    public MinecraftEquipmentVault(@NotNull NexoMinecraft nexo, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
+        this.nexo = nexo;
         this.entity = entity;
         this.slot = slot;
+        this.empty = nexo.stackToUnit(ItemStack.EMPTY);
+    }
+
+    @Override
+    public @NotNull ItemUnit empty() {
+        return this.empty;
     }
 
     @Override
@@ -29,31 +38,41 @@ public final class MinecraftEquipmentVault extends MinecraftItemVault {
     }
 
     @Override
-    public @NotNull ItemStack getItem(int slot) {
-        return this.entity.getItemBySlot(this.slot);
-    }
-
-    @Override
-    public void setItem(int slot, @NotNull ItemStack stack) {
-        this.entity.setItemSlot(this.slot, stack);
-    }
-
-    @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return !stack.isEmpty();
-    }
-
-    @Override
-    public int slotLimit(int slot) {
-        return this.getItem(0).getMaxStackSize();
-    }
-
-    public static @Nullable MinecraftEquipmentVault create(@NotNull NexoMinecraft nexo, @Nullable LivingEntity entity, @NotNull EquipmentSlot slot) {
-        if (entity == null) {
-            return null;
+    public @NotNull ItemUnit get(int slot) {
+        Objects.checkIndex(slot, this.size());
+        ItemStack stack = this.entity.getItemBySlot(this.slot);
+        if (stack.isEmpty()) {
+            return this.empty;
         }
-        return new MinecraftEquipmentVault(nexo, entity, slot);
+        return this.nexo.stackToUnit(stack);
     }
 
+    @Override
+    public @NotNull ItemUnit set(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.size());
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
+        }
+
+        ItemStack stack = unit.get();
+        if (!stack.isEmpty()) {
+            if (this.slot != this.entity.getEquipmentSlotForItem(stack)) {
+                throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
+            }
+        }
+
+        ItemUnit previous = this.get(slot);
+        this.entity.setItemSlot(this.slot, stack);
+        this.changed();
+        return previous;
+    }
+
+
+    public static @NotNull <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
+        if(type != ItemUnit.class) {
+            throw new IllegalArgumentException("Tried to create non ItemUnit MinecraftEquipmentVault");
+        }
+        return Nexo.<Vault<U>>type(Vault.class).cast(new MinecraftEquipmentVault(nexo, entity, slot));
+    }
 
 }

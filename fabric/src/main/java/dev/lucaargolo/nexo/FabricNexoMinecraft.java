@@ -8,7 +8,6 @@ import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.LanguageLookupCallback;
 import dev.lucaargolo.nexo.event.LanguageReloadCallback;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacketPayload;
-import dev.lucaargolo.nexo.render.FabricMinecraftRenderingHandler;
 import dev.lucaargolo.nexo.unit.entity.MinecraftEntityUnit;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;

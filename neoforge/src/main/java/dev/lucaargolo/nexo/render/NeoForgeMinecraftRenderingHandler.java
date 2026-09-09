@@ -7,7 +7,6 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.event.AtlasStitchedEvent;
 import dev.lucaargolo.nexo.event.InjectOnAtlasStitchEvent;
 import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;

@@ -1,17 +1,12 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
-import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
-import java.util.function.Function;
 
 public class SimpleItem extends ItemBase {
 

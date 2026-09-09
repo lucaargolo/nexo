@@ -5,7 +5,6 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.event.AtlasStitchedCallback;
 import dev.lucaargolo.nexo.event.InjectOnAtlasStitchCallback;

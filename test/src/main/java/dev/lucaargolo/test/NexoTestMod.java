@@ -6,6 +6,7 @@ import dev.lucaargolo.nexo.api.event.PlayerBlockInteractEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
+import dev.lucaargolo.nexo.api.feature.data.ItemData;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
@@ -125,6 +126,14 @@ public class NexoTestMod {
         ItemUnit appleUnit = requireNonNull(nexo.unit(apple), "Missing apple unit");
         if (!Integer.valueOf(64).equals(appleUnit.getData(maxStackSize))) {
             throw new IllegalStateException("Apple max_stack_size initial data mismatch");
+        }
+        ItemUnit appleStack = nexo.unit(apple, 3);
+        if (appleStack.amount() != 3) {
+            throw new IllegalStateException("Item unit amount mismatch");
+        }
+        ItemData itemData = nexo.registerFeature(new ItemData(nexo), id("test_item_data"));
+        if (itemData.deserialize(itemData.serialize(appleStack)).amount() != 3) {
+            throw new IllegalStateException("Item unit amount round trip failed");
         }
 
         // Right clicking a redstone lamp cycles its lit blockstate instead of the vanilla interaction.

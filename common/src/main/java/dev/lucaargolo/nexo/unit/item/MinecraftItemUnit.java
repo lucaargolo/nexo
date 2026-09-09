@@ -2,17 +2,15 @@ package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
+import dev.lucaargolo.nexo.api.unit.Stackable;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
-import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftUnit;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.item.ItemStack;
@@ -28,12 +26,7 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
     protected final @NotNull NexoMinecraft nexo;
     private final @NotNull ItemStack stack;
 
-    public MinecraftItemUnit(
-            @NotNull NexoMinecraft nexo,
-            @NotNull ItemBase feature,
-            @Nullable Role role,
-            @NotNull ItemStack stack
-    ) {
+    public MinecraftItemUnit(@NotNull NexoMinecraft nexo, @NotNull ItemBase feature, @Nullable Role role, @NotNull ItemStack stack) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.stack = stack;
@@ -60,7 +53,6 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         return null;
     }
 
-
     protected @Nullable Vault<ItemUnit> vault() {
         return null;
     }
@@ -68,6 +60,31 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
     @Override
     public @NotNull ItemStack get() {
         return stack;
+    }
+
+    @Override
+    public int maxAmount() {
+        return this.stack.getMaxStackSize();
+    }
+
+    @Override
+    public int amount() {
+        return this.stack.getCount();
+    }
+
+    @Override
+    public void increment(int amount) {
+        this.stack.grow(amount);
+    }
+
+    @Override
+    public void decrement(int amount) {
+        this.stack.shrink(amount);
+    }
+
+    @Override
+    public @NotNull Stackable<ItemUnit> copy() {
+        return this.nexo.stackToUnit(stack.copy());
     }
 
     @Override
@@ -99,12 +116,18 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         return this;
     }
 
-    public static @NotNull ItemUnit empty(@NotNull NexoMinecraft nexo) {
-        ItemBase item = nexo.getFeature(Feature.Type.ITEM, Location.of("minecraft", "air"));
-        if(item == null) {
-            throw new IllegalStateException("Couldn't find empty item");
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof MinecraftItemUnit unit) {
+            return ItemStack.isSameItemSameComponents(this.stack, unit.stack);
+        }else{
+            return false;
         }
-        return new MinecraftItemUnit(nexo, item, null, ItemStack.EMPTY) {};
+    }
+
+    @Override
+    public int hashCode() {
+        return ItemStack.hashItemAndComponents(this.stack);
     }
 
     private static <D> @NotNull DataComponentType<D> find(@NotNull DataBase<D> data) {

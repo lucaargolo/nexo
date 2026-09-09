@@ -19,14 +19,14 @@ import org.joml.Vector3i;
 
 import java.util.Set;
 
-public abstract class MinecraftWorldUnit<N extends NexoMinecraft> extends WorldUnit implements MinecraftUnit<Level> {
+public abstract class MinecraftWorldUnit extends WorldUnit implements MinecraftUnit<Level> {
 
     @NotNull
-    protected final N nexo;
+    protected final NexoMinecraft nexo;
     @NotNull
     protected final Level level;
 
-    public MinecraftWorldUnit(@NotNull N nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+    public MinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.level = level;
@@ -65,7 +65,7 @@ public abstract class MinecraftWorldUnit<N extends NexoMinecraft> extends WorldU
     @Override
     public void setBlock(@NotNull Vector3i pos, @NotNull BlockUnit block) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
-        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit<?>) block).get());
+        level.setBlockAndUpdate(mcPos, ((MinecraftBlockUnit) block).get());
     }
 
 }

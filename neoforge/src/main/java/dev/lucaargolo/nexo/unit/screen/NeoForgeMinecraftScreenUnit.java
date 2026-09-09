@@ -1,6 +1,5 @@
 package dev.lucaargolo.nexo.unit.screen;
 
-import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;

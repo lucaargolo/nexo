@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
@@ -27,13 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class NeoForgeMinecraftBlockUnit extends MinecraftBlockUnit<NeoForgeNexoMinecraft>{
+public class NeoForgeMinecraftBlockUnit extends MinecraftBlockUnit {
 
-    public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public NeoForgeMinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);
     }
 
-    public NeoForgeMinecraftBlockUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+    public NeoForgeMinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role, level, position, state, entity, direction);
     }
 

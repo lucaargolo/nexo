@@ -117,7 +117,7 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     }
 
     public static void encodeOwner(@NotNull RegistryFriendlyByteBuf buf, @Nullable Unit<?> owner) {
-        if(owner instanceof MinecraftBlockUnit<?> block) {
+        if(owner instanceof MinecraftBlockUnit block) {
             Vector3i position = block.position();
             if(position != null) {
                 buf.writeEnum(OwnerType.BLOCK);

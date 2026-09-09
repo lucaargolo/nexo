@@ -1,17 +1,12 @@
 package dev.lucaargolo.nexo.api.feature.entity;
 
-import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.render.Graphics3D;
 import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.role.Role;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
-import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class SimpleEntity extends EntityBase {

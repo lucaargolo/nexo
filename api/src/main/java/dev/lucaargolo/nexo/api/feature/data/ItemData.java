@@ -51,6 +51,7 @@ public final class ItemData extends DataBase<ItemUnit> {
     public @NotNull JsonElement serialize(@NotNull ItemUnit value) {
         JsonObject serialized = new JsonObject();
         serialized.addProperty("item", value.feature().location().toString());
+        serialized.addProperty("amount", value.amount());
         JsonObject data = new JsonObject();
         for (DataBase<?> itemData : value.data()) {
             serializeData(value, itemData, data);
@@ -66,7 +67,16 @@ public final class ItemData extends DataBase<ItemUnit> {
         if (feature == null) {
             throw new IllegalArgumentException("Unknown item feature in item data: " + serialized.getAsJsonPrimitive("item").getAsString());
         }
-        ItemUnit item = this.nexo.unit(feature);
+        ItemUnit item;
+        if (serialized.has("amount")) {
+            int amount = serialized.getAsJsonPrimitive("amount").getAsInt();
+            if (amount < 0) {
+                throw new IllegalArgumentException("Item amount must not be negative");
+            }
+            item = this.nexo.unit(feature, amount);
+        } else {
+            item = this.nexo.unit(feature);
+        }
         JsonObject data = serialized.getAsJsonObject("data");
         for (var entry : data.entrySet()) {
             DataBase<?> itemData = this.nexo.getFeature(Feature.Type.data(), Location.parse(entry.getKey()));

@@ -11,7 +11,7 @@ import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
-import dev.lucaargolo.nexo.unit.FabricStorageVault;
+import dev.lucaargolo.nexo.unit.FabricItemStorageVault;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.component.DataComponents;
@@ -36,7 +36,7 @@ public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntity
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return FabricStorageVault.vaults(super.vaults(type), type, this.entityStorage());
+        return FabricItemStorageVault.vaults(super.vaults(type), type, this.entityStorage());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntity
         if (!"inventory".equals(key)) {
             return super.vault(type, key);
         }
-        Vault<U> vault = FabricStorageVault.create(this.nexo, type, this.entityStorage());
+        Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.entityStorage());
         return vault == null ? super.vault(type, key) : vault;
     }
 

@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
-import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -19,7 +19,7 @@ public final class NeoForgeAttachmentData {
     private NeoForgeAttachmentData() {
     }
 
-    public static @NotNull List<@NotNull DataBase<?>> data(@NotNull NeoForgeNexoMinecraft nexo, @NotNull IAttachmentHolder target, @NotNull List<@NotNull DataBase<?>> additionalData, @NotNull CompoundTag tag, @NotNull DataBase<?> serializedData) {
+    public static @NotNull List<@NotNull DataBase<?>> data(@NotNull NexoMinecraft nexo, @NotNull IAttachmentHolder target, @NotNull List<@NotNull DataBase<?>> additionalData, @NotNull CompoundTag tag, @NotNull DataBase<?> serializedData) {
         List<@NotNull DataBase<?>> list = ((NeoForgeMinecraftRegistryHandler) nexo.getRegistryHandler()).getAttachedData(target);
         CompoundTag attachmentTag = tag.contains(AttachmentHolder.ATTACHMENTS_NBT_KEY) ? tag.getCompound(AttachmentHolder.ATTACHMENTS_NBT_KEY) : null;
         if (attachmentTag != null) {
@@ -41,12 +41,12 @@ public final class NeoForgeAttachmentData {
         return list;
     }
 
-    public static @Nullable <D> D getData(@NotNull NeoForgeNexoMinecraft nexo, @NotNull List<@NotNull DataBase<?>> initialData, @NotNull IAttachmentHolder target, @NotNull DataBase<D> data) {
+    public static @Nullable <D> D getData(@NotNull NexoMinecraft nexo, @NotNull List<@NotNull DataBase<?>> initialData, @NotNull IAttachmentHolder target, @NotNull DataBase<D> data) {
         AttachmentType<D> type = ((NeoForgeMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         return initialData.contains(data) ? target.getData(type) : target.getExistingDataOrNull(type);
     }
 
-    public static <D> void setData(@NotNull NeoForgeNexoMinecraft nexo, @NotNull IAttachmentHolder target, @NotNull DataBase<D> data, @Nullable D value) {
+    public static <D> void setData(@NotNull NexoMinecraft nexo, @NotNull IAttachmentHolder target, @NotNull DataBase<D> data, @Nullable D value) {
         AttachmentType<D> type = ((NeoForgeMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         if (value == null) {
             target.removeData(type);

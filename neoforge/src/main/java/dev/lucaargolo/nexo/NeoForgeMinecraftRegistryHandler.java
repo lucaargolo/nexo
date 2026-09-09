@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.VaultFactory;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
@@ -15,7 +16,7 @@ import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
-import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
+import dev.lucaargolo.nexo.unit.MinecraftVaultContainer;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import dev.lucaargolo.nexo.util.DynamicRegistryView;
 import net.minecraft.client.gui.screens.Screen;
@@ -43,6 +44,10 @@ import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import net.neoforged.neoforge.network.IContainerFactory;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -209,15 +214,27 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
             return;
         }
         if (type.minecraftType() == Block.class) {
-            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories)), (Block) minecraft.get()));
+            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories))), (Block) minecraft.get()));
         } else if (type.minecraftType() == Item.class) {
-            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().stackToUnit(stack), vaultFactories)), (Item) minecraft.get()));
+            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().stackToUnit(stack), vaultFactories))), (Item) minecraft.get()));
         } else if (type.minecraftType() == EntityType.class) {
             EntityType<?> entityType = Nexo.<EntityType<?>>type(EntityType.class).cast(minecraft.get());
-            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, entityType, (entity, context) -> this.createVaultCapability(feature, () -> NeoForgeVaultItemHandler.create(this.nexo(), this.nexo().entityToUnit(entity), vaultFactories))));
+            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, entityType, (entity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().entityToUnit(entity), vaultFactories)))));
         } else {
             throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
         }
+    }
+
+    private @Nullable IItemHandler createVaultHandler(@NotNull List<Vault<ItemUnit>> vaults) {
+        List<IItemHandlerModifiable> handlers = new ArrayList<>(vaults.size());
+        for (Vault<ItemUnit> vault : vaults) {
+            handlers.add(new InvWrapper(new MinecraftVaultContainer(this.nexo(), vault)));
+        }
+        return switch (handlers.size()) {
+            case 0 -> null;
+            case 1 -> handlers.getFirst();
+            default -> new CombinedInvWrapper(handlers.toArray(IItemHandlerModifiable[]::new));
+        };
     }
 
     public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {

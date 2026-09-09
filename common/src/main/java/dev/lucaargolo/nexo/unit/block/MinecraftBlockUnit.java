@@ -16,8 +16,6 @@ import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -28,11 +26,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 
-public abstract class MinecraftBlockUnit<N extends NexoMinecraft> extends BlockUnit implements MinecraftUnit<BlockState> {
+public abstract class MinecraftBlockUnit extends BlockUnit implements MinecraftUnit<BlockState> {
 
-    protected final @NotNull N nexo;
+    protected final @NotNull NexoMinecraft nexo;
 
     protected final @Nullable Level level;
     protected final @Nullable BlockPos position;
@@ -41,11 +42,11 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft> extends BlockU
 
     protected final @NotNull BlockState state;
 
-    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);
     }
 
-    public MinecraftBlockUnit(N nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+    public MinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.level = level;
@@ -94,10 +95,9 @@ public abstract class MinecraftBlockUnit<N extends NexoMinecraft> extends BlockU
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        Class<Vault<U>> vaultType = Nexo.type(Vault.class);
         if(type == ItemUnit.class) {
             if (key.equals("inventory")) {
-                return this.container() != null ? vaultType.cast(MinecraftContainerVault.create(this.nexo, this.container())) : null;
+                return MinecraftContainerVault.create(this.nexo, type, this.container());
             }
         }
         return null;

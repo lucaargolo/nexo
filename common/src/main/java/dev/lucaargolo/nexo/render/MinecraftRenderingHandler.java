@@ -16,7 +16,6 @@ import dev.lucaargolo.nexo.api.render.Renderer;
 import dev.lucaargolo.nexo.api.render.StaticRenderer;
 import dev.lucaargolo.nexo.api.render.model.ModelRenderer;
 import dev.lucaargolo.nexo.api.resource.model.ModelResource;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;

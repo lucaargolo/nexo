@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
-import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -20,7 +20,7 @@ public final class FabricAttachmentData {
     private FabricAttachmentData() {
     }
 
-    public static @NotNull List<@NotNull DataBase<?>> data(@NotNull FabricNexoMinecraft nexo, @NotNull AttachmentTarget target, @NotNull List<@NotNull DataBase<?>> additionalData, @NotNull CompoundTag tag, @NotNull DataBase<?> serializedData) {
+    public static @NotNull List<@NotNull DataBase<?>> data(@NotNull NexoMinecraft nexo, @NotNull AttachmentTarget target, @NotNull List<@NotNull DataBase<?>> additionalData, @NotNull CompoundTag tag, @NotNull DataBase<?> serializedData) {
         List<@NotNull DataBase<?>> list = new ArrayList<>();
         CompoundTag attachmentTag = tag.contains(AttachmentTarget.NBT_ATTACHMENT_KEY) ? tag.getCompound(AttachmentTarget.NBT_ATTACHMENT_KEY) : null;
         Map<AttachmentType<?>, ?> attachments = ((AttachmentTargetImpl) target).fabric_getAttachments();
@@ -45,12 +45,12 @@ public final class FabricAttachmentData {
         return list;
     }
 
-    public static @Nullable <D> D getData(@NotNull FabricNexoMinecraft nexo, @NotNull List<@NotNull DataBase<?>> initialData, @NotNull AttachmentTarget target, @NotNull DataBase<D> data) {
+    public static @Nullable <D> D getData(@NotNull NexoMinecraft nexo, @NotNull List<@NotNull DataBase<?>> initialData, @NotNull AttachmentTarget target, @NotNull DataBase<D> data) {
         AttachmentType<D> type = ((FabricMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         return initialData.contains(data) ? target.getAttachedOrCreate(type) : target.getAttached(type);
     }
 
-    public static <D> void setData(@NotNull FabricNexoMinecraft nexo, @NotNull AttachmentTarget target, @NotNull DataBase<D> data, @Nullable D value) {
+    public static <D> void setData(@NotNull NexoMinecraft nexo, @NotNull AttachmentTarget target, @NotNull DataBase<D> data, @Nullable D value) {
         AttachmentType<D> type = ((FabricMinecraftRegistryHandler) nexo.getRegistryHandler()).getDataAttachment(data);
         target.setAttached(type, value);
     }

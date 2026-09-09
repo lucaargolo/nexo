@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
-import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
@@ -10,7 +10,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
-import dev.lucaargolo.nexo.unit.FabricStorageVault;
+import dev.lucaargolo.nexo.unit.FabricItemStorageVault;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -28,19 +28,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class FabricMinecraftBlockUnit extends MinecraftBlockUnit<FabricNexoMinecraft>{
+public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
 
-    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
+    public FabricMinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity) {
         this(nexo, feature, role, level, position, state, entity, null);
     }
 
-    public FabricMinecraftBlockUnit(@NotNull FabricNexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
+    public FabricMinecraftBlockUnit(@NotNull NexoMinecraft nexo, @NotNull BlockBase feature, @Nullable Role role, @Nullable Level level, @Nullable BlockPos position, @NotNull BlockState state, @Nullable BlockEntity entity, @Nullable Direction direction) {
         super(nexo, feature, role, level, position, state, entity, direction);
     }
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return FabricStorageVault.vaults(super.vaults(type), type, this.transferStorage());
+        return FabricItemStorageVault.vaults(super.vaults(type), type, this.transferStorage());
     }
 
     @Override
@@ -48,7 +48,7 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit<FabricNexoMinec
         if (!"inventory".equals(key)) {
             return super.vault(type, key);
         }
-        Vault<U> vault = FabricStorageVault.create(this.nexo, type, this.transferStorage());
+        Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.transferStorage());
         return vault == null ? super.vault(type, key) : vault;
     }
 

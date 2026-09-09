@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -28,11 +27,11 @@ import java.util.Set;
 public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
 
     @NotNull
-    protected final N nexo;
+    protected final NexoMinecraft nexo;
     @NotNull
     protected final E entity;
 
-    public MinecraftEntityUnit(@NotNull N nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
+    public MinecraftEntityUnit(@NotNull NexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role);
         this.nexo = nexo;
         this.entity = entity;
@@ -67,15 +66,14 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        Class<Vault<U>> vaultType = Nexo.type(Vault.class);
         if(type == ItemUnit.class) {
             if(key.equals("inventory")) {
-                return this.container() != null ? vaultType.cast(MinecraftContainerVault.create(this.nexo, this.container())) : null;
+                return MinecraftContainerVault.create(this.nexo, type, this.container());
             }
             if (this.entity instanceof LivingEntity livingEntity) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     if (key.equals(slot.getSerializedName())) {
-                        return vaultType.cast(MinecraftEquipmentVault.create(this.nexo, livingEntity, slot));
+                        return MinecraftEquipmentVault.create(this.nexo, type, livingEntity, slot);
                     }
                 }
             }

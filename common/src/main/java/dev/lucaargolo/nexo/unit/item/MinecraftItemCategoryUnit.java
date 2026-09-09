@@ -17,16 +17,16 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public abstract class MinecraftItemCategoryUnit<N extends NexoMinecraft> extends ItemCategoryUnit implements MinecraftUnit<CreativeModeTab> {
+public abstract class MinecraftItemCategoryUnit extends ItemCategoryUnit implements MinecraftUnit<CreativeModeTab> {
 
-    protected final @NotNull N nexo;
+    protected final @NotNull NexoMinecraft nexo;
     protected final @NotNull CreativeModeTab tab;
 
     protected final Set<ItemUnit> addedItems = ConcurrentHashMap.newKeySet();
     protected final Set<ItemUnit> removedItems = ConcurrentHashMap.newKeySet();
 
     public MinecraftItemCategoryUnit(
-            @NotNull N nexo,
+            @NotNull NexoMinecraft nexo,
             @NotNull ItemCategoryBase feature,
             @Nullable Role role,
             @NotNull CreativeModeTab tab

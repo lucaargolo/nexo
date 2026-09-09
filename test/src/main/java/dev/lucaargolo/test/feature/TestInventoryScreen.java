@@ -5,8 +5,6 @@ import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.render.Material;
 import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.role.screen.InventoryRole;
-import dev.lucaargolo.nexo.api.util.Location;
-import dev.lucaargolo.test.NexoTestMod;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 

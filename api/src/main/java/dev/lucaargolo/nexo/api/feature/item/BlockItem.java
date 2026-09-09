@@ -1,10 +1,8 @@
 package dev.lucaargolo.nexo.api.feature.item;
 
-import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.render.*;
 import dev.lucaargolo.nexo.api.role.item.BlockItemRole;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -13,8 +11,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
 
 public class BlockItem extends ItemBase {
 

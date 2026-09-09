@@ -11,13 +11,23 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MinecraftContainerVault extends MinecraftItemVault {
+import java.util.Objects;
 
+public final class MinecraftContainerVault implements Vault<ItemUnit> {
+
+    private final @NotNull NexoMinecraft nexo;
     private final @NotNull Container container;
+    private final @NotNull ItemUnit empty;
 
-    private MinecraftContainerVault(@NotNull NexoMinecraft nexo, @NotNull Container container) {
-        super(nexo);
+    public MinecraftContainerVault(@NotNull NexoMinecraft nexo, @NotNull Container container) {
+        this.nexo = nexo;
         this.container = container;
+        this.empty = nexo.stackToUnit(ItemStack.EMPTY);
+    }
+
+    @Override
+    public @NotNull ItemUnit empty() {
+        return this.empty;
     }
 
     @Override
@@ -26,36 +36,78 @@ public final class MinecraftContainerVault extends MinecraftItemVault {
     }
 
     @Override
-    public @NotNull ItemStack getItem(int slot) {
-        return this.container.getItem(slot);
+    public @NotNull ItemUnit get(int slot) {
+        Objects.checkIndex(slot, this.size());
+        ItemStack stack = this.container.getItem(slot);
+        if (stack.isEmpty()) {
+            return this.empty;
+        }
+        return this.nexo.stackToUnit(stack);
     }
 
     @Override
-    public void setItem(int slot, @NotNull ItemStack stack) {
+    public @NotNull ItemUnit set(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.size());
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
+        }
+
+        ItemStack stack = unit.get();
+        if (!stack.isEmpty()) {
+            if (!this.container.canPlaceItem(slot, stack)) {
+                throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
+            }
+
+            int limit = Math.min(this.container.getMaxStackSize(), stack.getMaxStackSize());
+            if (stack.getCount() > limit) {
+                throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item count " + stack.getCount() + " for slot " + slot + " (max " + limit + ")");
+            }
+        }
+
+        ItemUnit previous = this.get(slot);
         this.container.setItem(slot, stack);
+        this.changed();
+        return previous;
     }
 
     @Override
-    public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return this.container.canPlaceItem(slot, stack);
+    public @NotNull ItemUnit clear(int slot) {
+        Objects.checkIndex(slot, this.size());
+        ItemUnit previous = this.get(slot);
+        if (!this.container.getItem(slot).isEmpty()) {
+            this.container.setItem(slot, ItemStack.EMPTY);
+            this.changed();
+        }
+        return previous;
     }
 
     @Override
-    public int slotLimit(int slot) {
-        return this.container.getMaxStackSize();
+    public void clear() {
+        boolean changed = false;
+        for (int slot = 0; slot < this.size(); slot++) {
+            if (!this.container.getItem(slot).isEmpty()) {
+                this.container.setItem(slot, ItemStack.EMPTY);
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.changed();
+        }
     }
 
     @Override
-    public void contentsChanged() {
-        super.contentsChanged();
+    public void changed() {
         this.container.setChanged();
     }
 
-    public static @Nullable MinecraftContainerVault create(@NotNull NexoMinecraft nexo, @Nullable Container container) {
-        if (container == null) {
+    public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable Container container) {
+        if(container == null) {
             return null;
         }
-        return new MinecraftContainerVault(nexo, container);
+        if(type != ItemUnit.class) {
+            throw new IllegalArgumentException("Tried to create non ItemUnit MinecraftContainerVault");
+        }
+        return Nexo.<Vault<U>>type(Vault.class).cast(new MinecraftContainerVault(nexo, container));
     }
 
 }

@@ -30,12 +30,10 @@ import dev.lucaargolo.test.feature.TestScreen;
 import dev.lucaargolo.test.render.TestDynamicBlockRenderer;
 import dev.lucaargolo.test.util.TestChestVault;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3i;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
@@ -67,11 +65,11 @@ public final class BlockTest {
 
     private static void registerChestBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull TestInventoryScreen screen) {
         ItemData chestData = nexo.registerFeature(new ItemData(nexo), NexoTestMod.id("test_chest_data"));
-        DataBase<List<ItemUnit>> chestInventory = nexo.registerFeature(DataBase.list(chestData), NexoTestMod.id("test_chest_data_list"));
+        DataBase<ItemUnit[]> chestInventory = nexo.registerFeature(DataBase.array(chestData, ItemUnit.class), NexoTestMod.id("test_chest_data_list"));
         BlockBase chest = nexo.registerFeature(new SimpleBlock(nexo.getResource(Resource.Type.MODEL, Location.of("minecraft", "block/barrel"))) {
             @Override
             public void onBreak(@NotNull BlockUnit block) {
-                List<ItemUnit> items = block.getData(chestInventory);
+                ItemUnit[] items = block.getData(chestInventory);
                 if (items != null) {
                     for (ItemUnit item : items) {
                         block.drop(item);
