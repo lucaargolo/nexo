@@ -2,6 +2,7 @@ package dev.lucaargolo.test.util;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.DataProvider;
+import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -10,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class TestChestItemVault implements Vault<ItemUnit> {
+public final class TestChestItemVault implements SlottedVault<ItemUnit> {
 
     private static final int SIZE = 27;
 

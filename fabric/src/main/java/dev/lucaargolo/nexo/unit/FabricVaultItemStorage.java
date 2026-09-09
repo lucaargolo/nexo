@@ -1,7 +1,6 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -27,14 +26,6 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
     public FabricVaultItemStorage(@NotNull NexoMinecraft nexo, @NotNull Vault<ItemUnit> vault) {
         this.nexo = nexo;
         this.vault = vault;
-    }
-
-    public static @NotNull Storage<ItemVariant> create(@NotNull NexoMinecraft nexo, @NotNull Vault<ItemUnit> vault) {
-        if (vault instanceof SlottedVault<?> slottedVault) {
-            Class<SlottedVault<ItemUnit>> slottedVaultType = Nexo.type(SlottedVault.class);
-            return new Slotted(nexo, slottedVaultType.cast(slottedVault));
-        }
-        return new FabricVaultItemStorage(nexo, vault);
     }
 
     @Override
@@ -174,6 +165,13 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         }
     }
 
+    public static @NotNull Storage<ItemVariant> create(@NotNull NexoMinecraft nexo, @NotNull Vault<ItemUnit> vault) {
+        if (vault instanceof SlottedVault<ItemUnit> slotted) {
+            return new FabricVaultItemStorage.Slotted(nexo, slotted);
+        }
+        return new FabricVaultItemStorage(nexo, vault);
+    }
+
     private static int checkedAmount(@NotNull String operation, int amount, int maximum) {
         if (amount < 0 || amount > maximum) {
             throw new IllegalStateException("Vault " + operation + " returned " + amount + " for a maximum of " + maximum);
@@ -181,7 +179,7 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         return amount;
     }
 
-    protected class VaultView implements StorageView<ItemVariant> {
+    private class VaultView implements StorageView<ItemVariant> {
 
         protected final @NotNull ItemUnit value;
 
@@ -220,7 +218,7 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         }
     }
 
-    public static final class Slotted extends FabricVaultItemStorage implements SlottedStorage<ItemVariant> {
+    public static class Slotted extends FabricVaultItemStorage implements SlottedStorage<ItemVariant> {
 
         private final @NotNull SlottedVault<ItemUnit> slottedVault;
 
