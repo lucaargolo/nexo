@@ -16,7 +16,7 @@ import dev.lucaargolo.nexo.event.WorldDimensionsBakeCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
-import dev.lucaargolo.nexo.unit.MinecraftVaultContainer;
+import dev.lucaargolo.nexo.unit.FabricVaultItemStorage;
 import dev.lucaargolo.nexo.unit.screen.MinecraftScreenUnit;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -28,15 +28,13 @@ import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -222,25 +220,30 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
         }
         M value = minecraft.get();
         if (type.minecraftType() == Block.class) {
-            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().blockToUnit(world, pos, state, blockEntity, direction), vaultFactories), direction)), Block.class.cast(value));
+            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().blockToUnit(world, pos, state, blockEntity, direction), vaultFactories))), Block.class.cast(value));
         } else if (type.minecraftType() == Item.class) {
-            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().stackToUnit(stack), vaultFactories), null)), Item.class.cast(value));
+            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().stackToUnit(stack), vaultFactories))), Item.class.cast(value));
         } else if (type.minecraftType() == EntityType.class) {
-            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().entityToUnit(entity), vaultFactories), null)), EntityType.class.cast(value));
+            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().entityToUnit(entity), vaultFactories))), EntityType.class.cast(value));
         } else {
             throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
         }
     }
 
-    private @Nullable Storage<ItemVariant> createVaultStorage(@NotNull List<Vault<ItemUnit>> vaults, @Nullable Direction direction) {
-        List<SlottedStorage<ItemVariant>> storages = new ArrayList<>(vaults.size());
+    private @Nullable Storage<ItemVariant> createVaultStorage(@NotNull List<Vault<ItemUnit>> vaults) {
+        List<Storage<ItemVariant>> storages = new ArrayList<>(vaults.size());
+        List<FabricVaultItemStorage.Slotted> slottedStorages = new ArrayList<>(vaults.size());
         for (Vault<ItemUnit> vault : vaults) {
-            storages.add(InventoryStorage.of(new MinecraftVaultContainer(this.nexo(), vault), direction));
+            Storage<ItemVariant> storage = FabricVaultItemStorage.create(this.nexo(), vault);
+            storages.add(storage);
+            if (storage instanceof FabricVaultItemStorage.Slotted slottedStorage) {
+                slottedStorages.add(slottedStorage);
+            }
         }
         return switch (storages.size()) {
             case 0 -> null;
             case 1 -> storages.getFirst();
-            default -> new CombinedSlottedStorage<>(storages);
+            default -> storages.size() == slottedStorages.size() ? new CombinedSlottedStorage<>(slottedStorages) : new CombinedStorage<>(storages);
         };
     }
 

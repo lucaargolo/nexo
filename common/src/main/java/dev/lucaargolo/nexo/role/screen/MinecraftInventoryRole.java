@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.role.screen;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.screen.InventoryRole;
@@ -50,10 +51,10 @@ public class MinecraftInventoryRole {
     private static void addSlots(@NotNull NexoMinecraft nexo, @NotNull MinecraftScreen.ExtendedMenu<?> menu, @NotNull List<InventoryRole.Config> configs) {
         for (InventoryRole.Config config : configs) {
             @Nullable Vault<ItemUnit> vault = vault(nexo, menu, config);
-            if (vault == null) {
+            if (!(vault instanceof SlottedVault<ItemUnit> slotted)) {
                 continue;
             }
-            Container container = new MinecraftVaultContainer(nexo, vault);
+            Container container = new MinecraftVaultContainer(nexo, slotted);
             int slotCount = container.getContainerSize();
             for (int index = 0; index < slotCount; index++) {
                 Vector2i position = config.position(index, slotCount);

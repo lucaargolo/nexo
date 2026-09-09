@@ -372,6 +372,10 @@ public abstract class NexoMinecraft implements Nexo {
             return cached;
         }
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
+        //TODO: We are cacheing the direction which is a big no no we have to fix this.
+        // And we have to make sure not to cache any level, position, block entity or direction when the cache is in the blockstate. Basically:
+        // BlockState cache will have just BlockUnit(null, null, state, null, null)
+        // BlockEntity cache will have BlockUnit(level, position, state, blockentity, null)
         MinecraftBlockUnit unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
         cache.nexo$setUnit(unit);
         return unit;

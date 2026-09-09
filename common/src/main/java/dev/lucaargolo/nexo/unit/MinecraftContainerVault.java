@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
+import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -13,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public final class MinecraftContainerVault implements Vault<ItemUnit> {
+public final class MinecraftContainerVault implements SlottedVault<ItemUnit> {
 
     private final @NotNull NexoMinecraft nexo;
     private final @NotNull Container container;
