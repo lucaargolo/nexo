@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit.block;
 
+import com.google.common.collect.ImmutableSet;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
@@ -43,7 +44,10 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if(type == ItemUnit.class) {
             if (this.itemStorage() != null) {
-                return Set.of("inventory");
+                return ImmutableSet.<String>builder()
+                        .addAll(super.vaults(type))
+                        .add("inventory")
+                        .build();
             }
         }
         return super.vaults(type);
@@ -53,7 +57,8 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if(type == ItemUnit.class) {
             if (key.equals("inventory")) {
-                return FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
+                Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
+                return vault != null ? vault : super.vault(type, key);
             }
         }
         return super.vault(type, key);

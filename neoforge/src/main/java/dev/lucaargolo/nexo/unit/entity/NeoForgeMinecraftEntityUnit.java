@@ -1,5 +1,6 @@
 package dev.lucaargolo.nexo.unit.entity;
 
+import com.google.common.collect.ImmutableSet;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
@@ -32,7 +33,10 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if(type == ItemUnit.class) {
             if (this.itemHandler() != null) {
-                return Set.of("inventory");
+                return ImmutableSet.<String>builder()
+                        .addAll(super.vaults(type))
+                        .add("inventory")
+                        .build();
             }
         }
         return super.vaults(type);
@@ -42,7 +46,8 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
         if(type == ItemUnit.class) {
             if (key.equals("inventory")) {
-                return NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
+                Vault<U> vault = NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
+                return vault != null ? vault : super.vault(type, key);
             }
         }
         return super.vault(type, key);
