@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
 import dev.lucaargolo.nexo.unit.FabricItemStorageVault;
@@ -40,22 +41,25 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return FabricItemStorageVault.vaults(super.vaults(type), type, this.transferStorage());
+        if(type == ItemUnit.class) {
+            if (this.itemStorage() != null) {
+                return Set.of("inventory");
+            }
+        }
+        return super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!"inventory".equals(key)) {
-            return super.vault(type, key);
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
+            }
         }
-        Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.transferStorage());
-        return vault == null ? super.vault(type, key) : vault;
+        return super.vault(type, key);
     }
 
-    private @Nullable Storage<ItemVariant> transferStorage() {
-        if (this.level == null || this.position == null) {
-            return null;
-        }
+    private @Nullable Storage<ItemVariant> itemStorage() {
         return ItemStorage.SIDED.find(this.level, this.position, this.state, this.entity, this.direction);
     }
 

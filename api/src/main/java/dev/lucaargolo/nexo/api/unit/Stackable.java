@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.api.unit;
 
-public interface Stackable<T> extends Copyable<Stackable<T>> {
+public interface Stackable<S extends Stackable<S>> extends Copyable<S> {
 
     int maxAmount();
 
@@ -9,5 +9,4 @@ public interface Stackable<T> extends Copyable<Stackable<T>> {
     void increment(int amount);
 
     void decrement(int amount);
-
 }

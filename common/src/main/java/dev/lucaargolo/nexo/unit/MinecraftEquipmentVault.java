@@ -33,13 +33,13 @@ public final class MinecraftEquipmentVault implements Vault<ItemUnit> {
     }
 
     @Override
-    public int size() {
+    public int slots() {
         return 1;
     }
 
     @Override
     public @NotNull ItemUnit get(int slot) {
-        Objects.checkIndex(slot, this.size());
+        Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.entity.getItemBySlot(this.slot);
         if (stack.isEmpty()) {
             return this.empty;
@@ -49,7 +49,7 @@ public final class MinecraftEquipmentVault implements Vault<ItemUnit> {
 
     @Override
     public @NotNull ItemUnit set(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.size());
+        Objects.checkIndex(slot, this.slots());
         if (!(value instanceof MinecraftItemUnit unit)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
@@ -63,7 +63,6 @@ public final class MinecraftEquipmentVault implements Vault<ItemUnit> {
 
         ItemUnit previous = this.get(slot);
         this.entity.setItemSlot(this.slot, stack);
-        this.changed();
         return previous;
     }
 

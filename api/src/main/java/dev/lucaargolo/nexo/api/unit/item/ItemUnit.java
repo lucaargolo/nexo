@@ -15,4 +15,7 @@ public abstract class ItemUnit extends Unit<ItemBase> implements DataProvider<It
         super(nexo, feature, role);
     }
 
+    @Override
+    public abstract @NotNull ItemUnit copy();
+
 }

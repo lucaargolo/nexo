@@ -31,13 +31,13 @@ public final class MinecraftContainerVault implements Vault<ItemUnit> {
     }
 
     @Override
-    public int size() {
+    public int slots() {
         return this.container.getContainerSize();
     }
 
     @Override
     public @NotNull ItemUnit get(int slot) {
-        Objects.checkIndex(slot, this.size());
+        Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.container.getItem(slot);
         if (stack.isEmpty()) {
             return this.empty;
@@ -47,7 +47,7 @@ public final class MinecraftContainerVault implements Vault<ItemUnit> {
 
     @Override
     public @NotNull ItemUnit set(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.size());
+        Objects.checkIndex(slot, this.slots());
         if (!(value instanceof MinecraftItemUnit unit)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
@@ -66,38 +66,26 @@ public final class MinecraftContainerVault implements Vault<ItemUnit> {
 
         ItemUnit previous = this.get(slot);
         this.container.setItem(slot, stack);
-        this.changed();
         return previous;
     }
 
     @Override
     public @NotNull ItemUnit clear(int slot) {
-        Objects.checkIndex(slot, this.size());
+        Objects.checkIndex(slot, this.slots());
         ItemUnit previous = this.get(slot);
         if (!this.container.getItem(slot).isEmpty()) {
             this.container.setItem(slot, ItemStack.EMPTY);
-            this.changed();
         }
         return previous;
     }
 
     @Override
     public void clear() {
-        boolean changed = false;
-        for (int slot = 0; slot < this.size(); slot++) {
+        for (int slot = 0; slot < this.slots(); slot++) {
             if (!this.container.getItem(slot).isEmpty()) {
                 this.container.setItem(slot, ItemStack.EMPTY);
-                changed = true;
             }
         }
-        if (changed) {
-            this.changed();
-        }
-    }
-
-    @Override
-    public void changed() {
-        this.container.setChanged();
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable Container container) {

@@ -28,7 +28,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.test.feature.TestInventoryScreen;
 import dev.lucaargolo.test.feature.TestScreen;
 import dev.lucaargolo.test.render.TestDynamicBlockRenderer;
-import dev.lucaargolo.test.util.TestChestVault;
+import dev.lucaargolo.test.util.TestChestItemVault;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
 
@@ -94,17 +94,13 @@ public final class BlockTest {
                 if (type != ItemUnit.class) {
                     return Map.of();
                 }
-                ItemBase item = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
-                ItemUnit empty = requireNonNull(nexo.unit(item));
-                U initial = type.cast(empty);
-                return Map.of("inventory", unit -> new TestChestVault<>(type, initial, unit, chestInventory));
+                ItemBase empty = requireNonNull(nexo.getFeature(Type.ITEM, Location.of("minecraft", "air")));
+                return Map.of("inventory", unit -> TestChestItemVault.create(type, unit, chestInventory, requireNonNull(nexo.unit(empty))));
             }
 
         }, NexoTestMod.id("test_chest"));
         nexo.registerFeature(new BlockItem(chest, category), chest.location());
     }
-
-
 
     private static void registerModelBlock(@NotNull Nexo nexo, @NotNull ItemCategoryBase category, @NotNull Location location, @NotNull ModelResource model) {
         BlockBase block = nexo.registerFeature(new SimpleBlock(model), location);

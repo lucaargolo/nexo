@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
@@ -36,19 +37,25 @@ public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntity
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return FabricItemStorageVault.vaults(super.vaults(type), type, this.entityStorage());
+        if(type == ItemUnit.class) {
+            if (this.itemStorage() != null) {
+                return Set.of("inventory");
+            }
+        }
+        return super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!"inventory".equals(key)) {
-            return super.vault(type, key);
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
+            }
         }
-        Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.entityStorage());
-        return vault == null ? super.vault(type, key) : vault;
+        return super.vault(type, key);
     }
 
-    private @Nullable Storage<ItemVariant> entityStorage() {
+    private @Nullable Storage<ItemVariant> itemStorage() {
         return FabricMinecraftRegistryHandler.ENTITY_ITEM_STORAGE.find(this.entity, null);
     }
 

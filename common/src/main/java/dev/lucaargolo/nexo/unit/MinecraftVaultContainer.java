@@ -21,7 +21,7 @@ public final class MinecraftVaultContainer implements Container {
 
     @Override
     public int getContainerSize() {
-        return this.vault.size();
+        return this.vault.slots();
     }
 
     @Override
@@ -82,7 +82,7 @@ public final class MinecraftVaultContainer implements Container {
 
     @Override
     public void setChanged() {
-        this.vault.changed();
+
     }
 
     @Override

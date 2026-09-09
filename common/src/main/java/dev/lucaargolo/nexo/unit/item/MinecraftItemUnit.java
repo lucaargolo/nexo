@@ -2,12 +2,9 @@ package dev.lucaargolo.nexo.unit.item;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
-import dev.lucaargolo.nexo.api.unit.Stackable;
-import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
@@ -19,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUnit<ItemStack> {
 
@@ -30,31 +26,6 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
         super(nexo, feature, role);
         this.nexo = nexo;
         this.stack = stack;
-    }
-
-    @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        if(type == ItemUnit.class) {
-            if (this.vault() != null) {
-                return Set.of("inventory");
-            }
-        }
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        Class<Vault<U>> vaultType = Nexo.type(Vault.class);
-        if(type == ItemUnit.class) {
-            if (key.equals("inventory")) {
-                return this.vault() != null ? vaultType.cast(this.vault()) : null;
-            }
-        }
-        return null;
-    }
-
-    protected @Nullable Vault<ItemUnit> vault() {
-        return null;
     }
 
     @Override
@@ -83,7 +54,7 @@ public abstract class MinecraftItemUnit extends ItemUnit implements MinecraftUni
     }
 
     @Override
-    public @NotNull Stackable<ItemUnit> copy() {
+    public @NotNull ItemUnit copy() {
         return this.nexo.stackToUnit(stack.copy());
     }
 
