@@ -2,7 +2,6 @@ package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
-import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
@@ -179,7 +178,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         return Nexo.<Vault<U>>type(Vault.class).cast(vault);
     }
 
-    public static final class Slotted extends FabricItemStorageVault implements SlottedVault<ItemUnit> {
+    public static final class Slotted extends FabricItemStorageVault implements Vault.Slotted<ItemUnit> {
 
         private final @NotNull SlottedStorage<ItemVariant> slottedStorage;
 

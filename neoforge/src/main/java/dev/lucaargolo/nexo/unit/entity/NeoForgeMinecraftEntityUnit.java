@@ -1,13 +1,13 @@
 package dev.lucaargolo.nexo.unit.entity;
 
-import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
-import dev.lucaargolo.nexo.api.util.Side;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.NeoForgeAttachmentData;
 import dev.lucaargolo.nexo.unit.NeoForgeItemHandlerVault;
@@ -22,33 +22,34 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<NeoForgeNexoMinecraft, E> {
+public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<E> {
 
-    public NeoForgeMinecraftEntityUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
+    public NeoForgeMinecraftEntityUnit(@NotNull NexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role, entity);
     }
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return NeoForgeItemHandlerVault.vaults(super.vaults(type), type, this.itemHandler());
+        if(type == ItemUnit.class) {
+            if (this.itemHandler() != null) {
+                return Set.of("inventory");
+            }
+        }
+        return super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!"inventory".equals(key)) {
-            return super.vault(type, key);
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
+            }
         }
-        Vault<U> vault = NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
-        return vault == null ? super.vault(type, key) : vault;
+        return super.vault(type, key);
     }
 
     private @Nullable IItemHandler itemHandler() {
         return Capabilities.ItemHandler.ENTITY.getCapability(this.entity, null);
-    }
-
-    @Override
-    public @NotNull Side side() {
-        return entity.level().isClientSide() ? Side.CLIENT : Side.SERVER;
     }
 
     @Override

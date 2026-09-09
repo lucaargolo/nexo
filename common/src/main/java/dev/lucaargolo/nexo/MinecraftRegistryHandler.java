@@ -24,7 +24,10 @@ import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -84,14 +87,6 @@ public abstract class MinecraftRegistryHandler {
             @NotNull T feature,
             @NotNull Supplier<M> minecraft
     );
-
-    protected final <U extends Unit<?>, V extends Unit<?>> @NotNull Map<String, Function<U, Vault<V>>> vaultFactories(
-            @NotNull VaultFactory<U> feature,
-            @NotNull Class<V> type
-    ) {
-        Map<String, Function<U, Vault<V>>> factories = feature.vaults(type);
-        return Collections.unmodifiableMap(factories);
-    }
 
     protected final @NotNull List<Vault<ItemUnit>> createVaults(
             @NotNull Unit<?> unit,

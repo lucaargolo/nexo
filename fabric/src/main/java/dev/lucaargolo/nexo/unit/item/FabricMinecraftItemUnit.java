@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.item;
 
-import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class FabricMinecraftItemUnit extends MinecraftItemUnit {
 
-    public FabricMinecraftItemUnit(@NotNull FabricNexoMinecraft nexo, @NotNull ItemBase feature, @Nullable Role role, @NotNull ItemStack stack) {
+    public FabricMinecraftItemUnit(@NotNull NexoMinecraft nexo, @NotNull ItemBase feature, @Nullable Role role, @NotNull ItemStack stack) {
         super(nexo, feature, role, stack);
     }
 

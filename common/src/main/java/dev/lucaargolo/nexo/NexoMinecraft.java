@@ -410,17 +410,17 @@ public abstract class NexoMinecraft implements Nexo {
         return unit;
     }
 
-    public @NotNull <E extends Entity> MinecraftEntityUnit<?, E> entityToUnit(@NotNull E entity) {
+    public @NotNull <E extends Entity> MinecraftEntityUnit<E> entityToUnit(@NotNull E entity) {
         UnitCacheMixed cache = (UnitCacheMixed) entity;
-        MinecraftEntityUnit<?, ?> cached = (MinecraftEntityUnit<?, ?>) cache.nexo$getUnit();
+        MinecraftEntityUnit<?> cached = (MinecraftEntityUnit<?>) cache.nexo$getUnit();
         if (cached != null) {
-            Class<MinecraftEntityUnit<?, E>> cachedClass = Nexo.type(MinecraftEntityUnit.class);
+            Class<MinecraftEntityUnit<E>> cachedClass = Nexo.type(MinecraftEntityUnit.class);
             return cachedClass.cast(cached);
         }
         EntityBase feature = MinecraftFeatureType.ENTITY.convert(this, entity.getType());
-        MinecraftEntityUnit<?, ?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
+        MinecraftEntityUnit<?> unit = Utils.loadPlatformClass(this, MinecraftEntityUnit.class, this, feature, feature.role(), entity);
         cache.nexo$setUnit(unit);
-        Class<MinecraftEntityUnit<?, E>> clazz = Nexo.type(MinecraftEntityUnit.class);
+        Class<MinecraftEntityUnit<E>> clazz = Nexo.type(MinecraftEntityUnit.class);
         return clazz.cast(unit);
     }
 

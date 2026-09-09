@@ -67,7 +67,7 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
         if (receiver == PacketReceiver.server()) {
             PacketDistributor.sendToServer(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?, ?> unit && unit.get() instanceof ServerPlayer player) {
+        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
             PacketDistributor.sendToPlayer(player, payload);
         } else {
             throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");

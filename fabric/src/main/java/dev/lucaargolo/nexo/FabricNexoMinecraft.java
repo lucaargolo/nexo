@@ -66,7 +66,7 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
         if (receiver == PacketReceiver.server()) {
             ClientPlayNetworking.send(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?, ?> unit && unit.get() instanceof ServerPlayer player) {
+        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
             ServerPlayNetworking.send(player, payload);
         } else {
             throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");

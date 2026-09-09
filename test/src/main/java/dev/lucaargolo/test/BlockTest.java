@@ -90,7 +90,7 @@ public final class BlockTest {
             }
 
             @Override
-            public @NotNull <U extends Unit<?>> Map<String, Function<BlockUnit, Vault<U>>> vaults(@NotNull Class<U> type) {
+            public @NotNull <U extends Unit<?>> Map<String, Function<BlockUnit, Vault.Slotted<U>>> vaults(@NotNull Class<U> type) {
                 if (type != ItemUnit.class) {
                     return Map.of();
                 }

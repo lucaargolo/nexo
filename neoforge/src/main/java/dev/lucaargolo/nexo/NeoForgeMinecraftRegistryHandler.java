@@ -57,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
@@ -208,18 +209,17 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     @Override
     public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
-        Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
-        var vaultFactories = this.vaultFactories(feature, itemUnitType);
-        if (vaultFactories.isEmpty()) {
+        Map<String, Function<U, Vault.Slotted<ItemUnit>>> factories = feature.vaults(ItemUnit.class);
+        if (factories.isEmpty()) {
             return;
         }
         if (type.minecraftType() == Block.class) {
-            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().blockToUnit(level, pos, state, blockEntity, context), vaultFactories))), (Block) minecraft.get()));
+            this.inventoryRegistrars.add(event -> event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().blockToUnit(level, pos, state, blockEntity, context), factories))), (Block) minecraft.get()));
         } else if (type.minecraftType() == Item.class) {
-            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().stackToUnit(stack), vaultFactories))), (Item) minecraft.get()));
+            this.inventoryRegistrars.add(event -> event.registerItem(Capabilities.ItemHandler.ITEM, (stack, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().stackToUnit(stack), factories))), (Item) minecraft.get()));
         } else if (type.minecraftType() == EntityType.class) {
             EntityType<?> entityType = Nexo.<EntityType<?>>type(EntityType.class).cast(minecraft.get());
-            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, entityType, (entity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().entityToUnit(entity), vaultFactories)))));
+            this.inventoryRegistrars.add(event -> event.registerEntity(Capabilities.ItemHandler.ENTITY, entityType, (entity, context) -> this.createVaultCapability(feature, () -> this.createVaultHandler(this.createVaults(this.nexo().entityToUnit(entity), factories)))));
         } else {
             throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
         }
@@ -228,7 +228,9 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
     private @Nullable IItemHandler createVaultHandler(@NotNull List<Vault<ItemUnit>> vaults) {
         List<IItemHandlerModifiable> handlers = new ArrayList<>(vaults.size());
         for (Vault<ItemUnit> vault : vaults) {
-            handlers.add(new InvWrapper(new MinecraftVaultContainer(this.nexo(), vault)));
+            if (vault instanceof Vault.Slotted<ItemUnit> slotted) {
+                handlers.add(new InvWrapper(new MinecraftVaultContainer(this.nexo(), slotted)));
+            }
         }
         return switch (handlers.size()) {
             case 0 -> null;

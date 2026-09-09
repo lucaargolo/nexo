@@ -30,6 +30,7 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
@@ -57,6 +58,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -213,18 +215,17 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     @Override
     public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
-        Class<ItemUnit> itemUnitType = Nexo.type(ItemUnit.class);
-        var vaultFactories = this.vaultFactories(feature, itemUnitType);
-        if (vaultFactories.isEmpty()) {
+        Map<String, Function<U, Vault.Slotted<ItemUnit>>> factories = feature.vaults(ItemUnit.class);
+        if (factories.isEmpty()) {
             return;
         }
         M value = minecraft.get();
         if (type.minecraftType() == Block.class) {
-            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().blockToUnit(world, pos, state, blockEntity, direction), vaultFactories))), Block.class.cast(value));
+            ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().blockToUnit(world, pos, state, blockEntity, direction), factories))), (Block) value);
         } else if (type.minecraftType() == Item.class) {
-            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().stackToUnit(stack), vaultFactories))), Item.class.cast(value));
+            ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().stackToUnit(stack), factories))), (Item) value);
         } else if (type.minecraftType() == EntityType.class) {
-            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().entityToUnit(entity), vaultFactories))), EntityType.class.cast(value));
+            ENTITY_ITEM_STORAGE.registerForTypes((entity, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().entityToUnit(entity), factories))), (EntityType<?>) value);
         } else {
             throw new IllegalArgumentException("Unsupported vault feature type: " + type.minecraftType().getName());
         }
@@ -232,11 +233,11 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     private @Nullable Storage<ItemVariant> createVaultStorage(@NotNull List<Vault<ItemUnit>> vaults) {
         List<Storage<ItemVariant>> storages = new ArrayList<>(vaults.size());
-        List<FabricVaultItemStorage.Slotted> slottedStorages = new ArrayList<>(vaults.size());
+        List<SlottedStorage<ItemVariant>> slottedStorages = new ArrayList<>(vaults.size());
         for (Vault<ItemUnit> vault : vaults) {
             Storage<ItemVariant> storage = FabricVaultItemStorage.create(this.nexo(), vault);
             storages.add(storage);
-            if (storage instanceof FabricVaultItemStorage.Slotted slottedStorage) {
+            if (storage instanceof SlottedStorage<ItemVariant> slottedStorage) {
                 slottedStorages.add(slottedStorage);
             }
         }

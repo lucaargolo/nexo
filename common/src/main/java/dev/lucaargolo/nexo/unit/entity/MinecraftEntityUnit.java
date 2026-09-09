@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.world.WorldUnit;
+import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.mixin.AbstractHorseAccessor;
 import dev.lucaargolo.nexo.unit.MinecraftContainerVault;
 import dev.lucaargolo.nexo.unit.MinecraftEquipmentVault;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
+public abstract class MinecraftEntityUnit<E extends Entity> extends EntityUnit implements MinecraftUnit<E> {
 
     @NotNull
     protected final NexoMinecraft nexo;
@@ -40,6 +41,11 @@ public abstract class MinecraftEntityUnit<N extends NexoMinecraft, E extends Ent
     @Override
     public @NotNull E get() {
         return this.entity;
+    }
+
+    @Override
+    public @NotNull Side side() {
+        return entity.level().isClientSide() ? Side.CLIENT : Side.SERVER;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.unit;
 
 import dev.lucaargolo.nexo.NexoMinecraft;
-import dev.lucaargolo.nexo.api.feature.SlottedVault;
+import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
 import net.minecraft.world.Container;
@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 public final class MinecraftVaultContainer implements Container {
 
     private final @NotNull NexoMinecraft nexo;
-    private final @NotNull SlottedVault<ItemUnit> vault;
+    private final @NotNull Vault.Slotted<ItemUnit> vault;
 
-    public MinecraftVaultContainer(@NotNull NexoMinecraft nexo, @NotNull SlottedVault<ItemUnit> vault) {
+    public MinecraftVaultContainer(@NotNull NexoMinecraft nexo, @NotNull Vault.Slotted<ItemUnit> vault) {
         this.nexo = nexo;
         this.vault = vault;
     }

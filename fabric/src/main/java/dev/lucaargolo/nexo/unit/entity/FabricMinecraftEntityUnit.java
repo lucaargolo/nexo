@@ -1,7 +1,7 @@
 package dev.lucaargolo.nexo.unit.entity;
 
 import dev.lucaargolo.nexo.FabricMinecraftRegistryHandler;
-import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
@@ -9,7 +9,6 @@ import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
-import dev.lucaargolo.nexo.api.util.Side;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.FabricAttachmentData;
 import dev.lucaargolo.nexo.unit.FabricItemStorageVault;
@@ -24,15 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Set;
 
-public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<FabricNexoMinecraft, E> {
+public class FabricMinecraftEntityUnit<E extends Entity> extends MinecraftEntityUnit<E> {
 
-    public FabricMinecraftEntityUnit(@NotNull FabricNexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
+    public FabricMinecraftEntityUnit(@NotNull NexoMinecraft nexo, @NotNull EntityBase feature, @Nullable Role role, @NotNull E entity) {
         super(nexo, feature, role, entity);
-    }
-
-    @Override
-    public @NotNull Side side() {
-        return entity.level().isClientSide() ? Side.CLIENT : Side.SERVER;
     }
 
     @Override

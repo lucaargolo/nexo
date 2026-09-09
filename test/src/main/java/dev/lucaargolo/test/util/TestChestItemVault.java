@@ -2,7 +2,6 @@ package dev.lucaargolo.test.util;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.DataProvider;
-import dev.lucaargolo.nexo.api.feature.SlottedVault;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -11,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
-public final class TestChestItemVault implements SlottedVault<ItemUnit> {
+public final class TestChestItemVault implements Vault.Slotted<ItemUnit> {
 
     private static final int SIZE = 27;
 
@@ -55,11 +54,11 @@ public final class TestChestItemVault implements SlottedVault<ItemUnit> {
         return previous;
     }
 
-    public static <U extends Unit<?>> @NotNull Vault<U> create(@NotNull Class<U> type, @NotNull DataProvider<?> owner, @NotNull DataBase<ItemUnit[]> data, @NotNull ItemUnit empty) {
+    public static <U extends Unit<?>> @NotNull Vault.Slotted<U> create(@NotNull Class<U> type, @NotNull DataProvider<?> owner, @NotNull DataBase<ItemUnit[]> data, @NotNull ItemUnit empty) {
         if(type != ItemUnit.class) {
             throw new IllegalArgumentException("Tried to create non ItemUnit TestChestItemVault");
         }
-        return Nexo.<Vault<U>>type(Vault.class).cast(new TestChestItemVault(owner, data, empty));
+        return Nexo.<Vault.Slotted<U>>type(Vault.Slotted.class).cast(new TestChestItemVault(owner, data, empty));
     }
 
 }

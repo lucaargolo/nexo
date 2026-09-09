@@ -33,7 +33,7 @@ public class NeoForgeMinecraftScreenUnit<D> extends MinecraftScreenUnit<D> {
         boolean isDynamic = MinecraftScreen.isDynamicScreen(feature);
         if(isDynamic) {
             if(entity.side().isServer()) {
-                if(entity instanceof MinecraftEntityUnit<?, ?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
+                if(entity instanceof MinecraftEntityUnit<?> minecraftEntity && minecraftEntity.get() instanceof ServerPlayer player) {
                     Class<MinecraftScreen.ExtendedMenuType<D>> type = Nexo.type(MinecraftScreen.ExtendedMenuType.class);
                     MinecraftScreen.ExtendedMenuType<D> menuType = type.cast(MinecraftScreen.MENU_HOLDER_MAP.get(feature.location()).value());
                     return player.openMenu(new MenuProvider() {

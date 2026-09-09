@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class NeoForgeMinecraftItemCategoryUnit extends MinecraftItemCategoryUnit<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftItemCategoryUnit extends MinecraftItemCategoryUnit {
 
     public NeoForgeMinecraftItemCategoryUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull ItemCategoryBase feature, @Nullable Role role, @NotNull CreativeModeTab tab) {
         super(nexo, feature, role, tab);

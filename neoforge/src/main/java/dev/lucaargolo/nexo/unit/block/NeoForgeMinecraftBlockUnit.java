@@ -8,6 +8,7 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.unit.NeoForgeAttachmentData;
 import dev.lucaargolo.nexo.unit.NeoForgeItemHandlerVault;
@@ -39,16 +40,22 @@ public class NeoForgeMinecraftBlockUnit extends MinecraftBlockUnit {
 
     @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return NeoForgeItemHandlerVault.vaults(super.vaults(type), type, this.itemHandler());
+        if(type == ItemUnit.class) {
+            if (this.itemHandler() != null) {
+                return Set.of("inventory");
+            }
+        }
+        return super.vaults(type);
     }
 
     @Override
     public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if (!"inventory".equals(key)) {
-            return super.vault(type, key);
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
+            }
         }
-        Vault<U> vault = NeoForgeItemHandlerVault.create(this.nexo, type, this.itemHandler());
-        return vault == null ? super.vault(type, key) : vault;
+        return super.vault(type, key);
     }
 
     private @Nullable IItemHandler itemHandler() {

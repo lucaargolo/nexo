@@ -1,6 +1,6 @@
 package dev.lucaargolo.nexo.unit.world;
 
-import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.world.WorldBase;
 import dev.lucaargolo.nexo.api.role.Role;
@@ -16,9 +16,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit<NeoForgeNexoMinecraft> {
+public class NeoForgeMinecraftWorldUnit extends MinecraftWorldUnit {
 
-    public NeoForgeMinecraftWorldUnit(@NotNull NeoForgeNexoMinecraft nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
+    public NeoForgeMinecraftWorldUnit(@NotNull NexoMinecraft nexo, @NotNull WorldBase feature, @Nullable Role role, @NotNull Level level) {
         super(nexo, feature, role, level);
     }
 

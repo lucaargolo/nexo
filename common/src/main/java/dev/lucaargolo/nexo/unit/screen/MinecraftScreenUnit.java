@@ -123,7 +123,7 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
                 buf.writeEnum(OwnerType.BLOCK);
                 buf.writeLong(BlockPos.asLong(position.x, position.y, position.z));
             }
-        }else if(owner instanceof MinecraftEntityUnit<?,?> entity) {
+        }else if(owner instanceof MinecraftEntityUnit<?> entity) {
             buf.writeEnum(OwnerType.ENTITY);
             buf.writeVarInt(entity.get().getId());
         }
