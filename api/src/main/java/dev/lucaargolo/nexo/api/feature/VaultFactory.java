@@ -8,9 +8,8 @@ import java.util.function.Function;
 
 public interface VaultFactory<V extends Unit<?> & VaultProvider> {
 
-    //TODO: Theoretically we should implement this in MinecraftFeature's as a simple mapper unit -> unit.vault just for parity
     default @NotNull <U extends Unit<?>> Map<String, Function<V, Vault.Slotted<U>>> vaults(@NotNull Class<U> type) {
         return Map.of();
-    };
+    }
 
 }

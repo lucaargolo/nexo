@@ -264,7 +264,7 @@ public class MinecraftBlock extends BlockBase {
         return block.ticker() != null
                 || (renderer != null && !(renderer instanceof StaticRenderer<?, ?>))
                 || block.initialData().stream().anyMatch(data -> !(data instanceof DataBase.Constrained<?>))
-                || !block.vaults(Nexo.type(ItemUnit.class)).isEmpty();
+                || !block.vaults(ItemUnit.class).isEmpty();
     }
 
 }

@@ -9,6 +9,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public final class MinecraftVaultContainer implements Container {
 
     private final @NotNull NexoMinecraft nexo;
@@ -19,6 +21,10 @@ public final class MinecraftVaultContainer implements Container {
         this.vault = vault;
     }
 
+    public @NotNull Vault.Slotted<ItemUnit> vault() {
+        return this.vault;
+    }
+
     @Override
     public int getContainerSize() {
         return this.vault.slots();
@@ -26,52 +32,49 @@ public final class MinecraftVaultContainer implements Container {
 
     @Override
     public @NotNull ItemStack getItem(int pSlot) {
-        ItemUnit value = this.vault.get(pSlot);
-        if (!(value instanceof MinecraftItemUnit unit)) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " wrapped Vault with non MinecraftItemUnit instances");
-        }
-        return unit.get();
+        return this.stack(this.vault.get(pSlot));
     }
 
     @Override
     public void setItem(int pSlot, @NotNull ItemStack pStack) {
-        if(!pStack.isEmpty()) {
-            if(this.vault.canAdd()) {
-                this.vault.set(pSlot, this.nexo.stackToUnit(pStack));
-            }
-        }else if(this.vault.canRemove()) {
-            this.vault.set(pSlot, this.nexo.stackToUnit(pStack));
+        Objects.checkIndex(pSlot, this.getContainerSize());
+        if (pStack.isEmpty()) {
+            this.vault.clear(pSlot);
+            return;
+        }
+
+        ItemUnit value = this.nexo.stackToUnit(pStack.copy());
+        if (this.vault.canAdd(pSlot, value)) {
+            this.vault.set(pSlot, value);
         }
     }
 
     @Override
     public @NotNull ItemStack removeItem(int pSlot, int pAmount) {
-        if(!this.vault.canRemove()) {
+        Objects.checkIndex(pSlot, this.getContainerSize());
+        if (pAmount <= 0) {
             return ItemStack.EMPTY;
         }
-        ItemUnit value = this.vault.remove(pSlot, pAmount);
-        if (!(value instanceof MinecraftItemUnit unit)) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " wrapped Vault with non MinecraftItemUnit instances");
-        }
-        return unit.get();
+        return this.stack(this.vault.remove(pSlot, pAmount));
     }
 
     @Override
     public @NotNull ItemStack removeItemNoUpdate(int pSlot) {
-        if(!this.vault.canRemove()) {
-            return ItemStack.EMPTY;
-        }
-        ItemUnit value = this.vault.remove(pSlot);
-        if (!(value instanceof MinecraftItemUnit unit)) {
-            throw new IllegalArgumentException(this.getClass().getSimpleName() + " wrapped Vault with non MinecraftItemUnit instances");
-        }
-        return unit.get();
+        Objects.checkIndex(pSlot, this.getContainerSize());
+        return this.stack(this.vault.remove(pSlot));
     }
 
     @Override
     public void clearContent() {
-        if(this.vault.canRemove()) {
-            this.vault.clear();
+        boolean changed = false;
+        for (int slot = 0; slot < this.getContainerSize(); slot++) {
+            if (!this.vault.isEmpty(slot) && this.vault.canRemove(slot)) {
+                this.vault.clear(slot);
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.setChanged();
         }
     }
 
@@ -81,8 +84,20 @@ public final class MinecraftVaultContainer implements Container {
     }
 
     @Override
-    public void setChanged() {
+    public boolean canPlaceItem(int pSlot, @NotNull ItemStack pStack) {
+        Objects.checkIndex(pSlot, this.getContainerSize());
+        return !pStack.isEmpty() && this.vault.canAdd(pSlot, this.nexo.stackToUnit(pStack.copy()));
+    }
 
+    @Override
+    public boolean canTakeItem(@NotNull Container pTarget, int pSlot, @NotNull ItemStack pStack) {
+        Objects.checkIndex(pSlot, this.getContainerSize());
+        return this.vault.canRemove(pSlot);
+    }
+
+    @Override
+    public void setChanged() {
+        this.vault.changed();
     }
 
     @Override
@@ -90,4 +105,32 @@ public final class MinecraftVaultContainer implements Container {
         return true;
     }
 
+    public static final class Slot extends net.minecraft.world.inventory.Slot {
+
+        private final @NotNull MinecraftVaultContainer container;
+        private final int vaultSlot;
+
+        public Slot(@NotNull MinecraftVaultContainer container, int slot, int x, int y) {
+            super(container, slot, x, y);
+            this.container = container;
+            this.vaultSlot = slot;
+        }
+
+        @Override
+        public boolean mayPlace(@NotNull ItemStack stack) {
+            return !stack.isEmpty() && this.container.vault.canAdd(this.vaultSlot, this.container.nexo.stackToUnit(stack.copy()));
+        }
+
+        @Override
+        public boolean mayPickup(@NotNull Player player) {
+            return this.container.vault.canRemove(this.vaultSlot);
+        }
+    }
+
+    private @NotNull ItemStack stack(@NotNull ItemUnit value) {
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " wrapped Vault with non MinecraftItemUnit instances");
+        }
+        return unit.get().copy();
+    }
 }

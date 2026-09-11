@@ -43,15 +43,19 @@ public final class TestChestItemVault implements Vault.Slotted<ItemUnit> {
 
     @Override
     public @NotNull ItemUnit get(int slot) {
-        return array[slot];
+        return this.array[slot].copy();
     }
 
     @Override
     public @NotNull ItemUnit set(int slot, @NotNull ItemUnit value) {
-        ItemUnit previous = this.array[slot];
-        this.array[slot] = value;
-        this.owner.setData(this.data, this.array);
+        ItemUnit previous = this.array[slot].copy();
+        this.array[slot] = value.copy();
         return previous;
+    }
+
+    @Override
+    public void changed() {
+        this.owner.setData(this.data, this.array);
     }
 
     public static <U extends Unit<?>> @NotNull Vault.Slotted<U> create(@NotNull Class<U> type, @NotNull DataProvider<?> owner, @NotNull DataBase<ItemUnit[]> data, @NotNull ItemUnit empty) {

@@ -44,7 +44,7 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
         if (stack.isEmpty()) {
             return this.empty;
         }
-        return this.nexo.stackToUnit(stack);
+        return this.nexo.stackToUnit(stack.copy());
     }
 
     @Override
@@ -54,16 +54,59 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
 
-        ItemStack stack = unit.get();
-        if (!stack.isEmpty()) {
-            if (this.slot != this.entity.getEquipmentSlotForItem(stack)) {
-                throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
-            }
+        ItemStack stack = unit.get().copy();
+        if (!stack.isEmpty() && !this.canAdd(slot, value)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
         }
 
         ItemUnit previous = this.get(slot);
         this.entity.setItemSlot(this.slot, stack);
         return previous;
+    }
+
+    @Override
+    public boolean canAdd() {
+        return true;
+    }
+
+    @Override
+    public boolean canAdd(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return true;
+    }
+
+    @Override
+    public boolean canAdd(@NotNull ItemUnit value) {
+        return this.canAdd(0, value);
+    }
+
+    @Override
+    public boolean canAdd(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            return false;
+        }
+        ItemStack stack = unit.get();
+        return !stack.isEmpty()
+                && stack.getCount() <= stack.getMaxStackSize()
+                && this.slot == this.entity.getEquipmentSlotForItem(stack);
+    }
+
+    @Override
+    public int maxAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return value instanceof MinecraftItemUnit unit ? unit.get().getMaxStackSize() : 0;
+    }
+
+    @Override
+    public boolean canRemove() {
+        return this.canRemove(0);
+    }
+
+    @Override
+    public boolean canRemove(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return !this.entity.getItemBySlot(this.slot).isEmpty();
     }
 
 

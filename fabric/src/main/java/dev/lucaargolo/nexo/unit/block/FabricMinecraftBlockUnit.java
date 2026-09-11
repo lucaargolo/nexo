@@ -65,6 +65,9 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
     }
 
     private @Nullable Storage<ItemVariant> itemStorage() {
+        if (this.level == null || this.position == null) {
+            return null;
+        }
         return ItemStorage.SIDED.find(this.level, this.position, this.state, this.entity, this.direction);
     }
 

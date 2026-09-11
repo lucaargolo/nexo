@@ -250,6 +250,16 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         }
 
         @Override
+        public int maxAmount(int slot, @NotNull ItemUnit value) {
+            Objects.checkIndex(slot, this.slots());
+            if (!(value instanceof MinecraftItemUnit unit)) {
+                return 0;
+            }
+            long capacity = this.slottedStorage.getSlot(slot).getCapacity();
+            return (int) Math.min(Math.min(capacity, Integer.MAX_VALUE), unit.get().getMaxStackSize());
+        }
+
+        @Override
         public boolean canRemove(int slot) {
             Objects.checkIndex(slot, this.slots());
             return this.slottedStorage.getSlot(slot).supportsExtraction();

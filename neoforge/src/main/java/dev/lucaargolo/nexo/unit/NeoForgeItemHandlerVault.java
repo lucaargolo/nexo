@@ -94,6 +94,15 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public int maxAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            return 0;
+        }
+        return Math.min(this.handler.getSlotLimit(slot), unit.get().getMaxStackSize());
+    }
+
+    @Override
     public boolean canRemove() {
         for (int slot = 0; slot < this.slots(); slot++) {
             if (this.canRemove(slot)) {

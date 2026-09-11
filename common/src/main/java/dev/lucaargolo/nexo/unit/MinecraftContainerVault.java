@@ -39,10 +39,7 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     public @NotNull ItemUnit get(int slot) {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.container.getItem(slot);
-        if (stack.isEmpty()) {
-            return this.empty;
-        }
-        return this.nexo.stackToUnit(stack);
+        return stack.isEmpty() ? this.empty : this.nexo.stackToUnit(stack.copy());
     }
 
     @Override
@@ -52,47 +49,112 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
 
-        ItemStack stack = unit.get();
+        ItemStack stack = unit.get().copy();
         if (!stack.isEmpty()) {
-            if (!this.container.canPlaceItem(slot, stack)) {
+            if (!this.canAdd(slot, value)) {
                 throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
             }
-
-            int limit = Math.min(this.container.getMaxStackSize(), stack.getMaxStackSize());
+            int limit = this.maxAmount(slot, value);
             if (stack.getCount() > limit) {
                 throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item count " + stack.getCount() + " for slot " + slot + " (max " + limit + ")");
             }
+        } else if (!this.container.getItem(slot).isEmpty() && !this.canRemove(slot)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected removal from slot " + slot);
         }
 
         ItemUnit previous = this.get(slot);
         this.container.setItem(slot, stack);
+        this.container.setChanged();
         return previous;
+    }
+
+    @Override
+    public void changed() {
+        this.container.setChanged();
+    }
+
+    @Override
+    public boolean canAdd() {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            if (this.canAdd(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canAdd(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return this.container.getMaxStackSize() > 0;
+    }
+
+    @Override
+    public boolean canAdd(@NotNull ItemUnit value) {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            if (this.canAdd(slot, value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canAdd(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        if (!(value instanceof MinecraftItemUnit unit) || unit.get().isEmpty()) {
+            return false;
+        }
+        return this.canAdd(slot) && this.container.canPlaceItem(slot, unit.get());
+    }
+
+    @Override
+    public int maxAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        if (!(value instanceof MinecraftItemUnit unit)) {
+            return 0;
+        }
+        return Math.min(this.container.getMaxStackSize(), unit.get().getMaxStackSize());
+    }
+
+    @Override
+    public boolean canRemove() {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            if (this.canRemove(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canRemove(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        ItemStack stack = this.container.getItem(slot);
+        return !stack.isEmpty() && this.container.canTakeItem(this.container, slot, stack);
     }
 
     @Override
     public @NotNull ItemUnit clear(int slot) {
         Objects.checkIndex(slot, this.slots());
-        ItemUnit previous = this.get(slot);
-        if (!this.container.getItem(slot).isEmpty()) {
-            this.container.setItem(slot, ItemStack.EMPTY);
+        if (this.isEmpty(slot) || !this.canRemove(slot)) {
+            return this.empty;
         }
-        return previous;
+        return this.set(slot, this.empty);
     }
 
     @Override
     public void clear() {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (!this.container.getItem(slot).isEmpty()) {
-                this.container.setItem(slot, ItemStack.EMPTY);
-            }
+            this.clear(slot);
         }
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable Container container) {
-        if(container == null) {
+        if (container == null) {
             return null;
         }
-        if(type != ItemUnit.class) {
+        if (type != ItemUnit.class) {
             throw new IllegalArgumentException("Tried to create non ItemUnit MinecraftContainerVault");
         }
         return Nexo.<Vault<U>>type(Vault.class).cast(new MinecraftContainerVault(nexo, container));

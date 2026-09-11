@@ -9,7 +9,6 @@ import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.unit.Unit;
-import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
@@ -22,12 +21,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -88,17 +83,18 @@ public abstract class MinecraftRegistryHandler {
             @NotNull Supplier<M> minecraft
     );
 
-    protected final @NotNull List<Vault<ItemUnit>> createVaults(
+    protected final <U extends Unit<?>> @NotNull List<Vault.Slotted<U>> createVaults(
             @NotNull Unit<?> unit,
-            @NotNull Map<String, ? extends Function<?, ? extends @Nullable Vault<ItemUnit>>> vaultFactories
+            @NotNull Map<String, ? extends Function<?, ? extends Vault.Slotted<U>>> vaultFactories
     ) {
-        List<Vault<ItemUnit>> vaults = new ArrayList<>(vaultFactories.size());
-        Class<Function<Unit<?>, ? extends @Nullable Vault<ItemUnit>>> type = Nexo.type(Function.class);
-        for (Function<?, ? extends @Nullable Vault<ItemUnit>> factory : vaultFactories.values()) {
-            @Nullable Vault<ItemUnit> vault = type.cast(factory).apply(unit);
-            if (vault != null) {
-                vaults.add(vault);
-            }
+        List<String> names = new ArrayList<>(vaultFactories.keySet());
+        names.sort(String::compareTo);
+        List<Vault.Slotted<U>> vaults = new ArrayList<>(names.size());
+        Class<Function<Unit<?>, ? extends Vault.Slotted<U>>> type = Nexo.type(Function.class);
+        for (String name : names) {
+            Function<?, ? extends Vault.Slotted<U>> factory = Objects.requireNonNull(vaultFactories.get(name), "Vault factory '" + name + "' is null");
+            Vault.Slotted<U> vault = Objects.requireNonNull(type.cast(factory).apply(unit), "Vault factory '" + name + "' returned null");
+            vaults.add(vault);
         }
         return List.copyOf(vaults);
     }

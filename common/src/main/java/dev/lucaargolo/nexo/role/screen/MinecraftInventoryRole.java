@@ -14,8 +14,6 @@ import dev.lucaargolo.nexo.util.Utils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.world.Container;
-import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
@@ -53,11 +51,11 @@ public class MinecraftInventoryRole {
             if (!(vault instanceof Vault.Slotted<ItemUnit> slotted)) {
                 continue;
             }
-            Container container = new MinecraftVaultContainer(nexo, slotted);
+            MinecraftVaultContainer container = new MinecraftVaultContainer(nexo, slotted);
             int slotCount = container.getContainerSize();
             for (int index = 0; index < slotCount; index++) {
                 Vector2i position = config.position(index, slotCount);
-                menu.addSlot(new Slot(container, index, position.x(), position.y()));
+                menu.addSlot(new MinecraftVaultContainer.Slot(container, index, position.x(), position.y()));
             }
         }
     }

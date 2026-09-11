@@ -33,7 +33,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Holder;
@@ -53,6 +52,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.dimension.LevelStem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -221,6 +221,9 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
         }
         M value = minecraft.get();
         if (type.minecraftType() == Block.class) {
+            if (!(value instanceof EntityBlock)) {
+                throw new IllegalArgumentException("Blocks with item Vaults must implement EntityBlock");
+            }
             ItemStorage.SIDED.registerForBlocks((world, pos, state, blockEntity, direction) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().blockToUnit(world, pos, state, blockEntity, direction), factories))), (Block) value);
         } else if (type.minecraftType() == Item.class) {
             ItemStorage.ITEM.registerForItems((stack, context) -> this.createVaultCapability(feature, () -> this.createVaultStorage(this.createVaults(this.nexo().stackToUnit(stack), factories))), (Item) value);
@@ -231,20 +234,15 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
         }
     }
 
-    private @Nullable Storage<ItemVariant> createVaultStorage(@NotNull List<Vault<ItemUnit>> vaults) {
-        List<Storage<ItemVariant>> storages = new ArrayList<>(vaults.size());
-        List<SlottedStorage<ItemVariant>> slottedStorages = new ArrayList<>(vaults.size());
-        for (Vault<ItemUnit> vault : vaults) {
-            Storage<ItemVariant> storage = FabricVaultItemStorage.create(this.nexo(), vault);
-            storages.add(storage);
-            if (storage instanceof SlottedStorage<ItemVariant> slottedStorage) {
-                slottedStorages.add(slottedStorage);
-            }
+    private @Nullable Storage<ItemVariant> createVaultStorage(@NotNull List<Vault.Slotted<ItemUnit>> vaults) {
+        List<SlottedStorage<ItemVariant>> storages = new ArrayList<>(vaults.size());
+        for (Vault.Slotted<ItemUnit> vault : vaults) {
+            storages.add(new FabricVaultItemStorage(this.nexo(), vault));
         }
         return switch (storages.size()) {
             case 0 -> null;
             case 1 -> storages.getFirst();
-            default -> storages.size() == slottedStorages.size() ? new CombinedSlottedStorage<>(slottedStorages) : new CombinedStorage<>(storages);
+            default -> new CombinedSlottedStorage<>(storages);
         };
     }
 

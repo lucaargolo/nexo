@@ -4,11 +4,11 @@ import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.unit.item.MinecraftItemUnit;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import org.jetbrains.annotations.NotNull;
@@ -16,16 +16,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
-public class FabricVaultItemStorage extends SnapshotParticipant<Integer> implements Storage<ItemVariant> {
+public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaultItemStorage.State> implements SlottedStorage<ItemVariant> {
 
-    protected final @NotNull NexoMinecraft nexo;
-    protected final @NotNull Vault<ItemUnit> vault;
-    private final @NotNull List<Runnable> rollbacks = new ArrayList<>();
+    private final @NotNull NexoMinecraft nexo;
+    private final @NotNull Vault.Slotted<ItemUnit> vault;
+    private final @NotNull List<SingleSlotStorage<ItemVariant>> slots;
 
-    public FabricVaultItemStorage(@NotNull NexoMinecraft nexo, @NotNull Vault<ItemUnit> vault) {
+    private boolean changed;
+    private long version;
+
+    public FabricVaultItemStorage(@NotNull NexoMinecraft nexo, @NotNull Vault.Slotted<ItemUnit> vault) {
         this.nexo = nexo;
         this.vault = vault;
+        List<SingleSlotStorage<ItemVariant>> slots = new ArrayList<>(vault.slots());
+        for (int slot = 0; slot < vault.slots(); slot++) {
+            slots.add(new Slot(slot));
+        }
+        this.slots = List.copyOf(slots);
     }
 
     @Override
@@ -58,21 +68,36 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
 
     @Override
     public @NotNull Iterator<StorageView<ItemVariant>> iterator() {
-        Iterator<ItemUnit> units = this.vault.iterator();
+        Iterator<SingleSlotStorage<ItemVariant>> slots = this.slots.iterator();
         return new Iterator<>() {
             @Override
             public boolean hasNext() {
-                return units.hasNext();
+                return slots.hasNext();
             }
 
             @Override
             public @NotNull StorageView<ItemVariant> next() {
-                return new VaultView(units.next());
+                return slots.next();
             }
         };
     }
 
-    protected long insert(@NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
+    @Override
+    public long getVersion() {
+        return this.version;
+    }
+
+    @Override
+    public int getSlotCount() {
+        return this.slots.size();
+    }
+
+    @Override
+    public @NotNull SingleSlotStorage<ItemVariant> getSlot(int slot) {
+        return this.slots.get(Objects.checkIndex(slot, this.slots.size()));
+    }
+
+    private long insert(@NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
         long inserted = 0;
         while (inserted < maxAmount) {
             int requested = (int) Math.min(maxAmount - inserted, Integer.MAX_VALUE);
@@ -84,7 +109,7 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
             this.updateSnapshots(transaction);
             int transferred = checkedAmount("insert", this.vault.insert(value, simulated, false), simulated);
             if (transferred > 0) {
-                this.addRollback(() -> this.rollbackExtraction(value, transferred));
+                this.changed = true;
                 inserted += transferred;
             }
             if (transferred < simulated) {
@@ -94,7 +119,29 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         return inserted;
     }
 
-    protected long extract(@NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
+    private long insert(int slot, @NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
+        long inserted = 0;
+        while (inserted < maxAmount) {
+            int requested = (int) Math.min(maxAmount - inserted, Integer.MAX_VALUE);
+            int simulated = checkedAmount("insert", this.vault.insert(slot, value, requested, true), requested);
+            if (simulated == 0) {
+                break;
+            }
+
+            this.updateSnapshots(transaction);
+            int transferred = checkedAmount("insert", this.vault.insert(slot, value, simulated, false), simulated);
+            if (transferred > 0) {
+                this.changed = true;
+                inserted += transferred;
+            }
+            if (transferred < simulated) {
+                break;
+            }
+        }
+        return inserted;
+    }
+
+    private long extract(@NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
         long extracted = 0;
         while (extracted < maxAmount) {
             int requested = (int) Math.min(maxAmount - extracted, Integer.MAX_VALUE);
@@ -106,7 +153,7 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
             this.updateSnapshots(transaction);
             int transferred = checkedAmount("extract", this.vault.extract(value, simulated, false), simulated);
             if (transferred > 0) {
-                this.addRollback(() -> this.rollbackInsertion(value, transferred));
+                this.changed = true;
                 extracted += transferred;
             }
             if (transferred < simulated) {
@@ -116,60 +163,64 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         return extracted;
     }
 
-    protected final @NotNull ItemUnit unit(@NotNull ItemVariant variant) {
+    private long extract(int slot, @NotNull ItemUnit value, long maxAmount, @NotNull TransactionContext transaction) {
+        long extracted = 0;
+        while (extracted < maxAmount) {
+            int requested = (int) Math.min(maxAmount - extracted, Integer.MAX_VALUE);
+            int simulated = checkedAmount("extract", this.vault.extract(slot, value, requested, true), requested);
+            if (simulated == 0) {
+                break;
+            }
+
+            this.updateSnapshots(transaction);
+            int transferred = checkedAmount("extract", this.vault.extract(slot, value, simulated, false), simulated);
+            if (transferred > 0) {
+                this.changed = true;
+                extracted += transferred;
+            }
+            if (transferred < simulated) {
+                break;
+            }
+        }
+        return extracted;
+    }
+
+    private @NotNull ItemUnit unit(@NotNull ItemVariant variant) {
         return this.nexo.stackToUnit(variant.toStack());
     }
 
-    protected final @NotNull ItemVariant variant(@NotNull ItemUnit unit) {
+    private @NotNull ItemVariant variant(@NotNull ItemUnit unit) {
         if (!(unit instanceof MinecraftItemUnit minecraftUnit)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
         return ItemVariant.of(minecraftUnit.get());
     }
 
-    protected final void addRollback(@NotNull Runnable rollback) {
-        this.rollbacks.add(rollback);
-    }
-
-    @Override
-    protected @NotNull Integer createSnapshot() {
-        return this.rollbacks.size();
-    }
-
-    @Override
-    protected void readSnapshot(@NotNull Integer snapshot) {
-        for (int index = this.rollbacks.size() - 1; index >= snapshot; index--) {
-            this.rollbacks.remove(index).run();
+    private long amount(@NotNull ItemUnit unit) {
+        if (!(unit instanceof MinecraftItemUnit minecraftUnit)) {
+            throw new IllegalArgumentException(this.getClass().getSimpleName() + " only accepts MinecraftItemUnit instances");
         }
+        return minecraftUnit.get().getCount();
+    }
+
+    @Override
+    protected @NotNull State createSnapshot() {
+        return new State(this.vault, this.changed);
+    }
+
+    @Override
+    protected void readSnapshot(@NotNull State state) {
+        state.restore(this.vault);
+        this.changed = state.changed();
     }
 
     @Override
     protected void onFinalCommit() {
-        if (!this.rollbacks.isEmpty()) {
-            this.rollbacks.clear();
+        if (this.changed) {
+            this.changed = false;
+            this.version++;
             this.vault.changed();
         }
-    }
-
-    private void rollbackExtraction(@NotNull ItemUnit value, int amount) {
-        int extracted = this.vault.extract(value, amount, false);
-        if (extracted != amount) {
-            throw new IllegalStateException("Could not roll back Fabric vault insertion");
-        }
-    }
-
-    private void rollbackInsertion(@NotNull ItemUnit value, int amount) {
-        int inserted = this.vault.insert(value, amount, false);
-        if (inserted != amount) {
-            throw new IllegalStateException("Could not roll back Fabric vault extraction");
-        }
-    }
-
-    public static @NotNull Storage<ItemVariant> create(@NotNull NexoMinecraft nexo, @NotNull Vault<ItemUnit> vault) {
-        if (vault instanceof Vault.Slotted<ItemUnit> slotted) {
-            return InventoryStorage.of(new MinecraftVaultContainer(nexo, slotted), null);
-        }
-        return new FabricVaultItemStorage(nexo, vault);
     }
 
     private static int checkedAmount(@NotNull String operation, int amount, int maximum) {
@@ -179,22 +230,57 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
         return amount;
     }
 
-    private class VaultView implements StorageView<ItemVariant> {
+    public record State(@NotNull List<ItemUnit> slots, boolean changed) {
 
-        protected final @NotNull ItemUnit value;
+        State(@NotNull Vault.Slotted<ItemUnit> vault, boolean changed) {
+            this(IntStream.range(0, vault.slots()).mapToObj(slot -> vault.get(slot).copy()).toList(), changed);
+        }
 
-        protected VaultView(@NotNull ItemUnit value) {
-            this.value = value;
+        void restore(@NotNull Vault.Slotted<ItemUnit> vault) {
+            if (this.slots.size() != vault.slots()) {
+                throw new IllegalStateException("Vault slot count changed during a Fabric transaction");
+            }
+            for (int slot = 0; slot < this.slots.size(); slot++) {
+                vault.set(slot, this.slots.get(slot).copy());
+            }
+        }
+
+    }
+
+    private final class Slot implements SingleSlotStorage<ItemVariant> {
+
+        private final int slot;
+
+        private Slot(int slot) {
+            this.slot = slot;
+        }
+
+        @Override
+        public boolean supportsInsertion() {
+            return FabricVaultItemStorage.this.vault.canAdd(this.slot);
+        }
+
+        @Override
+        public long insert(@NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(resource, maxAmount);
+            if (maxAmount == 0 || !this.supportsInsertion()) {
+                return 0;
+            }
+            return FabricVaultItemStorage.this.insert(this.slot, FabricVaultItemStorage.this.unit(resource), maxAmount, transaction);
+        }
+
+        @Override
+        public boolean supportsExtraction() {
+            return FabricVaultItemStorage.this.vault.canRemove(this.slot);
         }
 
         @Override
         public long extract(@NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
             StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-            ItemVariant stored = this.getResource();
-            if (stored.isBlank() || !stored.equals(resource)) {
+            if (maxAmount == 0 || !this.supportsExtraction()) {
                 return 0;
             }
-            return FabricVaultItemStorage.this.extract(resource, Math.min(maxAmount, this.getAmount()), transaction);
+            return FabricVaultItemStorage.this.extract(this.slot, FabricVaultItemStorage.this.unit(resource), maxAmount, transaction);
         }
 
         @Override
@@ -204,18 +290,18 @@ public class FabricVaultItemStorage extends SnapshotParticipant<Integer> impleme
 
         @Override
         public @NotNull ItemVariant getResource() {
-            return FabricVaultItemStorage.this.variant(this.value);
+            return FabricVaultItemStorage.this.variant(FabricVaultItemStorage.this.vault.get(this.slot));
         }
 
         @Override
         public long getAmount() {
-            return this.value.amount();
+            return FabricVaultItemStorage.this.amount(FabricVaultItemStorage.this.vault.get(this.slot));
         }
 
         @Override
         public long getCapacity() {
-            return this.value.maxAmount();
+            ItemUnit value = FabricVaultItemStorage.this.vault.get(this.slot);
+            return Math.max(0, FabricVaultItemStorage.this.vault.maxAmount(this.slot, value));
         }
     }
-
 }

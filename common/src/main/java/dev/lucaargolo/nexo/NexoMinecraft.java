@@ -366,19 +366,18 @@ public abstract class NexoMinecraft implements Nexo {
     }
 
     public @NotNull BlockUnit blockToUnit(@Nullable Level level, @Nullable BlockPos pos, @NotNull BlockState state, @Nullable BlockEntity blockEntity, @Nullable Direction direction) {
-        UnitCacheMixed cache = blockEntity != null ? (UnitCacheMixed) blockEntity : (UnitCacheMixed) state;
-        MinecraftBlockUnit cached = (MinecraftBlockUnit) cache.nexo$getUnit();
-        if (cached != null) {
-            return cached;
-        }
         BlockBase block = MinecraftFeatureType.BLOCK.convert(this, state.getBlock());
-        //TODO: We are cacheing the direction which is a big no no we have to fix this.
-        // And we have to make sure not to cache any level, position, block entity or direction when the cache is in the blockstate. Basically:
-        // BlockState cache will have just BlockUnit(null, null, state, null, null)
-        // BlockEntity cache will have BlockUnit(level, position, state, blockentity, null)
-        MinecraftBlockUnit unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
-        cache.nexo$setUnit(unit);
-        return unit;
+        if (level == null && pos == null && blockEntity == null && direction == null) {
+            UnitCacheMixed cache = (UnitCacheMixed) state;
+            MinecraftBlockUnit cached = (MinecraftBlockUnit) cache.nexo$getUnit();
+            if (cached != null) {
+                return cached;
+            }
+            MinecraftBlockUnit unit = Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), null, null, state, null, null);
+            cache.nexo$setUnit(unit);
+            return unit;
+        }
+        return Utils.loadPlatformClass(this, MinecraftBlockUnit.class, this, block, block.role(), level, pos, state, blockEntity, direction);
     }
 
     public @NotNull ItemUnit stackToUnit(@NotNull ItemStack stack) {
