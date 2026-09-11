@@ -12,7 +12,7 @@ public class ClientFabricMinecraftRegistryHandler extends FabricMinecraftRegistr
     }
 
     @Override
-    public RegistryAccess getLocalRegistry() {
+    public RegistryAccess localAccess() {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.isSameThread()) {
             Level level = minecraft.level;

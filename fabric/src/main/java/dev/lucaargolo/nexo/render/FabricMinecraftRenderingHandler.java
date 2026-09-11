@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.render;
 
 import dev.lucaargolo.nexo.FabricNexoMinecraft;
+import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
@@ -10,24 +11,35 @@ import dev.lucaargolo.nexo.event.AtlasStitchedCallback;
 import dev.lucaargolo.nexo.event.InjectOnAtlasStitchCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
 import net.fabricmc.fabric.api.client.rendering.v1.BuiltinItemRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.BiomeColors;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.FluidState;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,6 +87,11 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler {
     }
 
     @Override
+    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        unbakedModels.put(modelId, model.get());
+    }
+
+    @Override
     protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         registerModel(modelId, model);
         if (feature instanceof BlockBase block) {
@@ -85,17 +102,27 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler {
     }
 
     @Override
-    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
-        unbakedModels.put(modelId, model.get());
-    }
-
-    @Override
-    protected void registerItemRenderer(ItemBase item) {
+    protected void registerFluidBlock(@NotNull BlockBase block) {
         if (this.nexo.getSide() != Side.CLIENT) {
             return;
         }
-        ItemRenderer renderer = createItemRenderer(this.nexo, item);
-        BuiltinItemRendererRegistry.INSTANCE.register(MinecraftFeatureType.ITEM.convert(item), renderer::render);
+        MinecraftFluid.Entry entry = MinecraftFluid.entry(block.location());
+        if (entry == null) {
+            return;
+        }
+        this.collectModel(block, NexoMinecraft.rl(block.location()), () -> BlockModel.fromString("{\"textures\":{\"particle\":\"minecraft:block/water_still\"}}"));
+        BlockRenderLayerMap.INSTANCE.putFluids(RenderType.translucent(), entry.source(), entry.flowing());
+        FluidRenderHandlerRegistry.INSTANCE.register(entry.source(), entry.flowing(), new SimpleFluidRenderHandler(
+                SimpleFluidRenderHandler.WATER_STILL,
+                SimpleFluidRenderHandler.WATER_FLOWING,
+                SimpleFluidRenderHandler.WATER_OVERLAY,
+                0x3f76e4
+        ) {
+            @Override
+            public int getFluidColor(@Nullable BlockAndTintGetter view, @Nullable BlockPos pos, FluidState state) {
+                return view != null && pos != null ? BiomeColors.getAverageWaterColor(view, pos) : 0x3f76e4;
+            }
+        });
     }
 
     @Override
@@ -105,6 +132,15 @@ public class FabricMinecraftRenderingHandler extends MinecraftRenderingHandler {
         }
         BlockEntityType<?> type = MinecraftBlock.CONVERT_ENTITY.forward(block).value();
         this.registerBlockRenderer(type, block, BlockEntityRenderers::register);
+    }
+
+    @Override
+    protected void registerItemRenderer(ItemBase item) {
+        if (this.nexo.getSide() != Side.CLIENT) {
+            return;
+        }
+        ItemRenderer renderer = createItemRenderer(this.nexo, item);
+        BuiltinItemRendererRegistry.INSTANCE.register(MinecraftFeatureType.ITEM.convert(item), renderer::render);
     }
 
     @Override

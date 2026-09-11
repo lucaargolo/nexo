@@ -65,14 +65,14 @@ public class MinecraftData<D> extends DataBase<D> {
 
     @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), nexo.getRegistryHandler().getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), nexo.getRegistryHandler().access());
         componentType().streamCodec().encode(buf, value);
         return buf.nioBuffer();
     }
 
     @Override
     public @NotNull D read(@NotNull ByteBuffer buffer) {
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), nexo.getRegistryHandler().getRegistry());
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(buffer), nexo.getRegistryHandler().access());
         return componentType().streamCodec().decode(buf);
     }
 
@@ -80,7 +80,7 @@ public class MinecraftData<D> extends DataBase<D> {
     public @NotNull JsonElement serialize(@NotNull D value) {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
-            return codec.encodeStart(nexo.getRegistryHandler().getRegistry().createSerializationContext(JsonOps.INSTANCE), value).getOrThrow();
+            return codec.encodeStart(nexo.getRegistryHandler().access().createSerializationContext(JsonOps.INSTANCE), value).getOrThrow();
         }
         JsonObject json = new JsonObject();
         ByteBuffer encoded = Base64.getEncoder().encode(this.write(value));
@@ -92,7 +92,7 @@ public class MinecraftData<D> extends DataBase<D> {
     public @NotNull D deserialize(@NotNull JsonElement element) {
         Codec<D> codec = componentType().codec();
         if (codec != null) {
-            return codec.parse(nexo.getRegistryHandler().getRegistry().createSerializationContext(JsonOps.INSTANCE), element).getOrThrow();
+            return codec.parse(nexo.getRegistryHandler().access().createSerializationContext(JsonOps.INSTANCE), element).getOrThrow();
         }
         JsonObject json = element.getAsJsonObject();
         String encoded = json.getAsJsonPrimitive("data").getAsString();

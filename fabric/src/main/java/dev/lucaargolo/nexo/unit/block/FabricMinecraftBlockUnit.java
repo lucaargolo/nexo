@@ -78,7 +78,7 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
         }
         List<@NotNull DataBase<?>> componentData = new ArrayList<>();
         this.entity.collectComponents().forEach(component -> componentData.add(MinecraftFeatureType.DATA.convert(this.nexo, component.type())));
-        CompoundTag tag = this.entity.saveWithFullMetadata(this.nexo.getRegistryHandler().getRegistry());
+        CompoundTag tag = this.entity.saveWithFullMetadata(this.nexo.getRegistryHandler().access());
         this.entity.removeComponentsFromTag(tag);
         return FabricAttachmentData.data(this.nexo, this.entity, componentData, tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.BLOCK_ENTITY_DATA));
     }

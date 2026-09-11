@@ -14,6 +14,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeCallback;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.FabricVaultItemStorage;
@@ -104,13 +105,55 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
     }
 
     @Override
-    protected RegistryAccess getLocalRegistry() {
-        return null;
+    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
+        return Registry.registerForHolder(registry, id, feature.get());
     }
 
     @Override
-    public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        return Registry.registerForHolder(registry, id, feature.get());
+    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
+        return FabricRegistryBuilder.createSimple(registryKey).buildAndRegister();
+    }
+
+    @Override
+    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
+        RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
+            RegistryEntryAddedCallback.allEntries(registry, holder -> {
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
+            });
+        });
+    }
+
+    @Override
+    public <D> void registerDataAttachment(DataBase<D> data) {
+        ResourceLocation id = NexoMinecraft.rl(data.location());
+        AttachmentType<D> type = AttachmentRegistry.create(id, builder -> {
+            builder.initializer(data::initial);
+            if (data.persistent()) {
+                Codec<D> codec = NexoMinecraft.codec(data);
+                builder.persistent(codec);
+                builder.copyOnDeath();
+            }
+            if (data.synced()) {
+                StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
+                builder.syncWith(codec, AttachmentSyncPredicate.all());
+            }
+        });
+        dataAttachmentMap.put(data, type);
+        attachmentDataMap.put(type, data);
+    }
+
+    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
+        return clazz.cast(dataAttachmentMap.get(data));
+    }
+
+    public @Nullable DataBase<?> getAttachmentData(@NotNull AttachmentType<?> type) {
+        return attachmentDataMap.get(type);
+    }
+
+    @Override
+    public void registerFluidType(@NotNull MinecraftFluid.Entry entry) {
+
     }
 
     @Override
@@ -181,36 +224,8 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
     }
 
     @Override
-    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
-        return FabricRegistryBuilder.createSimple(registryKey).buildAndRegister();
-    }
-
-    @Override
-    public <D> void registerDataAttachment(DataBase<D> data) {
-        ResourceLocation id = NexoMinecraft.rl(data.location());
-        AttachmentType<D> type = AttachmentRegistry.create(id, builder -> {
-            builder.initializer(data::initial);
-            if (data.persistent()) {
-                Codec<D> codec = NexoMinecraft.codec(data);
-                builder.persistent(codec);
-                builder.copyOnDeath();
-            }
-            if (data.synced()) {
-                StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
-                builder.syncWith(codec, AttachmentSyncPredicate.all());
-            }
-        });
-        dataAttachmentMap.put(data, type);
-        attachmentDataMap.put(type, data);
-    }
-
-    @Override
-    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
-        RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
-            RegistryEntryAddedCallback.allEntries(registry, holder -> {
-                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
-            });
-        });
+    public @NotNull MinecraftFluid.ExtendedFluid craftFluid(@NotNull MinecraftFluid.Entry entry, boolean source) {
+        return new MinecraftFluid.ExtendedFluid(entry, source);
     }
 
     @Override
@@ -246,15 +261,6 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
         };
     }
 
-    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
-        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
-        return clazz.cast(dataAttachmentMap.get(data));
-    }
-
-    public @Nullable DataBase<?> getAttachmentData(@NotNull AttachmentType<?> type) {
-        return attachmentDataMap.get(type);
-    }
-
     private <T> @Nullable T createVaultCapability(@NotNull Object feature, @NotNull Supplier<T> creator) {
         Set<Object> active = this.activeVaultFeatures.get();
         if (!active.add(feature)) {
@@ -268,6 +274,11 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
                 this.activeVaultFeatures.remove();
             }
         }
+    }
+
+    @Override
+    protected RegistryAccess localAccess() {
+        return null;
     }
 
 }

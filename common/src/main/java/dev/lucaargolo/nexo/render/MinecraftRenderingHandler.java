@@ -21,6 +21,7 @@ import dev.lucaargolo.nexo.api.unit.entity.EntityUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.render.atlas.MinecraftAtlasHandler;
 import dev.lucaargolo.nexo.render.model.NexoUnbakedModel;
@@ -87,9 +88,11 @@ public abstract class MinecraftRenderingHandler {
                                 nexo::stateToUnit,
                                 staticRenderer
                         ));
-                    } else {
+                    } else if (renderer != null) {
                         this.collectModel(feature, modelId, () -> NexoUnbakedModel.builtin(renderer));
                         this.registerBlockRenderer(block);
+                    } else if (MinecraftFluid.isFluidBlock(event.location())) {
+                        this.registerFluidBlock(block);
                     }
                 }
                 case ItemBase item -> {
@@ -145,22 +148,7 @@ public abstract class MinecraftRenderingHandler {
 
     protected abstract void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model);
 
-    protected abstract void registerItemRenderer(ItemBase item);
-
-    protected ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
-        Renderer<Graphics3D, ItemUnit> renderer = base.renderer();
-        if (renderer == null) {
-            return ItemRenderer.EMPTY;
-        }
-        return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
-            DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
-            try {
-                renderer.render(nexo.stackToUnit(stack), graphics);
-            } finally {
-                graphics.finish();
-            }
-        };
-    }
+    protected abstract void registerFluidBlock(@NotNull BlockBase block);
 
     protected abstract void registerBlockRenderer(BlockBase block);
 
@@ -176,6 +164,23 @@ public abstract class MinecraftRenderingHandler {
                 }
             });
         }
+    }
+
+    protected abstract void registerItemRenderer(ItemBase item);
+
+    protected ItemRenderer createItemRenderer(NexoMinecraft nexo, ItemBase base) {
+        Renderer<Graphics3D, ItemUnit> renderer = base.renderer();
+        if (renderer == null) {
+            return ItemRenderer.EMPTY;
+        }
+        return (stack, mode, matrices, vertexConsumers, light, overlay) -> {
+            DynamicMinecraftGraphics3D graphics = new DynamicMinecraftGraphics3D(nexo, matrices, vertexConsumers, light, overlay);
+            try {
+                renderer.render(nexo.stackToUnit(stack), graphics);
+            } finally {
+                graphics.finish();
+            }
+        };
     }
 
     protected abstract void registerEntityRenderer(EntityBase entity);

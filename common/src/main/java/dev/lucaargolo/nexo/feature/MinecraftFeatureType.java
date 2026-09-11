@@ -6,6 +6,7 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.feature.fluid.FluidBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
@@ -16,6 +17,7 @@ import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
 import dev.lucaargolo.nexo.feature.data.MinecraftData;
 import dev.lucaargolo.nexo.feature.entity.MinecraftEntity;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.item.MinecraftItem;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.packet.MinecraftPacket;
@@ -41,6 +43,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.material.Fluid;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,6 +96,17 @@ public class MinecraftFeatureType<T extends Feature<?, ?>, M> {
             MinecraftBlock::lookup,
             MinecraftBlock.CONVERT,
             Map.of(Block.class, CraftStrategy.extensible(Block.class, Block.class, BlockBehaviour.Properties.class, MinecraftBlock::craft))
+    );
+
+    public static final MinecraftFeatureType<FluidBase, Fluid> FLUID = MinecraftFeatureType.base(
+            Fluid.class,
+            Feature.Type.FLUID,
+            Registries.FLUID,
+            MinecraftFluid::register,
+            MinecraftFluid::index,
+            MinecraftFluid::lookup,
+            MinecraftFluid.CONVERT,
+            Map.of(Fluid.class, CraftStrategy.direct(Fluid.class, MinecraftFluid::craft))
     );
 
     public static final MinecraftFeatureType<ItemBase, Item> ITEM = MinecraftFeatureType.base(
@@ -287,7 +301,7 @@ public class MinecraftFeatureType<T extends Feature<?, ?>, M> {
             if(this.registry == null) {
                 throw new IllegalStateException("Feature type has no registry");
             }
-            RegistryAccess access = nexo.getRegistryHandler().getRegistry();
+            RegistryAccess access = nexo.getRegistryHandler().access();
             Registry<M> registry = access.registryOrThrow(this.registry);
             ResourceKey<M> key = registry.getResourceKey(feature).orElseThrow();
             return convert.backward(registry.getHolderOrThrow(key));

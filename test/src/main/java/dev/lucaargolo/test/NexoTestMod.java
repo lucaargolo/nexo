@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.data.ItemData;
+import dev.lucaargolo.nexo.api.feature.fluid.FluidBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.item.SimpleItemCategory;
@@ -75,7 +76,7 @@ public class NexoTestMod {
         WorldTest.register(nexo);
         EntityTest.register(nexo);
 
-        // API round trips: events, mod lookup, resource loading, data-backed resource registration, biomes.
+        // API round trips: events, mod lookup, resource loading, data-backed resource registration, biomes, fluids.
         AtomicBoolean eventReceived = new AtomicBoolean();
         Predicate<FeatureRegisteredEvent> listener = event -> {
             eventReceived.set(true);
@@ -99,6 +100,29 @@ public class NexoTestMod {
         if (nexo.getFeature(Feature.Type.BIOME, id("test_biome")) != biome) {
             throw new IllegalStateException("Biome feature round trip failed");
         }
+        Location fluidLocation = id("test_fluid");
+        nexo.on(FeatureRegisteredEvent.class, event -> {
+            if (event.location().equals(fluidLocation) && event.value() instanceof BlockBase block) {
+                if (nexo.getFeature(Feature.Type.BLOCK, event.location()) != block) {
+                    throw new IllegalStateException("Fluid block feature round trip failed");
+                }
+                BlockUnit unit = requireNonNull(nexo.unit(block), "Missing fluid block unit");
+                DataBase.Constrained<Integer> level = findConstrained(block.initialData(), "level");
+                requireNonNull(level, "Fluid block level was not exposed as initial data");
+                if (!Integer.valueOf(0).equals(unit.getData(level))) {
+                    throw new IllegalStateException("Fluid block did not start as a source");
+                }
+            }
+            return true;
+        });
+        FluidBase fluid = nexo.registerFeature(new FluidBase() {}, fluidLocation);
+        if (nexo.getFeature(Feature.Type.FLUID, fluidLocation) != fluid) {
+            throw new IllegalStateException("Fluid feature round trip failed");
+        }
+        requireNonNull(
+                nexo.getFeature(Feature.Type.FLUID, Location.of("minecraft", "water")),
+                "Vanilla water fluid was not indexed"
+        );
 
         // Vanilla-backed features must expose their native blockstate properties and data components as initial data.
         BlockBase campfire = requireNonNull(

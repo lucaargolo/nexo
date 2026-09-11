@@ -14,6 +14,7 @@ import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.event.DynamicRegistrySetupEvent;
 import dev.lucaargolo.nexo.event.WorldDimensionsBakeEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.item.MinecraftItemCategory;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import dev.lucaargolo.nexo.unit.NeoForgeVaultItemHandler;
@@ -45,15 +46,18 @@ import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.IContainerFactory;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.callback.AddCallback;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -67,6 +71,7 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
     private final List<Consumer<RegisterCapabilitiesEvent>> inventoryRegistrars = new ArrayList<>();
     private final ThreadLocal<Set<Object>> activeVaultFeatures = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
 
+    private final Set<ResourceKey<? extends Registry<?>>> firedRegistries = ConcurrentHashMap.newKeySet();
 
     public NeoForgeMinecraftRegistryHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -74,8 +79,9 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
 
     @Override
     public void init() {
-        super.init();
         NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo();
+        nexo.modBus().addListener(RegisterEvent.class, event -> this.firedRegistries.add(event.getRegistryKey()));
+        super.init();
         nexo.modBus().addListener(RegisterCapabilitiesEvent.class, event -> {
             this.inventoryRegistrars.forEach(registrar -> registrar.accept(event));
         });
@@ -95,15 +101,111 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
         });
     }
 
-    @Override
-    protected RegistryAccess getLocalRegistry() {
-        return null;
+    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, M> type) {
+        view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
+            Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
+            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
+            dynamicHolders.put(holder.key(), holder);
+        });
     }
 
     @Override
     public <T> Holder<T> registerBuiltinFeature(Registry<T> registry, ResourceLocation id, Supplier<T> feature) {
-        DeferredRegister<T> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
+        return this.registerDeferred(registry, id, feature);
+    }
+
+    private <R> Holder<R> registerDeferred(Registry<R> registry, ResourceLocation id, Supplier<R> feature) {
+        DeferredRegister<R> deferredRegistry = getOrCreateDeferredRegister(registry, id.getNamespace());
+        if (this.firedRegistries.contains(registry.key())) {
+            // The RegisterEvent for this registry already fired: DeferredRegister rejects new entries after
+            // that point, but the registry stays unfrozen for the whole postRegisterEvents window, so
+            // register directly (this mirrors how Fabric registers builtin features).
+            return Registry.registerForHolder(registry, id, feature.get());
+        }
         return deferredRegistry.register(id.getPath(), feature);
+    }
+
+    @Override
+    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
+        DeferredRegister<T> deferredRegistry = DeferredRegister.create(registryKey, NexoMinecraft.MOD_ID);
+        Registry<T> registry = deferredRegistry.makeRegistry(builder -> {
+        });
+        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo();
+        deferredRegistry.register(nexo.modBus());
+        deferredRegistries.computeIfAbsent(registry, key -> new HashMap<>()).put(NexoMinecraft.MOD_ID, deferredRegistry);
+        return registry;
+    }
+
+    @Override
+    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
+        RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
+            Consumer<Holder<M>> consumer = (holder) -> {
+                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
+            };
+            registry.addCallback((AddCallback<M>) (r, raw, id, value) -> {
+                // Look the holder up by key: the raw id only matches the appended byId index during
+                // mod-order dispatch, not while NeoForge replays a snapshot (revertToVanilla).
+                consumer.accept(r.getHolder(id).orElseThrow());
+            });
+            registry.holders().toList().forEach(consumer);
+        });
+    }
+
+    @Override
+    public <D> void registerDataAttachment(DataBase<D> data) {
+        ResourceLocation id = NexoMinecraft.rl(data.location());
+        AttachmentType.Builder<D> builder = AttachmentType.builder(data::initial);
+        if (data.persistent()) {
+            Codec<D> codec = NexoMinecraft.codec(data);
+            builder.serialize(codec);
+            builder.copyOnDeath();
+        }
+        if (data.synced()) {
+            StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
+            builder.sync(codec);
+        }
+        Holder<AttachmentType<?>> holder = this.registerDeferred(NeoForgeRegistries.ATTACHMENT_TYPES, id, builder::build);
+        dataAttachmentMap.put(data, holder);
+    }
+
+    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
+        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
+        return clazz.cast(dataAttachmentMap.get(data).value());
+    }
+
+    public @NotNull List<@NotNull DataBase<?>> getAttachedData(@NotNull IAttachmentHolder target) {
+        List<@NotNull DataBase<?>> data = new ArrayList<>();
+        for (Map.Entry<DataBase<?>, Holder<AttachmentType<?>>> entry : dataAttachmentMap.entrySet()) {
+            if (target.hasData(entry.getValue().value())) {
+                data.add(entry.getKey());
+            }
+        }
+        return data;
+    }
+
+    @Override
+    public void registerFluidType(@NotNull MinecraftFluid.Entry entry) {
+        ResourceLocation id = NexoMinecraft.rl(entry.location());
+        this.registerDeferred(NeoForgeRegistries.FLUID_TYPES, id, () -> new FluidType(FluidType.Properties.create()
+                .descriptionId(entry.location().namespace() + ".fluid." + entry.location().path().replace('/', '.'))
+                .fallDistanceModifier(0.0F)
+                .canExtinguish(true)
+                .canConvertToSource(false)
+                .canSwim(true)
+                .canDrown(true)
+                .supportsBoating(true)
+                .density(1000)
+                .temperature(300)
+                .viscosity(1000)));
+    }
+
+    public @NotNull FluidType getFluidType(@NotNull MinecraftFluid.Entry entry) {
+        ResourceLocation id = NexoMinecraft.rl(entry.location());
+        FluidType type = NeoForgeRegistries.FLUID_TYPES.get(id);
+        if (type == null) {
+            throw new IllegalStateException("FluidType is not registered for fluid " + id);
+        }
+        return type;
     }
 
     @Override
@@ -156,53 +258,21 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
     }
 
     @Override
-    protected <T> Registry<T> createRegistry(ResourceKey<Registry<T>> registryKey) {
-        DeferredRegister<T> deferredRegistry = DeferredRegister.create(registryKey, NexoMinecraft.MOD_ID);
-        Registry<T> registry = deferredRegistry.makeRegistry(builder -> {
-        });
-        NeoForgeNexoMinecraft nexo = (NeoForgeNexoMinecraft) this.nexo();
-        deferredRegistry.register(nexo.modBus());
-        deferredRegistries.computeIfAbsent(registry, key -> new HashMap<>()).put(NexoMinecraft.MOD_ID, deferredRegistry);
-        return registry;
+    public @NotNull MinecraftFluid.ExtendedFluid craftFluid(@NotNull MinecraftFluid.Entry entry, boolean source) {
+        return new ExtendedFluidImpl(entry, source);
     }
 
-    @Override
-    public <D> void registerDataAttachment(DataBase<D> data) {
-        ResourceLocation id = NexoMinecraft.rl(data.location());
-        AttachmentType.Builder<D> builder = AttachmentType.builder(data::initial);
-        if (data.persistent()) {
-            Codec<D> codec = NexoMinecraft.codec(data);
-            builder.serialize(codec);
-            builder.copyOnDeath();
+    private final class ExtendedFluidImpl extends MinecraftFluid.ExtendedFluid {
+
+        private ExtendedFluidImpl(@NotNull MinecraftFluid.Entry entry, boolean source) {
+            super(entry, source);
         }
-        if (data.synced()) {
-            StreamCodec<RegistryFriendlyByteBuf, D> codec = NexoMinecraft.packetCodec(data);
-            builder.sync(codec);
+
+        @Override
+        public @NotNull FluidType getFluidType() {
+            return NeoForgeMinecraftRegistryHandler.this.getFluidType(this.entry());
         }
-        DeferredRegister<AttachmentType<?>> deferredRegistry = getOrCreateDeferredRegister(NeoForgeRegistries.ATTACHMENT_TYPES, id.getNamespace());
-        Holder<AttachmentType<?>> holder = deferredRegistry.register(id.getPath(), builder::build);
-        dataAttachmentMap.put(data, holder);
-    }
 
-    @Override
-    protected <M> void addBuiltinRegistryListener(MinecraftFeatureType<?, M> type) {
-        RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY).registry(type.registry()).ifPresent(registry -> {
-            Consumer<Holder<M>> consumer = (holder) -> {
-                emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
-            };
-            registry.addCallback((AddCallback<M>) (r, raw, id, value) -> {
-                consumer.accept(r.getHolder(raw).orElseThrow());
-            });
-            registry.holders().toList().forEach(consumer);
-        });
-    }
-
-    private <M> void addDynamicRegistryListener(DynamicRegistryView view, MinecraftFeatureType<?, M> type) {
-        view.registerEntryAdded(type.registry(), (r, raw, id, value) -> {
-            Holder.Reference<M> holder = view.getOptional(type.registry()).flatMap(registry -> registry.getHolder(raw)).orElseThrow();
-            emitFeatureRegistered(new FeatureRegisteredEvent(NexoMinecraft.id(holder), type.index(this.nexo(), holder)));
-            dynamicHolders.put(holder.key(), holder);
-        });
     }
 
     @Override
@@ -235,21 +305,6 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
         return vaults.isEmpty() ? null : new NeoForgeVaultItemHandler(this.nexo(), vaults);
     }
 
-    public <D> @NotNull AttachmentType<D> getDataAttachment(@NotNull DataBase<D> data) {
-        Class<AttachmentType<D>> clazz = Nexo.type(AttachmentType.class);
-        return clazz.cast(dataAttachmentMap.get(data).value());
-    }
-
-    public @NotNull List<@NotNull DataBase<?>> getAttachedData(@NotNull IAttachmentHolder target) {
-        List<@NotNull DataBase<?>> data = new ArrayList<>();
-        for (Map.Entry<DataBase<?>, Holder<AttachmentType<?>>> entry : dataAttachmentMap.entrySet()) {
-            if (target.hasData(entry.getValue().value())) {
-                data.add(entry.getKey());
-            }
-        }
-        return data;
-    }
-
     private <T> @Nullable T createVaultCapability(@NotNull Object feature, @NotNull Supplier<T> creator) {
         Set<Object> active = this.activeVaultFeatures.get();
         if (!active.add(feature)) {
@@ -263,6 +318,11 @@ public class NeoForgeMinecraftRegistryHandler extends MinecraftRegistryHandler {
                 this.activeVaultFeatures.remove();
             }
         }
+    }
+
+    @Override
+    protected RegistryAccess localAccess() {
+        return null;
     }
 
     private <R> DeferredRegister<R> getOrCreateDeferredRegister(Registry<R> registry, String namespace) {

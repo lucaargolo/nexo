@@ -4,6 +4,7 @@ import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.feature.fluid.FluidBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
@@ -116,6 +117,7 @@ public abstract class Feature<T extends Feature<T, U>, U extends Unit<T>> {
         public static final @NotNull Type<?, ?> DATA = new Type<>("data", DataBase.class);
         public static final @NotNull Type<?, ?> PACKET = new Type<>("packet", Packet.class);
         public static final @NotNull Type<BlockBase, BlockUnit> BLOCK = new Type<>("block", BlockBase.class, Nexo.type(BlockUnit.class));
+        public static final @NotNull Type<FluidBase, Unit<FluidBase>> FLUID = new Type<>("fluid", FluidBase.class);
         public static final @NotNull Type<ItemBase, ItemUnit> ITEM = new Type<>("item", ItemBase.class, Nexo.type(ItemUnit.class));
         public static final @NotNull Type<ItemCategoryBase, ItemCategoryUnit> ITEM_CATEGORY = new Type<>("item_category", ItemCategoryBase.class, Nexo.type(ItemCategoryUnit.class));
         public static final @NotNull Type<EntityBase, EntityUnit> ENTITY = new Type<>("entity", EntityBase.class, Nexo.type(EntityUnit.class));

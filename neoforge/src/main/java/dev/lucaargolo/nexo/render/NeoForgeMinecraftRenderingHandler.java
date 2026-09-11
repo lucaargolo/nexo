@@ -1,6 +1,7 @@
 package dev.lucaargolo.nexo.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.lucaargolo.nexo.NeoForgeMinecraftRegistryHandler;
 import dev.lucaargolo.nexo.NeoForgeNexoMinecraft;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.feature.Feature;
@@ -12,14 +13,16 @@ import dev.lucaargolo.nexo.event.InjectOnAtlasStitchEvent;
 import dev.lucaargolo.nexo.event.ModelLoadingQueryEvent;
 import dev.lucaargolo.nexo.feature.MinecraftFeatureType;
 import dev.lucaargolo.nexo.feature.block.MinecraftBlock;
+import dev.lucaargolo.nexo.feature.fluid.MinecraftFluid;
 import dev.lucaargolo.nexo.feature.screen.MinecraftScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.EntityModelSet;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.client.resources.model.UnbakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -27,12 +30,16 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.GameShuttingDownEvent;
+import net.neoforged.neoforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -52,6 +59,36 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     private final List<BlockBase> blocksToRegister = new ArrayList<>();
     private final List<EntityBase> entitiesToRegister = new ArrayList<>();
     private final List<Consumer<RegisterMenuScreensEvent>> menuScreensToRegister = new ArrayList<>();
+    private final List<Supplier<FluidType>> fluidTypesToRegister = new ArrayList<>();
+
+    private static final IClientFluidTypeExtensions FLUID_EXTENSIONS = new IClientFluidTypeExtensions() {
+        private static final int WATER_TINT = 0xFF3F76E4;
+
+        @Override
+        public ResourceLocation getStillTexture() {
+            return ResourceLocation.withDefaultNamespace("block/water_still");
+        }
+
+        @Override
+        public ResourceLocation getFlowingTexture() {
+            return ResourceLocation.withDefaultNamespace("block/water_flow");
+        }
+
+        @Override
+        public ResourceLocation getOverlayTexture() {
+            return ResourceLocation.withDefaultNamespace("block/water_overlay");
+        }
+
+        @Override
+        public int getTintColor() {
+            return WATER_TINT;
+        }
+
+        @Override
+        public int getTintColor(FluidState state, BlockAndTintGetter getter, BlockPos pos) {
+            return getter != null && pos != null ? BiomeColors.getAverageWaterColor(getter, pos) : WATER_TINT;
+        }
+    };
 
     public NeoForgeMinecraftRenderingHandler(NeoForgeNexoMinecraft nexo) {
         super(nexo);
@@ -80,6 +117,9 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
                 Item item = MinecraftFeatureType.ITEM.convert(base);
                 IClientItemExtensions extensions = createItemExtensions(this.nexo, base);
                 event.registerItem(extensions, item);
+            }
+            for (Supplier<FluidType> type : fluidTypesToRegister) {
+                event.registerFluidType(FLUID_EXTENSIONS, type.get());
             }
         });
         nexo.modBus().addListener(EntityRenderersEvent.RegisterRenderers.class, event -> {
@@ -120,6 +160,11 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     }
 
     @Override
+    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
+        customModels.put(modelId, model);
+    }
+
+    @Override
     protected void collectModel(@NotNull Feature<?, ?> feature, @NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
         registerModel(modelId, model);
         if (feature instanceof BlockBase) {
@@ -131,13 +176,19 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     }
 
     @Override
-    public void registerModel(@NotNull ResourceLocation modelId, @NotNull Supplier<UnbakedModel> model) {
-        customModels.put(modelId, model);
-    }
-
-    @Override
-    protected void registerItemRenderer(ItemBase item) {
-        itemsToRegister.add(item);
+    protected void registerFluidBlock(@NotNull BlockBase block) {
+        if (!this.nexo.getSide().isClient()) {
+            return;
+        }
+        MinecraftFluid.Entry entry = MinecraftFluid.entry(block.location());
+        if (entry == null) {
+            return;
+        }
+        NeoForgeMinecraftRegistryHandler registryHandler = (NeoForgeMinecraftRegistryHandler) this.nexo.getRegistryHandler();
+        this.fluidTypesToRegister.add(() -> registryHandler.getFluidType(entry));
+        this.blockModels.put(NexoMinecraft.rl(block.location()), () -> BlockModel.fromString("{\"textures\":{\"particle\":\"minecraft:block/water_still\"}}"));
+        ItemBlockRenderTypes.setRenderLayer(entry.source(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(entry.flowing(), RenderType.translucent());
     }
 
     @Override
@@ -146,13 +197,8 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
     }
 
     @Override
-    protected void registerEntityRenderer(EntityBase entity) {
-        entitiesToRegister.add(entity);
-    }
-
-    @Override
-    protected <D, T extends MenuType<MinecraftScreen.ExtendedMenu<D>> & MinecraftScreen.ExtendedMenuType<D>> void registerMenuScreen(Supplier<T> supplier) {
-        menuScreensToRegister.add(event -> event.register(supplier.get(), supplier.get()::craftScreen));
+    protected void registerItemRenderer(ItemBase item) {
+        itemsToRegister.add(item);
     }
 
     private IClientItemExtensions createItemExtensions(NexoMinecraft nexo, ItemBase base) {
@@ -171,6 +217,16 @@ public class NeoForgeMinecraftRenderingHandler extends MinecraftRenderingHandler
             };
             }
         };
+    }
+
+    @Override
+    protected void registerEntityRenderer(EntityBase entity) {
+        entitiesToRegister.add(entity);
+    }
+
+    @Override
+    protected <D, T extends MenuType<MinecraftScreen.ExtendedMenu<D>> & MinecraftScreen.ExtendedMenuType<D>> void registerMenuScreen(Supplier<T> supplier) {
+        menuScreensToRegister.add(event -> event.register(supplier.get(), supplier.get()::craftScreen));
     }
 
 }
