@@ -16,11 +16,13 @@ import dev.lucaargolo.nexo.api.render.Text;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.resource.language.LanguageResource;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.fluid.FluidUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
 import dev.lucaargolo.test.feature.TestInventoryScreen;
 import dev.lucaargolo.test.feature.TestScreen;
+import dev.lucaargolo.test.util.TestTankFluidVault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,6 +121,50 @@ public class NexoTestMod {
         if (nexo.getFeature(Feature.Type.FLUID, fluidLocation) != fluid) {
             throw new IllegalStateException("Fluid feature round trip failed");
         }
+        FluidUnit bucket = nexo.unit(fluid);
+        if (bucket.divisor() != 1 || bucket.amount() != 1) {
+            throw new IllegalStateException("Fluid unit did not start as a bucket");
+        }
+        FluidUnit reservoir = bucket.copy();
+        reservoir.increment(999);
+        if (reservoir.divisor() != 1 || reservoir.amount() != 1000 || reservoir.maxAmount() != Integer.MAX_VALUE) {
+            throw new IllegalStateException("Fluid unit did not retain bulk bucket amounts");
+        }
+        reservoir.decrement(3, 1);
+        if (reservoir.divisor() != 3 || reservoir.amount() != 2999) {
+            throw new IllegalStateException("Fluid unit did not retain bulk fractional amounts");
+        }
+        FluidUnit bottle = bucket.copy();
+        bottle.decrement(3, 2);
+        if (bottle.divisor() != 3 || bottle.amount() != 1) {
+            throw new IllegalStateException("Fluid unit did not become a bottle");
+        }
+        FluidUnit mixedFraction = bucket.copy();
+        mixedFraction.decrement(2, 1);
+        mixedFraction.decrement(3, 1);
+        if (mixedFraction.divisor() != 6 || mixedFraction.amount() != 1) {
+            throw new IllegalStateException("Fluid unit did not preserve mixed fractional arithmetic");
+        }
+        TestTankFluidVault tank = new TestTankFluidVault(bottle, 3);
+        if (tank.maxStackAmount() != 3 || tank.maxStackAmount(0) != 3 || tank.maxStackAmount(0, bottle) != 3) {
+            throw new IllegalStateException("Test tank capacity was not configured");
+        }
+        if (tank.insert(bottle, bottle.amount(), false) != 1) {
+            throw new IllegalStateException("Test tank fluid insertion failed");
+        }
+        FluidUnit storedFluid = tank.get(0);
+        if (storedFluid.divisor() != 3 || storedFluid.amount() != 1) {
+            throw new IllegalStateException("Test tank did not retain its fractional fluid amount");
+        }
+        if (tank.insert(bottle, bottle.amount(), false) != 1 || tank.get(0).amount() != 2) {
+            throw new IllegalStateException("Test tank did not combine fluid bottles");
+        }
+        if (tank.extract(bottle, 1, false) != 1 || tank.get(0).amount() != 1) {
+            throw new IllegalStateException("Test tank fluid extraction failed");
+        }
+        if (tank.remove(0).amount() != 1 || !tank.isEmpty()) {
+            throw new IllegalStateException("Test tank fluid removal failed");
+        }
         requireNonNull(
                 nexo.getFeature(Feature.Type.FLUID, Location.of("minecraft", "water")),
                 "Vanilla water fluid was not indexed"
@@ -154,6 +200,16 @@ public class NexoTestMod {
         ItemUnit appleStack = nexo.unit(apple, 3);
         if (appleStack.amount() != 3) {
             throw new IllegalStateException("Item unit amount mismatch");
+        }
+        try {
+            appleStack.increment(3, 1);
+            throw new IllegalStateException("Item unit accepted a fractional increment");
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            appleStack.decrement(3, 1);
+            throw new IllegalStateException("Item unit accepted a fractional decrement");
+        } catch (IllegalArgumentException ignored) {
         }
         ItemData itemData = nexo.registerFeature(new ItemData(nexo), id("test_item_data"));
         if (itemData.deserialize(itemData.serialize(appleStack)).amount() != 3) {

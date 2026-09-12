@@ -7,6 +7,7 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.VaultFactory;
+import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
@@ -229,7 +230,7 @@ public class FabricMinecraftRegistryHandler extends MinecraftRegistryHandler {
     }
 
     @Override
-    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
+    public <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T> & VaultProvider, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft) {
         Map<String, Function<U, Vault.Slotted<ItemUnit>>> factories = feature.vaults(ItemUnit.class);
         if (factories.isEmpty()) {
             return;

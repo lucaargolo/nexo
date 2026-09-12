@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.role.screen;
 import dev.lucaargolo.nexo.NexoMinecraft;
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.Vault;
+import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
 import dev.lucaargolo.nexo.api.role.screen.InventoryRole;
 import dev.lucaargolo.nexo.api.unit.Unit;
@@ -61,9 +62,9 @@ public class MinecraftInventoryRole {
     }
 
     private static @Nullable Vault<ItemUnit> vault(@NotNull NexoMinecraft nexo, @NotNull MinecraftScreen.ExtendedMenu<?> menu, @NotNull InventoryRole.Config config) {
-        Unit<?> target = switch (config.target()) {
+        VaultProvider target = switch (config.target()) {
             case ENTITY -> nexo.entityToUnit(menu.inventory().player);
-            case OWNER -> menu.owner();
+            case OWNER -> menu.owner() instanceof VaultProvider provider ? provider : null;
         };
         return target == null ? null : target.vault(ItemUnit.class, config.key());
     }

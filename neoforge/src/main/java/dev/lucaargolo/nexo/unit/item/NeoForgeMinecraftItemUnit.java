@@ -42,7 +42,7 @@ public class NeoForgeMinecraftItemUnit extends MinecraftItemUnit {
     }
 
     private @Nullable IItemHandler itemHandler() {
-        return Capabilities.ItemHandler.ITEM.getCapability(this.get(), null);
+        return this.get().getCapability(Capabilities.ItemHandler.ITEM);
     }
 
 }

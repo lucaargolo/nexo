@@ -36,7 +36,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd() {
+    public boolean canInsert() {
         return this.storage.supportsInsertion();
     }
 
@@ -45,7 +45,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         if (max < 0) {
             throw new IllegalArgumentException("Insertion amount cannot be negative");
         }
-        if (max == 0 || !this.canAdd()) {
+        if (max == 0 || !this.canInsert()) {
             return 0;
         }
 
@@ -64,7 +64,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
     }
 
     @Override
-    public boolean canRemove() {
+    public boolean canExtract() {
         return this.storage.supportsExtraction();
     }
 
@@ -73,7 +73,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         if (max < 0) {
             throw new IllegalArgumentException("Extraction amount cannot be negative");
         }
-        if (max == 0 || !this.canRemove()) {
+        if (max == 0 || !this.canExtract()) {
             return 0;
         }
 
@@ -93,7 +93,7 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
 
     @Override
     public void clear() {
-        if (!this.canRemove()) {
+        if (!this.canExtract()) {
             return;
         }
 
@@ -116,6 +116,11 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
     @Override
     public boolean isEmpty() {
         return !this.storage.nonEmptyIterator().hasNext();
+    }
+
+    @Override
+    public int maxStackAmount() {
+        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -231,16 +236,16 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         }
 
         @Override
-        public boolean canAdd(int slot) {
+        public boolean canInsert(int slot) {
             Objects.checkIndex(slot, this.slots());
             return this.slottedStorage.getSlot(slot).supportsInsertion();
         }
 
         @Override
-        public boolean canAdd(int slot, @NotNull ItemUnit value) {
+        public boolean canInsert(int slot, @NotNull ItemUnit value) {
             Objects.checkIndex(slot, this.slots());
             ItemVariant variant = this.variant(value);
-            if (variant.isBlank() || !this.canAdd(slot)) {
+            if (variant.isBlank() || !this.canInsert(slot)) {
                 return false;
             }
 
@@ -250,17 +255,20 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         }
 
         @Override
-        public int maxAmount(int slot, @NotNull ItemUnit value) {
+        public int maxStackAmount(int slot) {
             Objects.checkIndex(slot, this.slots());
-            if (!(value instanceof MinecraftItemUnit unit)) {
-                return 0;
-            }
             long capacity = this.slottedStorage.getSlot(slot).getCapacity();
-            return (int) Math.min(Math.min(capacity, Integer.MAX_VALUE), unit.get().getMaxStackSize());
+            return (int) Math.min(capacity, this.maxStackAmount());
         }
 
         @Override
-        public boolean canRemove(int slot) {
+        public int maxStackAmount(int slot, @NotNull ItemUnit value) {
+            Objects.checkIndex(slot, this.slots());
+            return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
+        }
+
+        @Override
+        public boolean canExtract(int slot) {
             Objects.checkIndex(slot, this.slots());
             return this.slottedStorage.getSlot(slot).supportsExtraction();
         }

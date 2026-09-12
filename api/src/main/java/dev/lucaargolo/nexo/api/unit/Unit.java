@@ -7,7 +7,7 @@ import dev.lucaargolo.nexo.api.role.Role;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Unit<F extends Feature<?, ?>> implements VaultProvider {
+public abstract class Unit<F extends Feature<?, ?>> {
 
     @NotNull
     protected final Nexo nexo;

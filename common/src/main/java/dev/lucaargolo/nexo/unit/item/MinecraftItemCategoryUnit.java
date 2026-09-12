@@ -43,7 +43,7 @@ public abstract class MinecraftItemCategoryUnit extends ItemCategoryUnit impleme
 
     @Override
     public @NotNull Stream<ItemUnit> stream() {
-        return tab.getDisplayItems().stream().map(nexo::stackToUnit).filter(Objects::nonNull);
+        return tab.getDisplayItems().stream().map(nexo::stackToUnit);
     }
 
     @Override
@@ -55,17 +55,5 @@ public abstract class MinecraftItemCategoryUnit extends ItemCategoryUnit impleme
     public void remove(@NotNull ItemUnit item) {
         removedItems.add(item);
     }
-
-    @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        return null;
-    }
-
-
 
 }

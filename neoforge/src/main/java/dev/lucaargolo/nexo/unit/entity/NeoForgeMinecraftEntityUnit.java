@@ -54,7 +54,7 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
     }
 
     private @Nullable IItemHandler itemHandler() {
-        return Capabilities.ItemHandler.ENTITY.getCapability(this.entity, null);
+        return this.entity.getCapability(Capabilities.ItemHandler.ENTITY);
     }
 
     @Override

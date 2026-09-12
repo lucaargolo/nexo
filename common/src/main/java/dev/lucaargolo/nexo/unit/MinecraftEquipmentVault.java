@@ -55,7 +55,7 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
         }
 
         ItemStack stack = unit.get().copy();
-        if (!stack.isEmpty() && !this.canAdd(slot, value)) {
+        if (!stack.isEmpty() && !this.canInsert(slot, value)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
         }
 
@@ -65,23 +65,18 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd() {
-        return true;
-    }
-
-    @Override
-    public boolean canAdd(int slot) {
+    public boolean canInsert(int slot) {
         Objects.checkIndex(slot, this.slots());
         return true;
     }
 
     @Override
-    public boolean canAdd(@NotNull ItemUnit value) {
-        return this.canAdd(0, value);
+    public boolean canInsert(@NotNull ItemUnit value) {
+        return this.canInsert(0, value);
     }
 
     @Override
-    public boolean canAdd(int slot, @NotNull ItemUnit value) {
+    public boolean canInsert(int slot, @NotNull ItemUnit value) {
         Objects.checkIndex(slot, this.slots());
         if (!(value instanceof MinecraftItemUnit unit)) {
             return false;
@@ -93,22 +88,26 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public int maxAmount(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.slots());
-        return value instanceof MinecraftItemUnit unit ? unit.get().getMaxStackSize() : 0;
+    public boolean canExtract() {
+        return this.canExtract(0);
     }
 
     @Override
-    public boolean canRemove() {
-        return this.canRemove(0);
-    }
-
-    @Override
-    public boolean canRemove(int slot) {
+    public boolean canExtract(int slot) {
         Objects.checkIndex(slot, this.slots());
         return !this.entity.getItemBySlot(this.slot).isEmpty();
     }
 
+    @Override
+    public int maxStackAmount() {
+        return 64;
+    }
+
+    @Override
+    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
+    }
 
     public static @NotNull <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @NotNull LivingEntity entity, @NotNull EquipmentSlot slot) {
         if(type != ItemUnit.class) {

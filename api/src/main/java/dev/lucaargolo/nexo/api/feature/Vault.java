@@ -12,17 +12,19 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
 
     @NotNull U empty();
 
-    boolean canAdd();
+    boolean canInsert();
 
     int insert(@NotNull U value, int max, boolean simulate);
 
-    boolean canRemove();
+    boolean canExtract();
 
     int extract(@NotNull U value, int max, boolean simulate);
 
     void clear();
 
     boolean isEmpty();
+
+    int maxStackAmount();
 
     default void changed() {
 
@@ -37,8 +39,21 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
         @NotNull U set(int slot, @NotNull U value);
 
         @Override
-        default boolean canAdd() {
+        default boolean canInsert() {
             return true;
+        }
+
+        default boolean canInsert(int slot) {
+            Objects.checkIndex(slot, this.slots());
+            return this.canInsert();
+        }
+
+        default boolean canInsert(@NotNull U resource) {
+            return this.canInsert();
+        }
+
+        default boolean canInsert(int slot, @NotNull U resource) {
+            return this.canInsert(slot) && this.canInsert(resource);
         }
 
         @Override
@@ -46,7 +61,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             if (max < 0) {
                 throw new IllegalArgumentException("Insertion amount cannot be negative");
             }
-            if (max == 0 || !this.canAdd(value) || Objects.equals(value, this.empty())) {
+            if (max == 0 || !this.canInsert(value) || Objects.equals(value, this.empty())) {
                 return 0;
             }
 
@@ -74,24 +89,24 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             if (max < 0) {
                 throw new IllegalArgumentException("Insertion amount cannot be negative");
             }
-            if (max == 0 || !this.canAdd(slot, value) || Objects.equals(value, this.empty())) {
+            if (max == 0 || !this.canInsert(slot, value) || Objects.equals(value, this.empty())) {
                 return 0;
             }
 
             U current = this.get(slot);
             if (this.isEmpty(slot)) {
                 if (value instanceof Stackable<?> incoming) {
-                    int amount = Math.min(max, this.maxAmount(slot, value));
-                    if (amount == 0) {
+                    int amount = Math.min(max, this.maxStackAmount(slot, value));
+                    if (amount <= 0) {
                         return 0;
                     }
                     if (!simulate) {
                         Stackable<?> result = incoming.copy();
                         int difference = amount - result.amount();
                         if (difference > 0) {
-                            result.increment(difference);
+                            result.increment(result.divisor(), difference);
                         } else if (difference < 0) {
-                            result.decrement(-difference);
+                            result.decrement(result.divisor(), -difference);
                         }
                         this.set(slot, (U) result);
                     }
@@ -107,21 +122,26 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
                 return 0;
             }
 
-            int amount = Math.min(max, this.maxAmount(slot, value) - stack.amount());
+            int amount = Math.min(max, this.maxStackAmount(slot, value) - stack.amount());
             if (amount <= 0) {
                 return 0;
             }
             if (!simulate) {
                 Stackable<?> result = stack.copy();
-                result.increment(amount);
+                result.increment(result.divisor(), amount);
                 this.set(slot, (U) result);
             }
             return amount;
         }
 
         @Override
-        default boolean canRemove() {
+        default boolean canExtract() {
             return true;
+        }
+
+        default boolean canExtract(int slot) {
+            Objects.checkIndex(slot, this.slots());
+            return this.canExtract();
         }
 
         @Override
@@ -129,7 +149,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             if (max < 0) {
                 throw new IllegalArgumentException("Extraction amount cannot be negative");
             }
-            if (max == 0 || !this.canRemove() || Objects.equals(value, this.empty())) {
+            if (max == 0 || !this.canExtract() || Objects.equals(value, this.empty())) {
                 return 0;
             }
 
@@ -146,7 +166,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             if (max < 0) {
                 throw new IllegalArgumentException("Extraction amount cannot be negative");
             }
-            if (max == 0 || !this.canRemove(slot) || Objects.equals(value, this.empty())) {
+            if (max == 0 || !this.canExtract(slot) || Objects.equals(value, this.empty())) {
                 return 0;
             }
 
@@ -164,7 +184,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
                         this.clear(slot);
                     } else {
                         Stackable<?> result = stack.copy();
-                        result.decrement(amount);
+                        result.decrement(result.divisor(), amount);
                         this.set(slot, (U) result);
                     }
                 }
@@ -211,7 +231,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             if (amount < 0) {
                 throw new IllegalArgumentException("Removal amount cannot be negative");
             }
-            if (amount == 0 || !this.canRemove(slot)) {
+            if (amount == 0 || !this.canExtract(slot)) {
                 return this.empty();
             }
 
@@ -227,9 +247,9 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
                 Stackable<?> removed = stack.copy();
                 int difference = removed.amount() - removedAmount;
                 if (difference > 0) {
-                    removed.decrement(difference);
+                    removed.decrement(removed.divisor(), difference);
                 } else if (difference < 0) {
-                    removed.increment(-difference);
+                    removed.increment(removed.divisor(), -difference);
                 }
                 return (U) removed;
             }
@@ -238,7 +258,7 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
 
         default @NotNull U clear(int slot) {
             Objects.checkIndex(slot, this.slots());
-            if (!this.canRemove(slot)) {
+            if (!this.canExtract(slot)) {
                 return this.empty();
             }
             return this.set(slot, this.empty());
@@ -249,27 +269,16 @@ public interface Vault<U extends Unit<?>> extends Iterable<U> {
             return Objects.equals(this.get(slot), this.empty());
         }
 
-        default boolean canAdd(int slot) {
+        default int maxStackAmount(int slot) {
             Objects.checkIndex(slot, this.slots());
-            return this.canAdd();
+            return this.maxStackAmount();
         }
 
-        default boolean canAdd(@NotNull U resource) {
-            return this.canAdd();
-        }
-
-        default boolean canAdd(int slot, @NotNull U resource) {
-            return this.canAdd(slot) && this.canAdd(resource);
-        }
-
-        default int maxAmount(int slot, @NotNull U resource) {
-            Objects.checkIndex(slot, this.slots());
-            return resource instanceof Stackable<?> stack ? stack.maxAmount() : 1;
-        }
-
-        default boolean canRemove(int slot) {
-            Objects.checkIndex(slot, this.slots());
-            return this.canRemove();
+        default int maxStackAmount(int slot, @NotNull U resource) {
+            if (resource instanceof Stackable<?> stack) {
+                return Math.min(this.maxStackAmount(slot), stack.maxAmount());
+            }
+            return Math.min(this.maxStackAmount(slot), 1);
         }
     }
 }

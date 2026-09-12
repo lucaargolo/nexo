@@ -67,7 +67,7 @@ public class NeoForgeMinecraftBlockUnit extends MinecraftBlockUnit {
         if (this.level == null || this.position == null) {
             return null;
         }
-        return Capabilities.ItemHandler.BLOCK.getCapability(this.level, this.position, this.state, this.entity, this.direction);
+        return this.level.getCapability(Capabilities.ItemHandler.BLOCK, this.position, this.state, this.entity, this.direction);
     }
 
     @Override

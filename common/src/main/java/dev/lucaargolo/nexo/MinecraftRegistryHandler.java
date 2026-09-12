@@ -5,6 +5,7 @@ import dev.lucaargolo.nexo.api.event.FeatureRegisteredEvent;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.Vault;
 import dev.lucaargolo.nexo.api.feature.VaultFactory;
+import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.screen.ScreenBase;
@@ -128,7 +129,7 @@ public abstract class MinecraftRegistryHandler {
 
     public abstract @NotNull MinecraftFluid.ExtendedFluid craftFluid(@NotNull MinecraftFluid.Entry entry, boolean source);
 
-    public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T>, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft);
+    public abstract <T extends Feature<T, U> & VaultFactory<U>, U extends Unit<T> & VaultProvider, M> void registerVaults(@NotNull MinecraftFeatureType<T, M> type, @NotNull T feature, @NotNull Supplier<M> minecraft);
 
     protected final <U extends Unit<?>> @NotNull List<Vault.Slotted<U>> createVaults(@NotNull Unit<?> unit, @NotNull Map<String, ? extends Function<?, ? extends Vault.Slotted<U>>> vaultFactories) {
         List<String> names = new ArrayList<>(vaultFactories.keySet());

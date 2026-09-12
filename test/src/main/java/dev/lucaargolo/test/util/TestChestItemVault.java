@@ -32,6 +32,11 @@ public final class TestChestItemVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public int maxStackAmount() {
+        return 64;
+    }
+
+    @Override
     public @NotNull ItemUnit empty() {
         return this.empty;
     }

@@ -31,6 +31,11 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public int maxStackAmount() {
+        return this.container.getMaxStackSize();
+    }
+
+    @Override
     public int slots() {
         return this.container.getContainerSize();
     }
@@ -51,14 +56,14 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
 
         ItemStack stack = unit.get().copy();
         if (!stack.isEmpty()) {
-            if (!this.canAdd(slot, value)) {
+            if (!this.canInsert(slot, value)) {
                 throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item for slot " + slot);
             }
-            int limit = this.maxAmount(slot, value);
+            int limit = this.maxStackAmount(slot, value);
             if (stack.getCount() > limit) {
                 throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected item count " + stack.getCount() + " for slot " + slot + " (max " + limit + ")");
             }
-        } else if (!this.container.getItem(slot).isEmpty() && !this.canRemove(slot)) {
+        } else if (!this.container.getItem(slot).isEmpty() && !this.canExtract(slot)) {
             throw new IllegalArgumentException(this.getClass().getSimpleName() + " rejected removal from slot " + slot);
         }
 
@@ -74,9 +79,9 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd() {
+    public boolean canInsert() {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canAdd(slot)) {
+            if (this.canInsert(slot)) {
                 return true;
             }
         }
@@ -84,15 +89,15 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd(int slot) {
+    public boolean canInsert(int slot) {
         Objects.checkIndex(slot, this.slots());
         return this.container.getMaxStackSize() > 0;
     }
 
     @Override
-    public boolean canAdd(@NotNull ItemUnit value) {
+    public boolean canInsert(@NotNull ItemUnit value) {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canAdd(slot, value)) {
+            if (this.canInsert(slot, value)) {
                 return true;
             }
         }
@@ -100,27 +105,24 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd(int slot, @NotNull ItemUnit value) {
+    public boolean canInsert(int slot, @NotNull ItemUnit value) {
         Objects.checkIndex(slot, this.slots());
         if (!(value instanceof MinecraftItemUnit unit) || unit.get().isEmpty()) {
             return false;
         }
-        return this.canAdd(slot) && this.container.canPlaceItem(slot, unit.get());
+        return this.canInsert(slot) && this.container.canPlaceItem(slot, unit.get());
     }
 
     @Override
-    public int maxAmount(int slot, @NotNull ItemUnit value) {
+    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
         Objects.checkIndex(slot, this.slots());
-        if (!(value instanceof MinecraftItemUnit unit)) {
-            return 0;
-        }
-        return Math.min(this.container.getMaxStackSize(), unit.get().getMaxStackSize());
+        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
     }
 
     @Override
-    public boolean canRemove() {
+    public boolean canExtract() {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canRemove(slot)) {
+            if (this.canExtract(slot)) {
                 return true;
             }
         }
@@ -128,7 +130,7 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canRemove(int slot) {
+    public boolean canExtract(int slot) {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.container.getItem(slot);
         return !stack.isEmpty() && this.container.canTakeItem(this.container, slot, stack);
@@ -137,7 +139,7 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     @Override
     public @NotNull ItemUnit clear(int slot) {
         Objects.checkIndex(slot, this.slots());
-        if (this.isEmpty(slot) || !this.canRemove(slot)) {
+        if (this.isEmpty(slot) || !this.canExtract(slot)) {
             return this.empty;
         }
         return this.set(slot, this.empty);

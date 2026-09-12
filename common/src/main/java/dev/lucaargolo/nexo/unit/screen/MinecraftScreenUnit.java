@@ -75,16 +75,6 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     }
 
     @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        return null;
-    }
-
-    @Override
     public boolean open(@NotNull EntityUnit entity, @NotNull D data, @Nullable Unit<?> owner) {
         if(entity.side().isClient()) {
             if(this.screen == null) {

@@ -40,13 +40,13 @@ public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaul
 
     @Override
     public boolean supportsInsertion() {
-        return this.vault.canAdd();
+        return this.vault.canInsert();
     }
 
     @Override
     public long insert(@NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
         StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-        if (maxAmount == 0 || !this.vault.canAdd()) {
+        if (maxAmount == 0 || !this.vault.canInsert()) {
             return 0;
         }
         return this.insert(this.unit(resource), maxAmount, transaction);
@@ -54,13 +54,13 @@ public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaul
 
     @Override
     public boolean supportsExtraction() {
-        return this.vault.canRemove();
+        return this.vault.canExtract();
     }
 
     @Override
     public long extract(@NotNull ItemVariant resource, long maxAmount, @NotNull TransactionContext transaction) {
         StoragePreconditions.notBlankNotNegative(resource, maxAmount);
-        if (maxAmount == 0 || !this.vault.canRemove()) {
+        if (maxAmount == 0 || !this.vault.canExtract()) {
             return 0;
         }
         return this.extract(this.unit(resource), maxAmount, transaction);
@@ -257,7 +257,7 @@ public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaul
 
         @Override
         public boolean supportsInsertion() {
-            return FabricVaultItemStorage.this.vault.canAdd(this.slot);
+            return FabricVaultItemStorage.this.vault.canInsert(this.slot);
         }
 
         @Override
@@ -271,7 +271,7 @@ public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaul
 
         @Override
         public boolean supportsExtraction() {
-            return FabricVaultItemStorage.this.vault.canRemove(this.slot);
+            return FabricVaultItemStorage.this.vault.canExtract(this.slot);
         }
 
         @Override
@@ -300,8 +300,7 @@ public final class FabricVaultItemStorage extends SnapshotParticipant<FabricVaul
 
         @Override
         public long getCapacity() {
-            ItemUnit value = FabricVaultItemStorage.this.vault.get(this.slot);
-            return Math.max(0, FabricVaultItemStorage.this.vault.maxAmount(this.slot, value));
+            return Math.max(0, FabricVaultItemStorage.this.vault.maxStackAmount(this.slot));
         }
     }
 }

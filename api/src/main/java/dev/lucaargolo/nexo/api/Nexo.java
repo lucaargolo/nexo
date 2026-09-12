@@ -3,6 +3,7 @@ package dev.lucaargolo.nexo.api;
 import dev.lucaargolo.nexo.api.event.Event;
 import dev.lucaargolo.nexo.api.feature.Feature;
 import dev.lucaargolo.nexo.api.feature.block.BlockBase;
+import dev.lucaargolo.nexo.api.feature.fluid.FluidBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
 import dev.lucaargolo.nexo.api.feature.packet.PacketReceiver;
@@ -11,6 +12,7 @@ import dev.lucaargolo.nexo.api.language.Language;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.fluid.FluidUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
 import dev.lucaargolo.nexo.api.util.Location;
@@ -57,6 +59,8 @@ public interface Nexo {
     @Nullable <E extends Event<T>, T> T emit(@NotNull E event);
 
     @NotNull BlockUnit unit(@NotNull BlockBase block);
+
+    @NotNull FluidUnit unit(@NotNull FluidBase fluid);
 
     @NotNull ItemUnit unit(@NotNull ItemBase item);
 

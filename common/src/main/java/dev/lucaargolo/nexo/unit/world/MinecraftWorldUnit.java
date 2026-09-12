@@ -43,16 +43,6 @@ public abstract class MinecraftWorldUnit extends WorldUnit implements MinecraftU
     }
 
     @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        return null;
-    }
-
-    @Override
     public @Nullable BlockUnit getBlock(@NotNull Vector3i pos) {
         BlockPos mcPos = new BlockPos(pos.x, pos.y, pos.z);
         BlockState state = level.getBlockState(mcPos);

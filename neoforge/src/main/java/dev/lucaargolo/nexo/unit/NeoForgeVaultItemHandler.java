@@ -50,7 +50,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         Vault.Slotted<ItemUnit> vault = this.vaults.get(vaultIndex);
         int vaultSlot = slot - this.offsets[vaultIndex];
         ItemUnit value = this.nexo.stackToUnit(stack.copy());
-        if (!vault.canAdd(vaultSlot, value)) {
+        if (!vault.canInsert(vaultSlot, value)) {
             return stack.copy();
         }
 
@@ -71,7 +71,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         Vault.Slotted<ItemUnit> vault = this.vaults.get(vaultIndex);
         int vaultSlot = slot - this.offsets[vaultIndex];
         ItemStack stack = this.stack(vault.get(vaultSlot));
-        if (stack.isEmpty() || !vault.canRemove(vaultSlot)) {
+        if (stack.isEmpty() || !vault.canExtract(vaultSlot)) {
             return ItemStack.EMPTY;
         }
 
@@ -94,7 +94,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
         int vaultIndex = this.vaultIndex(slot);
         Vault.Slotted<ItemUnit> vault = this.vaults.get(vaultIndex);
         int vaultSlot = slot - this.offsets[vaultIndex];
-        return Math.max(0, vault.maxAmount(vaultSlot, vault.get(vaultSlot)));
+        return Math.max(0, vault.maxStackAmount(vaultSlot));
     }
 
     @Override
@@ -104,7 +104,7 @@ public final class NeoForgeVaultItemHandler implements IItemHandler {
             return false;
         }
         Vault.Slotted<ItemUnit> vault = this.vaults.get(vaultIndex);
-        return vault.canAdd(slot - this.offsets[vaultIndex], this.nexo.stackToUnit(stack.copy()));
+        return vault.canInsert(slot - this.offsets[vaultIndex], this.nexo.stackToUnit(stack.copy()));
     }
 
     private int vaultIndex(int slot) {

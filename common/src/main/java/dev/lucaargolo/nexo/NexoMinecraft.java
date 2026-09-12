@@ -11,6 +11,7 @@ import dev.lucaargolo.nexo.api.feature.block.BlockBase;
 import dev.lucaargolo.nexo.api.feature.data.DataBase;
 import dev.lucaargolo.nexo.api.feature.data.TextData;
 import dev.lucaargolo.nexo.api.feature.entity.EntityBase;
+import dev.lucaargolo.nexo.api.feature.fluid.FluidBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.feature.item.ItemCategoryBase;
 import dev.lucaargolo.nexo.api.feature.packet.Packet;
@@ -22,6 +23,7 @@ import dev.lucaargolo.nexo.api.render.Graphics2D;
 import dev.lucaargolo.nexo.api.resource.Resource;
 import dev.lucaargolo.nexo.api.unit.Unit;
 import dev.lucaargolo.nexo.api.unit.block.BlockUnit;
+import dev.lucaargolo.nexo.api.unit.fluid.FluidUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemCategoryUnit;
 import dev.lucaargolo.nexo.api.unit.item.ItemUnit;
 import dev.lucaargolo.nexo.api.unit.screen.ScreenUnit;
@@ -326,6 +328,11 @@ public abstract class NexoMinecraft implements Nexo {
     @Override
     public @NotNull BlockUnit unit(@NotNull BlockBase block) {
         return stateToUnit(MinecraftFeatureType.BLOCK.convert(block).defaultBlockState());
+    }
+
+    @Override
+    public @NotNull FluidUnit unit(@NotNull FluidBase fluid) {
+        return new FluidUnit(this, fluid, 1, 1);
     }
 
     @Override

@@ -68,9 +68,9 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd() {
+    public boolean canInsert() {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canAdd(slot)) {
+            if (this.canInsert(slot)) {
                 return true;
             }
         }
@@ -78,34 +78,42 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canAdd(int slot) {
+    public boolean canInsert(int slot) {
         Objects.checkIndex(slot, this.slots());
         return this.handler.getSlotLimit(slot) > 0;
     }
 
     @Override
-    public boolean canAdd(int slot, @NotNull ItemUnit value) {
+    public boolean canInsert(int slot, @NotNull ItemUnit value) {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.stack(value);
-        if (stack.isEmpty() || !this.canAdd(slot)) {
+        if (stack.isEmpty() || !this.canInsert(slot)) {
             return false;
         }
         return this.handler.insertItem(slot, stack, true).getCount() < stack.getCount();
     }
 
     @Override
-    public int maxAmount(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.slots());
-        if (!(value instanceof MinecraftItemUnit unit)) {
-            return 0;
-        }
-        return Math.min(this.handler.getSlotLimit(slot), unit.get().getMaxStackSize());
+    public int maxStackAmount() {
+        return Integer.MAX_VALUE;
     }
 
     @Override
-    public boolean canRemove() {
+    public int maxStackAmount(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return this.handler.getSlotLimit(slot);
+    }
+
+    @Override
+    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
+    }
+
+    @Override
+    public boolean canExtract() {
         for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canRemove(slot)) {
+            if (this.canExtract(slot)) {
                 return true;
             }
         }
@@ -113,7 +121,7 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canRemove(int slot) {
+    public boolean canExtract(int slot) {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.handler.getStackInSlot(slot);
         return !stack.isEmpty() && !this.handler.extractItem(slot, 1, true).isEmpty();

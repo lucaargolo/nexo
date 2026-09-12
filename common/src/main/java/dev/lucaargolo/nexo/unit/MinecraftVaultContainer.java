@@ -44,7 +44,7 @@ public final class MinecraftVaultContainer implements Container {
         }
 
         ItemUnit value = this.nexo.stackToUnit(pStack.copy());
-        if (this.vault.canAdd(pSlot, value)) {
+        if (this.vault.canInsert(pSlot, value)) {
             this.vault.set(pSlot, value);
         }
     }
@@ -68,7 +68,7 @@ public final class MinecraftVaultContainer implements Container {
     public void clearContent() {
         boolean changed = false;
         for (int slot = 0; slot < this.getContainerSize(); slot++) {
-            if (!this.vault.isEmpty(slot) && this.vault.canRemove(slot)) {
+            if (!this.vault.isEmpty(slot) && this.vault.canExtract(slot)) {
                 this.vault.clear(slot);
                 changed = true;
             }
@@ -86,13 +86,13 @@ public final class MinecraftVaultContainer implements Container {
     @Override
     public boolean canPlaceItem(int pSlot, @NotNull ItemStack pStack) {
         Objects.checkIndex(pSlot, this.getContainerSize());
-        return !pStack.isEmpty() && this.vault.canAdd(pSlot, this.nexo.stackToUnit(pStack.copy()));
+        return !pStack.isEmpty() && this.vault.canInsert(pSlot, this.nexo.stackToUnit(pStack.copy()));
     }
 
     @Override
     public boolean canTakeItem(@NotNull Container pTarget, int pSlot, @NotNull ItemStack pStack) {
         Objects.checkIndex(pSlot, this.getContainerSize());
-        return this.vault.canRemove(pSlot);
+        return this.vault.canExtract(pSlot);
     }
 
     @Override
@@ -118,12 +118,12 @@ public final class MinecraftVaultContainer implements Container {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return !stack.isEmpty() && this.container.vault.canAdd(this.vaultSlot, this.container.nexo.stackToUnit(stack.copy()));
+            return !stack.isEmpty() && this.container.vault.canInsert(this.vaultSlot, this.container.nexo.stackToUnit(stack.copy()));
         }
 
         @Override
         public boolean mayPickup(@NotNull Player player) {
-            return this.container.vault.canRemove(this.vaultSlot);
+            return this.container.vault.canExtract(this.vaultSlot);
         }
     }
 

@@ -2,6 +2,7 @@ package dev.lucaargolo.nexo.api.unit.item;
 
 import dev.lucaargolo.nexo.api.Nexo;
 import dev.lucaargolo.nexo.api.feature.DataProvider;
+import dev.lucaargolo.nexo.api.feature.VaultProvider;
 import dev.lucaargolo.nexo.api.feature.item.ItemBase;
 import dev.lucaargolo.nexo.api.role.Role;
 import dev.lucaargolo.nexo.api.unit.Stackable;
@@ -9,7 +10,7 @@ import dev.lucaargolo.nexo.api.unit.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class ItemUnit extends Unit<ItemBase> implements DataProvider<ItemUnit>, Stackable<ItemUnit> {
+public abstract class ItemUnit extends Unit<ItemBase> implements DataProvider<ItemUnit>, VaultProvider, Stackable<ItemUnit> {
 
     protected ItemUnit(@NotNull Nexo nexo, @NotNull ItemBase feature, @Nullable Role role) {
         super(nexo, feature, role);
