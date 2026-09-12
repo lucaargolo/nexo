@@ -27,13 +27,13 @@ public class BlockItem extends ItemBase {
     }
 
     @Override
-    public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
-        return renderer;
+    public @Nullable ItemCategoryBase category() {
+        return category;
     }
 
     @Override
-    public @Nullable ItemCategoryBase category() {
-        return category;
+    public @Nullable Renderer<Graphics3D, ItemUnit> renderer() {
+        return renderer;
     }
 
     public static @Nullable Renderer<Graphics3D, ItemUnit> renderer(@Nullable Renderer<Graphics3D, BlockUnit> renderer) {

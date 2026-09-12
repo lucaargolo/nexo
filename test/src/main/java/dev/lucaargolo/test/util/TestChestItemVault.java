@@ -32,13 +32,19 @@ public final class TestChestItemVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public @NotNull ItemUnit empty() {
+        return this.empty;
+    }
+
+    @Override
     public int maxStackAmount() {
         return 64;
     }
 
+
     @Override
-    public @NotNull ItemUnit empty() {
-        return this.empty;
+    public void changed() {
+        this.owner.setData(this.data, this.array);
     }
 
     @Override
@@ -56,11 +62,6 @@ public final class TestChestItemVault implements Vault.Slotted<ItemUnit> {
         ItemUnit previous = this.array[slot].copy();
         this.array[slot] = value.copy();
         return previous;
-    }
-
-    @Override
-    public void changed() {
-        this.owner.setData(this.data, this.array);
     }
 
     public static <U extends Unit<?>> @NotNull Vault.Slotted<U> create(@NotNull Class<U> type, @NotNull DataProvider<?> owner, @NotNull DataBase<ItemUnit[]> data, @NotNull ItemUnit empty) {

@@ -74,6 +74,11 @@ public interface MinecraftGraphics2D extends Graphics2D {
         return state().color.clone();
     }
 
+    @Override
+    default @Nullable Material<?> material() {
+        return state().material;
+    }
+
 
     @Override
     default void lineWidth(float width) {
@@ -90,13 +95,21 @@ public interface MinecraftGraphics2D extends Graphics2D {
     }
 
     @Override
-    default @Nullable Material<?> material() {
-        return state().material;
+    default void clip(float x, float y, float width, float height) {
+        throw unsupported("clip regions");
     }
 
     @Override
-    default void drawLine(float x1, float y1, float x2, float y2) {
-        strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
+    default void disableClip() {
+    }
+
+    @Override
+    default void scissor(int x, int y, int width, int height) {
+        throw unsupported("scissor regions");
+    }
+
+    @Override
+    default void disableScissor() {
     }
 
     default void strokePolyline(float @NotNull [] @NotNull [] points, boolean closed) {
@@ -197,21 +210,8 @@ public interface MinecraftGraphics2D extends Graphics2D {
     }
 
     @Override
-    default void clip(float x, float y, float width, float height) {
-        throw unsupported("clip regions");
-    }
-
-    @Override
-    default void disableClip() {
-    }
-
-    @Override
-    default void scissor(int x, int y, int width, int height) {
-        throw unsupported("scissor regions");
-    }
-
-    @Override
-    default void disableScissor() {
+    default void drawLine(float x1, float y1, float x2, float y2) {
+        strokePolyline(new float[][]{{x1, y1}, {x2, y2}}, false);
     }
 
     void begin(@NotNull PrimitiveType type, @NotNull VertexLayout format);

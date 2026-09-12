@@ -19,30 +19,6 @@ public final class BooleanData extends DataBase.Constrained<Boolean> {
     }
 
     @Override
-    public @NotNull Class<Boolean> valueClass() {
-        return Boolean.class;
-    }
-
-    @Override
-    public @NotNull Collection<Boolean> values() {
-        return List.of(Boolean.TRUE, Boolean.FALSE);
-    }
-
-    @Override
-    public @NotNull String toString(@NotNull Boolean value) {
-        return value.toString();
-    }
-
-    @Override
-    public @NotNull Optional<Boolean> fromString(@NotNull String string) {
-        return switch (string) {
-            case "true" -> Optional.of(Boolean.TRUE);
-            case "false" -> Optional.of(Boolean.FALSE);
-            default -> Optional.empty();
-        };
-    }
-
-    @Override
     public @NotNull Boolean initial() {
         return initial;
     }
@@ -68,6 +44,30 @@ public final class BooleanData extends DataBase.Constrained<Boolean> {
     @Override
     public @NotNull Boolean deserialize(@NotNull JsonElement element) {
         return element.getAsBoolean();
+    }
+
+    @Override
+    public @NotNull Class<Boolean> valueClass() {
+        return Boolean.class;
+    }
+
+    @Override
+    public @NotNull Collection<Boolean> values() {
+        return List.of(Boolean.TRUE, Boolean.FALSE);
+    }
+
+    @Override
+    public @NotNull String toString(@NotNull Boolean value) {
+        return value.toString();
+    }
+
+    @Override
+    public @NotNull Optional<Boolean> fromString(@NotNull String string) {
+        return switch (string) {
+            case "true" -> Optional.of(Boolean.TRUE);
+            case "false" -> Optional.of(Boolean.FALSE);
+            default -> Optional.empty();
+        };
     }
 
 }

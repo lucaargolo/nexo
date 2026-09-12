@@ -121,69 +121,8 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
     }
 
     @Override
-    public State state() {
-        return state;
-    }
-
-    @Override
     public @NotNull Shader createShader(@NotNull ShaderSource source) {
         throw unsupported("shaders while baking a model");
-    }
-
-    @Override
-    public PrimitiveType primitive() {
-        return primitive;
-    }
-
-    @Override
-    public void matrixTranslate(float x, float y, float z) {
-        matrix.translate(x, y, z);
-    }
-
-    @Override
-    public void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
-        matrix.rotate((float) Math.toRadians(angle), axisX, axisY, axisZ);
-    }
-
-    @Override
-    public void matrixScale(float x, float y, float z) {
-        matrix.scale(x, y, z);
-    }
-
-    @Override
-    public void matrixMul(@NotNull Matrix4f m) {
-        matrix.mul(m);
-    }
-
-    @Override
-    public @NotNull Matrix4f matrixGet() {
-        return new Matrix4f(matrix);
-    }
-
-    @Override
-    public @NotNull Vector3f camera() {
-        throw unsupported("camera coordinates while baking a model");
-    }
-
-    @Override
-    public void lineWidth(float width) {
-        if (width != 1.0F) {
-            throw unsupported("line width");
-        }
-    }
-
-    @Override
-    public void depthMode(@NotNull DepthMode mode) {
-        if (mode != DepthMode.ENABLED) {
-            throw unsupported("depth mode " + mode);
-        }
-    }
-
-    @Override
-    public void lightmap(float u, float v) {
-        if (u != 0.0F || v != 0.0F) {
-            throw unsupported("custom lightmap coordinates");
-        }
     }
 
     @Override
@@ -206,6 +145,13 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
         }
         state().material = material;
         state().color = material.colorData().clone();
+    }
+
+    @Override
+    public void lineWidth(float width) {
+        if (width != 1.0F) {
+            throw unsupported("line width");
+        }
     }
 
     @Override
@@ -270,22 +216,6 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
     public void fillArc(float x, float y, float radius, float startAngle, float endAngle) {
         throw unsupported("arcs");
     }
-
-    @Override
-    public void drawText(@NotNull Text text, float x, float y) {
-        throw unsupported("text");
-    }
-
-    @Override
-    public float textWidth(@NotNull Text text) {
-        throw unsupported("text");
-    }
-
-    @Override
-    public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
-        throw unsupported("lines");
-    }
-
 
     @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexLayout format) {
@@ -414,6 +344,75 @@ public final class BakedMinecraftGraphics3D implements MinecraftGraphics3D {
             default -> throw unsupported(completed.name().toLowerCase());
         }
         vertices.clear();
+    }
+
+    @Override
+    public void drawText(@NotNull Text text, float x, float y) {
+        throw unsupported("text");
+    }
+
+    @Override
+    public float textWidth(@NotNull Text text) {
+        throw unsupported("text");
+    }
+
+    @Override
+    public State state() {
+        return state;
+    }
+
+    @Override
+    public PrimitiveType primitive() {
+        return primitive;
+    }
+
+    @Override
+    public void matrixTranslate(float x, float y, float z) {
+        matrix.translate(x, y, z);
+    }
+
+    @Override
+    public void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
+        matrix.rotate((float) Math.toRadians(angle), axisX, axisY, axisZ);
+    }
+
+    @Override
+    public void matrixScale(float x, float y, float z) {
+        matrix.scale(x, y, z);
+    }
+
+    @Override
+    public void matrixMul(@NotNull Matrix4f m) {
+        matrix.mul(m);
+    }
+
+    @Override
+    public @NotNull Matrix4f matrixGet() {
+        return new Matrix4f(matrix);
+    }
+
+    @Override
+    public @NotNull Vector3f camera() {
+        throw unsupported("camera coordinates while baking a model");
+    }
+
+    @Override
+    public void depthMode(@NotNull DepthMode mode) {
+        if (mode != DepthMode.ENABLED) {
+            throw unsupported("depth mode " + mode);
+        }
+    }
+
+    @Override
+    public void lightmap(float u, float v) {
+        if (u != 0.0F || v != 0.0F) {
+            throw unsupported("custom lightmap coordinates");
+        }
+    }
+
+    @Override
+    public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
+        throw unsupported("lines");
     }
 
     private void requireVertexMultiple(@NotNull PrimitiveType type, int multiple) {

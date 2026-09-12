@@ -18,14 +18,6 @@ public final class DynamicMinecraftGraphics3D extends DynamicMinecraftGraphics2D
     }
 
     @Override
-    public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
-        begin(PrimitiveType.LINES, VertexLayout.POSITION);
-        vertex(x1, y1, z1);
-        vertex(x2, y2, z2);
-        end();
-    }
-
-    @Override
     public @NotNull CullMode defaultCullMode() {
         return CullMode.BACK;
     }
@@ -33,6 +25,14 @@ public final class DynamicMinecraftGraphics3D extends DynamicMinecraftGraphics2D
     @Override
     public @NotNull Vector3f camera() {
         return new Matrix4f(poses.last().pose()).invert().transformPosition(new Vector3f());
+    }
+
+    @Override
+    public void drawLine(float x1, float y1, float z1, float x2, float y2, float z2) {
+        begin(PrimitiveType.LINES, VertexLayout.POSITION);
+        vertex(x1, y1, z1);
+        vertex(x2, y2, z2);
+        end();
     }
 
 }

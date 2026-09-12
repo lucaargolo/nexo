@@ -70,21 +70,6 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
         state.depth = DepthMode.DISABLED;
     }
 
-    @Override
-    public State state() {
-        return state;
-    }
-
-    @Override
-    public @NotNull Shader createShader(@NotNull ShaderSource source) {
-        return nexo.getRenderingHandler().shaderHandler().createShader(source);
-    }
-
-    @Override
-    public @Nullable PrimitiveType primitive() {
-        return primitive;
-    }
-
     public void finish() {
         if (finished) {
             return;
@@ -125,36 +110,6 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
     }
 
     @Override
-    public void matrixTranslate(float x, float y, float z) {
-        poses.translate(x, y, z);
-    }
-
-    @Override
-    public void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
-        poses.mulPose(new Quaternionf().fromAxisAngleDeg(axisX, axisY, axisZ, angle));
-    }
-
-    @Override
-    public void matrixScale(float x, float y, float z) {
-        poses.scale(x, y, z);
-    }
-
-    @Override
-    public void matrixMul(@NotNull Matrix4f matrix) {
-        poses.mulPose(matrix);
-    }
-
-    @Override
-    public @NotNull Matrix4f matrixGet() {
-        return new Matrix4f(poses.last().pose());
-    }
-
-    @Override
-    public @NotNull CullMode defaultCullMode() {
-        return CullMode.DISABLED;
-    }
-
-    @Override
     public void pushState() {
         requireOutsidePrimitive("change render state");
         states.push(new State(state));
@@ -167,6 +122,11 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
             throw new IllegalStateException("Cannot pop an empty render-state stack");
         }
         state = states.pop();
+    }
+
+    @Override
+    public @NotNull Shader createShader(@NotNull ShaderSource source) {
+        return nexo.getRenderingHandler().shaderHandler().createShader(source);
     }
 
     @Override
@@ -391,74 +351,6 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
 
 
     @Override
-    public void drawText(@NotNull Text text, float x, float y) {
-        requireOutsidePrimitive("draw text");
-        Font minecraftFont = Minecraft.getInstance().font;
-        int color = packColor(state.color);
-        int light = state.light != NO_LIGHT_OVERRIDE ? state.light : packedLight;
-        float cursorX = x;
-        float cursorY = y;
-        float lineHeight = 0.0F;
-        for (Text.Run run : MinecraftText.runs(nexo, text)) {
-            Text.Style style = run.style();
-            float scale = style.size() / minecraftFont.lineHeight;
-            String[] lines = run.text().split("\\n", -1);
-            lineHeight = Math.max(lineHeight, style.size());
-            for (int i = 0; i < lines.length; i++) {
-                String line = lines[i];
-                if (!line.isEmpty()) {
-                    MutableComponent component = MinecraftText.component(line, style);
-                    Matrix4f matrix = matrix();
-                    matrix.scale(scale);
-                    minecraftFont.drawInBatch(
-                            component,
-                            cursorX / scale,
-                            cursorY / scale,
-                            color,
-                            false,
-                            matrix,
-                            buffers,
-                            Font.DisplayMode.NORMAL,
-                            0,
-                            light
-                    );
-                    cursorX += minecraftFont.width(component) * scale;
-                }
-                if (i < lines.length - 1) {
-                    cursorX = x;
-                    cursorY += lineHeight;
-                    lineHeight = 0.0F;
-                }
-            }
-        }
-    }
-
-    @Override
-    public float textWidth(@NotNull Text text) {
-        Font minecraftFont = Minecraft.getInstance().font;
-        float width = 0.0F;
-        float lineWidth = 0.0F;
-        for (Text.Run run : MinecraftText.runs(nexo, text)) {
-            Text.Style style = run.style();
-            float scale = style.size() / minecraftFont.lineHeight;
-            String[] lines = run.text().split("\\n", -1);
-            for (int i = 0; i < lines.length; i++) {
-                if (!lines[i].isEmpty()) {
-                    MutableComponent component = MinecraftText.component(lines[i], style);
-                    lineWidth += minecraftFont.width(component) * scale;
-                }
-                if (i < lines.length - 1) {
-                    width = Math.max(width, lineWidth);
-                    lineWidth = 0.0F;
-                }
-            }
-        }
-        return Math.max(width, lineWidth);
-    }
-
-
-
-    @Override
     public void begin(@NotNull PrimitiveType type, @NotNull VertexLayout format) {
         if (primitive != null) {
             throw new IllegalStateException("Cannot begin a primitive before ending " + primitive);
@@ -582,6 +474,112 @@ public class DynamicMinecraftGraphics2D implements MinecraftGraphics2D, AutoClos
         activeRenderType = null;
         firstVertex = null;
         vertexCount = 0;
+    }
+
+    @Override
+    public void drawText(@NotNull Text text, float x, float y) {
+        requireOutsidePrimitive("draw text");
+        Font minecraftFont = Minecraft.getInstance().font;
+        int color = packColor(state.color);
+        int light = state.light != NO_LIGHT_OVERRIDE ? state.light : packedLight;
+        float cursorX = x;
+        float cursorY = y;
+        float lineHeight = 0.0F;
+        for (Text.Run run : MinecraftText.runs(nexo, text)) {
+            Text.Style style = run.style();
+            float scale = style.size() / minecraftFont.lineHeight;
+            String[] lines = run.text().split("\\n", -1);
+            lineHeight = Math.max(lineHeight, style.size());
+            for (int i = 0; i < lines.length; i++) {
+                String line = lines[i];
+                if (!line.isEmpty()) {
+                    MutableComponent component = MinecraftText.component(line, style);
+                    Matrix4f matrix = matrix();
+                    matrix.scale(scale);
+                    minecraftFont.drawInBatch(
+                            component,
+                            cursorX / scale,
+                            cursorY / scale,
+                            color,
+                            false,
+                            matrix,
+                            buffers,
+                            Font.DisplayMode.NORMAL,
+                            0,
+                            light
+                    );
+                    cursorX += minecraftFont.width(component) * scale;
+                }
+                if (i < lines.length - 1) {
+                    cursorX = x;
+                    cursorY += lineHeight;
+                    lineHeight = 0.0F;
+                }
+            }
+        }
+    }
+
+    @Override
+    public float textWidth(@NotNull Text text) {
+        Font minecraftFont = Minecraft.getInstance().font;
+        float width = 0.0F;
+        float lineWidth = 0.0F;
+        for (Text.Run run : MinecraftText.runs(nexo, text)) {
+            Text.Style style = run.style();
+            float scale = style.size() / minecraftFont.lineHeight;
+            String[] lines = run.text().split("\\n", -1);
+            for (int i = 0; i < lines.length; i++) {
+                if (!lines[i].isEmpty()) {
+                    MutableComponent component = MinecraftText.component(lines[i], style);
+                    lineWidth += minecraftFont.width(component) * scale;
+                }
+                if (i < lines.length - 1) {
+                    width = Math.max(width, lineWidth);
+                    lineWidth = 0.0F;
+                }
+            }
+        }
+        return Math.max(width, lineWidth);
+    }
+
+    @Override
+    public State state() {
+        return state;
+    }
+
+    @Override
+    public @Nullable PrimitiveType primitive() {
+        return primitive;
+    }
+
+    @Override
+    public void matrixTranslate(float x, float y, float z) {
+        poses.translate(x, y, z);
+    }
+
+    @Override
+    public void matrixRotate(float angle, float axisX, float axisY, float axisZ) {
+        poses.mulPose(new Quaternionf().fromAxisAngleDeg(axisX, axisY, axisZ, angle));
+    }
+
+    @Override
+    public void matrixScale(float x, float y, float z) {
+        poses.scale(x, y, z);
+    }
+
+    @Override
+    public void matrixMul(@NotNull Matrix4f matrix) {
+        poses.mulPose(matrix);
+    }
+
+    @Override
+    public @NotNull Matrix4f matrixGet() {
+        return new Matrix4f(poses.last().pose());
+    }
+
+    @Override
+    public @NotNull CullMode defaultCullMode() {
+        return CullMode.DISABLED;
     }
 
     private static void requireMultiple(@NotNull PrimitiveType type, int count, int multiple) {

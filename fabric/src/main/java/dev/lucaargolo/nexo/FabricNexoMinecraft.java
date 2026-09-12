@@ -63,14 +63,13 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     }
 
     @Override
-    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
-        if (receiver == PacketReceiver.server()) {
-            ClientPlayNetworking.send(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
-            ServerPlayNetworking.send(player, payload);
-        } else {
-            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
-        }
+    public @Nullable Mod getMod(@NotNull String id) {
+        return this.discoveryHandler.getMod(id);
+    }
+
+    @Override
+    public Side getSide() {
+        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT ? Side.CLIENT : Side.SERVER;
     }
 
     @Override
@@ -98,16 +97,6 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     }
 
     @Override
-    public Side getSide() {
-        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT ? Side.CLIENT : Side.SERVER;
-    }
-
-    @Override
-    public @Nullable Mod getMod(@NotNull String id) {
-        return this.discoveryHandler.getMod(id);
-    }
-
-    @Override
     public MinecraftServer getServer() {
         return this.currentServer;
     }
@@ -115,6 +104,17 @@ public class FabricNexoMinecraft extends NexoMinecraft implements ModInitializer
     @Override
     public Player createFakePlayer(Level level, UUID uuid, String name) {
         return FakePlayer.get((ServerLevel) level, new GameProfile(uuid, name));
+    }
+
+    @Override
+    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
+        if (receiver == PacketReceiver.server()) {
+            ClientPlayNetworking.send(payload);
+        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
+            ServerPlayNetworking.send(player, payload);
+        } else {
+            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
+        }
     }
 
     private String getDescriptor(MappingResolver resolver, Class<?> type) {

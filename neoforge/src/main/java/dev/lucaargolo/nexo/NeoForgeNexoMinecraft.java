@@ -64,18 +64,17 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
-        if (receiver == PacketReceiver.server()) {
-            PacketDistributor.sendToServer(payload);
-        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
-            PacketDistributor.sendToPlayer(player, payload);
-        } else {
-            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
-        }
+    public @Nullable Mod getMod(@NotNull String id) {
+        return this.discoveryHandler.getMod(id);
     }
 
     public IEventBus modBus() {
         return modBus;
+    }
+
+    @Override
+    public Side getSide() {
+        return FMLEnvironment.dist.isClient() ? Side.CLIENT : Side.SERVER;
     }
 
     @Override
@@ -94,16 +93,6 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     }
 
     @Override
-    public Side getSide() {
-        return FMLEnvironment.dist.isClient() ? Side.CLIENT : Side.SERVER;
-    }
-
-    @Override
-    public @Nullable Mod getMod(@NotNull String id) {
-        return this.discoveryHandler.getMod(id);
-    }
-
-    @Override
     public MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
     }
@@ -111,6 +100,17 @@ public class NeoForgeNexoMinecraft extends NexoMinecraft {
     @Override
     public Player createFakePlayer(Level level, UUID uuid, String name) {
         return FakePlayerFactory.get((ServerLevel) level, new GameProfile(uuid, name));
+    }
+
+    @Override
+    protected void sendMinecraftPacket(@NotNull PacketReceiver receiver, @NotNull MinecraftPacketPayload payload) {
+        if (receiver == PacketReceiver.server()) {
+            PacketDistributor.sendToServer(payload);
+        } else if (receiver instanceof MinecraftEntityUnit<?> unit && unit.get() instanceof ServerPlayer player) {
+            PacketDistributor.sendToPlayer(player, payload);
+        } else {
+            throw new IllegalArgumentException("Minecraft packets can only be sent to the server or a server player");
+        }
     }
 
 }

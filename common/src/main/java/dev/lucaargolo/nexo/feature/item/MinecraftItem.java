@@ -77,8 +77,20 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public @NotNull List<@NotNull DataBase<?>> initialData() {
-        return this.initialData;
+    public @Nullable ItemCategoryBase category() {
+        if (!this.computedCategory) {
+            this.computedCategory = true;
+            Item item = MinecraftFeatureType.ITEM.convert(this);
+            for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
+                for (ItemStack stack : tab.getDisplayItems()) {
+                    if (stack.getItem() == item) {
+                        this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.nexo, tab);
+                        return this.category;
+                    }
+                }
+            }
+        }
+        return this.category;
     }
 
     private <D> @Nullable DataBase<?> componentData(@NotNull TypedDataComponent<D> component) {
@@ -102,20 +114,8 @@ public class MinecraftItem extends ItemBase {
     }
 
     @Override
-    public @Nullable ItemCategoryBase category() {
-        if (!this.computedCategory) {
-            this.computedCategory = true;
-            Item item = MinecraftFeatureType.ITEM.convert(this);
-            for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
-                for (ItemStack stack : tab.getDisplayItems()) {
-                    if (stack.getItem() == item) {
-                        this.category = MinecraftFeatureType.ITEM_CATEGORY.convert(this.nexo, tab);
-                        return this.category;
-                    }
-                }
-            }
-        }
-        return this.category;
+    public @NotNull List<@NotNull DataBase<?>> initialData() {
+        return this.initialData;
     }
 
     public static ItemBase lookup(Location location) {

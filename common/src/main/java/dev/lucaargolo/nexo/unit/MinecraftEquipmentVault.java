@@ -33,6 +33,16 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public boolean canExtract() {
+        return this.canExtract(0);
+    }
+
+    @Override
+    public int maxStackAmount() {
+        return 64;
+    }
+
+    @Override
     public int slots() {
         return 1;
     }
@@ -88,19 +98,9 @@ public final class MinecraftEquipmentVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public boolean canExtract() {
-        return this.canExtract(0);
-    }
-
-    @Override
     public boolean canExtract(int slot) {
         Objects.checkIndex(slot, this.slots());
         return !this.entity.getItemBySlot(this.slot).isEmpty();
-    }
-
-    @Override
-    public int maxStackAmount() {
-        return 64;
     }
 
     @Override

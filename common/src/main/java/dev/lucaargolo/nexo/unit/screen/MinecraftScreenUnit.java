@@ -58,13 +58,6 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
     }
 
     @Override
-    public void build() {
-        previousMouseX = Double.NaN;
-        previousMouseY = Double.NaN;
-        super.build();
-    }
-
-    @Override
     public int width() {
         return this.screen != null ? this.screen.width : 0;
     }
@@ -89,6 +82,13 @@ public abstract class MinecraftScreenUnit<D> extends ScreenUnit<D> implements Mi
             //TODO: Send packet to client to open screen
             return false;
         }
+    }
+
+    @Override
+    public void build() {
+        previousMouseX = Double.NaN;
+        previousMouseY = Double.NaN;
+        super.build();
     }
 
     public void handleMouseMoved(double mouseX, double mouseY) {

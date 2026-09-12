@@ -110,28 +110,6 @@ public class MinecraftBlock extends BlockBase {
     }
 
     @Override
-    public @NotNull List<@NotNull DataBase<?>> initialData() {
-        return this.initialData;
-    }
-
-    @Override
-    public @NotNull List<@NotNull Tag> tags() {
-        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
-    }
-
-    @Override
-    public @Nullable Renderer<Graphics3D, BlockUnit> renderer() {
-        // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
-        return null;
-    }
-
-    @Override
-    public @Nullable ItemBase item() {
-        Item item = this.holder.value().asItem();
-        return item != Items.AIR ? MinecraftFeatureType.ITEM.convert(nexo, item) : null;
-    }
-
-    @Override
     public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
         BlockState state = ((MinecraftBlockUnit) block).get();
         Level level = ((MinecraftWorldUnit) world).get();
@@ -144,6 +122,28 @@ public class MinecraftBlock extends BlockBase {
             case PASS -> Interaction.PASS;
             case FAIL -> Interaction.FAIL;
         };
+    }
+
+    @Override
+    public @NotNull List<@NotNull Tag> tags() {
+        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
+    }
+
+    @Override
+    public @Nullable ItemBase item() {
+        Item item = this.holder.value().asItem();
+        return item != Items.AIR ? MinecraftFeatureType.ITEM.convert(nexo, item) : null;
+    }
+
+    @Override
+    public @Nullable Renderer<Graphics3D, BlockUnit> renderer() {
+        // Minecraft-backed features are created from vanilla holders and carry no user-supplied renderer.
+        return null;
+    }
+
+    @Override
+    public @NotNull List<@NotNull DataBase<?>> initialData() {
+        return this.initialData;
     }
 
     public static BlockBase lookup(Location location) {

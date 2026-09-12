@@ -40,30 +40,6 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
         super(nexo, feature, role, level, position, state, entity, direction);
     }
 
-    @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        if(type == ItemUnit.class) {
-            if (this.itemStorage() != null) {
-                return ImmutableSet.<String>builder()
-                        .addAll(super.vaults(type))
-                        .add("inventory")
-                        .build();
-            }
-        }
-        return super.vaults(type);
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if(type == ItemUnit.class) {
-            if (key.equals("inventory")) {
-                Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
-                return vault != null ? vault : super.vault(type, key);
-            }
-        }
-        return super.vault(type, key);
-    }
-
     private @Nullable Storage<ItemVariant> itemStorage() {
         if (this.level == null || this.position == null) {
             return null;
@@ -114,6 +90,30 @@ public class FabricMinecraftBlockUnit extends MinecraftBlockUnit{
         } else {
             throw new IllegalArgumentException("Tried to set non-constrained data " + data + " to non-dynamic MinecraftBlockUnit");
         }
+    }
+
+    @Override
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
+        if(type == ItemUnit.class) {
+            if (this.itemStorage() != null) {
+                return ImmutableSet.<String>builder()
+                        .addAll(super.vaults(type))
+                        .add("inventory")
+                        .build();
+            }
+        }
+        return super.vaults(type);
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                Vault<U> vault = FabricItemStorageVault.create(this.nexo, type, this.itemStorage());
+                return vault != null ? vault : super.vault(type, key);
+            }
+        }
+        return super.vault(type, key);
     }
 
 }

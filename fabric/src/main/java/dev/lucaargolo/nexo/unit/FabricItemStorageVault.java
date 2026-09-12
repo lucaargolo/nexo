@@ -255,6 +255,12 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         }
 
         @Override
+        public boolean canExtract(int slot) {
+            Objects.checkIndex(slot, this.slots());
+            return this.slottedStorage.getSlot(slot).supportsExtraction();
+        }
+
+        @Override
         public int maxStackAmount(int slot) {
             Objects.checkIndex(slot, this.slots());
             long capacity = this.slottedStorage.getSlot(slot).getCapacity();
@@ -265,12 +271,6 @@ public class FabricItemStorageVault implements Vault<ItemUnit> {
         public int maxStackAmount(int slot, @NotNull ItemUnit value) {
             Objects.checkIndex(slot, this.slots());
             return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
-        }
-
-        @Override
-        public boolean canExtract(int slot) {
-            Objects.checkIndex(slot, this.slots());
-            return this.slottedStorage.getSlot(slot).supportsExtraction();
         }
     }
 }

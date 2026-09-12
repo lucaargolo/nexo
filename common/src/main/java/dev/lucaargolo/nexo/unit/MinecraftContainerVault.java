@@ -31,8 +31,40 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
+    public boolean canInsert() {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            if (this.canInsert(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean canExtract() {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            if (this.canExtract(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void clear() {
+        for (int slot = 0; slot < this.slots(); slot++) {
+            this.clear(slot);
+        }
+    }
+
+    @Override
     public int maxStackAmount() {
         return this.container.getMaxStackSize();
+    }
+
+    @Override
+    public void changed() {
+        this.container.setChanged();
     }
 
     @Override
@@ -74,21 +106,6 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public void changed() {
-        this.container.setChanged();
-    }
-
-    @Override
-    public boolean canInsert() {
-        for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canInsert(slot)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public boolean canInsert(int slot) {
         Objects.checkIndex(slot, this.slots());
         return this.container.getMaxStackSize() > 0;
@@ -114,22 +131,6 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.slots());
-        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
-    }
-
-    @Override
-    public boolean canExtract() {
-        for (int slot = 0; slot < this.slots(); slot++) {
-            if (this.canExtract(slot)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public boolean canExtract(int slot) {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.container.getItem(slot);
@@ -146,10 +147,9 @@ public final class MinecraftContainerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public void clear() {
-        for (int slot = 0; slot < this.slots(); slot++) {
-            this.clear(slot);
-        }
+    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
     }
 
     public static @Nullable <U extends Unit<?>> Vault<U> create(@NotNull NexoMinecraft nexo, @NotNull Class<U> type, @Nullable Container container) {

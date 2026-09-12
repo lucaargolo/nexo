@@ -94,23 +94,6 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
     }
 
     @Override
-    public int maxStackAmount() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public int maxStackAmount(int slot) {
-        Objects.checkIndex(slot, this.slots());
-        return this.handler.getSlotLimit(slot);
-    }
-
-    @Override
-    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
-        Objects.checkIndex(slot, this.slots());
-        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
-    }
-
-    @Override
     public boolean canExtract() {
         for (int slot = 0; slot < this.slots(); slot++) {
             if (this.canExtract(slot)) {
@@ -125,6 +108,23 @@ public final class NeoForgeItemHandlerVault implements Vault.Slotted<ItemUnit> {
         Objects.checkIndex(slot, this.slots());
         ItemStack stack = this.handler.getStackInSlot(slot);
         return !stack.isEmpty() && !this.handler.extractItem(slot, 1, true).isEmpty();
+    }
+
+    @Override
+    public int maxStackAmount() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public int maxStackAmount(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return this.handler.getSlotLimit(slot);
+    }
+
+    @Override
+    public int maxStackAmount(int slot, @NotNull ItemUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return value instanceof MinecraftItemUnit unit ? Math.min(this.maxStackAmount(slot), unit.get().getMaxStackSize()) : 0;
     }
 
     private @NotNull ItemStack stack(@NotNull ItemUnit value) {

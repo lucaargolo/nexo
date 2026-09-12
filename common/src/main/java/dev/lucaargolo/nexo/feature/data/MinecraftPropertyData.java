@@ -23,11 +23,6 @@ public class MinecraftPropertyData<T extends Comparable<T>> extends DataBase.Con
     }
 
     @Override
-    public @NotNull String name() {
-        return this.property.getName();
-    }
-
-    @Override
     public @NotNull Class<T> valueClass() {
         return this.property.getValueClass();
     }
@@ -45,6 +40,11 @@ public class MinecraftPropertyData<T extends Comparable<T>> extends DataBase.Con
     @Override
     public @NotNull Optional<T> fromString(@NotNull String string) {
         return this.property.getValue(string);
+    }
+
+    @Override
+    public @NotNull String name() {
+        return this.property.getName();
     }
 
     @Override

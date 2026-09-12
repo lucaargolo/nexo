@@ -249,6 +249,58 @@ public class TestScreen extends SimpleScreen {
     }
 
     @Override
+    public void render(@NotNull ScreenUnit<Text> unit, @NotNull Graphics2D graphics) {
+        graphics.bindMaterial(UI_MATERIAL);
+        graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
+        graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
+
+        graphics.color(1F, 1F, 1F, 1.0F);
+        graphics.drawText(RICH_TEXT, 10, 50);
+        graphics.drawText(LOCALIZED_TEXT, 10, 70);
+
+        graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
+        graphics.fillRoundedRect(unit.mouse().x - 4.0F, unit.mouse().y - 4.0F, 8.0F, 8.0F, 2.0F);
+
+        ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
+        TextureOption texture = TEXTURES.get(textureIndex);
+
+        mouseLabel.text(Text.translatable(
+                "screen.nexo_test.mouse",
+                Text.literal(Float.toString(unit.mouse().x)),
+                Text.literal(Float.toString(unit.mouse().y))
+        ));
+
+        graphics.pushState();
+        graphics.pushMatrix();
+        graphics.translate(cellX, cellY);
+        if (texture.material() != null) {
+            graphics.bindMaterial(texture.material());
+        }
+        graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
+        String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
+        Location selectedFont = FONTS.get(fontIndex).location();
+        Text text = Text.parse((selectedFont == null ? "" : "[font=" + selectedFont + "]") + name);
+        float nameWidth = graphics.textWidth(text);
+        graphics.drawText(text, Math.round((DESIGN_WIDTH - nameWidth) * 0.5F), 0);
+        graphics.translate(0, 16);
+        graphics.scale(contentScale, contentScale);
+        float contentCenterX = shapeTest.centerX();
+        float contentCenterY = shapeTest.centerY();
+        int halfWidth = DESIGN_WIDTH / 2;
+        int halfHeight = (DESIGN_HEIGHT - 16) / 2;
+        graphics.pushMatrix();
+        graphics.translate(Math.round(halfWidth * 0.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
+        shapeTest.outline().accept(graphics);
+        graphics.popMatrix();
+        graphics.pushMatrix();
+        graphics.translate(Math.round(halfWidth * 1.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
+        shapeTest.fill().accept(graphics);
+        graphics.popMatrix();
+        graphics.popMatrix();
+        graphics.popState();
+    }
+
+    @Override
     public @NotNull Map<String, Material<?>> materials() {
         return Map.of(
                 "test_gui_texture", material(NexoTestMod.id("test_gui_texture.png"))
@@ -353,58 +405,6 @@ public class TestScreen extends SimpleScreen {
     private void toggleFont() {
         fontIndex = Math.floorMod(fontIndex + 1, FONTS.size());
         fontButton.text(Text.translatable("screen.nexo_test.font", Text.literal(FONTS.get(fontIndex).name())));
-    }
-
-    @Override
-    public void render(@NotNull ScreenUnit<Text> unit, @NotNull Graphics2D graphics) {
-        graphics.bindMaterial(UI_MATERIAL);
-        graphics.color(0.1F, 0.1F, 0.2F, 1.0F);
-        graphics.fillRect(0.0F, 0.0F, unit.width(), unit.height());
-
-        graphics.color(1F, 1F, 1F, 1.0F);
-        graphics.drawText(RICH_TEXT, 10, 50);
-        graphics.drawText(LOCALIZED_TEXT, 10, 70);
-
-        graphics.color(0.95F, 0.35F, 0.35F, 1.0F);
-        graphics.fillRoundedRect(unit.mouse().x - 4.0F, unit.mouse().y - 4.0F, 8.0F, 8.0F, 2.0F);
-
-        ShapeTest shapeTest = SHAPE_TESTS.get(currentIndex);
-        TextureOption texture = TEXTURES.get(textureIndex);
-
-        mouseLabel.text(Text.translatable(
-                "screen.nexo_test.mouse",
-                Text.literal(Float.toString(unit.mouse().x)),
-                Text.literal(Float.toString(unit.mouse().y))
-        ));
-
-        graphics.pushState();
-        graphics.pushMatrix();
-        graphics.translate(cellX, cellY);
-        if (texture.material() != null) {
-            graphics.bindMaterial(texture.material());
-        }
-        graphics.color(1.0F, 1.0F, 1.0F, 1.0F);
-        String name = shapeTest.name() + " (" + (currentIndex + 1) + "/" + SHAPE_TESTS.size() + ")";
-        Location selectedFont = FONTS.get(fontIndex).location();
-        Text text = Text.parse((selectedFont == null ? "" : "[font=" + selectedFont + "]") + name);
-        float nameWidth = graphics.textWidth(text);
-        graphics.drawText(text, Math.round((DESIGN_WIDTH - nameWidth) * 0.5F), 0);
-        graphics.translate(0, 16);
-        graphics.scale(contentScale, contentScale);
-        float contentCenterX = shapeTest.centerX();
-        float contentCenterY = shapeTest.centerY();
-        int halfWidth = DESIGN_WIDTH / 2;
-        int halfHeight = (DESIGN_HEIGHT - 16) / 2;
-        graphics.pushMatrix();
-        graphics.translate(Math.round(halfWidth * 0.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
-        shapeTest.outline().accept(graphics);
-        graphics.popMatrix();
-        graphics.pushMatrix();
-        graphics.translate(Math.round(halfWidth * 1.5F - contentCenterX), Math.round(halfHeight - contentCenterY));
-        shapeTest.fill().accept(graphics);
-        graphics.popMatrix();
-        graphics.popMatrix();
-        graphics.popState();
     }
 
     @Override

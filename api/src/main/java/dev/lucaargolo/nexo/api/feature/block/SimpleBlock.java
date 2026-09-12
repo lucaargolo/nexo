@@ -25,6 +25,11 @@ public class SimpleBlock extends BlockBase {
     }
 
     @Override
+    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
+        return Interaction.PASS;
+    }
+
+    @Override
     public @Nullable ItemBase item() {
         if(!this.computedItem) {
             this.computedItem = true;
@@ -36,11 +41,6 @@ public class SimpleBlock extends BlockBase {
     @Override
     public @Nullable StaticRenderer<Graphics3D, BlockUnit> renderer() {
         return this.renderer;
-    }
-
-    @Override
-    public @NotNull Interaction onInteract(@NotNull BlockUnit block, @NotNull WorldUnit world, @NotNull EntityUnit entity, @NotNull Vector3i pos) {
-        return Interaction.PASS;
     }
 
 }

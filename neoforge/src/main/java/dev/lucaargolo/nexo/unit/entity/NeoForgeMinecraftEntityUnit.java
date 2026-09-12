@@ -30,6 +30,23 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
     }
 
     @Override
+    public @NotNull List<@NotNull DataBase<?>> data() {
+        CompoundTag tag = this.entity.saveWithoutId(new CompoundTag());
+        return NeoForgeAttachmentData.data(this.nexo, this.entity, List.of(), tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.ENTITY_DATA));
+    }
+
+    @Override
+    public @Nullable <D> D getData(@NotNull DataBase<D> data) {
+        return NeoForgeAttachmentData.getData(this.nexo, this.feature.initialData(), this.entity, data);
+    }
+
+    @Override
+    public <D> @NotNull EntityUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
+        NeoForgeAttachmentData.setData(this.nexo, this.entity, data, d);
+        return this;
+    }
+
+    @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if(type == ItemUnit.class) {
             if (this.itemHandler() != null) {
@@ -56,23 +73,5 @@ public class NeoForgeMinecraftEntityUnit<E extends Entity> extends MinecraftEnti
     private @Nullable IItemHandler itemHandler() {
         return this.entity.getCapability(Capabilities.ItemHandler.ENTITY);
     }
-
-    @Override
-    public @NotNull List<@NotNull DataBase<?>> data() {
-        CompoundTag tag = this.entity.saveWithoutId(new CompoundTag());
-        return NeoForgeAttachmentData.data(this.nexo, this.entity, List.of(), tag, MinecraftFeatureType.DATA.convert(this.nexo, DataComponents.ENTITY_DATA));
-    }
-
-    @Override
-    public @Nullable <D> D getData(@NotNull DataBase<D> data) {
-        return NeoForgeAttachmentData.getData(this.nexo, this.feature.initialData(), this.entity, data);
-    }
-
-    @Override
-    public <D> @NotNull EntityUnit setData(@NotNull DataBase<D> data, @Nullable D d) {
-        NeoForgeAttachmentData.setData(this.nexo, this.entity, data, d);
-        return this;
-    }
-
 
 }

@@ -49,11 +49,6 @@ public abstract class MinecraftEntityUnit<E extends Entity> extends EntityUnit i
     }
 
     @Override
-    public @Nullable WorldUnit world() {
-        return nexo.levelToUnit(this.entity.level());
-    }
-
-    @Override
     public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
         if(type == ItemUnit.class) {
             Set<String> vaults = new HashSet<>();
@@ -85,6 +80,11 @@ public abstract class MinecraftEntityUnit<E extends Entity> extends EntityUnit i
             }
         }
         return null;
+    }
+
+    @Override
+    public @Nullable WorldUnit world() {
+        return nexo.levelToUnit(this.entity.level());
     }
 
     private @Nullable Container container() {

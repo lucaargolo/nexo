@@ -28,6 +28,31 @@ public final class TestTankFluidVault implements Vault.Slotted<FluidUnit> {
     }
 
     @Override
+    public boolean canInsert() {
+        return this.fluid == null || this.fluid.amount() < this.maxStackAmount();
+    }
+
+    @Override
+    public int insert(@NotNull FluidUnit value, int max, boolean simulate) {
+        return this.insert(0, value, max, simulate);
+    }
+
+    @Override
+    public boolean canExtract() {
+        return this.fluid != null;
+    }
+
+    @Override
+    public int extract(@NotNull FluidUnit value, int max, boolean simulate) {
+        return this.extract(0, value, max, simulate);
+    }
+
+    @Override
+    public void clear() {
+        this.fluid = null;
+    }
+
+    @Override
     public int maxStackAmount() {
         return this.capacity;
     }
@@ -59,11 +84,6 @@ public final class TestTankFluidVault implements Vault.Slotted<FluidUnit> {
     }
 
     @Override
-    public boolean canInsert() {
-        return this.fluid == null || this.fluid.amount() < this.maxStackAmount();
-    }
-
-    @Override
     public boolean canInsert(int slot) {
         Objects.checkIndex(slot, this.slots());
         return this.canInsert();
@@ -80,29 +100,7 @@ public final class TestTankFluidVault implements Vault.Slotted<FluidUnit> {
     @Override
     public boolean canInsert(int slot, @NotNull FluidUnit value) {
         Objects.checkIndex(slot, this.slots());
-        return this.canInsert(value);
-    }
-
-    @Override
-    public int maxStackAmount(int slot, @NotNull FluidUnit value) {
-        Objects.checkIndex(slot, this.slots());
-        return this.supports(value) ? this.maxStackAmount(slot) : 0;
-    }
-
-    @Override
-    public boolean canExtract() {
-        return this.fluid != null;
-    }
-
-    @Override
-    public boolean canExtract(int slot) {
-        Objects.checkIndex(slot, this.slots());
-        return this.canExtract();
-    }
-
-    @Override
-    public int insert(@NotNull FluidUnit value, int max, boolean simulate) {
-        return this.insert(0, value, max, simulate);
+        return this.canInsert(slot) && this.canInsert(value);
     }
 
     @Override
@@ -137,8 +135,9 @@ public final class TestTankFluidVault implements Vault.Slotted<FluidUnit> {
     }
 
     @Override
-    public int extract(@NotNull FluidUnit value, int max, boolean simulate) {
-        return this.extract(0, value, max, simulate);
+    public boolean canExtract(int slot) {
+        Objects.checkIndex(slot, this.slots());
+        return this.canExtract();
     }
 
     @Override
@@ -171,14 +170,15 @@ public final class TestTankFluidVault implements Vault.Slotted<FluidUnit> {
     }
 
     @Override
-    public void clear() {
-        this.fluid = null;
-    }
-
-    @Override
     public boolean isEmpty(int slot) {
         Objects.checkIndex(slot, this.slots());
         return this.fluid == null;
+    }
+
+    @Override
+    public int maxStackAmount(int slot, @NotNull FluidUnit value) {
+        Objects.checkIndex(slot, this.slots());
+        return this.supports(value) ? this.maxStackAmount(slot) : 0;
     }
 
     private boolean supports(@NotNull FluidUnit fluid) {

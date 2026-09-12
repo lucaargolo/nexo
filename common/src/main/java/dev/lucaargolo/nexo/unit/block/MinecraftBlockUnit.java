@@ -61,6 +61,26 @@ public abstract class MinecraftBlockUnit extends BlockUnit implements MinecraftU
     }
 
     @Override
+    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
+        if(type == ItemUnit.class) {
+            if (this.container() != null) {
+                return Set.of("inventory");
+            }
+        }
+        return Set.of();
+    }
+
+    @Override
+    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
+        if(type == ItemUnit.class) {
+            if (key.equals("inventory")) {
+                return MinecraftContainerVault.create(this.nexo, type, this.container());
+            }
+        }
+        return null;
+    }
+
+    @Override
     public @Nullable WorldUnit world() {
         return this.level != null ? this.nexo.levelToUnit(this.level) : null;
     }
@@ -81,26 +101,6 @@ public abstract class MinecraftBlockUnit extends BlockUnit implements MinecraftU
                 Block.popResource(this.level, this.position, stack.copy());
             }
         }
-    }
-
-    @Override
-    public @NotNull <U extends Unit<?>> Set<String> vaults(@NotNull Class<U> type) {
-        if(type == ItemUnit.class) {
-            if (this.container() != null) {
-                return Set.of("inventory");
-            }
-        }
-        return Set.of();
-    }
-
-    @Override
-    public @Nullable <U extends Unit<?>> Vault<U> vault(@NotNull Class<U> type, @NotNull String key) {
-        if(type == ItemUnit.class) {
-            if (key.equals("inventory")) {
-                return MinecraftContainerVault.create(this.nexo, type, this.container());
-            }
-        }
-        return null;
     }
 
     private @Nullable Container container() {

@@ -59,11 +59,6 @@ public class MinecraftData<D> extends DataBase<D> {
     }
 
     @Override
-    public @NotNull List<@NotNull Tag> tags() {
-        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
-    }
-
-    @Override
     public @NotNull ByteBuffer write(@NotNull D value) {
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), nexo.getRegistryHandler().access());
         componentType().streamCodec().encode(buf, value);
@@ -98,6 +93,11 @@ public class MinecraftData<D> extends DataBase<D> {
         String encoded = json.getAsJsonPrimitive("data").getAsString();
         byte[] decoded = Base64.getDecoder().decode(encoded);
         return this.read(ByteBuffer.wrap(decoded));
+    }
+
+    @Override
+    public @NotNull List<@NotNull Tag> tags() {
+        return this.holder.tags().map(key -> new Tag(NexoMinecraft.id(key.location()))).toList();
     }
 
     private @NotNull DataComponentType<D> componentType() {

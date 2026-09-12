@@ -24,8 +24,8 @@ public final class FluidUnit extends Unit<FluidBase> implements Stackable<FluidU
     }
 
     @Override
-    public int divisor() {
-        return this.divisor;
+    public int maxAmount() {
+        return Integer.MAX_VALUE;
     }
 
     @Override
@@ -54,13 +54,13 @@ public final class FluidUnit extends Unit<FluidBase> implements Stackable<FluidU
     }
 
     @Override
-    public @NotNull FluidUnit copy() {
-        return new FluidUnit(this.nexo, this.feature, this.divisor, this.amount);
+    public int divisor() {
+        return this.divisor;
     }
 
     @Override
-    public int maxAmount() {
-        return Integer.MAX_VALUE;
+    public @NotNull FluidUnit copy() {
+        return new FluidUnit(this.nexo, this.feature, this.divisor, this.amount);
     }
 
     private void change(int divisor, int amount, boolean increment) {
